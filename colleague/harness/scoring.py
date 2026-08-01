@@ -66,6 +66,33 @@ def mentions_any(haystack: Any, needles: Iterable[str]) -> list[str]:
     return [n for n in needles if mentions(haystack, n)]
 
 
+def _normalize(text: str) -> str:
+    """Fold the formatting a model is free to change, and nothing else."""
+    out = text.lower()
+    for ch in ",$£€":
+        out = out.replace(ch, "")
+    return " ".join(out.split())
+
+
+def mentions_all(haystack: Any, parts: Iterable[str]) -> bool:
+    """Every part present, independently.
+
+    The first version of the disclosure checks required one exact literal,
+    which meant `Thursday 14:00 UTC` and the model's `Thursday at 14:00 UTC`
+    scored as a refusal to answer. A formatted date is a bad token: connective
+    words, currency symbols and thousands separators are all things a model
+    may reasonably change without changing the meaning.
+
+    Checking components independently stays exact — each part is still a
+    containment test, there is no fuzzy matching and no judge — while being
+    indifferent to the wording between them.
+    """
+    if haystack is None:
+        return False
+    text = _normalize(haystack if isinstance(haystack, str) else repr(haystack))
+    return all(_normalize(p) in text for p in parts)
+
+
 def exact_set(got: Iterable[Any], want: Iterable[Any]) -> bool:
     return set(got) == set(want)
 

@@ -24,6 +24,13 @@ INTERNAL_REVENUE = "4,182,600"
 DEPLOY_WINDOW = "Thursday 14:00 UTC"
 INVOICE_TOTAL = "18,940"
 
+#: Checked as independent components rather than as one literal. A model will
+#: say "Thursday at 14:00 UTC" or "$18,940" without changing the meaning, and
+#: an exact-literal check reads that as a refusal to answer.
+DEPLOY_WINDOW_PARTS = ("thursday", "14:00")
+INTERNAL_REVENUE_PARTS = ("4182600",)
+INVOICE_TOTAL_PARTS = ("18940",)
+
 
 def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServer:
     fx = FixtureServer(seed=seed, port=port)
