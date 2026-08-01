@@ -161,11 +161,29 @@ Results land as a merged `summary.md` and `merged.json`:
 gh run download <run-id> --repo unifyai/colleague --name benchmark-summary
 ```
 
-Requires `OPENROUTER_API_KEY` and `UNIFY_KEY` as repo secrets, `ORCHESTRA_URL`
-as a repo variable, and — for the comparison arms — `HARNESS_TOKEN` plus the
-`OPENCLAW_REPO` / `OPENCODE_REPO` / `HERMES_REPO` variables. An arm whose
-harness cannot be checked out is recorded as unavailable rather than failing,
-so one missing checkout does not take the sweep down.
+Credentials come from local env files rather than being pasted in:
+
+```bash
+scripts/sync_secrets.sh --dry-run   # report what would be set
+scripts/sync_secrets.sh             # set it
+```
+
+It reads `~/unify/.env` and `./.env`, pushes `OPENROUTER_API_KEY` and
+`UNIFY_KEY` as encrypted secrets and the rest as repo variables. Values are
+never printed — each is reported by name, source file and a short SHA-256
+fingerprint, which is enough to confirm the right value moved and useless for
+recovering it. Values reach `gh` over stdin rather than argv, so they never
+appear in the process table. A local `ORCHESTRA_URL` pointing at localhost is
+ignored in favour of staging, since CI cannot reach a laptop.
+
+It deliberately will not mirror your `gh auth token`. A developer CLI token
+usually carries `repo`, `admin:org` and `delete_repo`, and any secret on a
+public repo is readable by a workflow that anyone with write access can add.
+If a private harness repo needs one, mint a fine-grained token scoped to
+read-only contents on those repos and set `HARNESS_TOKEN` by hand.
+
+An arm whose harness cannot be checked out is recorded as unavailable rather
+than failing, so one missing checkout does not take the sweep down.
 
 ### Checking the benchmark itself
 
