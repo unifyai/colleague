@@ -70,12 +70,49 @@ class _LoopThread:
 
 
 class UnifyRunHandle(RunHandle):
-    def __init__(self, loop: _LoopThread, handle: Any) -> None:
+    """One dispatched action, awaited the way its mode requires.
+
+    A non-persistent action ends, and `result()` is the answer. A persistent
+    action finishes its turn and then *blocks waiting for the next
+    interjection*, so `result()` does not resolve per turn — the turn's answer
+    arrives on the notification queue as `{"type": "response", ...}`.
+
+    Awaiting `result()` for a persistent session is what broke the first live
+    run of `continuity` and `custody`: the coordinator future resolves once
+    and returns the same value on every later await, so a resumed turn
+    returned the previous turn's answer instantly and its work was never
+    awaited at all. Every continuation scenario reported no side effects.
+    """
+
+    def __init__(
+        self, loop: _LoopThread, handle: Any, *, persist: bool = False
+    ) -> None:
         self._loop = loop
         self._handle = handle
-        self._future = loop.submit(handle.result())
+        self._persist = persist
+        self._future = None if persist else loop.submit(handle.result())
+
+    def _await_turn(self, timeout: float) -> Reply:
+        """Wait for the next surfaced response on a persistent session."""
+        deadline = timeout
+
+        async def _next_response() -> str:
+            while True:
+                note = await self._handle.next_notification()
+                if isinstance(note, dict) and note.get("type") == "response":
+                    return str(note.get("content") or "")
+
+        try:
+            text = self._loop.run(_next_response(), timeout=deadline)
+            return Reply(text=text, ok=True, raw=self._handle)
+        except TimeoutError:
+            return Reply(text="", ok=False, error=f"no response within {deadline}s")
+        except Exception as exc:  # noqa: BLE001 - reported, not raised
+            return Reply(text="", ok=False, error=f"{type(exc).__name__}: {exc}")
 
     def wait(self, timeout: float = 900.0) -> Reply:
+        if self._persist:
+            return self._await_turn(timeout)
         try:
             text = self._future.result(timeout=timeout)
             return Reply(text=str(text), ok=True, raw=self._handle)
@@ -104,7 +141,7 @@ class UnifyRunHandle(RunHandle):
 
     @property
     def done(self) -> bool:
-        return self._future.done()
+        return self._future.done() if self._future is not None else False
 
 
 class UnifySession(ArmSession):
@@ -178,7 +215,7 @@ class UnifySession(ArmSession):
         assert self._loop is not None and self._actor is not None, "call setup() first"
         prompt = compose(context, text if sender is None else f"[{sender}] {text}")
         handle = self._loop.run(self._actor.act(prompt, persist=persist), timeout=120)
-        run = UnifyRunHandle(self._loop, handle)
+        run = UnifyRunHandle(self._loop, handle, persist=persist)
         if persist:
             self._persistent = run
         return run
@@ -193,7 +230,9 @@ class UnifySession(ArmSession):
         if self._persistent is None:
             raise RuntimeError("no persistent session; call begin(persist=True) first")
         self._persistent.interject(text, sender=sender)
-        self._persistent._future = self._loop.submit(self._persistent._handle.result())
+        # The interjection wakes the blocked loop; its answer arrives as the
+        # next surfaced response, not by re-awaiting a future that already
+        # resolved for the previous turn.
         return self._persistent.wait()
 
     def close(self) -> None:
