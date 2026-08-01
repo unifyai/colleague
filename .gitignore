@@ -19,3 +19,7 @@ colleague/tracks/*/*/results/*/**/*.db
 
 # Raw request bodies: kept locally for offline replay, too large to commit.
 colleague/tracks/*/*/results/*/requests.jsonl
+
+# Mock-arm runs are self-test output, not evidence: they make no LLM calls
+# and prove things about the suite rather than about any harness.
+colleague/tracks/*/results/*-mock/

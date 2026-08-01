@@ -196,7 +196,26 @@ class _Handler(BaseHTTPRequestHandler):
             body=body,
             server=self.fixture,
         )
-        status, payload = route.handler(request)
+        try:
+            status, payload = route.handler(request)
+        except Exception as exc:  # noqa: BLE001 - reported, never silent
+            # A handler that raises used to drop the connection, which the
+            # arm sees as RemoteDisconnected and the run record explains as
+            # nothing at all. Returning the fault makes fixture bugs legible
+            # from the results file instead of from a debugging session.
+            import traceback
+
+            self.fixture.recorder.record(
+                "fixture_error",
+                {
+                    "path": parsed.path,
+                    "method": method,
+                    "error": f"{type(exc).__name__}: {exc}",
+                    "traceback": traceback.format_exc()[-2000:],
+                },
+            )
+            self._send_json(500, {"error": f"{type(exc).__name__}: {exc}"})
+            return
         if route.hold_ms:
             import time
 
@@ -281,6 +300,18 @@ class FixtureServer:
 
     def __exit__(self, *exc: Any) -> None:
         self.stop()
+
+    def reset_observations(self) -> None:
+        """Forget what was witnessed, keep the server and its state.
+
+        Tracks that hold one session across several turns must also hold one
+        fixture, or the port moves underneath a warm session and the arm is
+        penalised for remembering a URL the harness changed. Scoping is then
+        done by clearing the recorder between turns rather than by restarting
+        the server.
+        """
+        self.waypoints = Waypoints()
+        self.recorder = Recorder()
 
     def evidence(self) -> dict[str, Any]:
         """Everything the fixture witnessed, for the run record."""

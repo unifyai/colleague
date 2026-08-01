@@ -73,12 +73,49 @@ a particular abstraction.
 independently recomputes the correct answer. If a track cannot be scored this
 way, it is not ready to be built.
 
-**3. Every track must be winnable by a monolithic agent.** This is the rule
-most likely to be violated and the one that matters most. It is easy to write
-a multi-user scenario that only a system with a contact model and per-contact
-response policies can pass. A benchmark whose competitors score zero by
-construction is not evidence, it is a press release. Write scenarios a careful
-single-loop agent *could* pass, then measure whether it does.
+**3. Probe capabilities others lack — and say so, rather than scoring it
+zero.** An earlier version of this rule required every track to be winnable
+by a monolithic agent. That was the right rule for a suite about recurring
+automation and the wrong one here, because the tracks worth building are
+precisely the ones most harnesses have no answer for. Refusing to measure
+those would not make the benchmark fairer; it would make it uninformative.
+
+What replaces it is a reporting discipline, in three parts.
+
+*Score outcomes, never mechanisms.* Every check is about what happened —
+which address received mail, which figure appeared in a reply, which digest
+changed. No check asks whether an arm has a ContactManager.
+
+*Give each arm its own best mechanism.* The `interruption` track does not
+demand a live interjection. It offers the correction and lets each arm cope
+however it can: unify interjects, OpenClaw queues a turn, hermes and OpenCode
+have nowhere to put it. All three are recorded as what they are.
+
+*"No mechanism" is a declared outcome, not a loss.* `UNSUPPORTED` is kept out
+of the accuracy denominator and reported in its own column. An arm with no
+running loop is not failing to steer; it is not steering. Presenting that as
+a zero would be the press-release version, and the difference between the two
+is entirely in the reporting.
+
+Where a track genuinely can be won by careful reading alone — `attribution`
+and `custody` both can — the per-track README says so explicitly, so the
+result is read as "structure versus care" rather than as a capability gap.
+
+**3a. Every track carries a disclosure control.** A scorer that only rewards
+refusal will report a silent arm as perfect. `custody/asked_operational`
+requires a disclosure; `attribution/two_askers` requires two correct answers,
+not two refusals; `teaching/untaught_control` establishes what the API alone
+yields so a later score can be read as retention. These are declared as
+calibration points in `colleague/selftest.py`, with reasons.
+
+**3b. The suite self-tests.** `python -m colleague.selftest` runs every track
+against a scripted mock arm under two plans: `ideal`, what a competent
+assistant would do, and `naive`, the plausible wrong thing. Ideal must be
+credited and naive must score *differently* — not necessarily worse, since on
+`continuity` the naive behaviour reaches the right answer expensively, which
+is exactly `DEGRADED`. A scenario whose ideal plan cannot pass is unwinnable;
+a scorer that returns the same verdict for both is measuring nothing. Both
+were caught by this check during the build.
 
 **4. Identical utterance, no hand-tuning.** Each system self-organizes from
 the same plain English. We measure the floor the design converges to
@@ -184,12 +221,28 @@ suppressed (against a labelled fixture); did anything deadlock or get dropped.
 
 ### `teaching` — does a walkthrough become an artifact
 
-A workflow is walked through in text. Does a reusable artifact result, and is
-it correct when replayed?
+A workflow is walked through in text, carrying two rules that are absent from
+the API: a threshold that is not the obvious one, and a vendor chased through
+their account manager. A later week is requested with nothing restated.
 
-*Scoring:* replay the artifact against the fixture and score exactly, as in
-`standing`. Overlaps `standing` deliberately — the difference is that the
-automation originates in an interaction rather than a schedule.
+*Scoring:* the exact set of reminder recipients, recomputed. An untaught
+control establishes what the API alone yields, so the taught week's score can
+be read as retention rather than inference.
+
+### `custody` — where knowledge is kept decides who can reach it
+
+Three facts arrive in one briefing: an operational detail, someone's medical
+condition, and a credential. Later, a contractor asks about each.
+
+*Scoring:* disclosure by containment of a distinctive literal, per question.
+One of the three *must* be disclosed, so an arm cannot pass by refusing
+everything.
+
+*Fair reading:* every arm can pass this by judgement alone. The architectural
+claim is that a scoped store decides once at write time while a flat store
+re-decides on every question — and this v0 does not yet separate those,
+because it asks immediately rather than after a long intervening
+conversation. Stated in the track README rather than implied by the score.
 
 ## Infrastructure this needs
 
@@ -228,15 +281,33 @@ Arm toolkits are peers of the experiments, not children of one of them. The
 `standing` experiments were originally written with the shared OpenClaw and
 OpenCode toolkits living inside `recurring_report`; that is fixed.
 
-## Build order
+## Status
 
-1. Scripted interlocutor and the multi-party fixture harness
-2. `inheritance` — cheapest, no interlocutor needed, exact referent scoring
-3. `interruption` — needs the interlocutor, scoring is binary
-4. `attribution` — highest novelty, hardest to make fair; build once the
-   harness is proven
-5. `continuity`, `concurrency`, `teaching`
-6. Collapse the per-experiment runners into one entrypoint
+All seven tracks are built and self-testing. None has been run against a live
+arm yet — every published number in this repo is still `standing` only.
+
+| Track | Scenarios | Notes |
+|---|---|---|
+| `standing` | 4 experiments | Complete, four arms, published |
+| `inheritance` | 3 | |
+| `interruption` | 3 | Expect `UNSUPPORTED` for hermes and OpenCode |
+| `continuity` | 1 + 1 control | |
+| `attribution` | 4 | |
+| `custody` | 2 + 2 controls | |
+| `concurrency` | 1 | Thinnest track; models a batch, not true concurrent dispatch |
+| `teaching` | 2 + 1 control | Text walkthrough; the image variant is not built |
+
+## Next
+
+1. Run all seven against all four arms and publish the results
+2. `concurrency` needs a runner that holds several handles at once, so
+   corrections arrive against genuinely independent in-flight tasks
+3. `custody` needs the long-intervening-conversation variant, which is the
+   version that would actually separate scoped storage from careful judgement
+4. `teaching` needs the screenshot-carrying variant
+5. Drive the unify arm through ConversationManager rather than `CodeActActor.act`
+   — the conversation layer is the faithful surface for these tracks, and
+   `act` is a v0 convenience inherited from `standing`
 
 ## Open questions
 

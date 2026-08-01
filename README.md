@@ -44,13 +44,17 @@ chained unillm hook. Both produce the same per-phase ledger.
 
 | Track | Question | Status |
 |---|---|---|
-| [`standing`](colleague/tracks/standing/) | What does firing N cost, and does the automation survive drift? | **complete** — 4 experiments, 4 arms |
-| [`interruption`](colleague/tracks/interruption/) | Does a mid-task correction land before the wrong thing happens? | designed |
-| [`attribution`](colleague/tracks/attribution/) | Many people, one assistant: right person, nothing leaked, silence when correct | designed |
-| [`inheritance`](colleague/tracks/inheritance/) | Does the worker act on the right referent without a round-trip? | designed |
-| [`continuity`](colleague/tracks/continuity/) | Is a follow-up a warm turn or a cold restart? | designed |
-| [`concurrency`](colleague/tracks/concurrency/) | Several tasks, several people — does each correction land in the right one? | designed |
-| [`teaching`](colleague/tracks/teaching/) | Does a walked-through workflow become a reusable artifact? | designed |
+| [`standing`](colleague/tracks/standing/) | What does firing N cost, and does the automation survive drift? | **run** — 4 experiments, 4 arms |
+| [`inheritance`](colleague/tracks/inheritance/) | Does the worker act on the right referent without a round-trip? | built |
+| [`interruption`](colleague/tracks/interruption/) | Does a mid-task correction land before the wrong thing happens? | built |
+| [`continuity`](colleague/tracks/continuity/) | Is a follow-up a warm turn or a cold restart? | built |
+| [`attribution`](colleague/tracks/attribution/) | Many people, one assistant: right person, nothing leaked, silence when correct | built |
+| [`custody`](colleague/tracks/custody/) | Where a fact is filed decides who can get it back out | built |
+| [`concurrency`](colleague/tracks/concurrency/) | Several tasks, several people — does each correction land in the right one? | built |
+| [`teaching`](colleague/tracks/teaching/) | Does a walked-through workflow become a reusable artifact? | built |
+
+"Built" means the fixture, scenarios and scorers exist and self-test. Only
+`standing` has been run against live arms — every number below is from it.
 
 Full scope, scoring rules and the fairness constraints are in
 [`DESIGN.md`](DESIGN.md).
@@ -113,11 +117,26 @@ launchers. Experiments run against staging Orchestra in an isolated context
 tree (`colleague/<experiment>/<run-id>/...`), never a real assistant.
 
 ```bash
-bash colleague/tracks/standing/recurring_report/run.sh
+bash colleague/tracks/standing/recurring_report/run.sh   # standing track
+python -m colleague.run inheritance --arm unify          # everything else
+python -m colleague.run --list                           # tracks and scenarios
 ```
 
 Requires `OPENROUTER_API_KEY`, plus a `UNIFY_KEY` for the unify arm and local
 checkouts of whichever comparison harnesses you want to run.
+
+### Checking the benchmark itself
+
+```bash
+python -m colleague.selftest
+```
+
+Runs every track against a scripted arm under two plans — `ideal`, what a
+competent assistant would do, and `naive`, the plausible wrong thing — and
+asserts that ideal is credited and naive scores differently. It makes no LLM
+calls. A scenario whose ideal plan cannot pass is unwinnable; a scorer that
+returns the same verdict for both is measuring nothing. Both classes of bug
+were caught this way during the build.
 
 ## License
 

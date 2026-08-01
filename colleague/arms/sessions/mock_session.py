@@ -84,6 +84,13 @@ class MockSession(ArmSession):
         self.mode = mode
         self._plan = plan
         self.corrections: list[dict[str, Any]] = []
+        self.memory: dict[str, Any] = {}
+        """Survives across scenarios, standing in for a live session.
+
+        `ideal` plans read and write it; `naive` plans ignore it, which is
+        the cold-restart shape the continuity and custody tracks measure.
+        """
+
         self._fixture: Any = None
         self._scenario: str = ""
 
@@ -103,8 +110,13 @@ class MockSession(ArmSession):
             client=client,
             corrections=self.corrections,
             fixture=self._fixture,
+            memory=self.memory,
         )
         return Reply(text=json.dumps(out, default=str), ok=True)
+
+    def resume(self, text: str, *, sender: str | None = None) -> Reply:
+        del sender
+        return self._turn(text)
 
     def begin(
         self,

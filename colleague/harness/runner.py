@@ -28,7 +28,32 @@ from typing import Any
 from colleague.arms.sessions import build as build_session
 from colleague.harness.capability import Outcome, ScenarioResult, summarize
 from colleague.harness.interlocutor import Interlocutor
-from colleague.harness.session import ArmSession, Unsupported
+from colleague.harness.session import ArmSession, Reply, RunHandle, Unsupported
+
+
+class _Resumed(RunHandle):
+    """A continuation of an open session, presented as an ordinary run."""
+
+    def __init__(self, session: ArmSession, text: str, sender: str | None) -> None:
+        self._session = session
+        self._text = text
+        self._sender = sender
+        self._reply: Reply | None = None
+
+    def wait(self, timeout: float = 900.0) -> Reply:
+        if self._reply is None:
+            try:
+                self._reply = self._session.resume(self._text, sender=self._sender)
+            except Exception as exc:  # noqa: BLE001 - surfaced in the run file
+                self._reply = Reply(
+                    text="",
+                    ok=False,
+                    error=f"{type(exc).__name__}: {exc}",
+                )
+        return self._reply
+
+    def interject(self, text: str, *, sender: str | None = None) -> dict[str, Any]:
+        raise Unsupported("a resumed turn is not separately steerable here")
 
 
 def _session_for(
@@ -95,6 +120,14 @@ def run_track(
         shared_session.setup()
         results["profile"] = shared_session.profile.name
 
+    # A track-scoped session needs a track-scoped fixture: a warm session that
+    # remembers a base URL must not be punished for the harness moving it.
+    shared_fixture = (
+        fixture_module.build(seed=seed, port=port).start()
+        if session_scope == "track"
+        else None
+    )
+
     outcomes: list[ScenarioResult] = []
     try:
         for spec in scenario_module.scenarios("http://placeholder"):
@@ -102,7 +135,11 @@ def run_track(
             if only and name != only:
                 continue
 
-            fixture = fixture_module.build(seed=seed, port=port).start()
+            if shared_fixture is not None:
+                fixture = shared_fixture
+                fixture.reset_observations()
+            else:
+                fixture = fixture_module.build(seed=seed, port=port).start()
             # Scenario text is regenerated against the live port.
             live = next(
                 s
@@ -135,12 +172,19 @@ def run_track(
                 if hasattr(scenario_module, "turns"):
                     turns = scenario_module.turns(name) or []
 
-                handle = session.begin(
-                    live["request"],
-                    persist=bool(live.get("persist")),
-                    context=live.get("context"),
-                    sender=live.get("sender"),
-                )
+                # A continuation goes through the arm's own resume path when
+                # it has one. Arms without persistent sessions fall back to a
+                # cold turn, which is exactly the cost `continuity` measures —
+                # so this is not a special case, it is the measurement.
+                if live.get("continue") and hasattr(session, "resume"):
+                    handle = _Resumed(session, live["request"], live.get("sender"))
+                else:
+                    handle = session.begin(
+                        live["request"],
+                        persist=bool(live.get("persist")),
+                        context=live.get("context"),
+                        sender=live.get("sender"),
+                    )
 
                 inter: Interlocutor | None = None
                 if turns:
@@ -203,10 +247,13 @@ def run_track(
             outcomes.append(result)
             print(f"[{track}/{arm}] {name}: {result.outcome.value} {result.reason}")
 
-            fixture.stop()
+            if shared_fixture is None:
+                fixture.stop()
             if shared_session is None:
                 session.close()
     finally:
+        if shared_fixture is not None:
+            shared_fixture.stop()
         if shared_session is not None:
             results["artifacts"] = shared_session.artifacts()
             shared_session.close()
