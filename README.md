@@ -125,6 +125,48 @@ python -m colleague.run --list                           # tracks and scenarios
 Requires `OPENROUTER_API_KEY`, plus a `UNIFY_KEY` for the unify arm and local
 checkouts of whichever comparison harnesses you want to run.
 
+### Running a sweep in the cloud
+
+A full sweep is dozens of shards making real, uncached LLM calls, and there
+is no reason to sit through it serially on a laptop.
+
+```bash
+scripts/cloud_run.sh                                    # all tracks, unify arm
+scripts/cloud_run.sh --arms all --confirm               # all tracks, all arms
+scripts/cloud_run.sh --arms all --repeat 5 --confirm    # distributions, not points
+scripts/cloud_run.sh --tracks custody --arms all --dry-run
+```
+
+It fires the `Benchmark` workflow and returns a run URL. A shard is one
+scenario against one arm — except for tracks that hold a single session
+across their scenarios (`continuity`, `custody`, `teaching`), which stay
+whole because splitting them would destroy exactly what they measure.
+`colleague/plan.py` owns that distinction, so the workflow never has to know
+about it.
+
+| Sweep | Shards |
+|---|---|
+| all tracks, unify | 14 |
+| all tracks, all arms | 56 |
+| all tracks, all arms, repeat 5 | 280 |
+
+Anything over 40 shards needs `--confirm`, enforced again inside the
+workflow. Repeats that disagree are shown as a spread rather than a majority
+verdict — when the same scenario passes three times and fails twice, that is
+a result about reliability and averaging it away would hide it.
+
+Results land as a merged `summary.md` and `merged.json`:
+
+```bash
+gh run download <run-id> --repo unifyai/colleague --name benchmark-summary
+```
+
+Requires `OPENROUTER_API_KEY` and `UNIFY_KEY` as repo secrets, `ORCHESTRA_URL`
+as a repo variable, and — for the comparison arms — `HARNESS_TOKEN` plus the
+`OPENCLAW_REPO` / `OPENCODE_REPO` / `HERMES_REPO` variables. An arm whose
+harness cannot be checked out is recorded as unavailable rather than failing,
+so one missing checkout does not take the sweep down.
+
 ### Checking the benchmark itself
 
 ```bash

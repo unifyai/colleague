@@ -1,0 +1,298 @@
+# Fan a benchmark sweep across GitHub Actions.
+#
+# One job per shard, where a shard is a scenario against an arm — except for
+# tracks that hold one session across their scenarios, which stay whole
+# because splitting them would destroy what they measure. colleague/plan.py
+# owns that distinction.
+name: Benchmark
+
+run-name: >-
+  ${{ format('{0} × {1} ×{2}',
+      github.event.inputs.tracks || 'all',
+      github.event.inputs.arms || 'unify',
+      github.event.inputs.repeat || '1') }}
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      tracks:
+        description: "tracks: 'all' or a comma list (inheritance,interruption,...)"
+        required: false
+        type: string
+        default: "all"
+      arms:
+        description: "arms: 'all' or a comma list (unify,hermes,openclaw,opencode)"
+        required: false
+        type: string
+        default: "unify"
+      repeat:
+        description: "repeat: runs per shard, for distributions rather than single points"
+        required: false
+        type: number
+        default: 1
+      max_parallel:
+        description: "max_parallel: concurrent jobs (raise once the org's runner limit is known)"
+        required: false
+        type: number
+        default: 20
+      timeout_minutes:
+        description: "timeout_minutes: per shard"
+        required: false
+        type: number
+        default: 45
+      no_shard:
+        description: "no_shard: one job per track instead of one per scenario"
+        required: false
+        type: boolean
+        default: false
+      confirm_spend:
+        description: "Type SPEND_OK for sweeps over 40 jobs. Every shard makes real LLM calls."
+        required: false
+        type: string
+        default: ""
+
+# One sweep per branch. A newer dispatch replaces a pending one; an in-flight
+# sweep is cancelled rather than left burning credit alongside its replacement.
+concurrency:
+  group: benchmark-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      count: ${{ steps.plan.outputs.count }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Build the shard matrix
+      id: plan
+      env:
+        TRACKS: ${{ inputs.tracks }}
+        ARMS: ${{ inputs.arms }}
+        REPEAT: ${{ inputs.repeat }}
+        NO_SHARD: ${{ inputs.no_shard }}
+      run: |
+        set -euo pipefail
+        args=(--tracks "$TRACKS" --arms "$ARMS" --repeat "$REPEAT")
+        [[ "$NO_SHARD" == "true" ]] && args+=(--no-shard)
+        matrix=$(PYTHONPATH=. python -m colleague.plan "${args[@]}")
+        count=$(echo "$matrix" | python -c 'import json,sys; print(len(json.load(sys.stdin)["include"]))')
+        echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+        echo "count=$count" >> "$GITHUB_OUTPUT"
+        echo "$count shards" >> "$GITHUB_STEP_SUMMARY"
+        PYTHONPATH=. python -m colleague.plan "${args[@]}" --pretty >> "$GITHUB_STEP_SUMMARY" 2>&1 || true
+
+    # Every shard makes real, uncached LLM calls. A full sweep at repeat=5 is
+    # 280 of them, which is worth typing a word for.
+    - name: Guard large sweeps
+      env:
+        CONFIRM: ${{ inputs.confirm_spend }}
+      run: |
+        set -euo pipefail
+        count=${{ steps.plan.outputs.count }}
+        if (( count > 40 )) && [[ "$CONFIRM" != "SPEND_OK" ]]; then
+          echo "::error::$count shards requested. Re-dispatch with confirm_spend=SPEND_OK."
+          exit 1
+        fi
+
+    - name: Self-test the suite before spending anything
+      run: PYTHONPATH=. python -m colleague.selftest
+
+  run:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ fromJSON(inputs.timeout_minutes || 45) }}
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ fromJSON(inputs.max_parallel || 20) }}
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    name: ${{ matrix.name }}
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install uv
+      run: pipx install uv
+
+    # ---- arm setup -------------------------------------------------------
+    # Each arm needs its harness present. A missing harness is recorded as an
+    # unavailable arm rather than crashing the shard, so one absent checkout
+    # does not take a sweep down with it.
+
+    - name: Check out unify (unify arm)
+      if: matrix.arm == 'unify'
+      uses: actions/checkout@v4
+      continue-on-error: true
+      id: unify_checkout
+      with:
+        repository: unifyai/unify
+        ref: main
+        path: .harness/unify
+        token: ${{ secrets.HARNESS_TOKEN || github.token }}
+
+    - name: Install unify
+      if: matrix.arm == 'unify' && steps.unify_checkout.outcome == 'success'
+      id: unify_install
+      continue-on-error: true
+      run: |
+        set -euo pipefail
+        cd .harness/unify
+        uv sync --all-groups
+        echo "python=$PWD/.venv/bin/python" >> "$GITHUB_OUTPUT"
+
+    - name: Check out OpenClaw
+      if: matrix.arm == 'openclaw'
+      uses: actions/checkout@v4
+      continue-on-error: true
+      id: openclaw_checkout
+      with:
+        repository: ${{ vars.OPENCLAW_REPO || 'openclaw/openclaw' }}
+        path: .harness/openclaw
+        token: ${{ secrets.HARNESS_TOKEN || github.token }}
+
+    - name: Build OpenClaw
+      if: matrix.arm == 'openclaw' && steps.openclaw_checkout.outcome == 'success'
+      id: openclaw_build
+      continue-on-error: true
+      run: |
+        set -euo pipefail
+        cd .harness/openclaw
+        corepack enable
+        pnpm install --frozen-lockfile
+        pnpm build
+
+    - name: Check out OpenCode
+      if: matrix.arm == 'opencode'
+      uses: actions/checkout@v4
+      continue-on-error: true
+      id: opencode_checkout
+      with:
+        repository: ${{ vars.OPENCODE_REPO || 'sst/opencode' }}
+        path: .harness/opencode
+        token: ${{ secrets.HARNESS_TOKEN || github.token }}
+
+    - name: Set up bun for OpenCode
+      if: matrix.arm == 'opencode' && steps.opencode_checkout.outcome == 'success'
+      continue-on-error: true
+      id: opencode_build
+      uses: oven-sh/setup-bun@v2
+
+    - name: Check out hermes
+      if: matrix.arm == 'hermes'
+      uses: actions/checkout@v4
+      continue-on-error: true
+      id: hermes_checkout
+      with:
+        repository: ${{ vars.HERMES_REPO || 'unifyai/hermes-agent' }}
+        path: .harness/hermes
+        token: ${{ secrets.HARNESS_TOKEN || github.token }}
+
+    - name: Install hermes
+      if: matrix.arm == 'hermes' && steps.hermes_checkout.outcome == 'success'
+      id: hermes_install
+      continue-on-error: true
+      run: cd .harness/hermes && uv sync
+
+    - name: Decide whether this arm is runnable
+      id: arm
+      env:
+        ARM: ${{ matrix.arm }}
+      run: |
+        set -euo pipefail
+        ready=false
+        case "$ARM" in
+          unify)    [[ "${{ steps.unify_install.outcome }}"   == "success" ]] && ready=true ;;
+          openclaw) [[ "${{ steps.openclaw_build.outcome }}"  == "success" ]] && ready=true ;;
+          opencode) [[ "${{ steps.opencode_build.outcome }}"  == "success" ]] && ready=true ;;
+          hermes)   [[ "${{ steps.hermes_install.outcome }}"  == "success" ]] && ready=true ;;
+        esac
+        echo "ready=$ready" >> "$GITHUB_OUTPUT"
+        echo "$ARM ready=$ready" >> "$GITHUB_STEP_SUMMARY"
+
+    # ---- the run ---------------------------------------------------------
+
+    - name: Run shard
+      if: steps.arm.outputs.ready == 'true'
+      continue-on-error: true
+      env:
+        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        UNIFY_KEY: ${{ secrets.UNIFY_KEY }}
+        ORCHESTRA_URL: ${{ vars.ORCHESTRA_URL || 'https://api.staging.internal.saas.unify.ai/v0' }}
+        COLLEAGUE_PROJECT: ${{ vars.COLLEAGUE_PROJECT || 'Benchmarks' }}
+        UNILLM_CACHE: "false"
+        HERMES_REPO: ${{ github.workspace }}/.harness/hermes
+        OPENCLAW_REPO: ${{ github.workspace }}/.harness/openclaw
+        OCODE_REPO: ${{ github.workspace }}/.harness/opencode
+      run: |
+        set -euo pipefail
+        python -m pip install -q -e .
+        args=(--arm "${{ matrix.arm }}" --port 0)
+        [[ -n "${{ matrix.only }}" ]] && args+=(--only "${{ matrix.only }}")
+        PYTHONPATH=. python -m colleague.run "${{ matrix.track }}" "${args[@]}"
+
+    - name: Record an unavailable arm
+      if: steps.arm.outputs.ready != 'true'
+      run: |
+        set -euo pipefail
+        dir="colleague/tracks/${{ matrix.track }}/results/unavailable"
+        mkdir -p "$dir"
+        cat > "$dir/results.json" <<JSON
+        {
+          "track": "${{ matrix.track }}",
+          "arm": "${{ matrix.arm }}",
+          "run_id": "unavailable",
+          "scenarios": [],
+          "summary": {"note": "harness checkout or build failed; no run attempted"}
+        }
+        JSON
+
+    - name: Upload shard results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: shard-${{ matrix.artifact }}
+        path: colleague/tracks/${{ matrix.track }}/results/**/results.json
+        if-no-files-found: warn
+        retention-days: 30
+
+  aggregate:
+    needs: [plan, run]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - uses: actions/download-artifact@v4
+      with:
+        path: shards
+        pattern: shard-*
+        merge-multiple: false
+
+    - name: Merge
+      run: |
+        set -euo pipefail
+        PYTHONPATH=. python -m colleague.aggregate shards \
+          --out summary.md --json merged.json
+        cat summary.md >> "$GITHUB_STEP_SUMMARY"
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-summary
+        path: |
+          summary.md
+          merged.json
+        retention-days: 90
