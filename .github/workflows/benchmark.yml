@@ -141,6 +141,29 @@ jobs:
         path: .harness/unify
         token: ${{ secrets.HARNESS_TOKEN || github.token }}
 
+    # unify declares unisdk and unillm as editable siblings (`../unisdk`,
+    # `../unillm` in [tool.uv.sources]), so a lone unify checkout cannot
+    # resolve its own dependencies. They have to land beside it.
+    - name: Check out unisdk
+      if: matrix.arm == 'unify'
+      uses: actions/checkout@v4
+      continue-on-error: true
+      id: unisdk_checkout
+      with:
+        repository: unifyai/unisdk
+        path: .harness/unisdk
+        token: ${{ secrets.HARNESS_TOKEN || github.token }}
+
+    - name: Check out unillm
+      if: matrix.arm == 'unify'
+      uses: actions/checkout@v4
+      continue-on-error: true
+      id: unillm_checkout
+      with:
+        repository: unifyai/unillm
+        path: .harness/unillm
+        token: ${{ secrets.HARNESS_TOKEN || github.token }}
+
     - name: Install unify
       if: matrix.arm == 'unify' && steps.unify_checkout.outcome == 'success'
       id: unify_install
@@ -241,7 +264,11 @@ jobs:
         [[ -n "${{ matrix.only }}" ]] && args+=(--only "${{ matrix.only }}")
         PYTHONPATH=. python -m colleague.run "${{ matrix.track }}" "${args[@]}"
 
-    - name: Record an unavailable arm
+    # A shard that could not run is a failure of this job, not a quiet skip.
+    # The first version wrote the stub and exited 0, so a sweep in which every
+    # arm failed to install reported fourteen green jobs and an empty summary
+    # — indistinguishable from success unless you opened a log.
+    - name: Record an unavailable arm and fail
       if: steps.arm.outputs.ready != 'true'
       run: |
         set -euo pipefail
@@ -256,6 +283,8 @@ jobs:
           "summary": {"note": "harness checkout or build failed; no run attempted"}
         }
         JSON
+        echo "::error::${{ matrix.arm }} harness unavailable — no scenarios ran for ${{ matrix.track }}"
+        exit 1
 
     - name: Upload shard results
       if: always()
@@ -286,7 +315,7 @@ jobs:
       run: |
         set -euo pipefail
         PYTHONPATH=. python -m colleague.aggregate shards \
-          --out summary.md --json merged.json
+          --out summary.md --json merged.json --require-scenarios
         cat summary.md >> "$GITHUB_STEP_SUMMARY"
 
     - uses: actions/upload-artifact@v4

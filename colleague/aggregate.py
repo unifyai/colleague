@@ -136,6 +136,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("root", type=Path)
     parser.add_argument("--out", type=Path, help="write markdown here")
     parser.add_argument("--json", type=Path, help="write merged json here")
+    parser.add_argument(
+        "--require-scenarios",
+        action="store_true",
+        help="fail if no scenario actually executed",
+    )
     args = parser.parse_args(argv)
 
     runs = load(args.root)
@@ -149,6 +154,23 @@ def main(argv: list[str] | None = None) -> int:
     if args.json:
         args.json.write_text(json.dumps(merged, indent=2))
     print(markdown)
+
+    # A sweep where every arm failed to install produces well-formed, empty
+    # results for every shard. Without this the summary renders as an empty
+    # table and the run reports success, which is the one outcome a benchmark
+    # must never quietly produce.
+    executed = sum(
+        len(outcomes)
+        for scenarios in merged["grid"].values()
+        for outcomes in scenarios.values()
+    )
+    if args.require_scenarios and executed == 0:
+        print(
+            f"no scenarios executed across {merged['runs']} shards — "
+            "every arm was unavailable",
+            file=sys.stderr,
+        )
+        return 1
     return 0
 
 
