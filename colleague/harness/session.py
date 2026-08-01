@@ -1,0 +1,184 @@
+"""One conversational interface, four harnesses behind it.
+
+The `standing` track wrote a driver per experiment per arm, which was
+tolerable at four experiments and would be twenty-four drivers by the end of
+this suite. The multi-party tracks share a shape instead: a scenario says
+things to an assistant and watches what the fixture records, and the only
+thing that varies between arms is what "say something" means.
+
+So an arm implements a session — start it, say something, optionally say
+something else while the first thing is still running, close it — and every
+track is written once against that interface.
+
+The interesting method is `begin`. It returns before the work is done, which
+is what makes mid-task steering measurable at all. `RunHandle.interject`
+then does whatever the arm can actually do:
+
+    unify      pushes into the running loop; generation restarts with it
+    openclaw   queues a turn that lands after the current one finishes
+    hermes     raises Unsupported — there is no loop to address
+    opencode   raises Unsupported — same
+
+Raising is deliberate. A silent no-op would let a scenario record a zero and
+imply the arm tried and failed, and that is not what happened.
+"""
+
+from __future__ import annotations
+
+import threading
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from typing import Any
+
+from colleague.harness.capability import ArmProfile
+
+
+class Unsupported(RuntimeError):
+    """The arm has no mechanism for what was asked.
+
+    Caught by scenarios and turned into `Outcome.UNSUPPORTED`, which is
+    reported separately and never averaged into an accuracy figure.
+    """
+
+
+@dataclass
+class Reply:
+    text: str
+    ok: bool = True
+    error: str = ""
+    raw: Any = None
+    meta: dict[str, Any] = field(default_factory=dict)
+
+    def as_dict(self) -> dict[str, Any]:
+        out: dict[str, Any] = {"ok": self.ok, "text": self.text}
+        if self.error:
+            out["error"] = self.error
+        if self.meta:
+            out["meta"] = self.meta
+        return out
+
+
+class RunHandle(ABC):
+    """Work that has started and has not necessarily finished."""
+
+    @abstractmethod
+    def wait(self, timeout: float = 900.0) -> Reply: ...
+
+    @abstractmethod
+    def interject(self, text: str, *, sender: str | None = None) -> dict[str, Any]:
+        """Reach the running work. Raises `Unsupported` if the arm cannot."""
+
+    def stop(self) -> None:
+        return None
+
+    @property
+    def done(self) -> bool:
+        return True
+
+
+class ThreadedRunHandle(RunHandle):
+    """Runs a blocking call on a worker thread.
+
+    Every CLI-driven arm looks like this: the command runs to completion and
+    there is no way in. Subclasses override `interject` when the arm has one.
+    """
+
+    def __init__(self, fn, *args: Any, **kwargs: Any) -> None:
+        self._reply: Reply | None = None
+        self._error: BaseException | None = None
+        self._thread = threading.Thread(
+            target=self._run,
+            args=(fn, args, kwargs),
+            name="arm-run",
+            daemon=True,
+        )
+        self._thread.start()
+
+    def _run(self, fn, args, kwargs) -> None:
+        try:
+            self._reply = fn(*args, **kwargs)
+        except BaseException as exc:  # noqa: BLE001 - surfaced by wait()
+            self._error = exc
+
+    def wait(self, timeout: float = 900.0) -> Reply:
+        self._thread.join(timeout=timeout)
+        if self._thread.is_alive():
+            return Reply(text="", ok=False, error=f"timed out after {timeout}s")
+        if self._error is not None:
+            return Reply(
+                text="",
+                ok=False,
+                error=f"{type(self._error).__name__}: {self._error}",
+            )
+        return self._reply or Reply(text="", ok=False, error="no reply produced")
+
+    def interject(self, text: str, *, sender: str | None = None) -> dict[str, Any]:
+        raise Unsupported("this arm has no way to address work that is already running")
+
+    @property
+    def done(self) -> bool:
+        return not self._thread.is_alive()
+
+
+class ArmSession(ABC):
+    """A conversational session with one harness."""
+
+    profile: ArmProfile
+
+    @abstractmethod
+    def setup(self) -> None:
+        """Bring the harness up. Called once before any turn."""
+
+    @abstractmethod
+    def begin(
+        self,
+        text: str,
+        *,
+        persist: bool = False,
+        context: str | None = None,
+        sender: str | None = None,
+    ) -> RunHandle:
+        """Start a turn and return before it finishes.
+
+        ``context`` is the shared preamble — roster and transcript — that
+        every arm receives verbatim, so multi-party scenarios measure what
+        the harness does with the information rather than whether it got it.
+
+        ``persist`` asks the arm to keep the session's working state alive
+        after the turn completes. Arms without persistent sessions ignore it,
+        which is exactly the cost the `continuity` track measures.
+        """
+
+    def send(
+        self,
+        text: str,
+        *,
+        persist: bool = False,
+        context: str | None = None,
+        sender: str | None = None,
+        timeout: float = 900.0,
+    ) -> Reply:
+        return self.begin(
+            text,
+            persist=persist,
+            context=context,
+            sender=sender,
+        ).wait(timeout=timeout)
+
+    def close(self) -> None:
+        return None
+
+    def artifacts(self) -> dict[str, Any]:
+        """Anything the arm produced that belongs in the run record."""
+        return {}
+
+
+def compose(context: str | None, text: str) -> str:
+    """The one place a preamble is glued to a request.
+
+    Kept in one function so no arm can quietly render the shared context
+    differently from the others.
+    """
+    if not context:
+        return text
+    return f"{context}\n\n---\n\n{text}"
