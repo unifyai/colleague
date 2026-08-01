@@ -164,6 +164,18 @@ jobs:
         path: .harness/unillm
         token: ${{ secrets.HARNESS_TOKEN || github.token }}
 
+    # unify depends on pyaudio, which builds from source against portaudio.h.
+    # The rest are the usual companions for an audio/media dependency tree —
+    # installed together because each missing header costs a whole sweep to
+    # discover, and apt is cheaper than another round trip.
+    - name: System libraries for the unify dependency tree
+      if: matrix.arm == 'unify'
+      run: |
+        set -euo pipefail
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq \
+          portaudio19-dev libasound2-dev libsndfile1 ffmpeg
+
     - name: Install unify
       if: matrix.arm == 'unify' && steps.unify_checkout.outcome == 'success'
       id: unify_install
@@ -171,7 +183,10 @@ jobs:
       run: |
         set -euo pipefail
         cd .harness/unify
-        uv sync --all-groups
+        # Not --all-groups: the benchmark drives the runtime, it does not run
+        # unify's test suite, and the dev group drags in pytest, viztracer,
+        # ipykernel and the OTel stack for nothing.
+        uv sync
         echo "python=$PWD/.venv/bin/python" >> "$GITHUB_OUTPUT"
 
     - name: Check out OpenClaw
@@ -259,10 +274,19 @@ jobs:
         OCODE_REPO: ${{ github.workspace }}/.harness/opencode
       run: |
         set -euo pipefail
-        python -m pip install -q -e .
+        # The unify arm imports unify/unisdk/unillm, which live in the
+        # harness venv rather than the runner's python. Colleague itself is
+        # stdlib-only, so PYTHONPATH is enough to reach it from either.
+        PY=python
+        if [[ "${{ matrix.arm }}" == "unify" ]]; then
+          PY="${{ github.workspace }}/.harness/unify/.venv/bin/python"
+          "$PY" -c "import unify, unisdk, unillm" \
+            || { echo "::error::unify runtime not importable from $PY"; exit 1; }
+        fi
         args=(--arm "${{ matrix.arm }}" --port 0)
         [[ -n "${{ matrix.only }}" ]] && args+=(--only "${{ matrix.only }}")
-        PYTHONPATH=. python -m colleague.run "${{ matrix.track }}" "${args[@]}"
+        PYTHONPATH="${{ github.workspace }}" "$PY" -m colleague.run \
+          "${{ matrix.track }}" "${args[@]}"
 
     # A shard that could not run is a failure of this job, not a quiet skip.
     # The first version wrote the stub and exited 0, so a sweep in which every
