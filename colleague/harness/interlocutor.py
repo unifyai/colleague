@@ -109,21 +109,42 @@ class Interlocutor:
             Steering.NONE: "not_delivered",
         }[self.profile.steering]
 
+    def _wait_responsively(self, turn: ScriptedTurn) -> bool:
+        """Wait for the waypoint in slices, so stop() is not ignored.
+
+        A single long `wait_for` cannot see `_stop`, so an agent that finished
+        without ever reaching the waypoint left this thread blocked for the
+        full timeout. `stop()` joined for five seconds, gave up, and the
+        journal was returned empty — with no record that the waypoint was
+        never reached. The scorer then could not tell "the agent never got
+        there" from "no turns were configured", and scored the run as if the
+        correction had simply been ignored.
+        """
+        import time
+
+        deadline = time.monotonic() + turn.timeout
+        while time.monotonic() < deadline and not self._stop.is_set():
+            if self.fixture.waypoints.wait_for(
+                turn.waypoint, timeout=0.5, nth=turn.nth
+            ):
+                return True
+        return False
+
     def _run(self) -> None:
         for turn in self.turns:
             if self._stop.is_set():
                 break
-            reached = self.fixture.waypoints.wait_for(
-                turn.waypoint,
-                timeout=turn.timeout,
-                nth=turn.nth,
-            )
+            reached = self._wait_responsively(turn)
             if not reached:
                 self._append(
                     Delivery(
                         turn=turn,
                         delivered=False,
-                        mode="waypoint_never_reached",
+                        mode=(
+                            "stopped_before_waypoint"
+                            if self._stop.is_set()
+                            else "waypoint_never_reached"
+                        ),
                         recorder_seq=self.fixture.recorder.count(),
                         at=utcnow(),
                     ),
