@@ -21,8 +21,14 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-ORDER = ("pass", "degraded", "fail", "unsupported")
-GLYPH = {"pass": "✅", "degraded": "🟡", "fail": "❌", "unsupported": "➖"}
+ORDER = ("pass", "degraded", "fail", "unsupported", "error")
+GLYPH = {
+    "pass": "✅",
+    "degraded": "🟡",
+    "fail": "❌",
+    "unsupported": "➖",
+    "error": "💥",
+}
 
 
 def load(root: Path) -> list[dict[str, Any]]:
@@ -159,15 +165,29 @@ def main(argv: list[str] | None = None) -> int:
     # results for every shard. Without this the summary renders as an empty
     # table and the run reports success, which is the one outcome a benchmark
     # must never quietly produce.
-    executed = sum(
-        len(outcomes)
+    all_outcomes = [
+        o
         for scenarios in merged["grid"].values()
         for outcomes in scenarios.values()
-    )
-    if args.require_scenarios and executed == 0:
+        for o in outcomes
+    ]
+    errors = [o for o in all_outcomes if o == "error"]
+
+    if args.require_scenarios and not all_outcomes:
         print(
             f"no scenarios executed across {merged['runs']} shards — "
             "every arm was unavailable",
+            file=sys.stderr,
+        )
+        return 1
+
+    # An ERROR means the harness could not measure. Letting those through
+    # would publish a broken sweep as a poor result for the arm, which reads
+    # as a finding rather than as a fault.
+    if args.require_scenarios and errors:
+        print(
+            f"{len(errors)} of {len(all_outcomes)} scenarios errored — "
+            "the harness could not measure, so these are not results",
             file=sys.stderr,
         )
         return 1

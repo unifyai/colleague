@@ -234,9 +234,11 @@ def run_track(
                 )
             except Exception as exc:  # noqa: BLE001 - recorded in the run file
                 record["traceback"] = traceback.format_exc()[-4000:]
+                # ERROR, not FAIL: nothing was measured, so this is not a
+                # statement about the arm.
                 result = ScenarioResult(
                     name,
-                    Outcome.FAIL,
+                    Outcome.ERROR,
                     {},
                     f"harness error: {type(exc).__name__}: {exc}",
                 )

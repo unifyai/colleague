@@ -35,6 +35,15 @@ class Outcome(str, Enum):
     UNSUPPORTED = "unsupported"
     DEGRADED = "degraded"
 
+    ERROR = "error"
+    """The harness could not measure — a bad credential, a crash, a timeout.
+
+    Distinct from FAIL, which means the arm had its chance and got it wrong.
+    Collapsing the two lets a broken sweep read as a arm that performed
+    badly, which is the most expensive kind of wrong answer a benchmark can
+    give: it looks like a finding. An ERROR anywhere fails the run.
+    """
+
     @property
     def scoreable(self) -> bool:
         """Whether this outcome belongs in an accuracy denominator."""

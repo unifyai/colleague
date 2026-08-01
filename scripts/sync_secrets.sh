@@ -122,8 +122,32 @@ echo "Secrets"
 read_key OPENROUTER_API_KEY
 set_secret OPENROUTER_API_KEY "$VALUE" "$VALUE_SRC"
 
-read_key UNIFY_KEY
-set_secret UNIFY_KEY "$VALUE" "$VALUE_SRC"
+# Same precedence as the standing track's run_unify.sh: the shared staging
+# tenant key first, then a plain UNIFY_KEY. A developer's UNIFY_KEY is
+# usually bound to their local stack and 401s against staging — which is how
+# two sweeps were spent before this probe existed.
+read_key SHARED_UNIFY_KEY
+if [[ -z "$VALUE" ]]; then
+  read_key UNIFY_KEY
+fi
+UNIFY_VALUE="$VALUE"
+UNIFY_SRC="$VALUE_SRC"
+
+read_key ORCHESTRA_URL
+PROBE_URL="$VALUE"
+if [[ -z "$PROBE_URL" || "$PROBE_URL" == *localhost* || "$PROBE_URL" == *127.0.0.1* ]]; then
+  PROBE_URL="$DEFAULT_ORCHESTRA_URL"
+fi
+if [[ -n "$UNIFY_VALUE" ]]; then
+  code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 \
+    -H "Authorization: Bearer $UNIFY_VALUE" "${PROBE_URL%/}/projects" || echo 000)
+  if [[ "$code" != "200" ]]; then
+    echo "  UNIFY_KEY               REJECTED by $PROBE_URL (HTTP $code)" >&2
+    echo "  the key that reaches CI must authenticate against the backend CI uses" >&2
+    exit 1
+  fi
+fi
+set_secret UNIFY_KEY "$UNIFY_VALUE" "$UNIFY_SRC"
 
 echo
 echo "Variables"
