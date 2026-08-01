@@ -1,0 +1,1 @@
+0 9 * * * cd /Users/djl11/unify/benchmarks/policy_propagation/results/2026-08-01T18-32-38Z-opencode/workspace && /Users/djl11/unify/benchmarks/policy_propagation/results/2026-08-01T18-32-38Z-opencode/opencode_state/bin/opencode run --command triage-support --title "Daily urgent support digest" >> /tmp/opencode-support-triage.log 2>&1

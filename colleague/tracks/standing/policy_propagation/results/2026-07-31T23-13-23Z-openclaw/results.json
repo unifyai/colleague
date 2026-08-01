@@ -1,0 +1,1782 @@
+{
+  "experiment": "policy_propagation",
+  "system": "openclaw",
+  "run_id": "2026-07-31T23-13-23Z-openclaw",
+  "openclaw_repo": "/Users/djl11/openclaw",
+  "model": "openai/gpt-5.6-sol",
+  "seed": 20260731,
+  "automations": [
+    "triage",
+    "digests",
+    "audits"
+  ],
+  "pre_change_rounds": 2,
+  "post_change_rounds": 3,
+  "initial_threshold": 500,
+  "updated_threshold": 250,
+  "policy_update_message": "We've updated our escalation policy: the billing-amount threshold for urgent is now $250 or more (the blocked-from-working rule is unchanged). Please make sure every automation we have applies the updated policy from now on. Do not ask for confirmation.",
+  "utterances": {
+    "triage": "Please set up an hourly recurring automation that triages new customer inquiries from the local support API at http://127.0.0.1:8132.\n\nHow it works: GET http://127.0.0.1:8132/triage/last returns {\"last_seq\": N} \u2014 the highest inquiry seq this triage automation has already processed (0 if none yet). GET http://127.0.0.1:8132/inquiries?after=N returns the next inquiries with seq > N (up to 200), each with fields: seq (int) and text (str).\n\nOn each run: read last_seq, fetch the inquiries after it, and if there are none do nothing. Otherwise, for each inquiry decide its category \u2014 \"refund\" (they want money back for a charge), \"bug\" (something in the product is broken or not working correctly), \"sales\" (they want to buy, upgrade, get a quote, or discuss pricing), or \"other\" (anything else) \u2014 and its priority per our policy below.\n\nOur escalation policy: an inquiry is urgent when it involves a charge, billing amount, or refund of $500 or more, or when the customer says they are blocked from working. All other inquiries are normal.\n\nPriority is \"urgent\" or \"normal\" accordingly.\n\nPOST the result to http://127.0.0.1:8132/triage as a JSON object with exactly these keys: batch_start_seq (int), batch_end_seq (int), and classifications \u2014 a list of {\"seq\": int, \"category\": str, \"priority\": str} covering every fetched inquiry exactly once.\n\nSet up the recurring hourly automation now. Do not triage anything right now, and do not ask for confirmation.",
+    "digests": "Please set up a daily recurring automation that summarizes urgent customer inquiries from the local support API at http://127.0.0.1:8132.\n\nHow it works: GET http://127.0.0.1:8132/digests/last returns {\"last_seq\": N} \u2014 the highest inquiry seq this digest automation has already covered (0 if none yet). GET http://127.0.0.1:8132/inquiries?after=N returns the next inquiries with seq > N (up to 200), each with fields: seq (int) and text (str).\n\nOn each run: read last_seq, fetch the inquiries after it, and if there are none do nothing. Otherwise determine which inquiries are urgent per our policy below, and which category each urgent inquiry belongs to \u2014 \"refund\" (they want money back for a charge), \"bug\" (something broken or not working), \"sales\" (buying, upgrading, quotes, pricing), or \"other\".\n\nOur escalation policy: an inquiry is urgent when it involves a charge, billing amount, or refund of $500 or more, or when the customer says they are blocked from working. All other inquiries are normal.\n\nPOST the digest to http://127.0.0.1:8132/digests as a JSON object with exactly these keys: batch_start_seq (int), batch_end_seq (int), urgent_by_category \u2014 an object with keys refund, bug, sales, other and integer counts of urgent inquiries \u2014 and urgent_total (int, the sum of those counts).\n\nSet up the recurring daily automation now. Do not process anything right now, and do not ask for confirmation.",
+    "audits": "Please set up a weekly recurring automation that audits escalation volume from the local support API at http://127.0.0.1:8132.\n\nHow it works: GET http://127.0.0.1:8132/audits/last returns {\"last_seq\": N} \u2014 the highest inquiry seq this audit automation has already covered (0 if none yet). GET http://127.0.0.1:8132/inquiries?after=N returns the next inquiries with seq > N (up to 200), each with fields: seq (int) and text (str).\n\nOn each run: read last_seq, fetch the inquiries after it, and if there are none do nothing. Otherwise count how many are urgent per our policy below.\n\nOur escalation policy: an inquiry is urgent when it involves a charge, billing amount, or refund of $500 or more, or when the customer says they are blocked from working. All other inquiries are normal.\n\nPOST the audit to http://127.0.0.1:8132/audits as a JSON object with exactly these keys: batch_start_seq (int), batch_end_seq (int), urgent_count (int), total_count (int), and urgent_fraction (float, urgent_count / total_count rounded to 2 decimal places).\n\nSet up the recurring weekly automation now. Do not process anything right now, and do not ask for confirmation."
+  },
+  "fires": [
+    {
+      "round": 1,
+      "automation": "triage",
+      "threshold": 500,
+      "fire_status": "ok",
+      "pending_range": [
+        1,
+        10
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 1,
+          "batch_end_seq": 10,
+          "classifications": [
+            {
+              "seq": 1,
+              "category": "refund",
+              "priority": "urgent"
+            },
+            {
+              "seq": 2,
+              "category": "other",
+              "priority": "urgent"
+            },
+            {
+              "seq": 3,
+              "category": "refund",
+              "priority": "urgent"
+            },
+            {
+              "seq": 4,
+              "category": "other",
+              "priority": "urgent"
+            },
+            {
+              "seq": 5,
+              "category": "bug",
+              "priority": "normal"
+            },
+            {
+              "seq": 6,
+              "category": "sales",
+              "priority": "normal"
+            },
+            {
+              "seq": 7,
+              "category": "sales",
+              "priority": "normal"
+            },
+            {
+              "seq": 8,
+              "category": "bug",
+              "priority": "normal"
+            },
+            {
+              "seq": 9,
+              "category": "other",
+              "priority": "normal"
+            },
+            {
+              "seq": 10,
+              "category": "refund",
+              "priority": "urgent"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 0.9,
+          "priority_accuracy": 0.9,
+          "checks": {
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "expected": {
+        "batch_start_seq": 1,
+        "batch_end_seq": 10,
+        "classifications": [
+          {
+            "seq": 1,
+            "category": "refund",
+            "priority": "normal"
+          },
+          {
+            "seq": 2,
+            "category": "other",
+            "priority": "urgent"
+          },
+          {
+            "seq": 3,
+            "category": "refund",
+            "priority": "urgent"
+          },
+          {
+            "seq": 4,
+            "category": "other",
+            "priority": "urgent"
+          },
+          {
+            "seq": 5,
+            "category": "bug",
+            "priority": "normal"
+          },
+          {
+            "seq": 6,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 7,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 8,
+            "category": "bug",
+            "priority": "normal"
+          },
+          {
+            "seq": 9,
+            "category": "other",
+            "priority": "normal"
+          },
+          {
+            "seq": 10,
+            "category": "refund",
+            "priority": "urgent"
+          }
+        ]
+      },
+      "correct": true,
+      "accuracy": 0.9
+    },
+    {
+      "round": 1,
+      "automation": "digests",
+      "threshold": 500,
+      "fire_status": "ok",
+      "pending_range": [
+        1,
+        10
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 1,
+          "batch_end_seq": 10,
+          "urgent_by_category": {
+            "refund": 2,
+            "bug": 2,
+            "sales": 0,
+            "other": 0
+          },
+          "urgent_total": 4
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": false,
+          "accuracy": 0.0
+        }
+      ],
+      "expected": {
+        "batch_start_seq": 1,
+        "batch_end_seq": 10,
+        "urgent_by_category": {
+          "refund": 2,
+          "bug": 0,
+          "sales": 0,
+          "other": 2
+        },
+        "urgent_total": 4
+      },
+      "correct": false,
+      "accuracy": 0.0
+    },
+    {
+      "round": 1,
+      "automation": "audits",
+      "threshold": 500,
+      "fire_status": "ok",
+      "pending_range": [
+        1,
+        10
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 1,
+          "batch_end_seq": 10,
+          "urgent_count": 4,
+          "total_count": 10,
+          "urgent_fraction": 0.4
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0
+        }
+      ],
+      "expected": {
+        "batch_start_seq": 1,
+        "batch_end_seq": 10,
+        "urgent_count": 4,
+        "total_count": 10,
+        "urgent_fraction": 0.4
+      },
+      "correct": true,
+      "accuracy": 1.0
+    },
+    {
+      "round": 2,
+      "automation": "triage",
+      "threshold": 500,
+      "fire_status": "ok",
+      "pending_range": [
+        11,
+        20
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 11,
+          "batch_end_seq": 20,
+          "classifications": [
+            {
+              "seq": 11,
+              "category": "bug",
+              "priority": "normal"
+            },
+            {
+              "seq": 12,
+              "category": "sales",
+              "priority": "normal"
+            },
+            {
+              "seq": 13,
+              "category": "refund",
+              "priority": "urgent"
+            },
+            {
+              "seq": 14,
+              "category": "other",
+              "priority": "normal"
+            },
+            {
+              "seq": 15,
+              "category": "sales",
+              "priority": "normal"
+            },
+            {
+              "seq": 16,
+              "category": "sales",
+              "priority": "normal"
+            },
+            {
+              "seq": 17,
+              "category": "other",
+              "priority": "normal"
+            },
+            {
+              "seq": 18,
+              "category": "refund",
+              "priority": "urgent"
+            },
+            {
+              "seq": 19,
+              "category": "other",
+              "priority": "normal"
+            },
+            {
+              "seq": 20,
+              "category": "sales",
+              "priority": "normal"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 0.8,
+          "priority_accuracy": 0.8,
+          "checks": {
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "expected": {
+        "batch_start_seq": 11,
+        "batch_end_seq": 20,
+        "classifications": [
+          {
+            "seq": 11,
+            "category": "bug",
+            "priority": "normal"
+          },
+          {
+            "seq": 12,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 13,
+            "category": "refund",
+            "priority": "normal"
+          },
+          {
+            "seq": 14,
+            "category": "other",
+            "priority": "normal"
+          },
+          {
+            "seq": 15,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 16,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 17,
+            "category": "other",
+            "priority": "normal"
+          },
+          {
+            "seq": 18,
+            "category": "refund",
+            "priority": "normal"
+          },
+          {
+            "seq": 19,
+            "category": "other",
+            "priority": "normal"
+          },
+          {
+            "seq": 20,
+            "category": "sales",
+            "priority": "normal"
+          }
+        ]
+      },
+      "correct": true,
+      "accuracy": 0.8
+    },
+    {
+      "round": 2,
+      "automation": "digests",
+      "threshold": 500,
+      "fire_status": "ok",
+      "pending_range": [
+        11,
+        20
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 11,
+          "batch_end_seq": 20,
+          "urgent_by_category": {
+            "refund": 0,
+            "bug": 0,
+            "sales": 0,
+            "other": 0
+          },
+          "urgent_total": 0
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0
+        }
+      ],
+      "expected": {
+        "batch_start_seq": 11,
+        "batch_end_seq": 20,
+        "urgent_by_category": {
+          "refund": 0,
+          "bug": 0,
+          "sales": 0,
+          "other": 0
+        },
+        "urgent_total": 0
+      },
+      "correct": true,
+      "accuracy": 1.0
+    },
+    {
+      "round": 2,
+      "automation": "audits",
+      "threshold": 500,
+      "fire_status": "ok",
+      "pending_range": [
+        11,
+        20
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 11,
+          "batch_end_seq": 20,
+          "urgent_count": 0,
+          "total_count": 10,
+          "urgent_fraction": 0.0
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0
+        }
+      ],
+      "expected": {
+        "batch_start_seq": 11,
+        "batch_end_seq": 20,
+        "urgent_count": 0,
+        "total_count": 10,
+        "urgent_fraction": 0.0
+      },
+      "correct": true,
+      "accuracy": 1.0
+    },
+    {
+      "round": 3,
+      "automation": "triage",
+      "threshold": 250,
+      "fire_status": "ok",
+      "pending_range": [
+        21,
+        30
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 21,
+          "batch_end_seq": 30,
+          "classifications": [
+            {
+              "seq": 21,
+              "category": "other",
+              "priority": "normal"
+            },
+            {
+              "seq": 22,
+              "category": "sales",
+              "priority": "normal"
+            },
+            {
+              "seq": 23,
+              "category": "other",
+              "priority": "normal"
+            },
+            {
+              "seq": 24,
+              "category": "bug",
+              "priority": "urgent"
+            },
+            {
+              "seq": 25,
+              "category": "sales",
+              "priority": "normal"
+            },
+            {
+              "seq": 26,
+              "category": "other",
+              "priority": "normal"
+            },
+            {
+              "seq": 27,
+              "category": "bug",
+              "priority": "normal"
+            },
+            {
+              "seq": 28,
+              "category": "sales",
+              "priority": "normal"
+            },
+            {
+              "seq": 29,
+              "category": "refund",
+              "priority": "urgent"
+            },
+            {
+              "seq": 30,
+              "category": "refund",
+              "priority": "urgent"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 0.9,
+          "priority_accuracy": 0.9,
+          "checks": {
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "expected": {
+        "batch_start_seq": 21,
+        "batch_end_seq": 30,
+        "classifications": [
+          {
+            "seq": 21,
+            "category": "other",
+            "priority": "normal"
+          },
+          {
+            "seq": 22,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 23,
+            "category": "other",
+            "priority": "normal"
+          },
+          {
+            "seq": 24,
+            "category": "bug",
+            "priority": "urgent"
+          },
+          {
+            "seq": 25,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 26,
+            "category": "other",
+            "priority": "normal"
+          },
+          {
+            "seq": 27,
+            "category": "bug",
+            "priority": "normal"
+          },
+          {
+            "seq": 28,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 29,
+            "category": "refund",
+            "priority": "urgent"
+          },
+          {
+            "seq": 30,
+            "category": "refund",
+            "priority": "normal"
+          }
+        ]
+      },
+      "correct": true,
+      "accuracy": 0.9
+    },
+    {
+      "round": 3,
+      "automation": "digests",
+      "threshold": 250,
+      "fire_status": "ok",
+      "pending_range": [
+        21,
+        30
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 21,
+          "batch_end_seq": 30,
+          "urgent_by_category": {
+            "refund": 1,
+            "bug": 1,
+            "sales": 0,
+            "other": 0
+          },
+          "urgent_total": 2
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0
+        }
+      ],
+      "expected": {
+        "batch_start_seq": 21,
+        "batch_end_seq": 30,
+        "urgent_by_category": {
+          "refund": 1,
+          "bug": 1,
+          "sales": 0,
+          "other": 0
+        },
+        "urgent_total": 2
+      },
+      "correct": true,
+      "accuracy": 1.0
+    },
+    {
+      "round": 3,
+      "automation": "audits",
+      "threshold": 250,
+      "fire_status": "ok",
+      "pending_range": [
+        21,
+        30
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 21,
+          "batch_end_seq": 30,
+          "urgent_count": 2,
+          "total_count": 10,
+          "urgent_fraction": 0.2
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0
+        }
+      ],
+      "expected": {
+        "batch_start_seq": 21,
+        "batch_end_seq": 30,
+        "urgent_count": 2,
+        "total_count": 10,
+        "urgent_fraction": 0.2
+      },
+      "correct": true,
+      "accuracy": 1.0
+    },
+    {
+      "round": 4,
+      "automation": "triage",
+      "threshold": 250,
+      "fire_status": "ok",
+      "pending_range": [
+        31,
+        40
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 31,
+          "batch_end_seq": 40,
+          "classifications": [
+            {
+              "seq": 31,
+              "category": "sales",
+              "priority": "normal"
+            },
+            {
+              "seq": 32,
+              "category": "sales",
+              "priority": "normal"
+            },
+            {
+              "seq": 33,
+              "category": "bug",
+              "priority": "normal"
+            },
+            {
+              "seq": 34,
+              "category": "other",
+              "priority": "normal"
+            },
+            {
+              "seq": 35,
+              "category": "refund",
+              "priority": "urgent"
+            },
+            {
+              "seq": 36,
+              "category": "sales",
+              "priority": "normal"
+            },
+            {
+              "seq": 37,
+              "category": "other",
+              "priority": "normal"
+            },
+            {
+              "seq": 38,
+              "category": "sales",
+              "priority": "normal"
+            },
+            {
+              "seq": 39,
+              "category": "bug",
+              "priority": "normal"
+            },
+            {
+              "seq": 40,
+              "category": "other",
+              "priority": "urgent"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "priority_accuracy": 1.0,
+          "checks": {
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "expected": {
+        "batch_start_seq": 31,
+        "batch_end_seq": 40,
+        "classifications": [
+          {
+            "seq": 31,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 32,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 33,
+            "category": "bug",
+            "priority": "normal"
+          },
+          {
+            "seq": 34,
+            "category": "other",
+            "priority": "normal"
+          },
+          {
+            "seq": 35,
+            "category": "refund",
+            "priority": "urgent"
+          },
+          {
+            "seq": 36,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 37,
+            "category": "other",
+            "priority": "normal"
+          },
+          {
+            "seq": 38,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 39,
+            "category": "bug",
+            "priority": "normal"
+          },
+          {
+            "seq": 40,
+            "category": "other",
+            "priority": "urgent"
+          }
+        ]
+      },
+      "correct": true,
+      "accuracy": 1.0
+    },
+    {
+      "round": 4,
+      "automation": "digests",
+      "threshold": 250,
+      "fire_status": "ok",
+      "pending_range": [
+        31,
+        40
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 31,
+          "batch_end_seq": 40,
+          "urgent_by_category": {
+            "refund": 1,
+            "bug": 0,
+            "sales": 0,
+            "other": 1
+          },
+          "urgent_total": 2
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0
+        }
+      ],
+      "expected": {
+        "batch_start_seq": 31,
+        "batch_end_seq": 40,
+        "urgent_by_category": {
+          "refund": 1,
+          "bug": 0,
+          "sales": 0,
+          "other": 1
+        },
+        "urgent_total": 2
+      },
+      "correct": true,
+      "accuracy": 1.0
+    },
+    {
+      "round": 4,
+      "automation": "audits",
+      "threshold": 250,
+      "fire_status": "ok",
+      "pending_range": [
+        31,
+        40
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 31,
+          "batch_end_seq": 40,
+          "urgent_count": 2,
+          "total_count": 10,
+          "urgent_fraction": 0.2
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0
+        }
+      ],
+      "expected": {
+        "batch_start_seq": 31,
+        "batch_end_seq": 40,
+        "urgent_count": 2,
+        "total_count": 10,
+        "urgent_fraction": 0.2
+      },
+      "correct": true,
+      "accuracy": 1.0
+    },
+    {
+      "round": 5,
+      "automation": "triage",
+      "threshold": 250,
+      "fire_status": "ok",
+      "pending_range": [
+        41,
+        50
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 41,
+          "batch_end_seq": 50,
+          "classifications": [
+            {
+              "seq": 41,
+              "category": "other",
+              "priority": "urgent"
+            },
+            {
+              "seq": 42,
+              "category": "other",
+              "priority": "urgent"
+            },
+            {
+              "seq": 43,
+              "category": "other",
+              "priority": "normal"
+            },
+            {
+              "seq": 44,
+              "category": "other",
+              "priority": "normal"
+            },
+            {
+              "seq": 45,
+              "category": "other",
+              "priority": "normal"
+            },
+            {
+              "seq": 46,
+              "category": "other",
+              "priority": "normal"
+            },
+            {
+              "seq": 47,
+              "category": "sales",
+              "priority": "normal"
+            },
+            {
+              "seq": 48,
+              "category": "refund",
+              "priority": "urgent"
+            },
+            {
+              "seq": 49,
+              "category": "other",
+              "priority": "normal"
+            },
+            {
+              "seq": 50,
+              "category": "other",
+              "priority": "normal"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 0.4,
+          "priority_accuracy": 1.0,
+          "checks": {
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "expected": {
+        "batch_start_seq": 41,
+        "batch_end_seq": 50,
+        "classifications": [
+          {
+            "seq": 41,
+            "category": "refund",
+            "priority": "urgent"
+          },
+          {
+            "seq": 42,
+            "category": "refund",
+            "priority": "urgent"
+          },
+          {
+            "seq": 43,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 44,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 45,
+            "category": "other",
+            "priority": "normal"
+          },
+          {
+            "seq": 46,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 47,
+            "category": "sales",
+            "priority": "normal"
+          },
+          {
+            "seq": 48,
+            "category": "refund",
+            "priority": "urgent"
+          },
+          {
+            "seq": 49,
+            "category": "other",
+            "priority": "normal"
+          },
+          {
+            "seq": 50,
+            "category": "bug",
+            "priority": "normal"
+          }
+        ]
+      },
+      "correct": true,
+      "accuracy": 0.4
+    },
+    {
+      "round": 5,
+      "automation": "digests",
+      "threshold": 250,
+      "fire_status": "ok",
+      "pending_range": [
+        41,
+        50
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 41,
+          "batch_end_seq": 50,
+          "urgent_by_category": {
+            "refund": 3,
+            "bug": 0,
+            "sales": 0,
+            "other": 0
+          },
+          "urgent_total": 3
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0
+        }
+      ],
+      "expected": {
+        "batch_start_seq": 41,
+        "batch_end_seq": 50,
+        "urgent_by_category": {
+          "refund": 3,
+          "bug": 0,
+          "sales": 0,
+          "other": 0
+        },
+        "urgent_total": 3
+      },
+      "correct": true,
+      "accuracy": 1.0
+    },
+    {
+      "round": 5,
+      "automation": "audits",
+      "threshold": 250,
+      "fire_status": "ok",
+      "pending_range": [
+        41,
+        50
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 41,
+          "batch_end_seq": 50,
+          "urgent_count": 3,
+          "total_count": 10,
+          "urgent_fraction": 0.3
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0
+        }
+      ],
+      "expected": {
+        "batch_start_seq": 41,
+        "batch_end_seq": 50,
+        "urgent_count": 3,
+        "total_count": 10,
+        "urgent_fraction": 0.3
+      },
+      "correct": true,
+      "accuracy": 1.0
+    }
+  ],
+  "setup_triage": {
+    "exit_code": 0
+  },
+  "setup_digests": {
+    "exit_code": 0
+  },
+  "setup_audits": {
+    "exit_code": 0
+  },
+  "job_ids": {
+    "triage": "c3f0b44b-adab-43ba-842c-35d12ada627c",
+    "digests": "6fd2919d-8e22-46ee-8f28-9a62094c5fe9",
+    "audits": "0a915ec0-7f41-4ccb-b174-33e99877e509"
+  },
+  "profile_after_setup": {
+    "cron_jobs": [
+      {
+        "id": "c3f0b44b-adab-43ba-842c-35d12ada627c",
+        "agentId": "main",
+        "sessionKey": "agent:main:explicit:benchmark-setup",
+        "name": "Hourly customer inquiry triage",
+        "description": "Classify and submit newly available support inquiries once per hour.",
+        "enabled": true,
+        "deleteAfterRun": false,
+        "createdAtMs": 1785539673628,
+        "updatedAtMs": 1785539673628,
+        "schedule": {
+          "kind": "cron",
+          "expr": "13 * * * *",
+          "tz": "Europe/London",
+          "staggerMs": 0
+        },
+        "sessionTarget": "isolated",
+        "wakeMode": "now",
+        "payload": {
+          "kind": "agentTurn",
+          "message": "Triage newly received customer inquiries using the local support API. Follow these steps exactly:\n\n1. GET http://127.0.0.1:8132/triage/last and read integer `last_seq`.\n2. GET http://127.0.0.1:8132/inquiries?after=N using that last_seq.\n3. If no inquiries are returned, make no POST and finish silently.\n4. Otherwise classify every fetched inquiry exactly once. Category: `refund` if they want money back for a charge; `bug` if something in the product is broken or not working correctly; `sales` if they want to buy, upgrade, get a quote, or discuss pricing; `other` otherwise. Priority: `urgent` if it involves a charge, billing amount, or refund of $500 or more, or the customer says they are blocked from working; `normal` otherwise.\n5. POST one JSON object to http://127.0.0.1:8132/triage with exactly the top-level keys `batch_start_seq` (minimum fetched seq), `batch_end_seq` (maximum fetched seq), and `classifications`. Classifications must cover every fetched inquiry exactly once and each object must have exactly `seq`, `category`, and `priority`.\n\nUse curl/HTTP tooling as needed. Parse and construct JSON programmatically. Validate completeness and allowed values before POSTing; fail rather than post a partial or invalid batch. Do not produce user-facing output for an empty or successful run.",
+          "timeoutSeconds": 300,
+          "lightContext": true,
+          "allowUnsafeExternalContent": false,
+          "fallbacks": [],
+          "toolsAllow": [
+            "exec",
+            "web_fetch"
+          ]
+        },
+        "delivery": {
+          "mode": "none",
+          "bestEffort": false,
+          "failureDestination": {
+            "channel": "last",
+            "to": "last",
+            "accountId": "default",
+            "mode": "announce"
+          }
+        },
+        "failureAlert": {
+          "after": 1,
+          "channel": "last",
+          "to": "last",
+          "cooldownMs": 3600000,
+          "mode": "announce",
+          "accountId": "default"
+        },
+        "state": {
+          "nextRunAtMs": 1785543180000
+        }
+      },
+      {
+        "id": "6fd2919d-8e22-46ee-8f28-9a62094c5fe9",
+        "agentId": "main",
+        "sessionKey": "agent:main:explicit:benchmark-setup",
+        "name": "Daily urgent customer inquiry digest",
+        "description": "Summarize urgent support inquiries into category counts once daily.",
+        "enabled": true,
+        "deleteAfterRun": false,
+        "createdAtMs": 1785539697556,
+        "updatedAtMs": 1785539697556,
+        "schedule": {
+          "kind": "cron",
+          "expr": "14 0 * * *",
+          "tz": "Europe/London",
+          "staggerMs": 0
+        },
+        "sessionTarget": "isolated",
+        "wakeMode": "now",
+        "payload": {
+          "kind": "agentTurn",
+          "message": "Create the daily digest of urgent customer inquiries using the local support API. Follow these steps exactly:\n\n1. GET http://127.0.0.1:8132/digests/last and read integer `last_seq`.\n2. GET http://127.0.0.1:8132/inquiries?after=N using that last_seq. The response contains up to 200 inquiries, each with integer `seq` and string `text`.\n3. If no inquiries are returned, make no POST and finish silently.\n4. Otherwise evaluate every fetched inquiry. An inquiry is urgent if it involves a charge, billing amount, or refund of $500 or more, OR if the customer says they are blocked from working. For each urgent inquiry determine one category: `refund` if they want money back for a charge; `bug` if something is broken or not working; `sales` if it concerns buying, upgrading, quotes, or pricing; `other` otherwise. Non-urgent inquiries do not contribute to category counts, but their seq values still define the fetched batch boundaries.\n5. POST one JSON object to http://127.0.0.1:8132/digests with exactly these top-level keys: `batch_start_seq` (minimum seq among all fetched inquiries), `batch_end_seq` (maximum seq among all fetched inquiries), `urgent_by_category` (an object with exactly the keys `refund`, `bug`, `sales`, and `other`, each mapped to an integer count of urgent inquiries), and `urgent_total` (integer equal to the sum of those four counts). POST a digest even when the fetched batch has zero urgent inquiries; only an entirely empty fetched batch results in no POST.\n\nUse curl/HTTP tooling as needed. Parse responses and construct JSON programmatically. Validate the exact keys, integer counts, batch boundaries, and total before POSTing; fail rather than post a partial or invalid digest. Do not produce user-facing output for an empty or successful run.",
+          "timeoutSeconds": 300,
+          "lightContext": true,
+          "allowUnsafeExternalContent": false,
+          "fallbacks": [],
+          "toolsAllow": [
+            "exec",
+            "web_fetch"
+          ]
+        },
+        "delivery": {
+          "mode": "none",
+          "bestEffort": false,
+          "failureDestination": {
+            "channel": "last",
+            "to": "last",
+            "accountId": "default",
+            "mode": "announce"
+          }
+        },
+        "failureAlert": {
+          "after": 1,
+          "channel": "last",
+          "to": "last",
+          "cooldownMs": 3600000,
+          "mode": "announce",
+          "accountId": "default"
+        },
+        "state": {
+          "nextRunAtMs": 1785626040000
+        }
+      },
+      {
+        "id": "0a915ec0-7f41-4ccb-b174-33e99877e509",
+        "agentId": "main",
+        "sessionKey": "agent:main:explicit:benchmark-setup",
+        "name": "Weekly escalation volume audit",
+        "description": "Count urgent inquiries and report their share once per week.",
+        "enabled": true,
+        "deleteAfterRun": false,
+        "createdAtMs": 1785539720418,
+        "updatedAtMs": 1785539720418,
+        "schedule": {
+          "kind": "cron",
+          "expr": "15 0 * * 6",
+          "tz": "Europe/London",
+          "staggerMs": 0
+        },
+        "sessionTarget": "isolated",
+        "wakeMode": "now",
+        "payload": {
+          "kind": "agentTurn",
+          "message": "Audit weekly escalation volume using the local support API. Follow these steps exactly:\n\n1. GET http://127.0.0.1:8132/audits/last and read integer `last_seq`.\n2. GET http://127.0.0.1:8132/inquiries?after=N using that last_seq. The response contains up to 200 inquiries, each with integer `seq` and string `text`.\n3. If no inquiries are returned, make no POST and finish silently.\n4. Otherwise evaluate every fetched inquiry. Count an inquiry as urgent if it involves a charge, billing amount, or refund of $500 or more, OR if the customer says they are blocked from working. All others are normal.\n5. POST one JSON object to http://127.0.0.1:8132/audits with exactly these keys: `batch_start_seq` (minimum fetched seq), `batch_end_seq` (maximum fetched seq), `urgent_count` (integer count of urgent fetched inquiries), `total_count` (integer count of all fetched inquiries), and `urgent_fraction` (JSON number equal to urgent_count / total_count rounded to exactly two decimal places mathematically; for example 1/4 becomes 0.25 and 2/3 becomes 0.67).\n\nUse curl/HTTP tooling as needed. Parse responses and construct JSON programmatically. Validate exact keys, integer counts, batch boundaries, and the rounded fraction before POSTing; fail rather than post a partial or invalid audit. Do not produce user-facing output for an empty or successful run.",
+          "timeoutSeconds": 300,
+          "lightContext": true,
+          "allowUnsafeExternalContent": false,
+          "fallbacks": [],
+          "toolsAllow": [
+            "exec",
+            "web_fetch"
+          ]
+        },
+        "delivery": {
+          "mode": "none",
+          "bestEffort": false,
+          "failureDestination": {
+            "channel": "last",
+            "to": "last",
+            "accountId": "default",
+            "mode": "announce"
+          }
+        },
+        "failureAlert": {
+          "after": 1,
+          "channel": "last",
+          "to": "last",
+          "cooldownMs": 3600000,
+          "mode": "announce",
+          "accountId": "default"
+        },
+        "state": {
+          "nextRunAtMs": 1786144500000
+        }
+      }
+    ],
+    "workspace_files": [
+      ".openclaw/workspace-state.json",
+      "AGENTS.md",
+      "BOOTSTRAP.md",
+      "HEARTBEAT.md",
+      "IDENTITY.md",
+      "SOUL.md",
+      "TOOLS.md",
+      "USER.md"
+    ],
+    "skills": []
+  },
+  "policy_change": {
+    "exit_code": 0,
+    "artifacts_changed": [
+      "cron:0a915ec0-7f41-4ccb-b174-33e99877e509",
+      "cron:6fd2919d-8e22-46ee-8f28-9a62094c5fe9",
+      "cron:c3f0b44b-adab-43ba-842c-35d12ada627c"
+    ],
+    "artifacts_total": 11
+  },
+  "profile_final": {
+    "cron_jobs": [
+      {
+        "id": "c3f0b44b-adab-43ba-842c-35d12ada627c",
+        "agentId": "main",
+        "sessionKey": "agent:main:explicit:benchmark-setup",
+        "name": "Hourly customer inquiry triage",
+        "description": "Classify and submit newly available support inquiries once per hour.",
+        "enabled": true,
+        "deleteAfterRun": false,
+        "createdAtMs": 1785539673628,
+        "updatedAtMs": 1785540116289,
+        "schedule": {
+          "kind": "cron",
+          "expr": "13 * * * *",
+          "tz": "Europe/London",
+          "staggerMs": 0
+        },
+        "sessionTarget": "isolated",
+        "wakeMode": "now",
+        "payload": {
+          "kind": "agentTurn",
+          "message": "Triage newly received customer inquiries using the local support API. Follow these steps exactly:\n\n1. GET http://127.0.0.1:8132/triage/last and read integer `last_seq`.\n2. GET http://127.0.0.1:8132/inquiries?after=N using that last_seq.\n3. If no inquiries are returned, make no POST and finish silently.\n4. Otherwise classify every fetched inquiry exactly once. Category: `refund` if they want money back for a charge; `bug` if something in the product is broken or not working correctly; `sales` if they want to buy, upgrade, get a quote, or discuss pricing; `other` otherwise. Priority: `urgent` if it involves a charge, billing amount, or refund of $250 or more, or the customer says they are blocked from working; `normal` otherwise.\n5. POST one JSON object to http://127.0.0.1:8132/triage with exactly the top-level keys `batch_start_seq` (minimum fetched seq), `batch_end_seq` (maximum fetched seq), and `classifications`. Classifications must cover every fetched inquiry exactly once and each object must have exactly `seq`, `category`, and `priority`.\n\nUse curl/HTTP tooling as needed. Parse and construct JSON programmatically. Validate completeness and allowed values before POSTing; fail rather than post a partial or invalid batch. Do not produce user-facing output for an empty or successful run.",
+          "timeoutSeconds": 300,
+          "lightContext": true,
+          "allowUnsafeExternalContent": false,
+          "fallbacks": [],
+          "toolsAllow": [
+            "exec",
+            "web_fetch"
+          ]
+        },
+        "delivery": {
+          "mode": "none",
+          "bestEffort": false,
+          "failureDestination": {
+            "channel": "last",
+            "to": "last",
+            "accountId": "default",
+            "mode": "announce"
+          }
+        },
+        "failureAlert": {
+          "after": 1,
+          "channel": "last",
+          "to": "last",
+          "cooldownMs": 3600000,
+          "mode": "announce",
+          "accountId": "default"
+        },
+        "state": {
+          "nextRunAtMs": 1785543180000,
+          "lastRunAtMs": 1785540099158,
+          "lastRunStatus": "ok",
+          "lastStatus": "ok",
+          "lastDurationMs": 17131,
+          "lastDelivered": false,
+          "lastDeliveryStatus": "not-delivered",
+          "consecutiveErrors": 0
+        }
+      },
+      {
+        "id": "6fd2919d-8e22-46ee-8f28-9a62094c5fe9",
+        "agentId": "main",
+        "sessionKey": "agent:main:explicit:benchmark-setup",
+        "name": "Daily urgent customer inquiry digest",
+        "description": "Summarize urgent support inquiries into category counts once daily.",
+        "enabled": true,
+        "deleteAfterRun": false,
+        "createdAtMs": 1785539697556,
+        "updatedAtMs": 1785540138367,
+        "schedule": {
+          "kind": "cron",
+          "expr": "14 0 * * *",
+          "tz": "Europe/London",
+          "staggerMs": 0
+        },
+        "sessionTarget": "isolated",
+        "wakeMode": "now",
+        "payload": {
+          "kind": "agentTurn",
+          "message": "Create the daily digest of urgent customer inquiries using the local support API. Follow these steps exactly:\n\n1. GET http://127.0.0.1:8132/digests/last and read integer `last_seq`.\n2. GET http://127.0.0.1:8132/inquiries?after=N using that last_seq. The response contains up to 200 inquiries, each with integer `seq` and string `text`.\n3. If no inquiries are returned, make no POST and finish silently.\n4. Otherwise evaluate every fetched inquiry. An inquiry is urgent if it involves a charge, billing amount, or refund of $250 or more, OR if the customer says they are blocked from working. For each urgent inquiry determine one category: `refund` if they want money back for a charge; `bug` if something is broken or not working; `sales` if it concerns buying, upgrading, quotes, or pricing; `other` otherwise. Non-urgent inquiries do not contribute to category counts, but their seq values still define the fetched batch boundaries.\n5. POST one JSON object to http://127.0.0.1:8132/digests with exactly these top-level keys: `batch_start_seq` (minimum seq among all fetched inquiries), `batch_end_seq` (maximum seq among all fetched inquiries), `urgent_by_category` (an object with exactly the keys `refund`, `bug`, `sales`, and `other`, each mapped to an integer count of urgent inquiries), and `urgent_total` (integer equal to the sum of those four counts). POST a digest even when the fetched batch has zero urgent inquiries; only an entirely empty fetched batch results in no POST.\n\nUse curl/HTTP tooling as needed. Parse responses and construct JSON programmatically. Validate the exact keys, integer counts, batch boundaries, and total before POSTing; fail rather than post a partial or invalid digest. Do not produce user-facing output for an empty or successful run.",
+          "timeoutSeconds": 300,
+          "lightContext": true,
+          "allowUnsafeExternalContent": false,
+          "fallbacks": [],
+          "toolsAllow": [
+            "exec",
+            "web_fetch"
+          ]
+        },
+        "delivery": {
+          "mode": "none",
+          "bestEffort": false,
+          "failureDestination": {
+            "channel": "last",
+            "to": "last",
+            "accountId": "default",
+            "mode": "announce"
+          }
+        },
+        "failureAlert": {
+          "after": 1,
+          "channel": "last",
+          "to": "last",
+          "cooldownMs": 3600000,
+          "mode": "announce",
+          "accountId": "default"
+        },
+        "state": {
+          "nextRunAtMs": 1785626040000,
+          "lastRunAtMs": 1785540119319,
+          "lastRunStatus": "ok",
+          "lastStatus": "ok",
+          "lastDurationMs": 19048,
+          "lastDelivered": false,
+          "lastDeliveryStatus": "not-delivered",
+          "consecutiveErrors": 0
+        }
+      },
+      {
+        "id": "0a915ec0-7f41-4ccb-b174-33e99877e509",
+        "agentId": "main",
+        "sessionKey": "agent:main:explicit:benchmark-setup",
+        "name": "Weekly escalation volume audit",
+        "description": "Count urgent inquiries and report their share once per week.",
+        "enabled": true,
+        "deleteAfterRun": false,
+        "createdAtMs": 1785539720418,
+        "updatedAtMs": 1785540156899,
+        "schedule": {
+          "kind": "cron",
+          "expr": "15 0 * * 6",
+          "tz": "Europe/London",
+          "staggerMs": 0
+        },
+        "sessionTarget": "isolated",
+        "wakeMode": "now",
+        "payload": {
+          "kind": "agentTurn",
+          "message": "Audit weekly escalation volume using the local support API. Follow these steps exactly:\n\n1. GET http://127.0.0.1:8132/audits/last and read integer `last_seq`.\n2. GET http://127.0.0.1:8132/inquiries?after=N using that last_seq. The response contains up to 200 inquiries, each with integer `seq` and string `text`.\n3. If no inquiries are returned, make no POST and finish silently.\n4. Otherwise evaluate every fetched inquiry. Count an inquiry as urgent if it involves a charge, billing amount, or refund of $250 or more, OR if the customer says they are blocked from working. All others are normal.\n5. POST one JSON object to http://127.0.0.1:8132/audits with exactly these keys: `batch_start_seq` (minimum fetched seq), `batch_end_seq` (maximum fetched seq), `urgent_count` (integer count of urgent fetched inquiries), `total_count` (integer count of all fetched inquiries), and `urgent_fraction` (JSON number equal to urgent_count / total_count rounded to exactly two decimal places mathematically; for example 1/4 becomes 0.25 and 2/3 becomes 0.67).\n\nUse curl/HTTP tooling as needed. Parse responses and construct JSON programmatically. Validate exact keys, integer counts, batch boundaries, and the rounded fraction before POSTing; fail rather than post a partial or invalid audit. Do not produce user-facing output for an empty or successful run.",
+          "timeoutSeconds": 300,
+          "lightContext": true,
+          "allowUnsafeExternalContent": false,
+          "fallbacks": [],
+          "toolsAllow": [
+            "exec",
+            "web_fetch"
+          ]
+        },
+        "delivery": {
+          "mode": "none",
+          "bestEffort": false,
+          "failureDestination": {
+            "channel": "last",
+            "to": "last",
+            "accountId": "default",
+            "mode": "announce"
+          }
+        },
+        "failureAlert": {
+          "after": 1,
+          "channel": "last",
+          "to": "last",
+          "cooldownMs": 3600000,
+          "mode": "announce",
+          "accountId": "default"
+        },
+        "state": {
+          "nextRunAtMs": 1786144500000,
+          "lastRunAtMs": 1785540139460,
+          "lastRunStatus": "ok",
+          "lastStatus": "ok",
+          "lastDurationMs": 17439,
+          "lastDelivered": false,
+          "lastDeliveryStatus": "not-delivered",
+          "consecutiveErrors": 0
+        }
+      }
+    ],
+    "workspace_files": [
+      ".openclaw/workspace-state.json",
+      "AGENTS.md",
+      "BOOTSTRAP.md",
+      "HEARTBEAT.md",
+      "IDENTITY.md",
+      "SOUL.md",
+      "TOOLS.md",
+      "USER.md"
+    ],
+    "skills": []
+  },
+  "defuse_actions": [
+    "disabled cron job c3f0b44b-adab-43ba-842c-35d12ada627c (exit 0)",
+    "disabled cron job 6fd2919d-8e22-46ee-8f28-9a62094c5fe9 (exit 0)",
+    "disabled cron job 0a915ec0-7f41-4ccb-b174-33e99877e509 (exit 0)",
+    "stopped managed gateway",
+    "scrubbed state archive"
+  ],
+  "phases": [
+    {
+      "name": "setup_triage",
+      "wall_seconds": 56.45,
+      "llm_calls": 5,
+      "prompt_tokens": 79056,
+      "completion_tokens": 2458,
+      "total_tokens": 81514,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 5
+      }
+    },
+    {
+      "name": "setup_digests",
+      "wall_seconds": 23.25,
+      "llm_calls": 3,
+      "prompt_tokens": 58017,
+      "completion_tokens": 1156,
+      "total_tokens": 59173,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 3
+      }
+    },
+    {
+      "name": "setup_audits",
+      "wall_seconds": 21.1,
+      "llm_calls": 3,
+      "prompt_tokens": 66221,
+      "completion_tokens": 987,
+      "total_tokens": 67208,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 3
+      }
+    },
+    {
+      "name": "fire_round1_triage",
+      "wall_seconds": 21.07,
+      "llm_calls": 4,
+      "prompt_tokens": 29431,
+      "completion_tokens": 888,
+      "total_tokens": 30319,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_round1_digests",
+      "wall_seconds": 21.14,
+      "llm_calls": 3,
+      "prompt_tokens": 22817,
+      "completion_tokens": 904,
+      "total_tokens": 23721,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 3
+      }
+    },
+    {
+      "name": "fire_round1_audits",
+      "wall_seconds": 24.78,
+      "llm_calls": 3,
+      "prompt_tokens": 22713,
+      "completion_tokens": 1347,
+      "total_tokens": 24060,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 3
+      }
+    },
+    {
+      "name": "fire_round2_triage",
+      "wall_seconds": 16.94,
+      "llm_calls": 3,
+      "prompt_tokens": 22596,
+      "completion_tokens": 993,
+      "total_tokens": 23589,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 3
+      }
+    },
+    {
+      "name": "fire_round2_digests",
+      "wall_seconds": 17.03,
+      "llm_calls": 4,
+      "prompt_tokens": 30104,
+      "completion_tokens": 866,
+      "total_tokens": 30970,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_round2_audits",
+      "wall_seconds": 24.45,
+      "llm_calls": 4,
+      "prompt_tokens": 30060,
+      "completion_tokens": 1401,
+      "total_tokens": 31461,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "policy_change",
+      "wall_seconds": 54.47,
+      "llm_calls": 5,
+      "prompt_tokens": 137012,
+      "completion_tokens": 5484,
+      "total_tokens": 142496,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 5
+      }
+    },
+    {
+      "name": "fire_round3_triage",
+      "wall_seconds": 23.82,
+      "llm_calls": 4,
+      "prompt_tokens": 29698,
+      "completion_tokens": 1204,
+      "total_tokens": 30902,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_round3_digests",
+      "wall_seconds": 20.13,
+      "llm_calls": 4,
+      "prompt_tokens": 29948,
+      "completion_tokens": 850,
+      "total_tokens": 30798,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_round3_audits",
+      "wall_seconds": 23.87,
+      "llm_calls": 3,
+      "prompt_tokens": 22622,
+      "completion_tokens": 1128,
+      "total_tokens": 23750,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 3
+      }
+    },
+    {
+      "name": "fire_round4_triage",
+      "wall_seconds": 27.66,
+      "llm_calls": 4,
+      "prompt_tokens": 29683,
+      "completion_tokens": 1134,
+      "total_tokens": 30817,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_round4_digests",
+      "wall_seconds": 23.96,
+      "llm_calls": 3,
+      "prompt_tokens": 22877,
+      "completion_tokens": 1130,
+      "total_tokens": 24007,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 3
+      }
+    },
+    {
+      "name": "fire_round4_audits",
+      "wall_seconds": 72.29,
+      "llm_calls": 4,
+      "prompt_tokens": 29859,
+      "completion_tokens": 1415,
+      "total_tokens": 31274,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_round5_triage",
+      "wall_seconds": 20.16,
+      "llm_calls": 2,
+      "prompt_tokens": 14954,
+      "completion_tokens": 1053,
+      "total_tokens": 16007,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      }
+    },
+    {
+      "name": "fire_round5_digests",
+      "wall_seconds": 20.15,
+      "llm_calls": 3,
+      "prompt_tokens": 23124,
+      "completion_tokens": 1195,
+      "total_tokens": 24319,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 3
+      }
+    },
+    {
+      "name": "fire_round5_audits",
+      "wall_seconds": 20.16,
+      "llm_calls": 3,
+      "prompt_tokens": 22706,
+      "completion_tokens": 1174,
+      "total_tokens": 23880,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 3
+      }
+    }
+  ],
+  "finished_at": "2026-07-31T23:22:42.713098+00:00"
+}

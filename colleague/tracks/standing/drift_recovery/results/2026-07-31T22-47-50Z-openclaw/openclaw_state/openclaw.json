@@ -1,0 +1,40 @@
+{
+  "gateway": {
+    "mode": "local"
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "openrouter/openai/gpt-5.6-sol"
+      },
+      "workspace": "/Users/djl11/unify/benchmarks/drift_recovery/results/2026-07-31T22-47-50Z-openclaw/workspace"
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "openrouter": {
+        "baseUrl": "http://127.0.0.1:8159/api/v1",
+        "apiKey": "${OPENROUTER_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "openai/gpt-5.6-sol",
+            "name": "openai/gpt-5.6-sol"
+          }
+        ]
+      }
+    }
+  },
+  "plugins": {
+    "entries": {
+      "openrouter": {
+        "enabled": true
+      }
+    }
+  },
+  "meta": {
+    "lastTouchedVersion": "2026.4.11",
+    "lastTouchedAt": "2026-07-31T22:47:51.922Z"
+  }
+}

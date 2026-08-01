@@ -1,0 +1,717 @@
+{
+  "experiment": "drift_recovery",
+  "system": "unify",
+  "run_id": "2026-07-31T11-54-41Z-unify",
+  "orchestra_url": "https://api.staging.internal.saas.unify.ai/v0",
+  "context": "benchmarks/drift_recovery/2026-07-31T11-54-41Z-unify/default/0",
+  "seed": 20260731,
+  "n_fires": 10,
+  "drift_after_fire": 4,
+  "quiesce_idle_s": 180.0,
+  "utterance": "Please set up an hourly recurring automation that processes new orders from the local orders API at http://127.0.0.1:8125.\n\nHow it works: GET http://127.0.0.1:8125/batches/last returns {\"last_seq\": N} \u2014 the highest order seq already processed (0 if none yet). GET http://127.0.0.1:8125/orders?after=N returns the next orders with seq > N (up to 200), each with fields: seq (int), date (YYYY-MM-DD), region, units (int), unit_price_cents (int).\n\nOn each run: read last_seq, fetch the orders after it, and if there are none do nothing. Otherwise compute exactly: batch_start_seq, batch_end_seq, order_count, total_units, total_revenue_cents (sum of units * unit_price_cents), revenue_by_region_cents (object mapping each region to its revenue sum), and POST that JSON object to http://127.0.0.1:8125/batches with exactly these keys.\n\nSet up the recurring hourly automation now. Do not process anything right now, and do not ask for confirmation.",
+  "fires": [
+    {
+      "fire": 1,
+      "drifted": false,
+      "status": "completed",
+      "entrypoint_before": null,
+      "entrypoint_after": 0,
+      "pending_range": [
+        1,
+        37
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 1,
+          "batch_end_seq": 37,
+          "order_count": 37,
+          "total_units": 375,
+          "total_revenue_cents": 674325,
+          "revenue_by_region_cents": {
+            "east": 164938,
+            "south": 253550,
+            "west": 117600,
+            "north": 138237
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 1,
+        "batch_end_seq": 37,
+        "order_count": 37,
+        "total_units": 375,
+        "total_revenue_cents": 674325,
+        "revenue_by_region_cents": {
+          "east": 164938,
+          "south": 253550,
+          "west": 117600,
+          "north": 138237
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true,
+      "result": "Batch processed successfully and POSTed with HTTP 200.\n\n- Sequence range: **1\u201337**\n- Orders: **37**\n- Total units: **375**\n- Total revenue: **674,325 cents**\n- Revenue by region:\n  - East: **164,938 cents**\n  - South: **253,550 cents**\n  - West: **117,600 cents**\n  - North: **138,237 cents**"
+    },
+    {
+      "fire": 2,
+      "drifted": false,
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        38,
+        74
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 38,
+          "batch_end_seq": 74,
+          "order_count": 37,
+          "total_units": 354,
+          "total_revenue_cents": 737846,
+          "revenue_by_region_cents": {
+            "south": 213573,
+            "north": 195810,
+            "east": 296887,
+            "west": 31576
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 38,
+        "batch_end_seq": 74,
+        "order_count": 37,
+        "total_units": 354,
+        "total_revenue_cents": 737846,
+        "revenue_by_region_cents": {
+          "south": 213573,
+          "north": 195810,
+          "east": 296887,
+          "west": 31576
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true,
+      "result": "{'status': 'success', 'posted': True, 'http_status': 200, 'batch': {'batch_start_seq': 38, 'batch_end_seq': 74, 'order_count': 37, 'total_units': 354, 'total_revenue_cents': 737846, 'revenue_by_region_cents': {'south': 213573, 'north': 195810, 'east': 296887, 'west': 31576}}}"
+    },
+    {
+      "fire": 3,
+      "drifted": false,
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        75,
+        111
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 75,
+          "batch_end_seq": 111,
+          "order_count": 37,
+          "total_units": 359,
+          "total_revenue_cents": 674441,
+          "revenue_by_region_cents": {
+            "north": 138835,
+            "east": 243012,
+            "west": 124696,
+            "south": 167898
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 75,
+        "batch_end_seq": 111,
+        "order_count": 37,
+        "total_units": 359,
+        "total_revenue_cents": 674441,
+        "revenue_by_region_cents": {
+          "north": 138835,
+          "east": 243012,
+          "west": 124696,
+          "south": 167898
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true,
+      "result": "{'status': 'success', 'posted': True, 'http_status': 200, 'batch': {'batch_start_seq': 75, 'batch_end_seq': 111, 'order_count': 37, 'total_units': 359, 'total_revenue_cents': 674441, 'revenue_by_region_cents': {'north': 138835, 'east': 243012, 'west': 124696, 'south': 167898}}}"
+    },
+    {
+      "fire": 4,
+      "drifted": false,
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        112,
+        148
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 112,
+          "batch_end_seq": 148,
+          "order_count": 37,
+          "total_units": 462,
+          "total_revenue_cents": 851938,
+          "revenue_by_region_cents": {
+            "south": 216965,
+            "north": 291965,
+            "west": 114997,
+            "east": 228011
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 112,
+        "batch_end_seq": 148,
+        "order_count": 37,
+        "total_units": 462,
+        "total_revenue_cents": 851938,
+        "revenue_by_region_cents": {
+          "south": 216965,
+          "north": 291965,
+          "west": 114997,
+          "east": 228011
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true,
+      "result": "{'status': 'success', 'posted': True, 'http_status': 200, 'batch': {'batch_start_seq': 112, 'batch_end_seq': 148, 'order_count': 37, 'total_units': 462, 'total_revenue_cents': 851938, 'revenue_by_region_cents': {'south': 216965, 'north': 291965, 'west': 114997, 'east': 228011}}}"
+    },
+    {
+      "fire": 5,
+      "drifted": true,
+      "status": "error",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        149,
+        185
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 185,
+        "order_count": 37,
+        "total_units": 331,
+        "total_revenue_cents": 690469,
+        "revenue_by_region_cents": {
+          "east": 208024,
+          "north": 305262,
+          "west": 44259,
+          "south": 132924
+        }
+      },
+      "scores": [],
+      "correct": false,
+      "result": "TypeError: order[0].unit_price_cents must be available as an integer cents value"
+    },
+    {
+      "fire": 6,
+      "drifted": true,
+      "status": "error",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        149,
+        222
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 222,
+        "order_count": 74,
+        "total_units": 680,
+        "total_revenue_cents": 1417120,
+        "revenue_by_region_cents": {
+          "east": 484623,
+          "north": 600126,
+          "west": 129889,
+          "south": 202482
+        }
+      },
+      "scores": [],
+      "correct": false,
+      "result": "TypeError: order[0].unit_price_cents was not found in an equivalent cents-denominated per-unit price field"
+    },
+    {
+      "fire": 7,
+      "drifted": true,
+      "status": "error",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        149,
+        259
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 259,
+        "order_count": 111,
+        "total_units": 1032,
+        "total_revenue_cents": 2067568,
+        "revenue_by_region_cents": {
+          "east": 715539,
+          "north": 788540,
+          "west": 283354,
+          "south": 280135
+        }
+      },
+      "scores": [],
+      "correct": false,
+      "result": "TypeError: order[0].unit_price_cents was not found in an equivalent cents-denominated per-unit price or cost field"
+    },
+    {
+      "fire": 8,
+      "drifted": true,
+      "status": "error",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        149,
+        296
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 296,
+        "order_count": 148,
+        "total_units": 1416,
+        "total_revenue_cents": 2821084,
+        "revenue_by_region_cents": {
+          "east": 1020524,
+          "north": 968056,
+          "west": 420741,
+          "south": 411763
+        }
+      },
+      "scores": [],
+      "correct": false,
+      "result": "TypeError: order[0].unit_price_cents was not found in an equivalent explicitly cents-denominated per-unit price, cost, or rate field"
+    },
+    {
+      "fire": 9,
+      "drifted": true,
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        149,
+        333
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 149,
+          "batch_end_seq": 333,
+          "order_count": 185,
+          "total_units": 1760,
+          "total_revenue_cents": 3538540,
+          "revenue_by_region_cents": {
+            "east": 1312318,
+            "north": 1203349,
+            "west": 491381,
+            "south": 531492
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 333,
+        "order_count": 185,
+        "total_units": 1760,
+        "total_revenue_cents": 3538540,
+        "revenue_by_region_cents": {
+          "east": 1312318,
+          "north": 1203349,
+          "west": 491381,
+          "south": 531492
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true,
+      "result": "{'status': 'success', 'posted': True, 'http_status': 200, 'batch': {'batch_start_seq': 149, 'batch_end_seq': 333, 'order_count': 185, 'total_units': 1760, 'total_revenue_cents': 3538540, 'revenue_by_region_cents': {'east': 1312318, 'north': 1203349, 'west': 491381, 'south': 531492}}}"
+    },
+    {
+      "fire": 10,
+      "drifted": true,
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        334,
+        370
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 334,
+          "batch_end_seq": 370,
+          "order_count": 37,
+          "total_units": 404,
+          "total_revenue_cents": 753196,
+          "revenue_by_region_cents": {
+            "north": 283874,
+            "west": 170359,
+            "south": 134923,
+            "east": 164040
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 334,
+        "batch_end_seq": 370,
+        "order_count": 37,
+        "total_units": 404,
+        "total_revenue_cents": 753196,
+        "revenue_by_region_cents": {
+          "north": 283874,
+          "west": 170359,
+          "south": 134923,
+          "east": 164040
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true,
+      "result": "{'status': 'success', 'posted': True, 'http_status': 200, 'batch': {'batch_start_seq': 334, 'batch_end_seq': 370, 'order_count': 37, 'total_units': 404, 'total_revenue_cents': 753196, 'revenue_by_region_cents': {'north': 283874, 'west': 170359, 'south': 134923, 'east': 164040}}}"
+    }
+  ],
+  "setup": {
+    "status": "completed",
+    "result": "Hourly recurring automation created successfully.\n\n- **Task:** Process new local API orders hourly\n- **Task ID:** 0\n- **Schedule:** Every hour\n- **Status:** Enabled\n- **First scheduled run:** July 31, 2026 at 12:55 PM UTC\n- **Immediate processing:** None\u2014no API requests were made."
+  },
+  "entrypoint_function_final": {
+    "function_id": 0,
+    "name": "process_new_local_api_orders_hourly",
+    "docstring": "Process one page of new orders and post the exact integer batch summary.\n\nEvolved cents/minor-unit and endpoint-semantic per-unit price aliases are\naccepted without changing the aggregation or exact POST contract.",
+    "implementation": "async def process_new_local_api_orders_hourly():\n    \"\"\"Process one page of new orders and post the exact integer batch summary.\n\n    Evolved cents/minor-unit and endpoint-semantic per-unit price aliases are\n    accepted without changing the aggregation or exact POST contract.\n    \"\"\"\n    import json\n    import logging\n    import re\n    from collections import defaultdict\n    from urllib.parse import urlencode\n    from urllib.request import Request, urlopen\n\n    logger = logging.getLogger(__name__)\n    base_url = \"http://127.0.0.1:8125\"\n\n    def get_json(url):\n        request = Request(url, method=\"GET\", headers={\"Accept\": \"application/json\"})\n        with urlopen(request, timeout=30) as response:\n            return json.loads(response.read().decode(\"utf-8\"))\n\n    def require_int(value, field):\n        if isinstance(value, bool) or not isinstance(value, int):\n            raise TypeError(f\"{field} must be an integer\")\n        return value\n\n    def words(value):\n        expanded = re.sub(r\"([a-z0-9])([A-Z])\", r\"\\1_\\2\", str(value))\n        return tuple(part for part in re.split(r\"[^a-z0-9]+\", expanded.lower()) if part)\n\n    def path_words(path):\n        return tuple(part for component in path for part in words(component))\n\n    def walk_scalars(value, path=()):\n        if isinstance(value, dict):\n            for key, child in value.items():\n                yield from walk_scalars(child, path + (str(key),))\n        elif isinstance(value, list):\n            for position, child in enumerate(value):\n                yield from walk_scalars(child, path + (str(position),))\n        else:\n            yield path, value\n\n    def walk_objects(value, path=()):\n        if isinstance(value, dict):\n            yield path, value\n            for key, child in value.items():\n                yield from walk_objects(child, path + (str(key),))\n        elif isinstance(value, list):\n            for position, child in enumerate(value):\n                yield from walk_objects(child, path + (str(position),))\n\n    def semantic_flags(tokens):\n        token_set = set(tokens)\n        joined = \"\".join(tokens)\n        price = bool(token_set & {\"price\", \"pricing\", \"cost\", \"rate\", \"amount\"})\n        if any(term in joined for term in (\"price\", \"pricing\", \"cost\", \"rate\", \"amount\")):\n            price = True\n        per_item = bool(token_set & {\"unit\", \"item\", \"each\"})\n        if any(term in joined for term in (\n            \"perunit\", \"peritem\", \"unitprice\", \"itemprice\", \"priceperunit\",\n            \"priceperitem\", \"unitcost\", \"itemcost\", \"costperunit\",\n            \"costperitem\", \"unitrate\", \"itemrate\", \"rateperunit\", \"rateperitem\",\n        )):\n            per_item = True\n        aggregate = bool(token_set & {\n            \"total\", \"subtotal\", \"extended\", \"extension\", \"revenue\", \"gross\", \"net\"\n        })\n        cents = bool(token_set & {\"cent\", \"cents\", \"minor\"})\n        if \"cent\" in joined or \"minorunit\" in joined or \"minoramount\" in joined:\n            cents = True\n        other_scale = bool(token_set & {\n            \"dollar\", \"dollars\", \"major\", \"micro\", \"micros\", \"milli\", \"mills\"\n        })\n        if any(term in joined for term in (\"majorunit\", \"microunit\", \"millis\")):\n            other_scale = True\n        return price, per_item, aggregate, cents, other_scale\n\n    def scalar_is_unit_price(path):\n        if not path:\n            return False\n        leaf_joined = \"\".join(words(path[-1]))\n        if leaf_joined in {\n            \"currency\", \"currencycode\", \"code\", \"denomination\", \"currencyunit\",\n            \"amountunit\", \"unitofmeasure\", \"basis\", \"per\", \"quantitybasis\",\n            \"type\", \"kind\", \"role\", \"name\", \"scale\", \"representation\",\n        }:\n            return False\n        price, per_item, aggregate, cents, other_scale = semantic_flags(path_words(path))\n        if aggregate or other_scale or not price:\n            return False\n        if cents and per_item:\n            return True\n        if per_item and leaf_joined in {\n            \"unitprice\", \"itemprice\", \"priceperunit\", \"priceperitem\", \"unitcost\",\n            \"itemcost\", \"costperunit\", \"costperitem\", \"unitrate\", \"itemrate\",\n            \"rateperunit\", \"rateperitem\", \"amount\", \"value\", \"minoramount\",\n        }:\n            return True\n        if cents:\n            harmless = {\n                \"order\", \"orders\", \"data\", \"attributes\", \"details\", \"pricing\",\n                \"price\", \"cost\", \"rate\", \"amount\", \"value\", \"cent\", \"cents\",\n                \"minor\", \"unit\", \"units\",\n            }\n            if not (set(path_words(path)) - harmless):\n                return True\n        return False\n\n    def normalized_object(node):\n        return {\"\".join(words(key)): (str(key), value) for key, value in node.items()}\n\n    def object_unit_price(path, node):\n        normalized = normalized_object(node)\n        descriptor_tokens = []\n        for key in (\"type\", \"kind\", \"role\", \"name\", \"basis\", \"per\", \"quantitybasis\"):\n            if key in normalized and isinstance(normalized[key][1], str):\n                descriptor_tokens.extend(words(normalized[key][1]))\n        price, per_item, aggregate, cents, other_scale = semantic_flags(\n            path_words(path) + tuple(descriptor_tokens)\n        )\n\n        denomination = None\n        for key in (\n            \"denomination\", \"currencyunit\", \"amountunit\", \"unitofmeasure\",\n            \"representation\", \"scale\",\n        ):\n            if key in normalized:\n                denomination = normalized[key][1]\n                break\n        denomination_name = \"\".join(words(denomination)) if isinstance(denomination, str) else \"\"\n        explicit_cents = denomination_name in {\n            \"cent\", \"cents\", \"minor\", \"minorunit\", \"minorunits\"\n        }\n        explicit_other = denomination_name in {\n            \"dollar\", \"dollars\", \"major\", \"majorunit\", \"majorunits\",\n            \"micro\", \"micros\", \"milli\", \"mills\",\n        }\n        for key in (\"inminorunits\", \"isminorunits\"):\n            if key in normalized and normalized[key][1] is True:\n                explicit_cents = True\n\n        if aggregate or other_scale or explicit_other or not price:\n            return None\n        if not per_item and not (cents or explicit_cents):\n            return None\n        for key in (\n            \"amount\", \"value\", \"minoramount\", \"minorunits\", \"minor\", \"cents\", \"cent\"\n        ):\n            if key in normalized:\n                original_key, value = normalized[key]\n                return original_key, value\n        return None\n\n    def read_unit_price_cents(order, index):\n        candidates = {}\n        for path, value in walk_scalars(order):\n            if value is not None and scalar_is_unit_price(path):\n                candidates[path] = value\n        for path, node in walk_objects(order):\n            candidate = object_unit_price(path, node)\n            if candidate is not None:\n                value_key, value = candidate\n                candidate_path = path + (value_key,)\n                if value is not None and candidate_path not in candidates:\n                    candidates[candidate_path] = value\n\n        if not candidates:\n            raise TypeError(\n                f\"order[{index}].unit_price_cents was not found in an equivalent per-unit integer price, cost, or rate field\"\n            )\n        validated = []\n        for path, value in candidates.items():\n            field = f\"order[{index}].\" + \".\".join(path)\n            validated.append((field, require_int(value, field)))\n        distinct_values = {value for _, value in validated}\n        if len(distinct_values) != 1:\n            fields = \", \".join(field for field, _ in validated)\n            raise ValueError(f\"order[{index}] contains conflicting equivalent unit-price fields: {fields}\")\n        source, result = validated[0]\n        if source != f\"order[{index}].unit_price_cents\":\n            logger.info(\"PHASE adapt_unit_price_field order_index=%s source=%s\", index, source)\n        return result\n\n    logger.info(\"PHASE fetch_last_seq\")\n    last_payload = get_json(f\"{base_url}/batches/last\")\n    if not isinstance(last_payload, dict) or \"last_seq\" not in last_payload:\n        raise ValueError(\"GET /batches/last did not return an object containing last_seq\")\n    last_seq = require_int(last_payload[\"last_seq\"], \"last_seq\")\n\n    logger.info(\"PHASE fetch_single_order_page after=%s\", last_seq)\n    orders_payload = get_json(f\"{base_url}/orders?{urlencode({'after': last_seq})}\")\n    if isinstance(orders_payload, list):\n        orders = orders_payload\n    elif isinstance(orders_payload, dict) and isinstance(orders_payload.get(\"orders\"), list):\n        orders = orders_payload[\"orders\"]\n    else:\n        raise ValueError(\"GET /orders response did not contain an order list\")\n\n    if len(orders) > 200:\n        raise ValueError(\n            f\"GET /orders returned {len(orders)} orders; refusing to process more than 200 in one run\"\n        )\n    if not orders:\n        logger.info(\"SKIP no_new_orders after=%s; no POST performed\", last_seq)\n        return {\"status\": \"success\", \"last_seq\": last_seq, \"orders_returned\": 0, \"posted\": False}\n\n    seqs = []\n    total_units = 0\n    total_revenue_cents = 0\n    revenue_by_region = defaultdict(int)\n    logger.info(\"PHASE aggregate_order_page count=%s\", len(orders))\n    for index, order in enumerate(orders):\n        if not isinstance(order, dict):\n            raise TypeError(f\"order[{index}] must be an object\")\n        seq = require_int(order.get(\"seq\"), f\"order[{index}].seq\")\n        units = require_int(order.get(\"units\"), f\"order[{index}].units\")\n        unit_price_cents = read_unit_price_cents(order, index)\n        region = order.get(\"region\")\n        if not isinstance(region, str):\n            raise TypeError(f\"order[{index}].region must be a string\")\n        if seq <= last_seq:\n            raise ValueError(f\"order[{index}].seq must be greater than last_seq\")\n\n        revenue_cents = units * unit_price_cents\n        seqs.append(seq)\n        total_units += units\n        total_revenue_cents += revenue_cents\n        revenue_by_region[region] += revenue_cents\n\n    batch = {\n        \"batch_start_seq\": min(seqs),\n        \"batch_end_seq\": max(seqs),\n        \"order_count\": len(orders),\n        \"total_units\": total_units,\n        \"total_revenue_cents\": total_revenue_cents,\n        \"revenue_by_region_cents\": dict(revenue_by_region),\n    }\n    required_keys = {\n        \"batch_start_seq\", \"batch_end_seq\", \"order_count\", \"total_units\",\n        \"total_revenue_cents\", \"revenue_by_region_cents\",\n    }\n    if set(batch) != required_keys:\n        raise AssertionError(\"batch payload keys do not exactly match the required contract\")\n\n    logger.info(\n        \"PHASE post_batch start_seq=%s end_seq=%s count=%s\",\n        batch[\"batch_start_seq\"], batch[\"batch_end_seq\"], batch[\"order_count\"],\n    )\n    body = json.dumps(batch, separators=(\",\", \":\")).encode(\"utf-8\")\n    request = Request(\n        f\"{base_url}/batches\",\n        data=body,\n        method=\"POST\",\n        headers={\"Content-Type\": \"application/json\", \"Accept\": \"application/json\"},\n    )\n    with urlopen(request, timeout=30) as response:\n        response.read()\n        status_code = response.status\n\n    logger.info(\"PHASE complete posted_batch status_code=%s\", status_code)\n    return {\"status\": \"success\", \"posted\": True, \"http_status\": status_code, \"batch\": batch}\n"
+  },
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 268.31,
+      "llm_calls": 12,
+      "prompt_tokens": 593345,
+      "completion_tokens": 2741,
+      "total_tokens": 596086,
+      "provider_cost_usd": 2.503941,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 12
+      }
+    },
+    {
+      "name": "fire_1",
+      "wall_seconds": 47.67,
+      "llm_calls": 5,
+      "prompt_tokens": 330660,
+      "completion_tokens": 1769,
+      "total_tokens": 332429,
+      "provider_cost_usd": 1.609587,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 5
+      }
+    },
+    {
+      "name": "fire_1_review",
+      "wall_seconds": 252.74,
+      "llm_calls": 7,
+      "prompt_tokens": 559570,
+      "completion_tokens": 3199,
+      "total_tokens": 562769,
+      "provider_cost_usd": 1.041362,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 7
+      }
+    },
+    {
+      "name": "fire_2",
+      "wall_seconds": 8.98,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_2_review",
+      "wall_seconds": 0.0,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_3",
+      "wall_seconds": 11.26,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_3_review",
+      "wall_seconds": 0.0,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_4",
+      "wall_seconds": 9.26,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_4_review",
+      "wall_seconds": 0.0,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_5",
+      "wall_seconds": 84.94,
+      "llm_calls": 4,
+      "prompt_tokens": 36831,
+      "completion_tokens": 3600,
+      "total_tokens": 40431,
+      "provider_cost_usd": 0.190634,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_5_review",
+      "wall_seconds": 176.07,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_6",
+      "wall_seconds": 97.13,
+      "llm_calls": 4,
+      "prompt_tokens": 42078,
+      "completion_tokens": 4160,
+      "total_tokens": 46238,
+      "provider_cost_usd": 0.200943,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_6_review",
+      "wall_seconds": 176.08,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_7",
+      "wall_seconds": 118.1,
+      "llm_calls": 4,
+      "prompt_tokens": 49085,
+      "completion_tokens": 5288,
+      "total_tokens": 54373,
+      "provider_cost_usd": 0.261247,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_7_review",
+      "wall_seconds": 176.07,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_8",
+      "wall_seconds": 96.25,
+      "llm_calls": 2,
+      "prompt_tokens": 18858,
+      "completion_tokens": 4558,
+      "total_tokens": 23416,
+      "provider_cost_usd": 0.188361,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 2
+      }
+    },
+    {
+      "name": "fire_8_review",
+      "wall_seconds": 176.08,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_9",
+      "wall_seconds": 223.95,
+      "llm_calls": 5,
+      "prompt_tokens": 71253,
+      "completion_tokens": 11576,
+      "total_tokens": 82829,
+      "provider_cost_usd": 0.470978,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 5
+      }
+    },
+    {
+      "name": "fire_9_review",
+      "wall_seconds": 176.1,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_10",
+      "wall_seconds": 9.16,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_10_review",
+      "wall_seconds": 0.0,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    }
+  ],
+  "finished_at": "2026-07-31T12:30:19.926178+00:00"
+}

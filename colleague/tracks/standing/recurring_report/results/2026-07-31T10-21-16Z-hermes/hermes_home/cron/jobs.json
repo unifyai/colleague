@@ -1,0 +1,45 @@
+{
+  "jobs": [
+    {
+      "id": "63ff1dcfddfa",
+      "name": "Weekly orders report (Monday 09:00 UTC)",
+      "prompt": "",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "provider_snapshot": null,
+      "model_snapshot": null,
+      "base_url": null,
+      "script": "weekly_orders_report.py",
+      "no_agent": true,
+      "context_from": null,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 * * * 1",
+        "display": "0 * * * 1"
+      },
+      "schedule_display": "0 * * * 1",
+      "repeat": {
+        "times": null,
+        "completed": 4
+      },
+      "enabled": false,
+      "state": "paused",
+      "paused_at": null,
+      "paused_reason": "benchmark artifact - defused post-run",
+      "created_at": "2026-07-31T11:23:59.230612+01:00",
+      "next_run_at": "2026-08-03T00:00:00+01:00",
+      "last_run_at": "2026-07-31T11:24:57.636589+01:00",
+      "last_status": "ok",
+      "last_error": null,
+      "last_delivery_error": null,
+      "deliver": "local",
+      "origin": null,
+      "enabled_toolsets": null,
+      "workdir": null,
+      "fire_claim": null
+    }
+  ],
+  "updated_at": "2026-07-31T11:24:57.636921+01:00"
+}

@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "87d14e4c-9385-4739-8c28-f6e938eedbd0",
+      "agentId": "main",
+      "sessionKey": "agent:main:explicit:benchmark-setup",
+      "name": "Process new local API orders hourly",
+      "description": "Hourly aggregation and posting of up to 200 new orders from the local orders API; first run one hour after creation.",
+      "enabled": true,
+      "deleteAfterRun": false,
+      "createdAtMs": 1785538150285,
+      "updatedAtMs": 1785538443879,
+      "schedule": {
+        "kind": "every",
+        "everyMs": 3600000,
+        "anchorMs": 1785541713035
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Process new orders from the local orders API. This is the scheduled hourly run.\n\nUse Python standard library against http://127.0.0.1:8125 and follow these steps exactly:\n1. GET /batches/last and read integer `last_seq`.\n2. GET /orders?after=N where N is that last_seq.\n3. If the returned orders list is empty, do nothing: do not POST and produce no user-facing message.\n4. Otherwise, using exactly the returned orders, compute `batch_start_seq` (minimum seq), `batch_end_seq` (maximum seq), `order_count`, `total_units`, `total_revenue_cents` (sum of units * unit_price_cents), and `revenue_by_region_cents` (object mapping each region to its revenue sum).\n5. POST one JSON object to http://127.0.0.1:8125/batches containing exactly these six keys and no others: `batch_start_seq`, `batch_end_seq`, `order_count`, `total_units`, `total_revenue_cents`, `revenue_by_region_cents`.\n\nUse integer arithmetic. Check HTTP responses and fail clearly on request, JSON, or POST errors. Process only the returned page (up to 200); a later hourly run will continue from the updated last_seq. Do not announce successful or no-op runs.",
+        "timeoutSeconds": 300,
+        "lightContext": true,
+        "allowUnsafeExternalContent": false,
+        "fallbacks": [],
+        "toolsAllow": [
+          "exec"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "to": "current",
+        "bestEffort": true,
+        "accountId": "default",
+        "failureDestination": {
+          "channel": "webchat",
+          "to": "current",
+          "accountId": "default",
+          "mode": "announce"
+        }
+      },
+      "failureAlert": {
+        "after": 1,
+        "channel": "webchat",
+        "to": "current",
+        "cooldownMs": 3600000,
+        "mode": "announce",
+        "accountId": "default"
+      },
+      "state": {
+        "nextRunAtMs": 1785541975833,
+        "lastRunAtMs": 1785538411005,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 32874,
+        "lastDelivered": false,
+        "lastDeliveryStatus": "not-delivered",
+        "consecutiveErrors": 0
+      }
+    }
+  ]
+}

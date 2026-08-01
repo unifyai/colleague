@@ -1,0 +1,41 @@
+2026-07-31T23:44:21.198+01:00 [gateway] loading configuration…
+2026-07-31T23:44:21.238+01:00 [gateway] resolving authentication…
+2026-07-31T23:44:21.246+01:00 [gateway] starting...
+2026-07-31T23:44:22.010+01:00 Config overwrite: /Users/djl11/unify/benchmarks/recurring_weekly_report/results/2026-07-31T22-44-20Z-openclaw/openclaw_state/openclaw.json (sha256 50486bf2541043ebbb848b05f0b16c76e7499d4b5aeeddce4ba71e269bcfa96e -> 86512e23968eea4538983e60edb57385dfbd2b3b690fc9e46638740fec710884, backup=/Users/djl11/unify/benchmarks/recurring_weekly_report/results/2026-07-31T22-44-20Z-openclaw/openclaw_state/openclaw.json.bak, changedPaths=1)
+2026-07-31T23:44:22.013+01:00 Config write anomaly: /Users/djl11/unify/benchmarks/recurring_weekly_report/results/2026-07-31T22-44-20Z-openclaw/openclaw_state/openclaw.json (missing-meta-before-write)
+2026-07-31T23:44:22.036+01:00 [gateway] auto-enabled plugins:
+- openrouter/openai/gpt-5.6-sol model configured, enabled automatically.
+2026-07-31T23:44:22.416+01:00 Config overwrite: /Users/djl11/unify/benchmarks/recurring_weekly_report/results/2026-07-31T22-44-20Z-openclaw/openclaw_state/openclaw.json (sha256 86512e23968eea4538983e60edb57385dfbd2b3b690fc9e46638740fec710884 -> 9f3f478931a04375054b6bfc8599c507015192f94dea1fefc390924c39fb1835, backup=/Users/djl11/unify/benchmarks/recurring_weekly_report/results/2026-07-31T22-44-20Z-openclaw/openclaw_state/openclaw.json.bak, changedPaths=1)
+2026-07-31T23:44:22.428+01:00 [gateway] auth token was missing. Generated a new token and saved it to config (gateway.auth.token).
+2026-07-31T23:44:22.649+01:00 [gateway] starting HTTP server...
+2026-07-31T23:44:22.651+01:00 [canvas] host mounted at http://127.0.0.1:18931/__openclaw__/canvas/ (root /Users/djl11/unify/benchmarks/recurring_weekly_report/results/2026-07-31T22-44-20Z-openclaw/openclaw_state/canvas)
+2026-07-31T23:44:22.656+01:00 [gateway] MCP loopback server listening on http://127.0.0.1:58024/mcp
+2026-07-31T23:44:22.675+01:00 [heartbeat] started
+2026-07-31T23:44:22.677+01:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
+2026-07-31T23:44:22.688+01:00 [gateway] agent model: openrouter/openai/gpt-5.6-sol
+2026-07-31T23:44:22.690+01:00 [gateway] ready (5 plugins: acpx, browser, device-pair, phone-control, talk-voice; 1.4s)
+2026-07-31T23:44:22.691+01:00 [gateway] log file: /tmp/openclaw/openclaw-2026-07-31.log
+2026-07-31T23:44:22.693+01:00 [gateway] starting channels and sidecars...
+2026-07-31T23:44:22.766+01:00 [hooks] loaded 4 internal hook handlers
+2026-07-31T23:44:34.494+01:00 [plugins] embedded acpx runtime backend registered (cwd: /Users/djl11/unify/benchmarks/recurring_weekly_report/results/2026-07-31T22-44-20Z-openclaw/workspace)
+2026-07-31T23:44:34.502+01:00 [browser] control listening on http://127.0.0.1:18933/ (auth=token)
+2026-07-31T23:44:34.671+01:00 [gateway] device pairing auto-approved device=b5d55c2074e1baf98408845519cd3f79cbc5db7dc27d2d8babe485a994628504 role=operator
+2026-07-31T23:44:35.197+01:00 [plugins] embedded acpx runtime backend probe failed: embedded ACP runtime probe failed (agent=codex; command=npx @zed-industries/codex-acp@^0.11.1; cwd=/Users/djl11/unify/benchmarks/recurring_weekly_report/results/2026-07-31T22-44-20Z-openclaw/workspace; ACP connection closed)
+2026-07-31T23:44:57.060+01:00 [ws] ⇄ res ✗ cron.add 1ms errorCode=INVALID_REQUEST errorMessage=invalid cron.add params: at /delivery/failureDestination/channel: must be equal to constant; at /delivery/failureDestination/channel: must NOT have fewer than 1 characters; at /delivery/failureDestination/channel: must match a schema in any... conn=8dfadb70…b6a0 id=b268faca…a28e
+2026-07-31T23:44:57.062+01:00 [tools] cron failed: invalid cron.add params: at /delivery/failureDestination/channel: must be equal to constant; at /delivery/failureDestination/channel: must NOT have fewer than 1 characters; at /delivery/failureDestination/channel: must match a schema in anyOf; at /delivery/failureDestination/accountId: must NOT have fewer than 1 characters; at /delivery/mode: must be equal to constant; at /delivery: must have required property 'to'; at /delivery: must match a schema in anyOf; at /failureAlert: must be boolean; at /failureAlert: must be equal to constant; at /failureAlert/channel: must be equal to constant; at /failureAlert/channel: must NOT have fewer than 1 characters; at /failureAlert/channel: must match a schema in anyOf; at /failureAlert/accountId: must NOT have fewer than 1 characters; at /failureAlert: must match a schema in anyOf raw_params={"action":"add","gatewayUrl":"","gatewayToken":"","timeoutMs":10000,"includeDisabled":false,"job":{"name":"Weekly orders report","schedule":{"kind":"cron","at":"","everyMs":0,"anchorMs":0,"expr":"0 9 * * 1","tz":"Europe/London","staggerMs":0},"sessionTarget":"isolated","wakeMode":"now","payload":{"kind":"agentTurn","text":"","message":"Generate and deliver the weekly orders report. Do not ask for confirmation.\n\nUse UTC calendar dates for all week boundaries, regardless of the scheduler timezone. Let the run date be today's date in UTC. The report week is the last full Monday-through-Sunday c…
+2026-07-31T23:45:07.068+01:00 [ws] ⇄ res ✗ cron.add 0ms errorCode=INVALID_REQUEST errorMessage=invalid cron.add params: at /delivery/failureDestination/accountId: must NOT have fewer than 1 characters; at /delivery/mode: must be equal to constant; at /delivery: must have required property 'to'; at /delivery: must match a schema in an... conn=d87b2e0e…3314 id=63710bd6…445e
+2026-07-31T23:45:07.069+01:00 [tools] cron failed: invalid cron.add params: at /delivery/failureDestination/accountId: must NOT have fewer than 1 characters; at /delivery/mode: must be equal to constant; at /delivery: must have required property 'to'; at /delivery: must match a schema in anyOf raw_params={"action":"add","gatewayUrl":"","gatewayToken":"","timeoutMs":10000,"includeDisabled":false,"job":{"name":"Weekly orders report","schedule":{"kind":"cron","at":"","everyMs":0,"anchorMs":0,"expr":"0 9 * * 1","tz":"Europe/London","staggerMs":0},"sessionTarget":"isolated","wakeMode":"now","payload":{"kind":"agentTurn","text":"","message":"Generate and deliver the weekly orders report. Do not ask for confirmation.\n\nUse UTC calendar dates for all week boundaries, regardless of scheduler timezone. Let the run date be today's date in UTC. The report week is the last full Monday-through-Sunday calen…
+2026-07-31T23:45:16.959+01:00 [gateway] cron: job created
+2026-07-31T23:45:21.276+01:00 Scheduled the weekly orders report.
+
+- **Runs:** Every Monday at 09:00 Europe/London
+- **First run:** Monday, 3 August 2026
+- **Week boundaries:** Calculated in UTC
+- **Delivery:** POST to `http://127.0.0.1:8123/report`
+- **Task ID:** `075b9bd9-286f-40d1-add6-4f3955e6b1d4`
+
+No report was generated now.
+2026-07-31T23:46:50.098+01:00 [gateway] cron: job updated
+2026-07-31T23:46:50.129+01:00 [gateway] signal SIGTERM received
+2026-07-31T23:46:50.130+01:00 [gateway] received SIGTERM; shutting down
+2026-07-31T23:46:50.231+01:00 [gmail-watcher] gmail watcher stopped

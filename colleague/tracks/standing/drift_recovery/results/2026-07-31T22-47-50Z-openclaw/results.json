@@ -1,0 +1,842 @@
+{
+  "experiment": "drift_recovery",
+  "system": "openclaw",
+  "run_id": "2026-07-31T22-47-50Z-openclaw",
+  "openclaw_repo": "/Users/djl11/openclaw",
+  "model": "openai/gpt-5.6-sol",
+  "seed": 20260731,
+  "n_fires": 10,
+  "drift_after_fire": 4,
+  "operator_fix_after_failures": 2,
+  "operator_fix_message": "The hourly order-processing automation you set up has been failing on its recent runs. Please investigate and fix it so it resumes working unattended, including catching up on anything it missed. Do not ask for confirmation.",
+  "utterance": "Please set up an hourly recurring automation that processes new orders from the local orders API at http://127.0.0.1:8125.\n\nHow it works: GET http://127.0.0.1:8125/batches/last returns {\"last_seq\": N} \u2014 the highest order seq already processed (0 if none yet). GET http://127.0.0.1:8125/orders?after=N returns the next orders with seq > N (up to 200), each with fields: seq (int), date (YYYY-MM-DD), region, units (int), unit_price_cents (int).\n\nOn each run: read last_seq, fetch the orders after it, and if there are none do nothing. Otherwise compute exactly: batch_start_seq, batch_end_seq, order_count, total_units, total_revenue_cents (sum of units * unit_price_cents), revenue_by_region_cents (object mapping each region to its revenue sum), and POST that JSON object to http://127.0.0.1:8125/batches with exactly these keys.\n\nSet up the recurring hourly automation now. Do not process anything right now, and do not ask for confirmation.",
+  "fires": [
+    {
+      "fire": 1,
+      "drifted": false,
+      "fire_status": "ok",
+      "pending_range": [
+        1,
+        37
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 1,
+          "batch_end_seq": 37,
+          "order_count": 37,
+          "total_units": 375,
+          "total_revenue_cents": 674325,
+          "revenue_by_region_cents": {
+            "east": 164938,
+            "south": 253550,
+            "west": 117600,
+            "north": 138237
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 1,
+        "batch_end_seq": 37,
+        "order_count": 37,
+        "total_units": 375,
+        "total_revenue_cents": 674325,
+        "revenue_by_region_cents": {
+          "east": 164938,
+          "south": 253550,
+          "west": 117600,
+          "north": 138237
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "fire": 2,
+      "drifted": false,
+      "fire_status": "ok",
+      "pending_range": [
+        38,
+        74
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 38,
+          "batch_end_seq": 74,
+          "order_count": 37,
+          "total_units": 354,
+          "total_revenue_cents": 737846,
+          "revenue_by_region_cents": {
+            "south": 213573,
+            "north": 195810,
+            "east": 296887,
+            "west": 31576
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 38,
+        "batch_end_seq": 74,
+        "order_count": 37,
+        "total_units": 354,
+        "total_revenue_cents": 737846,
+        "revenue_by_region_cents": {
+          "south": 213573,
+          "north": 195810,
+          "east": 296887,
+          "west": 31576
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "fire": 3,
+      "drifted": false,
+      "fire_status": "ok",
+      "pending_range": [
+        75,
+        111
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 75,
+          "batch_end_seq": 111,
+          "order_count": 37,
+          "total_units": 359,
+          "total_revenue_cents": 674441,
+          "revenue_by_region_cents": {
+            "north": 138835,
+            "east": 243012,
+            "west": 124696,
+            "south": 167898
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 75,
+        "batch_end_seq": 111,
+        "order_count": 37,
+        "total_units": 359,
+        "total_revenue_cents": 674441,
+        "revenue_by_region_cents": {
+          "north": 138835,
+          "east": 243012,
+          "west": 124696,
+          "south": 167898
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "fire": 4,
+      "drifted": false,
+      "fire_status": "ok",
+      "pending_range": [
+        112,
+        148
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 112,
+          "batch_end_seq": 148,
+          "order_count": 37,
+          "total_units": 462,
+          "total_revenue_cents": 851938,
+          "revenue_by_region_cents": {
+            "south": 216965,
+            "north": 291965,
+            "west": 114997,
+            "east": 228011
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 112,
+        "batch_end_seq": 148,
+        "order_count": 37,
+        "total_units": 462,
+        "total_revenue_cents": 851938,
+        "revenue_by_region_cents": {
+          "south": 216965,
+          "north": 291965,
+          "west": 114997,
+          "east": 228011
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "fire": 5,
+      "drifted": true,
+      "fire_status": "ok",
+      "pending_range": [
+        149,
+        185
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 185,
+        "order_count": 37,
+        "total_units": 331,
+        "total_revenue_cents": 690469,
+        "revenue_by_region_cents": {
+          "east": 208024,
+          "north": 305262,
+          "west": 44259,
+          "south": 132924
+        }
+      },
+      "scores": [],
+      "correct": false
+    },
+    {
+      "fire": 6,
+      "drifted": true,
+      "fire_status": "ok",
+      "pending_range": [
+        149,
+        222
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 149,
+          "batch_end_seq": 222,
+          "order_count": 74,
+          "total_units": 680,
+          "total_revenue_cents": 1417120,
+          "revenue_by_region_cents": {
+            "east": 484623,
+            "north": 600126,
+            "west": 129889,
+            "south": 202482
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 222,
+        "order_count": 74,
+        "total_units": 680,
+        "total_revenue_cents": 1417120,
+        "revenue_by_region_cents": {
+          "east": 484623,
+          "north": 600126,
+          "west": 129889,
+          "south": 202482
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "fire": 7,
+      "drifted": true,
+      "fire_status": "ok",
+      "pending_range": [
+        223,
+        259
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 223,
+          "batch_end_seq": 259,
+          "order_count": 37,
+          "total_units": 352,
+          "total_revenue_cents": 650448,
+          "revenue_by_region_cents": {
+            "north": 188414,
+            "south": 77653,
+            "east": 230916,
+            "west": 153465
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 223,
+        "batch_end_seq": 259,
+        "order_count": 37,
+        "total_units": 352,
+        "total_revenue_cents": 650448,
+        "revenue_by_region_cents": {
+          "north": 188414,
+          "south": 77653,
+          "east": 230916,
+          "west": 153465
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "fire": 8,
+      "drifted": true,
+      "fire_status": "ok",
+      "pending_range": [
+        260,
+        296
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 260,
+          "batch_end_seq": 296,
+          "order_count": 37,
+          "total_units": 384,
+          "total_revenue_cents": 753516,
+          "revenue_by_region_cents": {
+            "north": 179516,
+            "west": 137387,
+            "east": 304985,
+            "south": 131628
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 260,
+        "batch_end_seq": 296,
+        "order_count": 37,
+        "total_units": 384,
+        "total_revenue_cents": 753516,
+        "revenue_by_region_cents": {
+          "north": 179516,
+          "west": 137387,
+          "east": 304985,
+          "south": 131628
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "fire": 9,
+      "drifted": true,
+      "fire_status": "ok",
+      "pending_range": [
+        297,
+        333
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 297,
+          "batch_end_seq": 333,
+          "order_count": 37,
+          "total_units": 344,
+          "total_revenue_cents": 717456,
+          "revenue_by_region_cents": {
+            "east": 291794,
+            "north": 235293,
+            "west": 70640,
+            "south": 119729
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 297,
+        "batch_end_seq": 333,
+        "order_count": 37,
+        "total_units": 344,
+        "total_revenue_cents": 717456,
+        "revenue_by_region_cents": {
+          "east": 291794,
+          "north": 235293,
+          "west": 70640,
+          "south": 119729
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "fire": 10,
+      "drifted": true,
+      "fire_status": "ok",
+      "pending_range": [
+        334,
+        370
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 334,
+          "batch_end_seq": 370,
+          "order_count": 37,
+          "total_units": 404,
+          "total_revenue_cents": 753196,
+          "revenue_by_region_cents": {
+            "north": 283874,
+            "west": 170359,
+            "south": 134923,
+            "east": 164040
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 334,
+        "batch_end_seq": 370,
+        "order_count": 37,
+        "total_units": 404,
+        "total_revenue_cents": 753196,
+        "revenue_by_region_cents": {
+          "north": 283874,
+          "west": 170359,
+          "south": 134923,
+          "east": 164040
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    }
+  ],
+  "setup": {
+    "exit_code": 0,
+    "final_text": null
+  },
+  "profile_after_setup": {
+    "cron_jobs": [
+      {
+        "id": "87d14e4c-9385-4739-8c28-f6e938eedbd0",
+        "agentId": "main",
+        "sessionKey": "agent:main:explicit:benchmark-setup",
+        "name": "Process new local API orders hourly",
+        "description": "Hourly aggregation and posting of up to 200 new orders from the local orders API; first run one hour after creation.",
+        "enabled": true,
+        "deleteAfterRun": false,
+        "createdAtMs": 1785538150285,
+        "updatedAtMs": 1785538150285,
+        "schedule": {
+          "kind": "every",
+          "everyMs": 3600000,
+          "anchorMs": 1785541713035
+        },
+        "sessionTarget": "isolated",
+        "wakeMode": "now",
+        "payload": {
+          "kind": "agentTurn",
+          "message": "Process new orders from the local orders API. This is the scheduled hourly run.\n\nUse Python standard library against http://127.0.0.1:8125 and follow these steps exactly:\n1. GET /batches/last and read integer `last_seq`.\n2. GET /orders?after=N where N is that last_seq.\n3. If the returned orders list is empty, do nothing: do not POST and produce no user-facing message.\n4. Otherwise, using exactly the returned orders, compute `batch_start_seq` (minimum seq), `batch_end_seq` (maximum seq), `order_count`, `total_units`, `total_revenue_cents` (sum of units * unit_price_cents), and `revenue_by_region_cents` (object mapping each region to its revenue sum).\n5. POST one JSON object to http://127.0.0.1:8125/batches containing exactly these six keys and no others: `batch_start_seq`, `batch_end_seq`, `order_count`, `total_units`, `total_revenue_cents`, `revenue_by_region_cents`.\n\nUse integer arithmetic. Check HTTP responses and fail clearly on request, JSON, or POST errors. Process only the returned page (up to 200); a later hourly run will continue from the updated last_seq. Do not announce successful or no-op runs.",
+          "timeoutSeconds": 300,
+          "lightContext": true,
+          "allowUnsafeExternalContent": false,
+          "fallbacks": [],
+          "toolsAllow": [
+            "exec"
+          ]
+        },
+        "delivery": {
+          "mode": "none",
+          "to": "current",
+          "bestEffort": true,
+          "accountId": "default",
+          "failureDestination": {
+            "channel": "webchat",
+            "to": "current",
+            "accountId": "default",
+            "mode": "announce"
+          }
+        },
+        "failureAlert": {
+          "after": 1,
+          "channel": "webchat",
+          "to": "current",
+          "cooldownMs": 3600000,
+          "mode": "announce",
+          "accountId": "default"
+        },
+        "state": {
+          "nextRunAtMs": 1785541713035
+        }
+      }
+    ],
+    "workspace_files": [
+      ".openclaw/workspace-state.json",
+      "AGENTS.md",
+      "BOOTSTRAP.md",
+      "HEARTBEAT.md",
+      "IDENTITY.md",
+      "SOUL.md",
+      "TOOLS.md",
+      "USER.md"
+    ],
+    "skills": []
+  },
+  "profile_final": {
+    "cron_jobs": [
+      {
+        "id": "87d14e4c-9385-4739-8c28-f6e938eedbd0",
+        "agentId": "main",
+        "sessionKey": "agent:main:explicit:benchmark-setup",
+        "name": "Process new local API orders hourly",
+        "description": "Hourly aggregation and posting of up to 200 new orders from the local orders API; first run one hour after creation.",
+        "enabled": true,
+        "deleteAfterRun": false,
+        "createdAtMs": 1785538150285,
+        "updatedAtMs": 1785538443879,
+        "schedule": {
+          "kind": "every",
+          "everyMs": 3600000,
+          "anchorMs": 1785541713035
+        },
+        "sessionTarget": "isolated",
+        "wakeMode": "now",
+        "payload": {
+          "kind": "agentTurn",
+          "message": "Process new orders from the local orders API. This is the scheduled hourly run.\n\nUse Python standard library against http://127.0.0.1:8125 and follow these steps exactly:\n1. GET /batches/last and read integer `last_seq`.\n2. GET /orders?after=N where N is that last_seq.\n3. If the returned orders list is empty, do nothing: do not POST and produce no user-facing message.\n4. Otherwise, using exactly the returned orders, compute `batch_start_seq` (minimum seq), `batch_end_seq` (maximum seq), `order_count`, `total_units`, `total_revenue_cents` (sum of units * unit_price_cents), and `revenue_by_region_cents` (object mapping each region to its revenue sum).\n5. POST one JSON object to http://127.0.0.1:8125/batches containing exactly these six keys and no others: `batch_start_seq`, `batch_end_seq`, `order_count`, `total_units`, `total_revenue_cents`, `revenue_by_region_cents`.\n\nUse integer arithmetic. Check HTTP responses and fail clearly on request, JSON, or POST errors. Process only the returned page (up to 200); a later hourly run will continue from the updated last_seq. Do not announce successful or no-op runs.",
+          "timeoutSeconds": 300,
+          "lightContext": true,
+          "allowUnsafeExternalContent": false,
+          "fallbacks": [],
+          "toolsAllow": [
+            "exec"
+          ]
+        },
+        "delivery": {
+          "mode": "none",
+          "to": "current",
+          "bestEffort": true,
+          "accountId": "default",
+          "failureDestination": {
+            "channel": "webchat",
+            "to": "current",
+            "accountId": "default",
+            "mode": "announce"
+          }
+        },
+        "failureAlert": {
+          "after": 1,
+          "channel": "webchat",
+          "to": "current",
+          "cooldownMs": 3600000,
+          "mode": "announce",
+          "accountId": "default"
+        },
+        "state": {
+          "nextRunAtMs": 1785541975833,
+          "lastRunAtMs": 1785538411005,
+          "lastRunStatus": "ok",
+          "lastStatus": "ok",
+          "lastDurationMs": 32874,
+          "lastDelivered": false,
+          "lastDeliveryStatus": "not-delivered",
+          "consecutiveErrors": 0
+        }
+      }
+    ],
+    "workspace_files": [
+      ".openclaw/workspace-state.json",
+      "AGENTS.md",
+      "BOOTSTRAP.md",
+      "HEARTBEAT.md",
+      "IDENTITY.md",
+      "SOUL.md",
+      "TOOLS.md",
+      "USER.md"
+    ],
+    "skills": []
+  },
+  "defuse_actions": [
+    "disabled cron job 87d14e4c-9385-4739-8c28-f6e938eedbd0 (exit 0)",
+    "stopped managed gateway"
+  ],
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 71.37,
+      "llm_calls": 6,
+      "prompt_tokens": 93032,
+      "completion_tokens": 3685,
+      "total_tokens": 96717,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 6
+      }
+    },
+    {
+      "name": "fire_1",
+      "wall_seconds": 16.59,
+      "llm_calls": 2,
+      "prompt_tokens": 14830,
+      "completion_tokens": 1008,
+      "total_tokens": 15838,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      }
+    },
+    {
+      "name": "fire_2",
+      "wall_seconds": 31.36,
+      "llm_calls": 4,
+      "prompt_tokens": 38255,
+      "completion_tokens": 2477,
+      "total_tokens": 40732,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_3",
+      "wall_seconds": 20.35,
+      "llm_calls": 2,
+      "prompt_tokens": 14964,
+      "completion_tokens": 1174,
+      "total_tokens": 16138,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      }
+    },
+    {
+      "name": "fire_4",
+      "wall_seconds": 20.23,
+      "llm_calls": 2,
+      "prompt_tokens": 14939,
+      "completion_tokens": 1102,
+      "total_tokens": 16041,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      }
+    },
+    {
+      "name": "fire_5",
+      "wall_seconds": 20.2,
+      "llm_calls": 2,
+      "prompt_tokens": 15085,
+      "completion_tokens": 1376,
+      "total_tokens": 16461,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      }
+    },
+    {
+      "name": "fire_6",
+      "wall_seconds": 42.77,
+      "llm_calls": 5,
+      "prompt_tokens": 43998,
+      "completion_tokens": 3364,
+      "total_tokens": 47362,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 5
+      }
+    },
+    {
+      "name": "fire_7",
+      "wall_seconds": 35.3,
+      "llm_calls": 4,
+      "prompt_tokens": 32436,
+      "completion_tokens": 2395,
+      "total_tokens": 34831,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_8",
+      "wall_seconds": 31.38,
+      "llm_calls": 4,
+      "prompt_tokens": 35777,
+      "completion_tokens": 2414,
+      "total_tokens": 38191,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_9",
+      "wall_seconds": 35.26,
+      "llm_calls": 4,
+      "prompt_tokens": 40346,
+      "completion_tokens": 2273,
+      "total_tokens": 42619,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_10",
+      "wall_seconds": 35.27,
+      "llm_calls": 4,
+      "prompt_tokens": 32572,
+      "completion_tokens": 2656,
+      "total_tokens": 35228,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    }
+  ],
+  "finished_at": "2026-07-31T22:54:08.023922+00:00"
+}

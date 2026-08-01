@@ -1,0 +1,2 @@
+# Trigger hourly; the script exits unless it is Monday 09:00 UTC.
+0 * * * * /opt/homebrew/bin/python3 /Users/djl11/unify/benchmarks/recurring_weekly_report/results/2026-08-01T18-14-10Z-opencode/workspace/weekly_orders_report.py --scheduled >> /Users/djl11/unify/benchmarks/recurring_weekly_report/results/2026-08-01T18-14-10Z-opencode/workspace/weekly_orders_report.log 2>&1

@@ -1,0 +1,38 @@
+2026-07-31T23:47:50.717+01:00 [gateway] loading configuration…
+2026-07-31T23:47:50.756+01:00 [gateway] resolving authentication…
+2026-07-31T23:47:50.766+01:00 [gateway] starting...
+2026-07-31T23:47:51.524+01:00 Config overwrite: /Users/djl11/unify/benchmarks/drift_recovery/results/2026-07-31T22-47-50Z-openclaw/openclaw_state/openclaw.json (sha256 71fc60281cf1944563913321b7d19ae5f34521cd42054b9f56a9938dd734e8c3 -> 3bd35c352c84c76aa03efebeb09bd1f6c7c1716b528dafc5341a29c327a8b3e5, backup=/Users/djl11/unify/benchmarks/drift_recovery/results/2026-07-31T22-47-50Z-openclaw/openclaw_state/openclaw.json.bak, changedPaths=1)
+2026-07-31T23:47:51.527+01:00 Config write anomaly: /Users/djl11/unify/benchmarks/drift_recovery/results/2026-07-31T22-47-50Z-openclaw/openclaw_state/openclaw.json (missing-meta-before-write)
+2026-07-31T23:47:51.548+01:00 [gateway] auto-enabled plugins:
+- openrouter/openai/gpt-5.6-sol model configured, enabled automatically.
+2026-07-31T23:47:51.923+01:00 Config overwrite: /Users/djl11/unify/benchmarks/drift_recovery/results/2026-07-31T22-47-50Z-openclaw/openclaw_state/openclaw.json (sha256 3bd35c352c84c76aa03efebeb09bd1f6c7c1716b528dafc5341a29c327a8b3e5 -> 54d8c2ef178f1ac3adcc9690d60c257ff287269db5630729b2f6ee2dc37782aa, backup=/Users/djl11/unify/benchmarks/drift_recovery/results/2026-07-31T22-47-50Z-openclaw/openclaw_state/openclaw.json.bak, changedPaths=1)
+2026-07-31T23:47:51.935+01:00 [gateway] auth token was missing. Generated a new token and saved it to config (gateway.auth.token).
+2026-07-31T23:47:52.148+01:00 [gateway] starting HTTP server...
+2026-07-31T23:47:52.150+01:00 [canvas] host mounted at http://127.0.0.1:18936/__openclaw__/canvas/ (root /Users/djl11/unify/benchmarks/drift_recovery/results/2026-07-31T22-47-50Z-openclaw/openclaw_state/canvas)
+2026-07-31T23:47:52.154+01:00 [gateway] MCP loopback server listening on http://127.0.0.1:58605/mcp
+2026-07-31T23:47:52.174+01:00 [heartbeat] started
+2026-07-31T23:47:52.176+01:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
+2026-07-31T23:47:52.187+01:00 [gateway] agent model: openrouter/openai/gpt-5.6-sol
+2026-07-31T23:47:52.188+01:00 [gateway] ready (5 plugins: acpx, browser, device-pair, phone-control, talk-voice; 1.4s)
+2026-07-31T23:47:52.189+01:00 [gateway] log file: /tmp/openclaw/openclaw-2026-07-31.log
+2026-07-31T23:47:52.190+01:00 [gateway] starting channels and sidecars...
+2026-07-31T23:47:52.265+01:00 [hooks] loaded 4 internal hook handlers
+2026-07-31T23:48:03.854+01:00 [plugins] embedded acpx runtime backend registered (cwd: /Users/djl11/unify/benchmarks/drift_recovery/results/2026-07-31T22-47-50Z-openclaw/workspace)
+2026-07-31T23:48:03.863+01:00 [browser] control listening on http://127.0.0.1:18938/ (auth=token)
+2026-07-31T23:48:03.992+01:00 [gateway] device pairing auto-approved device=2c797fe035262de723bfa41e2cb225c4c3b775c7bf6bc624ead36e9de8352fc2 role=operator
+2026-07-31T23:48:04.906+01:00 [plugins] embedded acpx runtime backend probe failed: embedded ACP runtime probe failed (agent=codex; command=npx @zed-industries/codex-acp@^0.11.1; cwd=/Users/djl11/unify/benchmarks/drift_recovery/results/2026-07-31T22-47-50Z-openclaw/workspace; ACP connection closed)
+2026-07-31T23:48:47.516+01:00 [ws] ⇄ res ✗ cron.add 1ms errorCode=INVALID_REQUEST errorMessage=invalid cron.add params: at /delivery/failureDestination/channel: must be equal to constant; at /delivery/failureDestination/channel: must NOT have fewer than 1 characters; at /delivery/failureDestination/channel: must match a schema in any... conn=573aef34…a746 id=27a12569…7d57
+2026-07-31T23:48:47.517+01:00 [tools] cron failed: invalid cron.add params: at /delivery/failureDestination/channel: must be equal to constant; at /delivery/failureDestination/channel: must NOT have fewer than 1 characters; at /delivery/failureDestination/channel: must match a schema in anyOf; at /delivery/failureDestination/accountId: must NOT have fewer than 1 characters; at /delivery/mode: must be equal to constant; at /delivery: must have required property 'to'; at /delivery: must match a schema in anyOf; at /failureAlert: must be boolean; at /failureAlert: must be equal to constant; at /failureAlert/channel: must be equal to constant; at /failureAlert/channel: must NOT have fewer than 1 characters; at /failureAlert/channel: must match a schema in anyOf; at /failureAlert/accountId: must NOT have fewer than 1 characters; at /failureAlert: must match a schema in anyOf raw_params={"action":"add","gatewayUrl":"","gatewayToken":"","timeoutMs":10000,"includeDisabled":false,"job":{"name":"Process new local API orders hourly","schedule":{"kind":"every","at":"","everyMs":3600000,"anchorMs":1785541713035,"expr":"","tz":"","staggerMs":0},"sessionTarget":"isolated","wakeMode":"now","payload":{"kind":"agentTurn","text":"","message":"Process new orders from the local orders API. This is the scheduled hourly run.\n\nUse Python (standard library only) or curl against http://127.0.0.1:8125 and follow these steps exactly:\n1. GET /batches/last and read integer `last_seq` from the JSO…
+2026-07-31T23:48:57.791+01:00 [ws] ⇄ res ✗ cron.add 0ms errorCode=INVALID_REQUEST errorMessage=invalid cron.add params: at /delivery/failureDestination/accountId: must NOT have fewer than 1 characters; at /delivery/mode: must be equal to constant; at /delivery: must have required property 'to'; at /delivery: must match a schema in an... conn=e15cedfa…5a3b id=f3ca254b…2b4f
+2026-07-31T23:48:57.792+01:00 [tools] cron failed: invalid cron.add params: at /delivery/failureDestination/accountId: must NOT have fewer than 1 characters; at /delivery/mode: must be equal to constant; at /delivery: must have required property 'to'; at /delivery: must match a schema in anyOf raw_params={"action":"add","gatewayUrl":"","gatewayToken":"","timeoutMs":10000,"includeDisabled":false,"job":{"name":"Process new local API orders hourly","schedule":{"kind":"every","at":"","everyMs":3600000,"anchorMs":1785541713035,"expr":"","tz":"","staggerMs":0},"sessionTarget":"isolated","wakeMode":"now","payload":{"kind":"agentTurn","text":"","message":"Process new orders from the local orders API. This is the scheduled hourly run.\n\nUse Python standard library against http://127.0.0.1:8125 and follow these steps exactly:\n1. GET /batches/last and read integer `last_seq`.\n2. GET /orders?after=N wh…
+2026-07-31T23:49:10.287+01:00 [gateway] cron: job created
+2026-07-31T23:49:15.362+01:00 Hourly automation created successfully.
+
+- **Job:** Process new local API orders hourly
+- **First run:** Approximately 00:48 BST
+- **Job ID:** `87d14e4c-9385-4739-8c28-f6e938eedbd0`
+- **Current orders were not processed.**
+2026-07-31T23:54:07.823+01:00 [gateway] cron: job updated
+2026-07-31T23:54:07.854+01:00 [gateway] signal SIGTERM received
+2026-07-31T23:54:07.855+01:00 [gateway] received SIGTERM; shutting down
+2026-07-31T23:54:07.958+01:00 [gmail-watcher] gmail watcher stopped

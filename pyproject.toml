@@ -1,0 +1,30 @@
+[project]
+name = "colleague"
+version = "0.1.0"
+description = "A benchmark for agent harnesses: standing work, interruption, and many people sharing one assistant"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+
+# The harness, the recording proxy and every comparison-arm driver are
+# stdlib-only on purpose, so an arm can be reproduced without installing
+# anything from this project.
+dependencies = []
+
+[project.optional-dependencies]
+# Only the unify arm needs these; it is metered in-process through a chained
+# unillm hook rather than through the recording proxy.
+unify = ["unify", "unillm"]
+
+[dependency-groups]
+lint = ["black==25.1.0", "isort>=5.13", "autoflake>=2.3"]
+dev = [{ include-group = "lint" }]
+
+[tool.black]
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+
+[tool.setuptools.packages.find]
+include = ["colleague*"]

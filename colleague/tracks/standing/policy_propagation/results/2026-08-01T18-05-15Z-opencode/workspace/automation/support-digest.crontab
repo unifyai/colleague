@@ -1,0 +1,4 @@
+SHELL=/bin/sh
+PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+
+0 9 * * * /Users/djl11/unify/benchmarks/policy_propagation/results/2026-08-01T18-05-15Z-opencode/workspace/automation/run-support-digest.sh >> /Users/djl11/unify/benchmarks/policy_propagation/results/2026-08-01T18-05-15Z-opencode/workspace/automation/support-digest.log 2>&1

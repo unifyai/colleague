@@ -1,0 +1,436 @@
+{
+  "experiment": "recurring_weekly_report",
+  "system": "openclaw",
+  "run_id": "2026-07-31T22-44-20Z-openclaw",
+  "openclaw_repo": "/Users/djl11/openclaw",
+  "model": "openai/gpt-5.6-sol",
+  "seed": 20260731,
+  "n_runs": 4,
+  "utterance": "Every Monday at 09:00, generate the weekly orders report and deliver it.\n\nData source: a local metrics API at http://127.0.0.1:8123. GET http://127.0.0.1:8123/orders?start=YYYY-MM-DD&end=YYYY-MM-DD returns a JSON list of orders, each with fields: order_id, date (YYYY-MM-DD), region, units (int), unit_price_cents (int).\n\nThe report covers the previous calendar week: Monday through Sunday inclusive, the last full week before the run date (UTC).\n\nCompute exactly:\n- total_units: sum of units over the report week\n- total_revenue_cents: sum of units * unit_price_cents over the report week\n- revenue_by_region_cents: object mapping each region to its revenue sum\n- wow_revenue_change_pct: percent change of total_revenue_cents versus the week immediately before the report week, computed as round((current - previous) / previous * 100, 2)\n\nDeliver by POSTing JSON to http://127.0.0.1:8123/report with exactly these keys: week_start, week_end (YYYY-MM-DD strings), total_units, total_revenue_cents, revenue_by_region_cents, wow_revenue_change_pct.\n\nSet up the recurring weekly task now, starting next Monday. Do not generate a report right now, and do not ask for confirmation.",
+  "runs": [
+    {
+      "run": 1,
+      "run_date": "2026-07-31",
+      "fire_status": "ok",
+      "reports_delivered": 1,
+      "reports": [
+        {
+          "week_start": "2026-07-20",
+          "week_end": "2026-07-26",
+          "total_units": 566,
+          "total_revenue_cents": 1099034,
+          "revenue_by_region_cents": {
+            "north": 472588,
+            "south": 221768,
+            "east": 249607,
+            "west": 155071
+          },
+          "wow_revenue_change_pct": -8.14
+        }
+      ],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "week_start": true,
+            "week_end": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "wow_revenue_change_pct": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "run": 2,
+      "run_date": "2026-07-31",
+      "fire_status": "ok",
+      "reports_delivered": 1,
+      "reports": [
+        {
+          "week_start": "2026-07-20",
+          "week_end": "2026-07-26",
+          "total_units": 566,
+          "total_revenue_cents": 1099034,
+          "revenue_by_region_cents": {
+            "north": 472588,
+            "south": 221768,
+            "east": 249607,
+            "west": 155071
+          },
+          "wow_revenue_change_pct": -8.14
+        }
+      ],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "week_start": true,
+            "week_end": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "wow_revenue_change_pct": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "run": 3,
+      "run_date": "2026-07-31",
+      "fire_status": "ok",
+      "reports_delivered": 1,
+      "reports": [
+        {
+          "week_start": "2026-07-20",
+          "week_end": "2026-07-26",
+          "total_units": 566,
+          "total_revenue_cents": 1099034,
+          "revenue_by_region_cents": {
+            "north": 472588,
+            "south": 221768,
+            "east": 249607,
+            "west": 155071
+          },
+          "wow_revenue_change_pct": -8.14
+        }
+      ],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "week_start": true,
+            "week_end": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "wow_revenue_change_pct": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "run": 4,
+      "run_date": "2026-07-31",
+      "fire_status": "ok",
+      "reports_delivered": 1,
+      "reports": [
+        {
+          "week_start": "2026-07-20",
+          "week_end": "2026-07-26",
+          "total_units": 566,
+          "total_revenue_cents": 1099034,
+          "revenue_by_region_cents": {
+            "north": 472588,
+            "south": 221768,
+            "east": 249607,
+            "west": 155071
+          },
+          "wow_revenue_change_pct": -8.14
+        }
+      ],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "week_start": true,
+            "week_end": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "wow_revenue_change_pct": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    }
+  ],
+  "setup": {
+    "exit_code": 0,
+    "final_text": null
+  },
+  "profile_after_setup": {
+    "cron_jobs": [
+      {
+        "id": "075b9bd9-286f-40d1-add6-4f3955e6b1d4",
+        "agentId": "main",
+        "sessionKey": "agent:main:explicit:benchmark-setup",
+        "name": "Weekly orders report",
+        "description": "Every Monday at 09:00 Europe/London, calculate the previous full UTC week's order metrics and POST the exact report locally.",
+        "enabled": true,
+        "deleteAfterRun": false,
+        "createdAtMs": 1785537916954,
+        "updatedAtMs": 1785537916954,
+        "schedule": {
+          "kind": "cron",
+          "expr": "0 9 * * 1",
+          "tz": "Europe/London",
+          "staggerMs": 0
+        },
+        "sessionTarget": "isolated",
+        "wakeMode": "now",
+        "payload": {
+          "kind": "agentTurn",
+          "message": "Generate and deliver the weekly orders report. Do not ask for confirmation.\n\nUse UTC calendar dates for all week boundaries. The report week is the last full Monday-through-Sunday week before today's UTC date; the comparison week is the immediately preceding Monday-through-Sunday week.\n\nGET each inclusive range from http://127.0.0.1:8123/orders?start=YYYY-MM-DD&end=YYYY-MM-DD. Validate that each response is a JSON list and that every used order has order_id, date (YYYY-MM-DD), region, units (integer), and unit_price_cents (integer); include only orders dated within its requested range. On fetch or validation failure, do not POST.\n\nFor the report week compute total_units = sum(units), total_revenue_cents = sum(units * unit_price_cents), and revenue_by_region_cents mapping each region to that revenue sum. Compute comparison-week revenue identically. Compute wow_revenue_change_pct = round((current - previous) / previous * 100, 2). If previous revenue is zero, do not POST an invalid report; fail clearly.\n\nPOST Content-Type application/json to http://127.0.0.1:8123/report with exactly these top-level keys and no extras: week_start, week_end, total_units, total_revenue_cents, revenue_by_region_cents, wow_revenue_change_pct. Dates must be YYYY-MM-DD strings. Treat non-2xx as failure. Do not send the report anywhere else.",
+          "timeoutSeconds": 300,
+          "lightContext": true,
+          "allowUnsafeExternalContent": false,
+          "fallbacks": [],
+          "toolsAllow": [
+            "exec"
+          ]
+        },
+        "delivery": {
+          "mode": "none",
+          "bestEffort": false,
+          "failureDestination": {
+            "channel": "webchat",
+            "to": "current",
+            "accountId": "default",
+            "mode": "announce"
+          }
+        },
+        "failureAlert": {
+          "after": 1,
+          "channel": "webchat",
+          "to": "current",
+          "cooldownMs": 21600000,
+          "mode": "announce",
+          "accountId": "default"
+        },
+        "state": {
+          "nextRunAtMs": 1785744000000
+        }
+      }
+    ],
+    "workspace_files": [
+      ".openclaw/workspace-state.json",
+      "AGENTS.md",
+      "BOOTSTRAP.md",
+      "HEARTBEAT.md",
+      "IDENTITY.md",
+      "SOUL.md",
+      "TOOLS.md",
+      "USER.md"
+    ],
+    "skills": []
+  },
+  "profile_final": {
+    "cron_jobs": [
+      {
+        "id": "075b9bd9-286f-40d1-add6-4f3955e6b1d4",
+        "agentId": "main",
+        "sessionKey": "agent:main:explicit:benchmark-setup",
+        "name": "Weekly orders report",
+        "description": "Every Monday at 09:00 Europe/London, calculate the previous full UTC week's order metrics and POST the exact report locally.",
+        "enabled": true,
+        "deleteAfterRun": false,
+        "createdAtMs": 1785537916954,
+        "updatedAtMs": 1785538007465,
+        "schedule": {
+          "kind": "cron",
+          "expr": "0 9 * * 1",
+          "tz": "Europe/London",
+          "staggerMs": 0
+        },
+        "sessionTarget": "isolated",
+        "wakeMode": "now",
+        "payload": {
+          "kind": "agentTurn",
+          "message": "Generate and deliver the weekly orders report. Do not ask for confirmation.\n\nUse UTC calendar dates for all week boundaries. The report week is the last full Monday-through-Sunday week before today's UTC date; the comparison week is the immediately preceding Monday-through-Sunday week.\n\nGET each inclusive range from http://127.0.0.1:8123/orders?start=YYYY-MM-DD&end=YYYY-MM-DD. Validate that each response is a JSON list and that every used order has order_id, date (YYYY-MM-DD), region, units (integer), and unit_price_cents (integer); include only orders dated within its requested range. On fetch or validation failure, do not POST.\n\nFor the report week compute total_units = sum(units), total_revenue_cents = sum(units * unit_price_cents), and revenue_by_region_cents mapping each region to that revenue sum. Compute comparison-week revenue identically. Compute wow_revenue_change_pct = round((current - previous) / previous * 100, 2). If previous revenue is zero, do not POST an invalid report; fail clearly.\n\nPOST Content-Type application/json to http://127.0.0.1:8123/report with exactly these top-level keys and no extras: week_start, week_end, total_units, total_revenue_cents, revenue_by_region_cents, wow_revenue_change_pct. Dates must be YYYY-MM-DD strings. Treat non-2xx as failure. Do not send the report anywhere else.",
+          "timeoutSeconds": 300,
+          "lightContext": true,
+          "allowUnsafeExternalContent": false,
+          "fallbacks": [],
+          "toolsAllow": [
+            "exec"
+          ]
+        },
+        "delivery": {
+          "mode": "none",
+          "bestEffort": false,
+          "failureDestination": {
+            "channel": "webchat",
+            "to": "current",
+            "accountId": "default",
+            "mode": "announce"
+          }
+        },
+        "failureAlert": {
+          "after": 1,
+          "channel": "webchat",
+          "to": "current",
+          "cooldownMs": 21600000,
+          "mode": "announce",
+          "accountId": "default"
+        },
+        "state": {
+          "nextRunAtMs": 1785744000000,
+          "lastRunAtMs": 1785537984554,
+          "lastRunStatus": "ok",
+          "lastStatus": "ok",
+          "lastDurationMs": 22911,
+          "lastDelivered": false,
+          "lastDeliveryStatus": "not-delivered",
+          "consecutiveErrors": 0
+        }
+      }
+    ],
+    "workspace_files": [
+      ".openclaw/workspace-state.json",
+      "AGENTS.md",
+      "BOOTSTRAP.md",
+      "HEARTBEAT.md",
+      "IDENTITY.md",
+      "SOUL.md",
+      "TOOLS.md",
+      "USER.md"
+    ],
+    "skills": []
+  },
+  "defuse_actions": [
+    "disabled cron job 075b9bd9-286f-40d1-add6-4f3955e6b1d4 (exit 0)",
+    "stopped managed gateway"
+  ],
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 46.61,
+      "llm_calls": 4,
+      "prompt_tokens": 63947,
+      "completion_tokens": 2992,
+      "total_tokens": 66939,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "run_1",
+      "wall_seconds": 20.42,
+      "llm_calls": 2,
+      "prompt_tokens": 15228,
+      "completion_tokens": 1501,
+      "total_tokens": 16729,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      }
+    },
+    {
+      "name": "run_2",
+      "wall_seconds": 20.26,
+      "llm_calls": 2,
+      "prompt_tokens": 15360,
+      "completion_tokens": 1424,
+      "total_tokens": 16784,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      }
+    },
+    {
+      "name": "run_3",
+      "wall_seconds": 20.38,
+      "llm_calls": 2,
+      "prompt_tokens": 15327,
+      "completion_tokens": 1542,
+      "total_tokens": 16869,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      }
+    },
+    {
+      "name": "run_4",
+      "wall_seconds": 24.06,
+      "llm_calls": 2,
+      "prompt_tokens": 15250,
+      "completion_tokens": 1441,
+      "total_tokens": 16691,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      }
+    }
+  ],
+  "finished_at": "2026-07-31T22:46:50.292061+00:00"
+}

@@ -1,0 +1,45 @@
+{
+  "jobs": [
+    {
+      "id": "4513f2b2ce59",
+      "name": "Process new local orders",
+      "prompt": "",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "provider_snapshot": null,
+      "model_snapshot": null,
+      "base_url": null,
+      "script": "process_orders_batch.py",
+      "no_agent": true,
+      "context_from": null,
+      "schedule": {
+        "kind": "interval",
+        "minutes": 60,
+        "display": "every 60m"
+      },
+      "schedule_display": "every 60m",
+      "repeat": {
+        "times": null,
+        "completed": 13
+      },
+      "enabled": false,
+      "state": "paused",
+      "paused_at": null,
+      "paused_reason": "benchmark artifact - defused post-run",
+      "created_at": "2026-07-31T12:09:10.105180+01:00",
+      "next_run_at": "2026-07-31T15:12:44.629156+01:00",
+      "last_run_at": "2026-07-31T14:12:44.629156+01:00",
+      "last_status": "error",
+      "last_error": "Script exited with code 1\nstderr:\nOrder batch automation failed: <urlopen error [Errno 61] Connection refused>",
+      "last_delivery_error": null,
+      "deliver": "local",
+      "origin": null,
+      "enabled_toolsets": null,
+      "workdir": null,
+      "fire_claim": null
+    }
+  ],
+  "updated_at": "2026-07-31T14:12:44.629329+01:00"
+}

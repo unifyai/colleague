@@ -1,0 +1,308 @@
+{
+  "experiment": "recurring_weekly_report",
+  "system": "opencode",
+  "run_id": "2026-08-01T17-41-25Z-opencode",
+  "opencode_repo": "/Users/djl11/opencode",
+  "model": "openai/gpt-5.6-sol",
+  "seed": 20260731,
+  "n_runs": 4,
+  "utterance": "Every Monday at 09:00, generate the weekly orders report and deliver it.\n\nData source: a local metrics API at http://127.0.0.1:8123. GET http://127.0.0.1:8123/orders?start=YYYY-MM-DD&end=YYYY-MM-DD returns a JSON list of orders, each with fields: order_id, date (YYYY-MM-DD), region, units (int), unit_price_cents (int).\n\nThe report covers the previous calendar week: Monday through Sunday inclusive, the last full week before the run date (UTC).\n\nCompute exactly:\n- total_units: sum of units over the report week\n- total_revenue_cents: sum of units * unit_price_cents over the report week\n- revenue_by_region_cents: object mapping each region to its revenue sum\n- wow_revenue_change_pct: percent change of total_revenue_cents versus the week immediately before the report week, computed as round((current - previous) / previous * 100, 2)\n\nDeliver by POSTing JSON to http://127.0.0.1:8123/report with exactly these keys: week_start, week_end (YYYY-MM-DD strings), total_units, total_revenue_cents, revenue_by_region_cents, wow_revenue_change_pct.\n\nSet up the recurring weekly task now, starting next Monday. Do not generate a report right now, and do not ask for confirmation.",
+  "wake_prompt": "Run the recurring automation you set up, now.",
+  "runs": [
+    {
+      "run": 1,
+      "run_date": "2026-08-01",
+      "fire_mode": "script:weekly_orders_report.py",
+      "exit_code": 0,
+      "reports_delivered": 1,
+      "reports": [
+        {
+          "week_start": "2026-07-20",
+          "week_end": "2026-07-26",
+          "total_units": 566,
+          "total_revenue_cents": 1099034,
+          "revenue_by_region_cents": {
+            "north": 472588,
+            "south": 221768,
+            "east": 249607,
+            "west": 155071
+          },
+          "wow_revenue_change_pct": -8.14
+        }
+      ],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "week_start": true,
+            "week_end": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "wow_revenue_change_pct": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "run": 2,
+      "run_date": "2026-08-01",
+      "fire_mode": "script:weekly_orders_report.py",
+      "exit_code": 0,
+      "reports_delivered": 1,
+      "reports": [
+        {
+          "week_start": "2026-07-20",
+          "week_end": "2026-07-26",
+          "total_units": 566,
+          "total_revenue_cents": 1099034,
+          "revenue_by_region_cents": {
+            "north": 472588,
+            "south": 221768,
+            "east": 249607,
+            "west": 155071
+          },
+          "wow_revenue_change_pct": -8.14
+        }
+      ],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "week_start": true,
+            "week_end": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "wow_revenue_change_pct": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "run": 3,
+      "run_date": "2026-08-01",
+      "fire_mode": "script:weekly_orders_report.py",
+      "exit_code": 0,
+      "reports_delivered": 1,
+      "reports": [
+        {
+          "week_start": "2026-07-20",
+          "week_end": "2026-07-26",
+          "total_units": 566,
+          "total_revenue_cents": 1099034,
+          "revenue_by_region_cents": {
+            "north": 472588,
+            "south": 221768,
+            "east": 249607,
+            "west": 155071
+          },
+          "wow_revenue_change_pct": -8.14
+        }
+      ],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "week_start": true,
+            "week_end": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "wow_revenue_change_pct": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "run": 4,
+      "run_date": "2026-08-01",
+      "fire_mode": "script:weekly_orders_report.py",
+      "exit_code": 0,
+      "reports_delivered": 1,
+      "reports": [
+        {
+          "week_start": "2026-07-20",
+          "week_end": "2026-07-26",
+          "total_units": 566,
+          "total_revenue_cents": 1099034,
+          "revenue_by_region_cents": {
+            "north": 472588,
+            "south": 221768,
+            "east": 249607,
+            "west": 155071
+          },
+          "wow_revenue_change_pct": -8.14
+        }
+      ],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "week_start": true,
+            "week_end": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "wow_revenue_change_pct": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    }
+  ],
+  "setup": {
+    "exit_code": 0,
+    "output_tail": "I\u2019ll inspect the workspace for its task scheduling conventions, then add the Monday 09:00 UTC automation without executing the report.\nThe host is on BST, so a plain `09:00` cron entry would run one hour early in UTC terms. I\u2019ll add a UTC-based report script and install an hourly cron guard that invokes it only when the UTC time is Monday 09:00; this preserves the requested schedule across daylight-saving changes and will first match on Monday, August 3, 2026.\nThe implementation computes both adjacent full UTC weeks, filters returned rows to each requested inclusive range, and posts only the six required fields. I\u2019m installing the schedule now, then I\u2019ll verify the cron entry and validate the calculation code without contacting the API.\nConfigured the recurring weekly orders report.\n\n- Script: `weekly_orders_report.py`\n- Schedule: Mondays at `09:00 UTC`\n- First run: Monday, August 3, 2026\n- Delivery: POST to `http://127.0.0.1:8123/report`\n- Logs: `weekly_orders_report.log`\n- Validation: syntax and revenue calculations passed\n- No API requests were made and no report was generated now\n\nThe cron guard uses UTC explicitly, so the schedule remains correct across local daylight-saving changes.\n"
+  },
+  "profile_after_setup": {
+    "workspace_files": [
+      "weekly_orders_report.py"
+    ],
+    "commands": [],
+    "scripts": [
+      "weekly_orders_report.py"
+    ]
+  },
+  "profile_final": {
+    "workspace_files": [
+      "weekly_orders_report.py"
+    ],
+    "commands": [],
+    "scripts": [
+      "weekly_orders_report.py"
+    ]
+  },
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 69.41,
+      "llm_calls": 10,
+      "prompt_tokens": 78805,
+      "completion_tokens": 3914,
+      "total_tokens": 82719,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 10
+      }
+    },
+    {
+      "name": "run_1",
+      "wall_seconds": 0.07,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    },
+    {
+      "name": "run_2",
+      "wall_seconds": 0.06,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    },
+    {
+      "name": "run_3",
+      "wall_seconds": 0.06,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    },
+    {
+      "name": "run_4",
+      "wall_seconds": 0.07,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    }
+  ],
+  "finished_at": "2026-08-01T17:42:34.967352+00:00"
+}

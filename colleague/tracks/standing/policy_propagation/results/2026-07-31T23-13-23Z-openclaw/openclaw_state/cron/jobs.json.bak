@@ -1,0 +1,180 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "c3f0b44b-adab-43ba-842c-35d12ada627c",
+      "agentId": "main",
+      "sessionKey": "agent:main:explicit:benchmark-setup",
+      "name": "Hourly customer inquiry triage",
+      "description": "Classify and submit newly available support inquiries once per hour.",
+      "enabled": false,
+      "deleteAfterRun": false,
+      "createdAtMs": 1785539673628,
+      "updatedAtMs": 1785540161026,
+      "schedule": {
+        "kind": "cron",
+        "expr": "13 * * * *",
+        "tz": "Europe/London",
+        "staggerMs": 0
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Triage newly received customer inquiries using the local support API. Follow these steps exactly:\n\n1. GET http://127.0.0.1:8132/triage/last and read integer `last_seq`.\n2. GET http://127.0.0.1:8132/inquiries?after=N using that last_seq.\n3. If no inquiries are returned, make no POST and finish silently.\n4. Otherwise classify every fetched inquiry exactly once. Category: `refund` if they want money back for a charge; `bug` if something in the product is broken or not working correctly; `sales` if they want to buy, upgrade, get a quote, or discuss pricing; `other` otherwise. Priority: `urgent` if it involves a charge, billing amount, or refund of $250 or more, or the customer says they are blocked from working; `normal` otherwise.\n5. POST one JSON object to http://127.0.0.1:8132/triage with exactly the top-level keys `batch_start_seq` (minimum fetched seq), `batch_end_seq` (maximum fetched seq), and `classifications`. Classifications must cover every fetched inquiry exactly once and each object must have exactly `seq`, `category`, and `priority`.\n\nUse curl/HTTP tooling as needed. Parse and construct JSON programmatically. Validate completeness and allowed values before POSTing; fail rather than post a partial or invalid batch. Do not produce user-facing output for an empty or successful run.",
+        "timeoutSeconds": 300,
+        "lightContext": true,
+        "allowUnsafeExternalContent": false,
+        "fallbacks": [],
+        "toolsAllow": [
+          "exec",
+          "web_fetch"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "bestEffort": false,
+        "failureDestination": {
+          "channel": "last",
+          "to": "last",
+          "accountId": "default",
+          "mode": "announce"
+        }
+      },
+      "failureAlert": {
+        "after": 1,
+        "channel": "last",
+        "to": "last",
+        "cooldownMs": 3600000,
+        "mode": "announce",
+        "accountId": "default"
+      },
+      "state": {
+        "lastRunAtMs": 1785540099158,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 17131,
+        "lastDelivered": false,
+        "lastDeliveryStatus": "not-delivered",
+        "consecutiveErrors": 0
+      }
+    },
+    {
+      "id": "6fd2919d-8e22-46ee-8f28-9a62094c5fe9",
+      "agentId": "main",
+      "sessionKey": "agent:main:explicit:benchmark-setup",
+      "name": "Daily urgent customer inquiry digest",
+      "description": "Summarize urgent support inquiries into category counts once daily.",
+      "enabled": false,
+      "deleteAfterRun": false,
+      "createdAtMs": 1785539697556,
+      "updatedAtMs": 1785540161754,
+      "schedule": {
+        "kind": "cron",
+        "expr": "14 0 * * *",
+        "tz": "Europe/London",
+        "staggerMs": 0
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Create the daily digest of urgent customer inquiries using the local support API. Follow these steps exactly:\n\n1. GET http://127.0.0.1:8132/digests/last and read integer `last_seq`.\n2. GET http://127.0.0.1:8132/inquiries?after=N using that last_seq. The response contains up to 200 inquiries, each with integer `seq` and string `text`.\n3. If no inquiries are returned, make no POST and finish silently.\n4. Otherwise evaluate every fetched inquiry. An inquiry is urgent if it involves a charge, billing amount, or refund of $250 or more, OR if the customer says they are blocked from working. For each urgent inquiry determine one category: `refund` if they want money back for a charge; `bug` if something is broken or not working; `sales` if it concerns buying, upgrading, quotes, or pricing; `other` otherwise. Non-urgent inquiries do not contribute to category counts, but their seq values still define the fetched batch boundaries.\n5. POST one JSON object to http://127.0.0.1:8132/digests with exactly these top-level keys: `batch_start_seq` (minimum seq among all fetched inquiries), `batch_end_seq` (maximum seq among all fetched inquiries), `urgent_by_category` (an object with exactly the keys `refund`, `bug`, `sales`, and `other`, each mapped to an integer count of urgent inquiries), and `urgent_total` (integer equal to the sum of those four counts). POST a digest even when the fetched batch has zero urgent inquiries; only an entirely empty fetched batch results in no POST.\n\nUse curl/HTTP tooling as needed. Parse responses and construct JSON programmatically. Validate the exact keys, integer counts, batch boundaries, and total before POSTing; fail rather than post a partial or invalid digest. Do not produce user-facing output for an empty or successful run.",
+        "timeoutSeconds": 300,
+        "lightContext": true,
+        "allowUnsafeExternalContent": false,
+        "fallbacks": [],
+        "toolsAllow": [
+          "exec",
+          "web_fetch"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "bestEffort": false,
+        "failureDestination": {
+          "channel": "last",
+          "to": "last",
+          "accountId": "default",
+          "mode": "announce"
+        }
+      },
+      "failureAlert": {
+        "after": 1,
+        "channel": "last",
+        "to": "last",
+        "cooldownMs": 3600000,
+        "mode": "announce",
+        "accountId": "default"
+      },
+      "state": {
+        "lastRunAtMs": 1785540119319,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 19048,
+        "lastDelivered": false,
+        "lastDeliveryStatus": "not-delivered",
+        "consecutiveErrors": 0
+      }
+    },
+    {
+      "id": "0a915ec0-7f41-4ccb-b174-33e99877e509",
+      "agentId": "main",
+      "sessionKey": "agent:main:explicit:benchmark-setup",
+      "name": "Weekly escalation volume audit",
+      "description": "Count urgent inquiries and report their share once per week.",
+      "enabled": true,
+      "deleteAfterRun": false,
+      "createdAtMs": 1785539720418,
+      "updatedAtMs": 1785540156899,
+      "schedule": {
+        "kind": "cron",
+        "expr": "15 0 * * 6",
+        "tz": "Europe/London",
+        "staggerMs": 0
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Audit weekly escalation volume using the local support API. Follow these steps exactly:\n\n1. GET http://127.0.0.1:8132/audits/last and read integer `last_seq`.\n2. GET http://127.0.0.1:8132/inquiries?after=N using that last_seq. The response contains up to 200 inquiries, each with integer `seq` and string `text`.\n3. If no inquiries are returned, make no POST and finish silently.\n4. Otherwise evaluate every fetched inquiry. Count an inquiry as urgent if it involves a charge, billing amount, or refund of $250 or more, OR if the customer says they are blocked from working. All others are normal.\n5. POST one JSON object to http://127.0.0.1:8132/audits with exactly these keys: `batch_start_seq` (minimum fetched seq), `batch_end_seq` (maximum fetched seq), `urgent_count` (integer count of urgent fetched inquiries), `total_count` (integer count of all fetched inquiries), and `urgent_fraction` (JSON number equal to urgent_count / total_count rounded to exactly two decimal places mathematically; for example 1/4 becomes 0.25 and 2/3 becomes 0.67).\n\nUse curl/HTTP tooling as needed. Parse responses and construct JSON programmatically. Validate exact keys, integer counts, batch boundaries, and the rounded fraction before POSTing; fail rather than post a partial or invalid audit. Do not produce user-facing output for an empty or successful run.",
+        "timeoutSeconds": 300,
+        "lightContext": true,
+        "allowUnsafeExternalContent": false,
+        "fallbacks": [],
+        "toolsAllow": [
+          "exec",
+          "web_fetch"
+        ]
+      },
+      "delivery": {
+        "mode": "none",
+        "bestEffort": false,
+        "failureDestination": {
+          "channel": "last",
+          "to": "last",
+          "accountId": "default",
+          "mode": "announce"
+        }
+      },
+      "failureAlert": {
+        "after": 1,
+        "channel": "last",
+        "to": "last",
+        "cooldownMs": 3600000,
+        "mode": "announce",
+        "accountId": "default"
+      },
+      "state": {
+        "nextRunAtMs": 1786144500000,
+        "lastRunAtMs": 1785540139460,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 17439,
+        "lastDelivered": false,
+        "lastDeliveryStatus": "not-delivered",
+        "consecutiveErrors": 0
+      }
+    }
+  ]
+}

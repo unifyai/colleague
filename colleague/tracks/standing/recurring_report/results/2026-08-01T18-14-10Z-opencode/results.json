@@ -1,0 +1,205 @@
+{
+  "experiment": "recurring_weekly_report",
+  "system": "opencode",
+  "run_id": "2026-08-01T18-14-10Z-opencode",
+  "opencode_repo": "/Users/djl11/opencode",
+  "model": "openai/gpt-5.6-sol",
+  "seed": 20260731,
+  "n_runs": 4,
+  "utterance": "Every Monday at 09:00, generate the weekly orders report and deliver it.\n\nData source: a local metrics API at http://127.0.0.1:8123. GET http://127.0.0.1:8123/orders?start=YYYY-MM-DD&end=YYYY-MM-DD returns a JSON list of orders, each with fields: order_id, date (YYYY-MM-DD), region, units (int), unit_price_cents (int).\n\nThe report covers the previous calendar week: Monday through Sunday inclusive, the last full week before the run date (UTC).\n\nCompute exactly:\n- total_units: sum of units over the report week\n- total_revenue_cents: sum of units * unit_price_cents over the report week\n- revenue_by_region_cents: object mapping each region to its revenue sum\n- wow_revenue_change_pct: percent change of total_revenue_cents versus the week immediately before the report week, computed as round((current - previous) / previous * 100, 2)\n\nDeliver by POSTing JSON to http://127.0.0.1:8123/report with exactly these keys: week_start, week_end (YYYY-MM-DD strings), total_units, total_revenue_cents, revenue_by_region_cents, wow_revenue_change_pct.\n\nSet up the recurring weekly task now, starting next Monday. Do not generate a report right now, and do not ask for confirmation.",
+  "wake_prompt": "Run the recurring automation you set up, now.",
+  "runs": [
+    {
+      "run": 1,
+      "run_date": "2026-08-01",
+      "fire_mode": "cron_spec",
+      "exit_code": 0,
+      "reports_delivered": 0,
+      "reports": [],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [],
+      "correct": false
+    },
+    {
+      "run": 2,
+      "run_date": "2026-08-01",
+      "fire_mode": "cron_spec",
+      "exit_code": 0,
+      "reports_delivered": 0,
+      "reports": [],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [],
+      "correct": false
+    },
+    {
+      "run": 3,
+      "run_date": "2026-08-01",
+      "fire_mode": "cron_spec",
+      "exit_code": 0,
+      "reports_delivered": 0,
+      "reports": [],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [],
+      "correct": false
+    },
+    {
+      "run": 4,
+      "run_date": "2026-08-01",
+      "fire_mode": "cron_spec",
+      "exit_code": 0,
+      "reports_delivered": 0,
+      "reports": [],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [],
+      "correct": false
+    }
+  ],
+  "setup": {
+    "exit_code": 0,
+    "output_tail": "I\u2019ll inspect the workspace\u2019s existing automation conventions, then add the Monday 09:00 UTC task without invoking either API now.\nThe host is on BST, while the report boundaries must be UTC. I\u2019ll use an hourly cron trigger with a strict Monday 09:00 UTC guard in the script, so delivery remains fixed to UTC across daylight-saving changes; no API request occurs during setup.\nThe report logic now passes unit tests for the UTC week boundaries, prior-week comparison, totals, regional aggregation, and percentage change. I\u2019m installing the guarded cron entry next, then I\u2019ll verify the installed schedule without running the report.\nThe recurring weekly report is configured.\n\n- First delivery: Monday, August 3, 2026 at 09:00 UTC\n- Schedule: Monday at 09:00 UTC, DST-safe via an hourly cron trigger and UTC guard\n- Report implementation: `weekly_orders_report.py`\n- Installed schedule: `weekly_orders_report.cron`\n- Logs: `weekly_orders_report.log`\n- Verification: 2 unit tests passed; `git diff --check` passed\n- No report was generated and no API requests were made during setup.\n"
+  },
+  "profile_after_setup": {
+    "workspace_files": [
+      ".gitignore",
+      "__pycache__/test_weekly_orders_report.cpython-314.pyc",
+      "__pycache__/weekly_orders_report.cpython-314.pyc",
+      "test_weekly_orders_report.py",
+      "weekly_orders_report.cron",
+      "weekly_orders_report.py"
+    ],
+    "commands": [],
+    "scripts": [
+      "test_weekly_orders_report.py",
+      "weekly_orders_report.py"
+    ]
+  },
+  "profile_final": {
+    "workspace_files": [
+      ".gitignore",
+      "__pycache__/test_weekly_orders_report.cpython-314.pyc",
+      "__pycache__/weekly_orders_report.cpython-314.pyc",
+      "test_weekly_orders_report.py",
+      "weekly_orders_report.cron",
+      "weekly_orders_report.py"
+    ],
+    "commands": [],
+    "scripts": [
+      "test_weekly_orders_report.py",
+      "weekly_orders_report.py"
+    ]
+  },
+  "defuse_actions": [],
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 60.46,
+      "llm_calls": 10,
+      "prompt_tokens": 80393,
+      "completion_tokens": 4492,
+      "total_tokens": 84885,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 10
+      }
+    },
+    {
+      "name": "run_1",
+      "wall_seconds": 0.06,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    },
+    {
+      "name": "run_2",
+      "wall_seconds": 0.05,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    },
+    {
+      "name": "run_3",
+      "wall_seconds": 0.05,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    },
+    {
+      "name": "run_4",
+      "wall_seconds": 0.05,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    }
+  ],
+  "finished_at": "2026-08-01T18:15:10.976830+00:00"
+}

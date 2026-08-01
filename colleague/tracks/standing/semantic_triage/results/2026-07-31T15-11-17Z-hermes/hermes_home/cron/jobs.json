@@ -1,0 +1,47 @@
+{
+  "jobs": [
+    {
+      "id": "a5e66c090e62",
+      "name": "Hourly support inquiry triage",
+      "prompt": "Triage new customer inquiries from the local support API. Follow this procedure exactly:\n\n1. Use the terminal to GET http://127.0.0.1:8129/batches/last and parse the JSON object {\"last_seq\": N}.\n2. GET http://127.0.0.1:8129/inquiries?after=N and parse the returned inquiries. Each inquiry has seq (int) and text (str), and the response contains at most 200 inquiries.\n3. If no inquiries were returned, do nothing: do not POST a batch, and keep the final response empty.\n4. Otherwise, understand each inquiry's request and classify it into exactly one category. Do not use keyword matching; infer what the customer actually needs:\n   - \"refund\": they want money back for something they were charged.\n   - \"bug\": something in the product is broken or not working correctly.\n   - \"sales\": they want to buy, upgrade, get a quote, or discuss pricing.\n   - \"other\": anything else.\n5. Validate that every fetched inquiry appears exactly once and that no unfetched inquiry appears. Then POST JSON to http://127.0.0.1:8129/batches with Content-Type: application/json. The JSON object must have exactly these top-level keys:\n   - batch_start_seq: the minimum seq among the fetched inquiries (int)\n   - batch_end_seq: the maximum seq among the fetched inquiries (int)\n   - classifications: a list of objects, each with exactly {\"seq\": int, \"category\": str}, covering every fetched inquiry exactly once.\n6. Check the HTTP response and report an error if either GET or the POST fails. Do not fabricate API data or claim success without a successful POST. If successful, give only a concise batch summary without reproducing inquiry text.",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "provider_snapshot": "openrouter",
+      "model_snapshot": "openai/gpt-5.6-sol",
+      "base_url": null,
+      "script": null,
+      "no_agent": false,
+      "context_from": null,
+      "schedule": {
+        "kind": "interval",
+        "minutes": 60,
+        "display": "every 60m"
+      },
+      "schedule_display": "every 60m",
+      "repeat": {
+        "times": null,
+        "completed": 8
+      },
+      "enabled": false,
+      "state": "paused",
+      "paused_at": null,
+      "paused_reason": "benchmark artifact - defused post-run",
+      "created_at": "2026-07-31T16:11:42.869018+01:00",
+      "next_run_at": "2026-07-31T17:14:53.408294+01:00",
+      "last_run_at": "2026-07-31T16:14:53.408294+01:00",
+      "last_status": "ok",
+      "last_error": null,
+      "last_delivery_error": null,
+      "deliver": "local",
+      "origin": null,
+      "enabled_toolsets": [
+        "terminal"
+      ],
+      "workdir": null,
+      "fire_claim": null
+    }
+  ],
+  "updated_at": "2026-07-31T16:14:53.408594+01:00"
+}

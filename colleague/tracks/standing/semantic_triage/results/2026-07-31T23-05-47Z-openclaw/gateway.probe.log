@@ -1,0 +1,15 @@
+
+===== 2026-07-31T23:05:47.285377+00:00 ['cron', 'status', '--json']
+Error: gateway closed (1006 abnormal closure (no close frame)): no close reason
+Gateway target: ws://127.0.0.1:18937
+Source: local loopback
+Config: /Users/djl11/unify/benchmarks/semantic_triage/results/2026-07-31T23-05-47Z-openclaw/openclaw_state/openclaw.json
+Bind: loopback
+
+===== 2026-07-31T23:05:49.952546+00:00 ['cron', 'status', '--json']
+{
+  "enabled": true,
+  "storePath": "/Users/djl11/unify/benchmarks/semantic_triage/results/2026-07-31T23-05-47Z-openclaw/openclaw_state/cron/jobs.json",
+  "jobs": 0,
+  "nextWakeAtMs": null
+}

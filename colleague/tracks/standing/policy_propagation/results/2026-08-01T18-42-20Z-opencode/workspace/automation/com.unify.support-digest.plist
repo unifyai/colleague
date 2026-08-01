@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.unify.support-digest</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/djl11/unify/benchmarks/policy_propagation/results/2026-08-01T18-42-20Z-opencode/opencode_state/bin/opencode</string>
+    <string>run</string>
+    <string>--command</string>
+    <string>digest-support</string>
+    <string>--auto</string>
+    <string>--title</string>
+    <string>Daily urgent support digest</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/djl11/unify/benchmarks/policy_propagation/results/2026-08-01T18-42-20Z-opencode/workspace</string>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>9</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>StandardOutPath</key>
+  <string>/dev/null</string>
+  <key>StandardErrorPath</key>
+  <string>/dev/null</string>
+</dict>
+</plist>

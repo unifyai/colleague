@@ -1,0 +1,341 @@
+{
+  "task_entrypoint": 0,
+  "functions": [
+    {
+      "function_id": 0,
+      "name": "run_hourly_support_inquiry_triage"
+    },
+    {
+      "function_id": 1400579381,
+      "name": "primitives.tasks.update"
+    },
+    {
+      "function_id": 1541279022,
+      "name": "primitives.tasks.get_run_event_children"
+    },
+    {
+      "function_id": 1017633507,
+      "name": "primitives.tasks.get_run_event"
+    },
+    {
+      "function_id": 1291689405,
+      "name": "primitives.tasks.execute"
+    },
+    {
+      "function_id": 1222293327,
+      "name": "primitives.tasks.ask"
+    },
+    {
+      "function_id": 1912711319,
+      "name": "primitives.comms.stop_inactivity_followups"
+    },
+    {
+      "function_id": 202917737,
+      "name": "primitives.comms.send_whatsapp"
+    },
+    {
+      "function_id": 1878482910,
+      "name": "primitives.comms.send_unify_message"
+    },
+    {
+      "function_id": 1892860191,
+      "name": "primitives.comms.send_teams_message"
+    },
+    {
+      "function_id": 1552485547,
+      "name": "primitives.comms.send_sms"
+    },
+    {
+      "function_id": 1229237584,
+      "name": "primitives.comms.send_slack_message"
+    },
+    {
+      "function_id": 1260019001,
+      "name": "primitives.comms.send_slack_channel_message"
+    },
+    {
+      "function_id": 1940097336,
+      "name": "primitives.comms.send_ms_teams_bot_message"
+    },
+    {
+      "function_id": 1688445394,
+      "name": "primitives.comms.send_ms_teams_bot_channel_message"
+    },
+    {
+      "function_id": 791440269,
+      "name": "primitives.comms.send_email"
+    },
+    {
+      "function_id": 1081926161,
+      "name": "primitives.comms.send_discord_message"
+    },
+    {
+      "function_id": 1481055112,
+      "name": "primitives.comms.send_discord_channel_message"
+    },
+    {
+      "function_id": 462576849,
+      "name": "primitives.comms.send_api_response"
+    },
+    {
+      "function_id": 1274313714,
+      "name": "primitives.comms.resume_inactivity_followups"
+    },
+    {
+      "function_id": 503450187,
+      "name": "primitives.comms.make_whatsapp_call"
+    },
+    {
+      "function_id": 467187406,
+      "name": "primitives.comms.make_call"
+    },
+    {
+      "function_id": 1530503050,
+      "name": "primitives.comms.create_teams_meet"
+    },
+    {
+      "function_id": 483946522,
+      "name": "primitives.comms.create_teams_channel"
+    },
+    {
+      "function_id": 1343879148,
+      "name": "primitives.actor.act"
+    },
+    {
+      "function_id": 1044627639,
+      "name": "primitives.dashboards.update_tile"
+    },
+    {
+      "function_id": 2004292605,
+      "name": "primitives.dashboards.update_dashboard"
+    },
+    {
+      "function_id": 2106676772,
+      "name": "primitives.dashboards.list_tiles"
+    },
+    {
+      "function_id": 293104239,
+      "name": "primitives.dashboards.list_dashboards"
+    },
+    {
+      "function_id": 34789956,
+      "name": "primitives.dashboards.get_tile"
+    },
+    {
+      "function_id": 1753622326,
+      "name": "primitives.dashboards.get_dashboard"
+    },
+    {
+      "function_id": 257785560,
+      "name": "primitives.dashboards.delete_tile"
+    },
+    {
+      "function_id": 1509654783,
+      "name": "primitives.dashboards.delete_dashboard"
+    },
+    {
+      "function_id": 1827617484,
+      "name": "primitives.dashboards.create_tile"
+    },
+    {
+      "function_id": 282488624,
+      "name": "primitives.dashboards.create_dashboard"
+    },
+    {
+      "function_id": 1658370116,
+      "name": "primitives.data.vectorize_rows"
+    },
+    {
+      "function_id": 1360611980,
+      "name": "primitives.data.update_rows"
+    },
+    {
+      "function_id": 304778590,
+      "name": "primitives.data.update_by_ids"
+    },
+    {
+      "function_id": 388842886,
+      "name": "primitives.data.search_multi_join"
+    },
+    {
+      "function_id": 1437690619,
+      "name": "primitives.data.search_join"
+    },
+    {
+      "function_id": 63950879,
+      "name": "primitives.data.search"
+    },
+    {
+      "function_id": 644625881,
+      "name": "primitives.data.request_external_write"
+    },
+    {
+      "function_id": 884931057,
+      "name": "primitives.data.rename_table"
+    },
+    {
+      "function_id": 957376912,
+      "name": "primitives.data.rename_column"
+    },
+    {
+      "function_id": 1485202267,
+      "name": "primitives.data.reduce_join"
+    },
+    {
+      "function_id": 1727782039,
+      "name": "primitives.data.reduce"
+    },
+    {
+      "function_id": 1683554632,
+      "name": "primitives.data.list_tables"
+    },
+    {
+      "function_id": 1584988356,
+      "name": "primitives.data.join_tables"
+    },
+    {
+      "function_id": 1465072712,
+      "name": "primitives.data.insert_rows"
+    },
+    {
+      "function_id": 1803700893,
+      "name": "primitives.data.ingest"
+    }
+  ],
+  "guidance": [
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=0 title='Customer inquiry triage taxonom",
+      "function_ids": null,
+      "content_head": null
+    },
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=1489012833 title='[platform] Answering q",
+      "function_ids": null,
+      "content_head": null
+    },
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=272035559 title='[anthropic] xlsx' conte",
+      "function_ids": null,
+      "content_head": null
+    },
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=1036143263 title='[anthropic] webapp-tes",
+      "function_ids": null,
+      "content_head": null
+    },
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=1552682748 title='[anthropic] web-artifa",
+      "function_ids": null,
+      "content_head": null
+    },
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=462474815 title='[anthropic] theme-facto",
+      "function_ids": null,
+      "content_head": null
+    },
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=441640398 title='[anthropic] slack-gif-c",
+      "function_ids": null,
+      "content_head": null
+    },
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=1659147614 title='[anthropic] pptx' cont",
+      "function_ids": null,
+      "content_head": null
+    },
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=1784063565 title='[anthropic] pdf' conte",
+      "function_ids": null,
+      "content_head": null
+    },
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=1417867785 title='[anthropic] internal-c",
+      "function_ids": null,
+      "content_head": null
+    },
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=467326963 title='[anthropic] frontend-de",
+      "function_ids": null,
+      "content_head": null
+    },
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=153305114 title='[anthropic] docx' conte",
+      "function_ids": null,
+      "content_head": null
+    },
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=1787235716 title='[anthropic] doc-coauth",
+      "function_ids": null,
+      "content_head": null
+    },
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=514525386 title='[anthropic] canvas-desi",
+      "function_ids": null,
+      "content_head": null
+    },
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=1524844577 title='[anthropic] brand-guid",
+      "function_ids": null,
+      "content_head": null
+    },
+    {
+      "guidance_id": null,
+      "title": "authoring_assistant_id=None guidance_id=1911666357 title='[anthropic] algorithmi",
+      "function_ids": null,
+      "content_head": null
+    }
+  ],
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 248.49,
+      "llm_calls": 12,
+      "prompt_tokens": 748040,
+      "completion_tokens": 3234,
+      "total_tokens": 751274,
+      "provider_cost_usd": 3.030307,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 12
+      }
+    },
+    {
+      "name": "fire_1",
+      "wall_seconds": 61.89,
+      "llm_calls": 7,
+      "prompt_tokens": 337874,
+      "completion_tokens": 2845,
+      "total_tokens": 340719,
+      "provider_cost_usd": 1.180994,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 7
+      }
+    },
+    {
+      "name": "fire_1_review",
+      "wall_seconds": 313.52,
+      "llm_calls": 10,
+      "prompt_tokens": 926574,
+      "completion_tokens": 4420,
+      "total_tokens": 930994,
+      "provider_cost_usd": 1.284442,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 10
+      }
+    }
+  ]
+}

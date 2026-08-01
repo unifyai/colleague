@@ -1,0 +1,912 @@
+{
+  "experiment": "semantic_triage",
+  "system": "unify",
+  "run_id": "2026-07-31T15-11-18Z-unify",
+  "orchestra_url": "https://api.staging.internal.saas.unify.ai/v0",
+  "context": "benchmarks/semantic_triage/2026-07-31T15-11-18Z-unify/default/0",
+  "seed": 20260731,
+  "n_fires": 8,
+  "quiesce_idle_s": 180.0,
+  "utterance": "Please set up an hourly recurring automation that triages new customer inquiries from the local support API at http://127.0.0.1:8128.\n\nHow it works: GET http://127.0.0.1:8128/batches/last returns {\"last_seq\": N} \u2014 the highest inquiry seq already triaged (0 if none yet). GET http://127.0.0.1:8128/inquiries?after=N returns the next inquiries with seq > N (up to 200), each with fields: seq (int) and text (str).\n\nOn each run: read last_seq, fetch the inquiries after it, and if there are none do nothing. Otherwise classify each inquiry into exactly one category based on what the customer needs: \"refund\" (they want money back for something they were charged), \"bug\" (something in the product is broken or not working correctly), \"sales\" (they want to buy, upgrade, get a quote, or discuss pricing), or \"other\" (anything else). Classification must be based on understanding the request, not on keyword matching \u2014 inquiries are worded in many different ways.\n\nPOST the result to http://127.0.0.1:8128/batches as a JSON object with exactly these keys: batch_start_seq (int), batch_end_seq (int), and classifications \u2014 a list of {\"seq\": int, \"category\": str} covering every fetched inquiry exactly once.\n\nSet up the recurring hourly automation now. Do not triage anything right now, and do not ask for confirmation.",
+  "fires": [
+    {
+      "fire": 1,
+      "status": "completed",
+      "entrypoint_before": null,
+      "entrypoint_after": 0,
+      "pending_range": [
+        1,
+        12
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 1,
+          "batch_end_seq": 12,
+          "classifications": [
+            {
+              "seq": 1,
+              "category": "sales"
+            },
+            {
+              "seq": 2,
+              "category": "refund"
+            },
+            {
+              "seq": 3,
+              "category": "other"
+            },
+            {
+              "seq": 4,
+              "category": "sales"
+            },
+            {
+              "seq": 5,
+              "category": "other"
+            },
+            {
+              "seq": 6,
+              "category": "bug"
+            },
+            {
+              "seq": 7,
+              "category": "other"
+            },
+            {
+              "seq": 8,
+              "category": "other"
+            },
+            {
+              "seq": 9,
+              "category": "bug"
+            },
+            {
+              "seq": 10,
+              "category": "sales"
+            },
+            {
+              "seq": 11,
+              "category": "refund"
+            },
+            {
+              "seq": 12,
+              "category": "refund"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "result": "Task completed successfully: triaged and posted **12 inquiries** in one validated batch, covering sequences **1\u201312**."
+    },
+    {
+      "fire": 2,
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        13,
+        24
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 13,
+          "batch_end_seq": 24,
+          "classifications": [
+            {
+              "seq": 13,
+              "category": "sales"
+            },
+            {
+              "seq": 14,
+              "category": "sales"
+            },
+            {
+              "seq": 15,
+              "category": "other"
+            },
+            {
+              "seq": 16,
+              "category": "sales"
+            },
+            {
+              "seq": 17,
+              "category": "bug"
+            },
+            {
+              "seq": 18,
+              "category": "bug"
+            },
+            {
+              "seq": 19,
+              "category": "other"
+            },
+            {
+              "seq": 20,
+              "category": "sales"
+            },
+            {
+              "seq": 21,
+              "category": "sales"
+            },
+            {
+              "seq": 22,
+              "category": "bug"
+            },
+            {
+              "seq": 23,
+              "category": "bug"
+            },
+            {
+              "seq": 24,
+              "category": "refund"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "result": "{'status': 'success', 'triaged': 12, 'posted': True, 'batch_start_seq': 13, 'batch_end_seq': 24}"
+    },
+    {
+      "fire": 3,
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        25,
+        36
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 25,
+          "batch_end_seq": 36,
+          "classifications": [
+            {
+              "seq": 25,
+              "category": "other"
+            },
+            {
+              "seq": 26,
+              "category": "other"
+            },
+            {
+              "seq": 27,
+              "category": "refund"
+            },
+            {
+              "seq": 28,
+              "category": "other"
+            },
+            {
+              "seq": 29,
+              "category": "sales"
+            },
+            {
+              "seq": 30,
+              "category": "bug"
+            },
+            {
+              "seq": 31,
+              "category": "other"
+            },
+            {
+              "seq": 32,
+              "category": "sales"
+            },
+            {
+              "seq": 33,
+              "category": "other"
+            },
+            {
+              "seq": 34,
+              "category": "refund"
+            },
+            {
+              "seq": 35,
+              "category": "bug"
+            },
+            {
+              "seq": 36,
+              "category": "refund"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "result": "{'status': 'success', 'triaged': 12, 'posted': True, 'batch_start_seq': 25, 'batch_end_seq': 36}"
+    },
+    {
+      "fire": 4,
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        37,
+        48
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 37,
+          "batch_end_seq": 48,
+          "classifications": [
+            {
+              "seq": 37,
+              "category": "sales"
+            },
+            {
+              "seq": 38,
+              "category": "sales"
+            },
+            {
+              "seq": 39,
+              "category": "sales"
+            },
+            {
+              "seq": 40,
+              "category": "bug"
+            },
+            {
+              "seq": 41,
+              "category": "refund"
+            },
+            {
+              "seq": 42,
+              "category": "bug"
+            },
+            {
+              "seq": 43,
+              "category": "refund"
+            },
+            {
+              "seq": 44,
+              "category": "refund"
+            },
+            {
+              "seq": 45,
+              "category": "sales"
+            },
+            {
+              "seq": 46,
+              "category": "other"
+            },
+            {
+              "seq": 47,
+              "category": "other"
+            },
+            {
+              "seq": 48,
+              "category": "refund"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "result": "{'status': 'success', 'triaged': 12, 'posted': True, 'batch_start_seq': 37, 'batch_end_seq': 48}"
+    },
+    {
+      "fire": 5,
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        49,
+        60
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 49,
+          "batch_end_seq": 60,
+          "classifications": [
+            {
+              "seq": 49,
+              "category": "sales"
+            },
+            {
+              "seq": 50,
+              "category": "sales"
+            },
+            {
+              "seq": 51,
+              "category": "bug"
+            },
+            {
+              "seq": 52,
+              "category": "bug"
+            },
+            {
+              "seq": 53,
+              "category": "other"
+            },
+            {
+              "seq": 54,
+              "category": "sales"
+            },
+            {
+              "seq": 55,
+              "category": "bug"
+            },
+            {
+              "seq": 56,
+              "category": "sales"
+            },
+            {
+              "seq": 57,
+              "category": "refund"
+            },
+            {
+              "seq": 58,
+              "category": "other"
+            },
+            {
+              "seq": 59,
+              "category": "refund"
+            },
+            {
+              "seq": 60,
+              "category": "other"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "result": "{'status': 'success', 'triaged': 12, 'posted': True, 'batch_start_seq': 49, 'batch_end_seq': 60}"
+    },
+    {
+      "fire": 6,
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        61,
+        72
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 61,
+          "batch_end_seq": 72,
+          "classifications": [
+            {
+              "seq": 61,
+              "category": "other"
+            },
+            {
+              "seq": 62,
+              "category": "refund"
+            },
+            {
+              "seq": 63,
+              "category": "bug"
+            },
+            {
+              "seq": 64,
+              "category": "refund"
+            },
+            {
+              "seq": 65,
+              "category": "sales"
+            },
+            {
+              "seq": 66,
+              "category": "bug"
+            },
+            {
+              "seq": 67,
+              "category": "bug"
+            },
+            {
+              "seq": 68,
+              "category": "other"
+            },
+            {
+              "seq": 69,
+              "category": "other"
+            },
+            {
+              "seq": 70,
+              "category": "other"
+            },
+            {
+              "seq": 71,
+              "category": "bug"
+            },
+            {
+              "seq": 72,
+              "category": "other"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "result": "{'status': 'success', 'triaged': 12, 'posted': True, 'batch_start_seq': 61, 'batch_end_seq': 72}"
+    },
+    {
+      "fire": 7,
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        73,
+        84
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 73,
+          "batch_end_seq": 84,
+          "classifications": [
+            {
+              "seq": 73,
+              "category": "refund"
+            },
+            {
+              "seq": 74,
+              "category": "refund"
+            },
+            {
+              "seq": 75,
+              "category": "other"
+            },
+            {
+              "seq": 76,
+              "category": "other"
+            },
+            {
+              "seq": 77,
+              "category": "other"
+            },
+            {
+              "seq": 78,
+              "category": "bug"
+            },
+            {
+              "seq": 79,
+              "category": "other"
+            },
+            {
+              "seq": 80,
+              "category": "other"
+            },
+            {
+              "seq": 81,
+              "category": "other"
+            },
+            {
+              "seq": 82,
+              "category": "bug"
+            },
+            {
+              "seq": 83,
+              "category": "bug"
+            },
+            {
+              "seq": 84,
+              "category": "refund"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "result": "{'status': 'success', 'triaged': 12, 'posted': True, 'batch_start_seq': 73, 'batch_end_seq': 84}"
+    },
+    {
+      "fire": 8,
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        85,
+        96
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 85,
+          "batch_end_seq": 96,
+          "classifications": [
+            {
+              "seq": 85,
+              "category": "sales"
+            },
+            {
+              "seq": 86,
+              "category": "bug"
+            },
+            {
+              "seq": 87,
+              "category": "bug"
+            },
+            {
+              "seq": 88,
+              "category": "other"
+            },
+            {
+              "seq": 89,
+              "category": "bug"
+            },
+            {
+              "seq": 90,
+              "category": "bug"
+            },
+            {
+              "seq": 91,
+              "category": "refund"
+            },
+            {
+              "seq": 92,
+              "category": "bug"
+            },
+            {
+              "seq": 93,
+              "category": "other"
+            },
+            {
+              "seq": 94,
+              "category": "bug"
+            },
+            {
+              "seq": 95,
+              "category": "bug"
+            },
+            {
+              "seq": 96,
+              "category": "other"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "result": "{'status': 'success', 'triaged': 12, 'posted': True, 'batch_start_seq': 85, 'batch_end_seq': 96}"
+    }
+  ],
+  "setup": {
+    "status": "completed",
+    "result": "Hourly automation created successfully.\n\n- **Task:** Hourly support inquiry triage\n- **Task ID:** 0\n- **Schedule:** Every hour\n- **First run:** July 31, 2026 at 16:12 UTC\n- **Status:** Enabled\n- **Immediate triage:** Not performed\n\nIt will use semantic classification, validate complete one-to-one coverage, skip POSTs for empty batches, and send only the specified JSON payload."
+  },
+  "entrypoint_function_final": {
+    "function_id": 0,
+    "name": "run_hourly_support_inquiry_triage",
+    "docstring": "Run one complete support-triage batch against the fixed local API.\n\nReads the last committed sequence, fetches up to 200 newer inquiries,\nclassifies every inquiry semantically into refund/bug/sales/other with a\nstructured LLM call, validates exact-once coverage, and posts exactly one\nbatch. Returns a compact status dict and performs no POST when no work is\navailable. The fixed endpoint, taxonomy, model, validation, side-effect\nordering, and PHASE/SKIP/SOFT_FAIL logs intentionally preserve the proven\nTaskScheduler workflow.",
+    "implementation": "async def run_hourly_support_inquiry_triage():\n    \"\"\"Run one complete support-triage batch against the fixed local API.\n\n    Reads the last committed sequence, fetches up to 200 newer inquiries,\n    classifies every inquiry semantically into refund/bug/sales/other with a\n    structured LLM call, validates exact-once coverage, and posts exactly one\n    batch. Returns a compact status dict and performs no POST when no work is\n    available. The fixed endpoint, taxonomy, model, validation, side-effect\n    ordering, and PHASE/SKIP/SOFT_FAIL logs intentionally preserve the proven\n    TaskScheduler workflow.\n    \"\"\"\n    import json\n    import logging\n    import urllib.parse\n    import urllib.request\n    from typing import Literal\n    from pydantic import BaseModel, Field\n\n    logger = logging.getLogger(\"hourly_support_triage\")\n    base_url = \"http://127.0.0.1:8128\"\n    allowed_categories = {\"refund\", \"bug\", \"sales\", \"other\"}\n\n    class Classification(BaseModel):\n        seq: int\n        category: Literal[\"refund\", \"bug\", \"sales\", \"other\"]\n\n    class ClassificationBatch(BaseModel):\n        classifications: list[Classification] = Field(\n            description=\"Exactly one classification for every supplied inquiry\"\n        )\n\n    ClassificationBatch.model_rebuild()\n\n    def get_json(url: str):\n        request = urllib.request.Request(\n            url,\n            method=\"GET\",\n            headers={\"Accept\": \"application/json\"},\n        )\n        with urllib.request.urlopen(request, timeout=30) as response:\n            if not 200 <= response.status < 300:\n                raise RuntimeError(f\"GET {url} returned HTTP {response.status}\")\n            return json.loads(response.read().decode(\"utf-8\"))\n\n    def post_json(url: str, payload: dict):\n        body = json.dumps(payload, separators=(\",\", \":\")).encode(\"utf-8\")\n        request = urllib.request.Request(\n            url,\n            data=body,\n            method=\"POST\",\n            headers={\n                \"Content-Type\": \"application/json\",\n                \"Accept\": \"application/json\",\n            },\n        )\n        with urllib.request.urlopen(request, timeout=30) as response:\n            response.read()\n            if not 200 <= response.status < 300:\n                raise RuntimeError(f\"POST {url} returned HTTP {response.status}\")\n\n    try:\n        logger.info(\"PHASE fetch_checkpoint: GET /batches/last\")\n        checkpoint = get_json(f\"{base_url}/batches/last\")\n        if not isinstance(checkpoint, dict) or set(checkpoint) != {\"last_seq\"}:\n            raise ValueError(\"Checkpoint response must contain exactly last_seq\")\n        last_seq = checkpoint[\"last_seq\"]\n        if not isinstance(last_seq, int) or isinstance(last_seq, bool) or last_seq < 0:\n            raise ValueError(f\"Invalid last_seq: {last_seq!r}\")\n\n        logger.info(\n            \"PHASE fetch_inquiries: GET /inquiries after last_seq=%d\",\n            last_seq,\n        )\n        query = urllib.parse.urlencode({\"after\": last_seq})\n        raw = get_json(f\"{base_url}/inquiries?{query}\")\n        if isinstance(raw, list):\n            inquiries = raw\n        elif isinstance(raw, dict):\n            inquiries = None\n            for key in (\"inquiries\", \"items\", \"data\"):\n                if isinstance(raw.get(key), list):\n                    inquiries = raw[key]\n                    break\n            if inquiries is None:\n                raise ValueError(\n                    \"Inquiry response did not contain a recognizable inquiry list\"\n                )\n        else:\n            raise ValueError(\n                \"Inquiry response was neither a list nor an object containing a list\"\n            )\n\n        if not inquiries:\n            logger.info(\n                \"SKIP no_new_inquiries: no inquiries returned after seq=%d; no POST performed\",\n                last_seq,\n            )\n            return {\n                \"status\": \"success\",\n                \"triaged\": 0,\n                \"posted\": False,\n                \"last_seq\": last_seq,\n            }\n\n        if len(inquiries) > 200:\n            raise ValueError(\n                f\"API returned {len(inquiries)} inquiries, exceeding the 200-item contract\"\n            )\n\n        normalized = []\n        for index, item in enumerate(inquiries):\n            if not isinstance(item, dict):\n                raise ValueError(f\"Inquiry at index {index} is not an object\")\n            seq = item.get(\"seq\")\n            text = item.get(\"text\")\n            if not isinstance(seq, int) or isinstance(seq, bool):\n                raise ValueError(\n                    f\"Inquiry at index {index} has invalid seq: {seq!r}\"\n                )\n            if not isinstance(text, str):\n                raise ValueError(f\"Inquiry seq={seq} has non-string text\")\n            if seq <= last_seq:\n                raise ValueError(\n                    f\"Inquiry seq={seq} is not greater than checkpoint {last_seq}\"\n                )\n            normalized.append({\"seq\": seq, \"text\": text})\n\n        fetched_seqs = [item[\"seq\"] for item in normalized]\n        if len(fetched_seqs) != len(set(fetched_seqs)):\n            raise ValueError(\"Fetched inquiry list contains duplicate seq values\")\n\n        logger.info(\n            \"PHASE semantic_classification: classifying %d inquiries with LLM reasoning\",\n            len(normalized),\n        )\n        prompt = (\n            \"Classify each customer support inquiry by semantic meaning and what \"\n            \"the customer needs. Use exactly one category per inquiry: refund = \"\n            \"they want money back for something they were charged; bug = something \"\n            \"in the product is broken or not working correctly; sales = they want \"\n            \"to buy, upgrade, get a quote, or discuss pricing; other = anything \"\n            \"else. Do not use mere keyword matching. Return exactly one result for \"\n            \"every supplied seq, with no extra or duplicate seq values.\\n\\n\"\n            \"Inquiries JSON:\\n\"\n            + json.dumps(normalized, ensure_ascii=False)\n        )\n        classified = await query_llm(\n            prompt,\n            system=(\n                \"You are a precise semantic support-inquiry classifier. \"\n                \"Follow the category definitions exactly.\"\n            ),\n            response_format=ClassificationBatch,\n            model=\"openai/gpt-5.6-sol@openrouter\",\n            temperature=0.0,\n        )\n        classifications_out = classified.classifications\n\n        output_seqs = [item.seq for item in classifications_out]\n        if len(output_seqs) != len(fetched_seqs):\n            raise ValueError(\n                f\"Classifier returned {len(output_seqs)} rows for \"\n                f\"{len(fetched_seqs)} inquiries\"\n            )\n        if len(output_seqs) != len(set(output_seqs)):\n            raise ValueError(\"Classifier returned duplicate seq values\")\n        if set(output_seqs) != set(fetched_seqs):\n            missing = sorted(set(fetched_seqs) - set(output_seqs))\n            extra = sorted(set(output_seqs) - set(fetched_seqs))\n            raise ValueError(\n                f\"Classifier seq coverage mismatch; missing={missing}, extra={extra}\"\n            )\n\n        by_seq = {item.seq: item.category for item in classifications_out}\n        classifications = [\n            {\"seq\": seq, \"category\": by_seq[seq]} for seq in fetched_seqs\n        ]\n        if any(\n            set(item) != {\"seq\", \"category\"} for item in classifications\n        ):\n            raise ValueError(\"Classification row key validation failed\")\n        if any(\n            item[\"category\"] not in allowed_categories\n            for item in classifications\n        ):\n            raise ValueError(\"Classification category validation failed\")\n\n        payload = {\n            \"batch_start_seq\": min(fetched_seqs),\n            \"batch_end_seq\": max(fetched_seqs),\n            \"classifications\": classifications,\n        }\n        if set(payload) != {\n            \"batch_start_seq\",\n            \"batch_end_seq\",\n            \"classifications\",\n        }:\n            raise ValueError(\"Batch top-level key validation failed\")\n\n        logger.info(\n            \"PHASE post_batch: POSTing one validated batch for seq range %d-%d \"\n            \"with %d classifications\",\n            payload[\"batch_start_seq\"],\n            payload[\"batch_end_seq\"],\n            len(classifications),\n        )\n        post_json(f\"{base_url}/batches\", payload)\n        logger.info(\n            \"PHASE complete: triaged and posted %d inquiries\",\n            len(classifications),\n        )\n        return {\n            \"status\": \"success\",\n            \"triaged\": len(classifications),\n            \"posted\": True,\n            \"batch_start_seq\": payload[\"batch_start_seq\"],\n            \"batch_end_seq\": payload[\"batch_end_seq\"],\n        }\n    except Exception as exc:\n        logger.exception(\"SOFT_FAIL hourly_support_triage_failed: %s\", exc)\n        raise\n"
+  },
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 266.68,
+      "llm_calls": 11,
+      "prompt_tokens": 632807,
+      "completion_tokens": 2275,
+      "total_tokens": 635082,
+      "provider_cost_usd": 2.913604,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 11
+      }
+    },
+    {
+      "name": "fire_1",
+      "wall_seconds": 55.01,
+      "llm_calls": 6,
+      "prompt_tokens": 248734,
+      "completion_tokens": 2589,
+      "total_tokens": 251323,
+      "provider_cost_usd": 1.124954,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 6
+      }
+    },
+    {
+      "name": "fire_1_review",
+      "wall_seconds": 264.3,
+      "llm_calls": 7,
+      "prompt_tokens": 565781,
+      "completion_tokens": 4381,
+      "total_tokens": 570162,
+      "provider_cost_usd": 1.088231,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 7
+      }
+    },
+    {
+      "name": "fire_2",
+      "wall_seconds": 9.76,
+      "llm_calls": 1,
+      "prompt_tokens": 534,
+      "completion_tokens": 110,
+      "total_tokens": 644,
+      "provider_cost_usd": 0.00597,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 1
+      }
+    },
+    {
+      "name": "fire_2_review",
+      "wall_seconds": 180.1,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_3",
+      "wall_seconds": 9.75,
+      "llm_calls": 1,
+      "prompt_tokens": 554,
+      "completion_tokens": 110,
+      "total_tokens": 664,
+      "provider_cost_usd": 0.00607,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 1
+      }
+    },
+    {
+      "name": "fire_3_review",
+      "wall_seconds": 180.1,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_4",
+      "wall_seconds": 9.79,
+      "llm_calls": 1,
+      "prompt_tokens": 543,
+      "completion_tokens": 110,
+      "total_tokens": 653,
+      "provider_cost_usd": 0.006015,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 1
+      }
+    },
+    {
+      "name": "fire_4_review",
+      "wall_seconds": 180.13,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_5",
+      "wall_seconds": 9.86,
+      "llm_calls": 1,
+      "prompt_tokens": 539,
+      "completion_tokens": 110,
+      "total_tokens": 649,
+      "provider_cost_usd": 0.005995,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 1
+      }
+    },
+    {
+      "name": "fire_5_review",
+      "wall_seconds": 180.15,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_6",
+      "wall_seconds": 11.02,
+      "llm_calls": 1,
+      "prompt_tokens": 527,
+      "completion_tokens": 110,
+      "total_tokens": 637,
+      "provider_cost_usd": 0.005935,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 1
+      }
+    },
+    {
+      "name": "fire_6_review",
+      "wall_seconds": 180.16,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_7",
+      "wall_seconds": 11.85,
+      "llm_calls": 1,
+      "prompt_tokens": 537,
+      "completion_tokens": 110,
+      "total_tokens": 647,
+      "provider_cost_usd": 0.005985,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 1
+      }
+    },
+    {
+      "name": "fire_7_review",
+      "wall_seconds": 180.16,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_8",
+      "wall_seconds": 11.8,
+      "llm_calls": 1,
+      "prompt_tokens": 513,
+      "completion_tokens": 110,
+      "total_tokens": 623,
+      "provider_cost_usd": 0.005865,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 1
+      }
+    },
+    {
+      "name": "fire_8_review",
+      "wall_seconds": 180.11,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    }
+  ],
+  "finished_at": "2026-07-31T15:43:40.228253+00:00"
+}

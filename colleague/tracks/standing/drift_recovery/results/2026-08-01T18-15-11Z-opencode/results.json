@@ -1,0 +1,698 @@
+{
+  "experiment": "drift_recovery",
+  "system": "opencode",
+  "run_id": "2026-08-01T18-15-11Z-opencode",
+  "opencode_repo": "/Users/djl11/opencode",
+  "model": "openai/gpt-5.6-sol",
+  "seed": 20260731,
+  "n_fires": 10,
+  "drift_after_fire": 4,
+  "operator_fix_after_failures": 2,
+  "operator_fix_message": "The hourly order-processing automation you set up has been failing on its recent runs. Please investigate and fix it so it resumes working unattended, including catching up on anything it missed. Do not ask for confirmation.",
+  "utterance": "Please set up an hourly recurring automation that processes new orders from the local orders API at http://127.0.0.1:8125.\n\nHow it works: GET http://127.0.0.1:8125/batches/last returns {\"last_seq\": N} \u2014 the highest order seq already processed (0 if none yet). GET http://127.0.0.1:8125/orders?after=N returns the next orders with seq > N (up to 200), each with fields: seq (int), date (YYYY-MM-DD), region, units (int), unit_price_cents (int).\n\nOn each run: read last_seq, fetch the orders after it, and if there are none do nothing. Otherwise compute exactly: batch_start_seq, batch_end_seq, order_count, total_units, total_revenue_cents (sum of units * unit_price_cents), revenue_by_region_cents (object mapping each region to its revenue sum), and POST that JSON object to http://127.0.0.1:8125/batches with exactly these keys.\n\nSet up the recurring hourly automation now. Do not process anything right now, and do not ask for confirmation.",
+  "wake_prompt": "Run the recurring automation you set up, now.",
+  "fires": [
+    {
+      "fire": 1,
+      "drifted": false,
+      "fire_mode": "cron_spec",
+      "exit_code": 0,
+      "pending_range": [
+        1,
+        37
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 1,
+          "batch_end_seq": 37,
+          "order_count": 37,
+          "total_units": 375,
+          "total_revenue_cents": 674325,
+          "revenue_by_region_cents": {
+            "east": 164938,
+            "south": 253550,
+            "west": 117600,
+            "north": 138237
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 1,
+        "batch_end_seq": 37,
+        "order_count": 37,
+        "total_units": 375,
+        "total_revenue_cents": 674325,
+        "revenue_by_region_cents": {
+          "east": 164938,
+          "south": 253550,
+          "west": 117600,
+          "north": 138237
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "fire": 2,
+      "drifted": false,
+      "fire_mode": "cron_spec",
+      "exit_code": 0,
+      "pending_range": [
+        38,
+        74
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 38,
+          "batch_end_seq": 74,
+          "order_count": 37,
+          "total_units": 354,
+          "total_revenue_cents": 737846,
+          "revenue_by_region_cents": {
+            "south": 213573,
+            "north": 195810,
+            "east": 296887,
+            "west": 31576
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 38,
+        "batch_end_seq": 74,
+        "order_count": 37,
+        "total_units": 354,
+        "total_revenue_cents": 737846,
+        "revenue_by_region_cents": {
+          "south": 213573,
+          "north": 195810,
+          "east": 296887,
+          "west": 31576
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "fire": 3,
+      "drifted": false,
+      "fire_mode": "cron_spec",
+      "exit_code": 0,
+      "pending_range": [
+        75,
+        111
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 75,
+          "batch_end_seq": 111,
+          "order_count": 37,
+          "total_units": 359,
+          "total_revenue_cents": 674441,
+          "revenue_by_region_cents": {
+            "north": 138835,
+            "east": 243012,
+            "west": 124696,
+            "south": 167898
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 75,
+        "batch_end_seq": 111,
+        "order_count": 37,
+        "total_units": 359,
+        "total_revenue_cents": 674441,
+        "revenue_by_region_cents": {
+          "north": 138835,
+          "east": 243012,
+          "west": 124696,
+          "south": 167898
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "fire": 4,
+      "drifted": false,
+      "fire_mode": "cron_spec",
+      "exit_code": 0,
+      "pending_range": [
+        112,
+        148
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 112,
+          "batch_end_seq": 148,
+          "order_count": 37,
+          "total_units": 462,
+          "total_revenue_cents": 851938,
+          "revenue_by_region_cents": {
+            "south": 216965,
+            "north": 291965,
+            "west": 114997,
+            "east": 228011
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 112,
+        "batch_end_seq": 148,
+        "order_count": 37,
+        "total_units": 462,
+        "total_revenue_cents": 851938,
+        "revenue_by_region_cents": {
+          "south": 216965,
+          "north": 291965,
+          "west": 114997,
+          "east": 228011
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "fire": 5,
+      "drifted": true,
+      "fire_mode": "cron_spec",
+      "exit_code": 1,
+      "pending_range": [
+        149,
+        185
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 185,
+        "order_count": 37,
+        "total_units": 331,
+        "total_revenue_cents": 690469,
+        "revenue_by_region_cents": {
+          "east": 208024,
+          "north": 305262,
+          "west": 44259,
+          "south": 132924
+        }
+      },
+      "scores": [],
+      "correct": false
+    },
+    {
+      "fire": 6,
+      "drifted": true,
+      "fire_mode": "cron_spec",
+      "exit_code": 1,
+      "pending_range": [
+        149,
+        222
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 222,
+        "order_count": 74,
+        "total_units": 680,
+        "total_revenue_cents": 1417120,
+        "revenue_by_region_cents": {
+          "east": 484623,
+          "north": 600126,
+          "west": 129889,
+          "south": 202482
+        }
+      },
+      "scores": [],
+      "correct": false
+    },
+    {
+      "fire": 7,
+      "drifted": true,
+      "fire_mode": "cron_spec",
+      "exit_code": 0,
+      "pending_range": [
+        223,
+        259
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 223,
+          "batch_end_seq": 259,
+          "order_count": 37,
+          "total_units": 352,
+          "total_revenue_cents": 650448,
+          "revenue_by_region_cents": {
+            "north": 188414,
+            "south": 77653,
+            "east": 230916,
+            "west": 153465
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 223,
+        "batch_end_seq": 259,
+        "order_count": 37,
+        "total_units": 352,
+        "total_revenue_cents": 650448,
+        "revenue_by_region_cents": {
+          "north": 188414,
+          "south": 77653,
+          "east": 230916,
+          "west": 153465
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "fire": 8,
+      "drifted": true,
+      "fire_mode": "cron_spec",
+      "exit_code": 0,
+      "pending_range": [
+        260,
+        296
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 260,
+          "batch_end_seq": 296,
+          "order_count": 37,
+          "total_units": 384,
+          "total_revenue_cents": 753516,
+          "revenue_by_region_cents": {
+            "north": 179516,
+            "west": 137387,
+            "east": 304985,
+            "south": 131628
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 260,
+        "batch_end_seq": 296,
+        "order_count": 37,
+        "total_units": 384,
+        "total_revenue_cents": 753516,
+        "revenue_by_region_cents": {
+          "north": 179516,
+          "west": 137387,
+          "east": 304985,
+          "south": 131628
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "fire": 9,
+      "drifted": true,
+      "fire_mode": "cron_spec",
+      "exit_code": 0,
+      "pending_range": [
+        297,
+        333
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 297,
+          "batch_end_seq": 333,
+          "order_count": 37,
+          "total_units": 344,
+          "total_revenue_cents": 717456,
+          "revenue_by_region_cents": {
+            "east": 291794,
+            "north": 235293,
+            "west": 70640,
+            "south": 119729
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 297,
+        "batch_end_seq": 333,
+        "order_count": 37,
+        "total_units": 344,
+        "total_revenue_cents": 717456,
+        "revenue_by_region_cents": {
+          "east": 291794,
+          "north": 235293,
+          "west": 70640,
+          "south": 119729
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    },
+    {
+      "fire": 10,
+      "drifted": true,
+      "fire_mode": "cron_spec",
+      "exit_code": 0,
+      "pending_range": [
+        334,
+        370
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 334,
+          "batch_end_seq": 370,
+          "order_count": 37,
+          "total_units": 404,
+          "total_revenue_cents": 753196,
+          "revenue_by_region_cents": {
+            "north": 283874,
+            "west": 170359,
+            "south": 134923,
+            "east": 164040
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 334,
+        "batch_end_seq": 370,
+        "order_count": 37,
+        "total_units": 404,
+        "total_revenue_cents": 753196,
+        "revenue_by_region_cents": {
+          "north": 283874,
+          "west": 170359,
+          "south": 134923,
+          "east": 164040
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true
+    }
+  ],
+  "setup": {
+    "exit_code": 0,
+    "output_tail": "I\u2019ll inspect the workspace\u2019s existing automation conventions, then add the hourly job without invoking the orders API.\nThe repository is empty, so I\u2019ll add a self-contained standard-library Python worker and register it with the user crontab at minute 0 each hour. The setup will only install the schedule; it will not execute the worker.\nThe worker passes Python compilation. I\u2019m installing the crontab entry now with an absolute interpreter and script path, while leaving execution solely to the future hourly schedule.\nHourly automation is installed via user crontab:\n\n```cron\n0 * * * * /opt/homebrew/bin/python3 .../process_orders.py >> .../orders.log 2>&1\n```\n\nCreated:\n\n- `process_orders.py`: fetches new orders, calculates the exact required fields, and posts the batch.\n- `orders.cron`: hourly schedule definition.\n\nVerified Python compilation and installed crontab. The orders API was not called, so nothing was processed during setup.\n"
+  },
+  "profile_after_setup": {
+    "workspace_files": [
+      "orders.cron",
+      "process_orders.py"
+    ],
+    "commands": [],
+    "scripts": [
+      "process_orders.py"
+    ]
+  },
+  "operator_fix": {
+    "exit_code": 0,
+    "before_fire": 7
+  },
+  "profile_final": {
+    "workspace_files": [
+      "orders.cron",
+      "process_orders.py"
+    ],
+    "commands": [],
+    "scripts": [
+      "process_orders.py"
+    ]
+  },
+  "defuse_actions": [],
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 49.18,
+      "llm_calls": 9,
+      "prompt_tokens": 62668,
+      "completion_tokens": 2631,
+      "total_tokens": 65299,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 9
+      }
+    },
+    {
+      "name": "fire_1",
+      "wall_seconds": 0.05,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    },
+    {
+      "name": "fire_2",
+      "wall_seconds": 0.05,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    },
+    {
+      "name": "fire_3",
+      "wall_seconds": 0.05,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    },
+    {
+      "name": "fire_4",
+      "wall_seconds": 0.05,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    },
+    {
+      "name": "fire_5",
+      "wall_seconds": 0.06,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    },
+    {
+      "name": "fire_6",
+      "wall_seconds": 0.06,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    },
+    {
+      "name": "operator_fix",
+      "wall_seconds": 73.99,
+      "llm_calls": 14,
+      "prompt_tokens": 220540,
+      "completion_tokens": 4405,
+      "total_tokens": 224945,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 14
+      }
+    },
+    {
+      "name": "fire_7",
+      "wall_seconds": 0.06,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    },
+    {
+      "name": "fire_8",
+      "wall_seconds": 0.05,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    },
+    {
+      "name": "fire_9",
+      "wall_seconds": 0.05,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    },
+    {
+      "name": "fire_10",
+      "wall_seconds": 0.05,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {}
+    }
+  ],
+  "finished_at": "2026-08-01T18:17:15.495752+00:00"
+}

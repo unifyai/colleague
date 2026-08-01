@@ -1,0 +1,2 @@
+# Hourly semantic triage of new local support inquiries.
+0 * * * * /Users/djl11/unify/benchmarks/semantic_triage/results/2026-08-01T18-01-55Z-opencode/opencode_state/bin/opencode run --dir "/Users/djl11/unify/benchmarks/semantic_triage/results/2026-08-01T18-01-55Z-opencode/workspace" --command support-triage --title "Hourly support inquiry triage" >>/tmp/opencode-support-triage.log 2>&1

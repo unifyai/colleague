@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+*.key
+
+# OpenCode's CLI log and state tree are the one arm whose artifacts inline a
+# *resolved* provider config: its local DB stores the substituted API key
+# rather than the `{env:OPENROUTER_API_KEY}` reference written into the
+# config file. They are never benchmark evidence, and must not reach a public
+# tree. (OpenClaw and hermes persist the env reference instead, so their
+# state trees are committed as evidence and scanned clean.)
+colleague/tracks/*/*/results/*/opencode_cli.log
+colleague/tracks/*/*/results/*/opencode_state/
+
+# Sqlite state carries no readable evidence and is awkward to audit by eye.
+colleague/tracks/*/*/results/*/**/*.sqlite
+colleague/tracks/*/*/results/*/**/*.db
+
+# Raw request bodies: kept locally for offline replay, too large to commit.
+colleague/tracks/*/*/results/*/requests.jsonl

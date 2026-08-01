@@ -1,0 +1,659 @@
+{
+  "experiment": "drift_recovery",
+  "system": "unify",
+  "run_id": "2026-07-31T11-08-13Z-unify",
+  "orchestra_url": "https://api.staging.internal.saas.unify.ai/v0",
+  "context": "benchmarks/drift_recovery/2026-07-31T11-08-13Z-unify/default/0",
+  "seed": 20260731,
+  "n_fires": 10,
+  "drift_after_fire": 4,
+  "quiesce_idle_s": 180.0,
+  "utterance": "Please set up an hourly recurring automation that processes new orders from the local orders API at http://127.0.0.1:8125.\n\nHow it works: GET http://127.0.0.1:8125/batches/last returns {\"last_seq\": N} \u2014 the highest order seq already processed (0 if none yet). GET http://127.0.0.1:8125/orders?after=N returns the next orders with seq > N (up to 200), each with fields: seq (int), date (YYYY-MM-DD), region, units (int), unit_price_cents (int).\n\nOn each run: read last_seq, fetch the orders after it, and if there are none do nothing. Otherwise compute exactly: batch_start_seq, batch_end_seq, order_count, total_units, total_revenue_cents (sum of units * unit_price_cents), revenue_by_region_cents (object mapping each region to its revenue sum), and POST that JSON object to http://127.0.0.1:8125/batches with exactly these keys.\n\nSet up the recurring hourly automation now. Do not process anything right now, and do not ask for confirmation.",
+  "fires": [
+    {
+      "fire": 1,
+      "drifted": false,
+      "status": "completed",
+      "entrypoint_before": null,
+      "entrypoint_after": 0,
+      "pending_range": [
+        1,
+        37
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 1,
+          "batch_end_seq": 37,
+          "order_count": 37,
+          "total_units": 375,
+          "total_revenue_cents": 674325,
+          "revenue_by_region_cents": {
+            "east": 164938,
+            "south": 253550,
+            "west": 117600,
+            "north": 138237
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 1,
+        "batch_end_seq": 37,
+        "order_count": 37,
+        "total_units": 375,
+        "total_revenue_cents": 674325,
+        "revenue_by_region_cents": {
+          "east": 164938,
+          "south": 253550,
+          "west": 117600,
+          "north": 138237
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true,
+      "result": "Batch processed and posted successfully (HTTP 200).\n\n- Sequence range: **1\u201337**\n- Orders: **37**\n- Total units: **375**\n- Total revenue: **674,325 cents**\n- Revenue by region:\n  - East: 164,938 cents\n  - South: 253,550 cents\n  - West: 117,600 cents\n  - North: 138,237 cents"
+    },
+    {
+      "fire": 2,
+      "drifted": false,
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        38,
+        74
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 38,
+          "batch_end_seq": 74,
+          "order_count": 37,
+          "total_units": 354,
+          "total_revenue_cents": 737846,
+          "revenue_by_region_cents": {
+            "south": 213573,
+            "north": 195810,
+            "east": 296887,
+            "west": 31576
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 38,
+        "batch_end_seq": 74,
+        "order_count": 37,
+        "total_units": 354,
+        "total_revenue_cents": 737846,
+        "revenue_by_region_cents": {
+          "south": 213573,
+          "north": 195810,
+          "east": 296887,
+          "west": 31576
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true,
+      "result": "{'status': 'completed', 'posted': True, 'payload': {'batch_start_seq': 38, 'batch_end_seq': 74, 'order_count': 37, 'total_units': 354, 'total_revenue_cents': 737846, 'revenue_by_region_cents': {'south': 213573, 'north': 195810, 'east': 296887, 'west': 31576}}, 'http_status': 200}"
+    },
+    {
+      "fire": 3,
+      "drifted": false,
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        75,
+        111
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 75,
+          "batch_end_seq": 111,
+          "order_count": 37,
+          "total_units": 359,
+          "total_revenue_cents": 674441,
+          "revenue_by_region_cents": {
+            "north": 138835,
+            "east": 243012,
+            "west": 124696,
+            "south": 167898
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 75,
+        "batch_end_seq": 111,
+        "order_count": 37,
+        "total_units": 359,
+        "total_revenue_cents": 674441,
+        "revenue_by_region_cents": {
+          "north": 138835,
+          "east": 243012,
+          "west": 124696,
+          "south": 167898
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true,
+      "result": "{'status': 'completed', 'posted': True, 'payload': {'batch_start_seq': 75, 'batch_end_seq': 111, 'order_count': 37, 'total_units': 359, 'total_revenue_cents': 674441, 'revenue_by_region_cents': {'north': 138835, 'east': 243012, 'west': 124696, 'south': 167898}}, 'http_status': 200}"
+    },
+    {
+      "fire": 4,
+      "drifted": false,
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        112,
+        148
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 112,
+          "batch_end_seq": 148,
+          "order_count": 37,
+          "total_units": 462,
+          "total_revenue_cents": 851938,
+          "revenue_by_region_cents": {
+            "south": 216965,
+            "north": 291965,
+            "west": 114997,
+            "east": 228011
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 112,
+        "batch_end_seq": 148,
+        "order_count": 37,
+        "total_units": 462,
+        "total_revenue_cents": 851938,
+        "revenue_by_region_cents": {
+          "south": 216965,
+          "north": 291965,
+          "west": 114997,
+          "east": 228011
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true,
+      "result": "{'status': 'completed', 'posted': True, 'payload': {'batch_start_seq': 112, 'batch_end_seq': 148, 'order_count': 37, 'total_units': 462, 'total_revenue_cents': 851938, 'revenue_by_region_cents': {'south': 216965, 'north': 291965, 'west': 114997, 'east': 228011}}, 'http_status': 200}"
+    },
+    {
+      "fire": 5,
+      "drifted": true,
+      "status": "error",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "pending_range": [
+        149,
+        185
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 185,
+        "order_count": 37,
+        "total_units": 331,
+        "total_revenue_cents": 690469,
+        "revenue_by_region_cents": {
+          "east": 208024,
+          "north": 305262,
+          "west": 44259,
+          "south": 132924
+        }
+      },
+      "scores": [],
+      "correct": false,
+      "result": "ValueError: order at index 0 has a non-integer seq/units/unit_price_cents"
+    },
+    {
+      "fire": 6,
+      "drifted": true,
+      "status": "error",
+      "entrypoint_before": 0,
+      "entrypoint_after": null,
+      "pending_range": [
+        149,
+        222
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 222,
+        "order_count": 74,
+        "total_units": 680,
+        "total_revenue_cents": 1417120,
+        "revenue_by_region_cents": {
+          "east": 484623,
+          "north": 600126,
+          "west": 129889,
+          "south": 202482
+        }
+      },
+      "scores": [],
+      "correct": false,
+      "result": "ValueError: Entrypoint function_id 0 not found in FunctionManager."
+    },
+    {
+      "fire": 7,
+      "drifted": true,
+      "status": "completed",
+      "entrypoint_before": null,
+      "entrypoint_after": 1,
+      "pending_range": [
+        149,
+        259
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 259,
+        "order_count": 111,
+        "total_units": 1032,
+        "total_revenue_cents": 2067568,
+        "revenue_by_region_cents": {
+          "east": 715539,
+          "north": 788540,
+          "west": 283354,
+          "south": 280135
+        }
+      },
+      "scores": [],
+      "correct": false,
+      "result": "Task run failed safely.\n\n- Retrieved `last_seq = 148`.\n- Retrieved orders after sequence 148.\n- The first order lacked a valid integer `unit_price_cents` value.\n- No batch was calculated or POSTed.\n- No local state was advanced or success fabricated.\n\nError: `unit_price_cents at order[0] must be an exact integer`."
+    },
+    {
+      "fire": 8,
+      "drifted": true,
+      "status": "error",
+      "entrypoint_before": 1,
+      "entrypoint_after": null,
+      "pending_range": [
+        149,
+        296
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 296,
+        "order_count": 148,
+        "total_units": 1416,
+        "total_revenue_cents": 2821084,
+        "revenue_by_region_cents": {
+          "east": 1020524,
+          "north": 968056,
+          "west": 420741,
+          "south": 411763
+        }
+      },
+      "scores": [],
+      "correct": false,
+      "result": "ValueError: Entrypoint function_id 1 not found in FunctionManager."
+    },
+    {
+      "fire": 9,
+      "drifted": true,
+      "status": "completed",
+      "entrypoint_before": null,
+      "entrypoint_after": 2,
+      "pending_range": [
+        149,
+        333
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 333,
+        "order_count": 185,
+        "total_units": 1760,
+        "total_revenue_cents": 3538540,
+        "revenue_by_region_cents": {
+          "east": 1312318,
+          "north": 1203349,
+          "west": 491381,
+          "south": 531492
+        }
+      },
+      "scores": [],
+      "correct": false,
+      "result": "Task run failed safely.\n\n- Read `last_seq = 148`.\n- Retrieved new orders after sequence 148.\n- The first order lacked a valid integer `unit_price_cents` value.\n- No batch was calculated or POSTed, so processing state was not advanced."
+    },
+    {
+      "fire": 10,
+      "drifted": true,
+      "status": "error",
+      "entrypoint_before": 2,
+      "entrypoint_after": null,
+      "pending_range": [
+        149,
+        370
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 370,
+        "order_count": 222,
+        "total_units": 2164,
+        "total_revenue_cents": 4291736,
+        "revenue_by_region_cents": {
+          "east": 1476358,
+          "north": 1487223,
+          "west": 661740,
+          "south": 666415
+        }
+      },
+      "scores": [],
+      "correct": false,
+      "result": "ValueError: Entrypoint function_id 2 not found in FunctionManager."
+    }
+  ],
+  "setup": {
+    "status": "completed",
+    "result": "Hourly automation created successfully.\n\n- **Task:** Process new local API orders hourly\n- **Schedule:** Every hour\n- **First run:** July 31, 2026 at 12:00 UTC\n- **Status:** Enabled\n- **Task ID:** 0\n\nIt was **not run during setup**, and no API requests were made."
+  },
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 269.23,
+      "llm_calls": 11,
+      "prompt_tokens": 652465,
+      "completion_tokens": 2208,
+      "total_tokens": 654673,
+      "provider_cost_usd": 2.994029,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 11
+      }
+    },
+    {
+      "name": "fire_1",
+      "wall_seconds": 49.24,
+      "llm_calls": 5,
+      "prompt_tokens": 247104,
+      "completion_tokens": 1533,
+      "total_tokens": 248637,
+      "provider_cost_usd": 1.082885,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 5
+      }
+    },
+    {
+      "name": "fire_1_review",
+      "wall_seconds": 275.68,
+      "llm_calls": 7,
+      "prompt_tokens": 549998,
+      "completion_tokens": 3696,
+      "total_tokens": 553694,
+      "provider_cost_usd": 1.039819,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 7
+      }
+    },
+    {
+      "name": "fire_2",
+      "wall_seconds": 9.04,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_2_review",
+      "wall_seconds": 0.0,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_3",
+      "wall_seconds": 9.14,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_3_review",
+      "wall_seconds": 0.0,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_4",
+      "wall_seconds": 9.07,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_4_review",
+      "wall_seconds": 0.0,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_5",
+      "wall_seconds": 67.49,
+      "llm_calls": 3,
+      "prompt_tokens": 24772,
+      "completion_tokens": 1470,
+      "total_tokens": 26242,
+      "provider_cost_usd": 0.110772,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      }
+    },
+    {
+      "name": "fire_5_review",
+      "wall_seconds": 176.08,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_6",
+      "wall_seconds": 120.33,
+      "llm_calls": 7,
+      "prompt_tokens": 81377,
+      "completion_tokens": 5529,
+      "total_tokens": 86906,
+      "provider_cost_usd": 0.30721,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 7
+      }
+    },
+    {
+      "name": "fire_6_review",
+      "wall_seconds": 176.08,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_7",
+      "wall_seconds": 44.03,
+      "llm_calls": 5,
+      "prompt_tokens": 249321,
+      "completion_tokens": 610,
+      "total_tokens": 249931,
+      "provider_cost_usd": 0.197575,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 5
+      }
+    },
+    {
+      "name": "fire_7_review",
+      "wall_seconds": 241.21,
+      "llm_calls": 5,
+      "prompt_tokens": 337156,
+      "completion_tokens": 2670,
+      "total_tokens": 339826,
+      "provider_cost_usd": 0.919404,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 5
+      }
+    },
+    {
+      "name": "fire_8",
+      "wall_seconds": 105.31,
+      "llm_calls": 5,
+      "prompt_tokens": 44436,
+      "completion_tokens": 4755,
+      "total_tokens": 49191,
+      "provider_cost_usd": 0.209584,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 5
+      }
+    },
+    {
+      "name": "fire_8_review",
+      "wall_seconds": 176.09,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "fire_9",
+      "wall_seconds": 41.77,
+      "llm_calls": 5,
+      "prompt_tokens": 249826,
+      "completion_tokens": 545,
+      "total_tokens": 250371,
+      "provider_cost_usd": 0.197303,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 5
+      }
+    },
+    {
+      "name": "fire_9_review",
+      "wall_seconds": 236.81,
+      "llm_calls": 5,
+      "prompt_tokens": 335983,
+      "completion_tokens": 1871,
+      "total_tokens": 337854,
+      "provider_cost_usd": 0.891622,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 5
+      }
+    },
+    {
+      "name": "fire_10",
+      "wall_seconds": 114.54,
+      "llm_calls": 7,
+      "prompt_tokens": 87244,
+      "completion_tokens": 5728,
+      "total_tokens": 92972,
+      "provider_cost_usd": 0.291646,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 7
+      }
+    },
+    {
+      "name": "fire_10_review",
+      "wall_seconds": 178.09,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    }
+  ],
+  "finished_at": "2026-07-31T11:47:05.571090+00:00"
+}

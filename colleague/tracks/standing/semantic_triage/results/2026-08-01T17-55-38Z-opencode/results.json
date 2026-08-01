@@ -1,0 +1,269 @@
+{
+  "experiment": "semantic_triage",
+  "system": "opencode",
+  "run_id": "2026-08-01T17-55-38Z-opencode",
+  "opencode_repo": "/Users/djl11/opencode",
+  "model": "openai/gpt-5.6-sol",
+  "seed": 20260731,
+  "n_fires": 8,
+  "utterance": "Please set up an hourly recurring automation that triages new customer inquiries from the local support API at http://127.0.0.1:8128.\n\nHow it works: GET http://127.0.0.1:8128/batches/last returns {\"last_seq\": N} \u2014 the highest inquiry seq already triaged (0 if none yet). GET http://127.0.0.1:8128/inquiries?after=N returns the next inquiries with seq > N (up to 200), each with fields: seq (int) and text (str).\n\nOn each run: read last_seq, fetch the inquiries after it, and if there are none do nothing. Otherwise classify each inquiry into exactly one category based on what the customer needs: \"refund\" (they want money back for something they were charged), \"bug\" (something in the product is broken or not working correctly), \"sales\" (they want to buy, upgrade, get a quote, or discuss pricing), or \"other\" (anything else). Classification must be based on understanding the request, not on keyword matching \u2014 inquiries are worded in many different ways.\n\nPOST the result to http://127.0.0.1:8128/batches as a JSON object with exactly these keys: batch_start_seq (int), batch_end_seq (int), and classifications \u2014 a list of {\"seq\": int, \"category\": str} covering every fetched inquiry exactly once.\n\nSet up the recurring hourly automation now. Do not triage anything right now, and do not ask for confirmation.",
+  "wake_prompt": "Run the recurring automation you set up, now.",
+  "fires": [
+    {
+      "fire": 1,
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "pending_range": [
+        1,
+        12
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "scores": [],
+      "correct": false,
+      "accuracy": 0.0
+    },
+    {
+      "fire": 2,
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "pending_range": [
+        1,
+        24
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "scores": [],
+      "correct": false,
+      "accuracy": 0.0
+    },
+    {
+      "fire": 3,
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "pending_range": [
+        1,
+        36
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "scores": [],
+      "correct": false,
+      "accuracy": 0.0
+    },
+    {
+      "fire": 4,
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "pending_range": [
+        1,
+        48
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "scores": [],
+      "correct": false,
+      "accuracy": 0.0
+    },
+    {
+      "fire": 5,
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "pending_range": [
+        1,
+        60
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "scores": [],
+      "correct": false,
+      "accuracy": 0.0
+    },
+    {
+      "fire": 6,
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "pending_range": [
+        1,
+        72
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "scores": [],
+      "correct": false,
+      "accuracy": 0.0
+    },
+    {
+      "fire": 7,
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "pending_range": [
+        1,
+        84
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "scores": [],
+      "correct": false,
+      "accuracy": 0.0
+    },
+    {
+      "fire": 8,
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "pending_range": [
+        1,
+        96
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "scores": [],
+      "correct": false,
+      "accuracy": 0.0
+    }
+  ],
+  "setup": {
+    "exit_code": 0,
+    "output_tail": "I\u2019ll inspect the OpenCode automation configuration and create the hourly job without invoking the support API.\n"
+  },
+  "profile_after_setup": {
+    "workspace_files": [],
+    "commands": [],
+    "scripts": []
+  },
+  "profile_final": {
+    "workspace_files": [],
+    "commands": [],
+    "scripts": []
+  },
+  "defuse_actions": [],
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 13.44,
+      "llm_calls": 5,
+      "prompt_tokens": 39886,
+      "completion_tokens": 894,
+      "total_tokens": 40780,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 5
+      }
+    },
+    {
+      "name": "fire_1",
+      "wall_seconds": 13.16,
+      "llm_calls": 4,
+      "prompt_tokens": 19717,
+      "completion_tokens": 774,
+      "total_tokens": 20491,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_2",
+      "wall_seconds": 15.29,
+      "llm_calls": 4,
+      "prompt_tokens": 19588,
+      "completion_tokens": 715,
+      "total_tokens": 20303,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_3",
+      "wall_seconds": 11.44,
+      "llm_calls": 4,
+      "prompt_tokens": 19674,
+      "completion_tokens": 624,
+      "total_tokens": 20298,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    },
+    {
+      "name": "fire_4",
+      "wall_seconds": 13.33,
+      "llm_calls": 5,
+      "prompt_tokens": 26366,
+      "completion_tokens": 875,
+      "total_tokens": 27241,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 5
+      }
+    },
+    {
+      "name": "fire_5",
+      "wall_seconds": 19.08,
+      "llm_calls": 5,
+      "prompt_tokens": 32811,
+      "completion_tokens": 1047,
+      "total_tokens": 33858,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 5
+      }
+    },
+    {
+      "name": "fire_6",
+      "wall_seconds": 40.0,
+      "llm_calls": 8,
+      "prompt_tokens": 74904,
+      "completion_tokens": 1351,
+      "total_tokens": 76255,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 8
+      }
+    },
+    {
+      "name": "fire_7",
+      "wall_seconds": 42.78,
+      "llm_calls": 9,
+      "prompt_tokens": 89834,
+      "completion_tokens": 1396,
+      "total_tokens": 91230,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 9
+      }
+    },
+    {
+      "name": "fire_8",
+      "wall_seconds": 13.55,
+      "llm_calls": 4,
+      "prompt_tokens": 19559,
+      "completion_tokens": 818,
+      "total_tokens": 20377,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      }
+    }
+  ],
+  "finished_at": "2026-08-01T17:58:41.171778+00:00"
+}

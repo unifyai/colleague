@@ -1,0 +1,23 @@
+
+===== 2026-07-31T23:13:23.162092+00:00 ['cron', 'status', '--json']
+Error: gateway closed (1006 abnormal closure (no close frame)): no close reason
+Gateway target: ws://127.0.0.1:18938
+Source: local loopback
+Config: /Users/djl11/unify/benchmarks/policy_propagation/results/2026-07-31T23-13-23Z-openclaw/openclaw_state/openclaw.json
+Bind: loopback
+
+===== 2026-07-31T23:13:26.229510+00:00 ['cron', 'status', '--json']
+gateway connect failed: Error: gateway closed (1000):
+Error: gateway closed (1000 normal closure): no close reason
+Gateway target: ws://127.0.0.1:18938
+Source: local loopback
+Config: /Users/djl11/unify/benchmarks/policy_propagation/results/2026-07-31T23-13-23Z-openclaw/openclaw_state/openclaw.json
+Bind: loopback
+
+===== 2026-07-31T23:13:40.447924+00:00 ['cron', 'status', '--json']
+{
+  "enabled": true,
+  "storePath": "/Users/djl11/unify/benchmarks/policy_propagation/results/2026-07-31T23-13-23Z-openclaw/openclaw_state/cron/jobs.json",
+  "jobs": 0,
+  "nextWakeAtMs": null
+}

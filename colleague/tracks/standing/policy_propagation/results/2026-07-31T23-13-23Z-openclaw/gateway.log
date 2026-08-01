@@ -1,0 +1,74 @@
+2026-08-01T00:13:24.161+01:00 [gateway] loading configuration…
+2026-08-01T00:13:24.207+01:00 [gateway] resolving authentication…
+2026-08-01T00:13:24.216+01:00 [gateway] starting...
+2026-08-01T00:13:25.542+01:00 Config overwrite: /Users/djl11/unify/benchmarks/policy_propagation/results/2026-07-31T23-13-23Z-openclaw/openclaw_state/openclaw.json (sha256 5c77ef4640bd84254f1f3cd49bef936c242a3c74cfb709ce7f794f78587cf8e6 -> 6730fc839712a5537c4488f5fb5649b0ea8863d699e90622d389db30a4b69d73, backup=/Users/djl11/unify/benchmarks/policy_propagation/results/2026-07-31T23-13-23Z-openclaw/openclaw_state/openclaw.json.bak, changedPaths=1)
+2026-08-01T00:13:25.545+01:00 Config write anomaly: /Users/djl11/unify/benchmarks/policy_propagation/results/2026-07-31T23-13-23Z-openclaw/openclaw_state/openclaw.json (missing-meta-before-write)
+2026-08-01T00:13:25.568+01:00 [gateway] auto-enabled plugins:
+- openrouter/openai/gpt-5.6-sol model configured, enabled automatically.
+2026-08-01T00:13:26.216+01:00 Config overwrite: /Users/djl11/unify/benchmarks/policy_propagation/results/2026-07-31T23-13-23Z-openclaw/openclaw_state/openclaw.json (sha256 6730fc839712a5537c4488f5fb5649b0ea8863d699e90622d389db30a4b69d73 -> bfb142e7f5bd81cd3dde5e1c03e06195b301919110395467fb48b524949c7b5d, backup=/Users/djl11/unify/benchmarks/policy_propagation/results/2026-07-31T23-13-23Z-openclaw/openclaw_state/openclaw.json.bak, changedPaths=1)
+2026-08-01T00:13:26.229+01:00 [gateway] auth token was missing. Generated a new token and saved it to config (gateway.auth.token).
+2026-08-01T00:13:26.590+01:00 [gateway] starting HTTP server...
+2026-08-01T00:13:26.593+01:00 [canvas] host mounted at http://127.0.0.1:18938/__openclaw__/canvas/ (root /Users/djl11/unify/benchmarks/policy_propagation/results/2026-07-31T23-13-23Z-openclaw/openclaw_state/canvas)
+2026-08-01T00:13:26.597+01:00 [gateway] MCP loopback server listening on http://127.0.0.1:51754/mcp
+2026-08-01T00:13:26.637+01:00 [heartbeat] started
+2026-08-01T00:13:26.639+01:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
+2026-08-01T00:13:26.654+01:00 [gateway] agent model: openrouter/openai/gpt-5.6-sol
+2026-08-01T00:13:26.655+01:00 [gateway] ready (5 plugins: acpx, browser, device-pair, phone-control, talk-voice; 2.4s)
+2026-08-01T00:13:26.657+01:00 [gateway] log file: /tmp/openclaw/openclaw-2026-08-01.log
+2026-08-01T00:13:26.705+01:00 [gateway] starting channels and sidecars...
+2026-08-01T00:13:26.798+01:00 [hooks] loaded 4 internal hook handlers
+2026-08-01T00:13:38.409+01:00 [bonjour] watchdog detected non-announced service; attempting re-advertise (gateway fqdn=Daniel’s MacBook Pro (2) (OpenClaw)._openclaw-gw._tcp.local. host=openclaw.local. port=18938 state=probing)
+2026-08-01T00:13:38.412+01:00 [ws] handshake timeout conn=a3c84928-6c18-473a-a607-d33f0573e02a peer=127.0.0.1:51756->127.0.0.1:18938 remote=127.0.0.1
+2026-08-01T00:13:38.417+01:00 [ws] closed before connect conn=a3c84928-6c18-473a-a607-d33f0573e02a peer=127.0.0.1:51756->127.0.0.1:18938 remote=127.0.0.1 fwd=n/a origin=n/a host=127.0.0.1:18938 ua=n/a code=1000 reason=n/a
+2026-08-01T00:13:39.350+01:00 [plugins] embedded acpx runtime backend registered (cwd: /Users/djl11/unify/benchmarks/policy_propagation/results/2026-07-31T23-13-23Z-openclaw/workspace)
+2026-08-01T00:13:39.364+01:00 [browser] control listening on http://127.0.0.1:18940/ (auth=token)
+2026-08-01T00:13:39.500+01:00 [gateway] device pairing auto-approved device=2e363653a6794f20254e5e65ab92a39b004428b9aad8299f4153450b607183ee role=operator
+2026-08-01T00:13:40.309+01:00 [plugins] embedded acpx runtime backend probe failed: embedded ACP runtime probe failed (agent=codex; command=npx @zed-industries/codex-acp@^0.11.1; cwd=/Users/djl11/unify/benchmarks/policy_propagation/results/2026-07-31T23-13-23Z-openclaw/workspace; ACP agent exited before initialize completed (exit=127, signal=null): sh: codex-acp: command not found)
+2026-08-01T00:14:22.264+01:00 [ws] ⇄ res ✗ cron.add 2ms errorCode=INVALID_REQUEST errorMessage=invalid cron.add params: at /delivery/failureDestination/channel: must be equal to constant; at /delivery/failureDestination/channel: must NOT have fewer than 1 characters; at /delivery/failureDestination/channel: must match a schema in any... conn=450a92b2…1bc3 id=f3431b4d…638a
+2026-08-01T00:14:22.267+01:00 [tools] cron failed: invalid cron.add params: at /delivery/failureDestination/channel: must be equal to constant; at /delivery/failureDestination/channel: must NOT have fewer than 1 characters; at /delivery/failureDestination/channel: must match a schema in anyOf; at /delivery/failureDestination/accountId: must NOT have fewer than 1 characters; at /delivery/mode: must be equal to constant; at /delivery: must have required property 'to'; at /delivery: must match a schema in anyOf; at /failureAlert: must be boolean; at /failureAlert: must be equal to constant; at /failureAlert/channel: must be equal to constant; at /failureAlert/channel: must NOT have fewer than 1 characters; at /failureAlert/channel: must match a schema in anyOf; at /failureAlert/accountId: must NOT have fewer than 1 characters; at /failureAlert: must match a schema in anyOf raw_params={"action":"add","gatewayUrl":"","gatewayToken":"","timeoutMs":10000,"includeDisabled":false,"job":{"name":"Hourly customer inquiry triage","schedule":{"kind":"cron","at":"","everyMs":0,"anchorMs":0,"expr":"13 * * * *","tz":"Europe/London","staggerMs":0},"sessionTarget":"isolated","wakeMode":"now","payload":{"kind":"agentTurn","text":"","message":"Triage newly received customer inquiries using the local support API. Follow these steps exactly:\n\n1. GET http://127.0.0.1:8132/triage/last and read the integer `last_seq` (0 if none have been processed).\n2. GET http://127.0.0.1:8132/inquiries?afte…
+2026-08-01T00:14:33.632+01:00 [gateway] cron: job created
+2026-08-01T00:14:37.711+01:00 Hourly customer-inquiry triage automation created.
+
+- **Schedule:** At :13 every hour (Europe/London)
+- **First run:** 01:13 BST
+- **Automation ID:** `c3f0b44b-adab-43ba-842c-35d12ada627c`
+- **No inquiries were triaged now.**
+2026-08-01T00:14:57.561+01:00 [gateway] cron: job created
+2026-08-01T00:15:01.802+01:00 Daily urgent-inquiry digest automation created.
+
+- **Schedule:** 00:14 daily (Europe/London)
+- **First run:** Tomorrow at 00:14
+- **Automation ID:** `6fd2919d-8e22-46ee-8f28-9a62094c5fe9`
+- **Nothing was processed now.**
+2026-08-01T00:15:20.420+01:00 [gateway] cron: job created
+2026-08-01T00:15:23.683+01:00 Weekly escalation-volume audit created.
+
+- **Schedule:** Saturdays at 00:15 (Europe/London)
+- **First run:** Saturday, 8 August at 00:15
+- **Automation ID:** `0a915ec0-7f41-4ccb-b174-33e99877e509`
+- **Nothing was processed now.**
+2026-08-01T00:17:36.992+01:00 [memory] fts unavailable: no such module: fts5
+2026-08-01T00:17:37.462+01:00 [memory] fts unavailable: no such module: fts5
+2026-08-01T00:17:37.465+01:00 [memory] fts unavailable: no such module: fts5
+2026-08-01T00:18:01.977+01:00 [ws] ⇄ res ✗ cron.update 3ms errorCode=INVALID_REQUEST errorMessage=invalid cron.update params: at /patch/name: must NOT have fewer than 1 characters; at /patch/schedule: must have required property 'at'; at /patch/schedule: unexpected property 'tz'; at /patch/schedule: unexpected property 'staggerMs'; at /... conn=2b0526da…5ee1 id=31945c20…0e92
+2026-08-01T00:18:01.979+01:00 [tools] cron failed: invalid cron.update params: at /patch/name: must NOT have fewer than 1 characters; at /patch/schedule: must have required property 'at'; at /patch/schedule: unexpected property 'tz'; at /patch/schedule: unexpected property 'staggerMs'; at /patch/schedule/kind: must be equal to constant; at /patch/schedule: must have required property 'everyMs'; at /patch/schedule: must have required property 'expr'; at /patch/schedule: must match a schema in anyOf; must have required property 'jobId'; at root: unexpected property 'id'; must match a schema in anyOf raw_params={"action":"update","gatewayUrl":"","gatewayToken":"","timeoutMs":10000,"includeDisabled":false,"job":{"name":"","schedule":{"kind":"cron","at":"","everyMs":0,"anchorMs":0,"expr":"","tz":"","staggerMs":0},"sessionTarget":"","wakeMode":"now","payload":{"kind":"agentTurn","text":"","message":"","model":"","thinking":"","timeoutSeconds":0,"lightContext":false,"allowUnsafeExternalContent":false,"fallbacks":[],"toolsAllow":[]},"delivery":{"mode":"none","channel":"","to":"","bestEffort":false,"accountId":"","failureDestination":{"channel":"last","to":"last","accountId":"default","mode":"announce"}},"…
+2026-08-01T00:18:01.984+01:00 [ws] ⇄ res ✗ cron.update 0ms errorCode=INVALID_REQUEST errorMessage=invalid cron.update params: at /patch/name: must NOT have fewer than 1 characters; at /patch/schedule: must have required property 'at'; at /patch/schedule: unexpected property 'tz'; at /patch/schedule: unexpected property 'staggerMs'; at /... conn=29f0ae46…3870 id=944bf896…b739
+2026-08-01T00:18:01.986+01:00 [tools] cron failed: invalid cron.update params: at /patch/name: must NOT have fewer than 1 characters; at /patch/schedule: must have required property 'at'; at /patch/schedule: unexpected property 'tz'; at /patch/schedule: unexpected property 'staggerMs'; at /patch/schedule/kind: must be equal to constant; at /patch/schedule: must have required property 'everyMs'; at /patch/schedule: must have required property 'expr'; at /patch/schedule: must match a schema in anyOf; must have required property 'jobId'; at root: unexpected property 'id'; must match a schema in anyOf raw_params={"action":"update","gatewayUrl":"","gatewayToken":"","timeoutMs":10000,"includeDisabled":false,"job":{"name":"","schedule":{"kind":"cron","at":"","everyMs":0,"anchorMs":0,"expr":"","tz":"","staggerMs":0},"sessionTarget":"","wakeMode":"now","payload":{"kind":"agentTurn","text":"","message":"","model":"","thinking":"","timeoutSeconds":0,"lightContext":false,"allowUnsafeExternalContent":false,"fallbacks":[],"toolsAllow":[]},"delivery":{"mode":"none","channel":"","to":"","bestEffort":false,"accountId":"","failureDestination":{"channel":"last","to":"last","accountId":"default","mode":"announce"}},"…
+2026-08-01T00:18:01.991+01:00 [ws] ⇄ res ✗ cron.update 0ms errorCode=INVALID_REQUEST errorMessage=invalid cron.update params: at /patch/name: must NOT have fewer than 1 characters; at /patch/schedule: must have required property 'at'; at /patch/schedule: unexpected property 'tz'; at /patch/schedule: unexpected property 'staggerMs'; at /... conn=470a8b6f…d8bb id=91bc478d…aa1b
+2026-08-01T00:18:01.992+01:00 [tools] cron failed: invalid cron.update params: at /patch/name: must NOT have fewer than 1 characters; at /patch/schedule: must have required property 'at'; at /patch/schedule: unexpected property 'tz'; at /patch/schedule: unexpected property 'staggerMs'; at /patch/schedule/kind: must be equal to constant; at /patch/schedule: must have required property 'everyMs'; at /patch/schedule: must have required property 'expr'; at /patch/schedule: must match a schema in anyOf; must have required property 'jobId'; at root: unexpected property 'id'; must match a schema in anyOf raw_params={"action":"update","gatewayUrl":"","gatewayToken":"","timeoutMs":10000,"includeDisabled":false,"job":{"name":"","schedule":{"kind":"cron","at":"","everyMs":0,"anchorMs":0,"expr":"","tz":"","staggerMs":0},"sessionTarget":"","wakeMode":"now","payload":{"kind":"agentTurn","text":"","message":"","model":"","thinking":"","timeoutSeconds":0,"lightContext":false,"allowUnsafeExternalContent":false,"fallbacks":[],"toolsAllow":[]},"delivery":{"mode":"none","channel":"","to":"","bestEffort":false,"accountId":"","failureDestination":{"channel":"last","to":"last","accountId":"default","mode":"announce"}},"…
+2026-08-01T00:18:23.055+01:00 [gateway] cron: job updated
+2026-08-01T00:18:23.059+01:00 [gateway] cron: job updated
+2026-08-01T00:18:23.063+01:00 [gateway] cron: job updated
+2026-08-01T00:18:25.999+01:00 Updated all three automations:
+
+- Hourly inquiry triage
+- Daily urgent-inquiry digest
+- Weekly escalation-volume audit
+
+They will now mark billing, charge, or refund amounts of **$250 or more** as urgent. The blocked-from-working rule remains unchanged. No automation was run during this update.
+2026-08-01T00:22:41.028+01:00 [gateway] cron: job updated
+2026-08-01T00:22:41.755+01:00 [gateway] cron: job updated
+2026-08-01T00:22:42.488+01:00 [gateway] cron: job updated
+2026-08-01T00:22:42.519+01:00 [gateway] signal SIGTERM received
+2026-08-01T00:22:42.519+01:00 [gateway] received SIGTERM; shutting down
+2026-08-01T00:22:42.619+01:00 [gmail-watcher] gmail watcher stopped

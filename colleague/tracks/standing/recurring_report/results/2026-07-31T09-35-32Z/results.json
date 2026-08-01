@@ -1,0 +1,342 @@
+{
+  "experiment": "recurring_weekly_report",
+  "run_id": "2026-07-31T09-35-32Z",
+  "orchestra_url": "https://api.staging.internal.saas.unify.ai/v0",
+  "context": "benchmarks/recurring_weekly_report/2026-07-31T09-35-32Z/default/0",
+  "seed": 20260731,
+  "n_runs": 4,
+  "unillm_cache": "false",
+  "unify_model_env": null,
+  "utterance": "Every Monday at 09:00, generate the weekly orders report and deliver it.\n\nData source: a local metrics API at http://127.0.0.1:8123. GET http://127.0.0.1:8123/orders?start=YYYY-MM-DD&end=YYYY-MM-DD returns a JSON list of orders, each with fields: order_id, date (YYYY-MM-DD), region, units (int), unit_price_cents (int).\n\nThe report covers the previous calendar week: Monday through Sunday inclusive, the last full week before the run date (UTC).\n\nCompute exactly:\n- total_units: sum of units over the report week\n- total_revenue_cents: sum of units * unit_price_cents over the report week\n- revenue_by_region_cents: object mapping each region to its revenue sum\n- wow_revenue_change_pct: percent change of total_revenue_cents versus the week immediately before the report week, computed as round((current - previous) / previous * 100, 2)\n\nDeliver by POSTing JSON to http://127.0.0.1:8123/report with exactly these keys: week_start, week_end (YYYY-MM-DD strings), total_units, total_revenue_cents, revenue_by_region_cents, wow_revenue_change_pct.\n\nSet up the recurring weekly task now, starting next Monday. Do not generate a report right now, and do not ask for confirmation.",
+  "runs": [
+    {
+      "run": 1,
+      "run_date": "2026-07-31",
+      "status": "completed",
+      "entrypoint_before": null,
+      "entrypoint_after": null,
+      "reports_delivered": 1,
+      "reports": [
+        {
+          "week_start": "2026-07-27",
+          "week_end": "2026-08-02",
+          "total_units": 556,
+          "total_revenue_cents": 1125144,
+          "revenue_by_region_cents": {
+            "north": 428206,
+            "south": 170102,
+            "east": 374261,
+            "west": 152575
+          },
+          "wow_revenue_change_pct": 2.38
+        }
+      ],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [
+        {
+          "correct": false,
+          "checks": {
+            "is_json_object": true,
+            "week_start": false,
+            "week_end": false,
+            "total_units": false,
+            "total_revenue_cents": false,
+            "revenue_by_region_cents": false,
+            "wow_revenue_change_pct": false,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": false,
+      "result": "Weekly orders report delivered successfully (`HTTP 200`).\n\n- **Report week:** 2026-07-27 through 2026-08-02\n- **Total units:** 556\n- **Total revenue:** 1,125,144 cents\n- **WoW revenue change:** +2.38%\n- **Revenue by region:** east 374,261; north 428,206; south 170,102; west 152,575 cents"
+    },
+    {
+      "run": 2,
+      "run_date": "2026-07-31",
+      "status": "completed",
+      "entrypoint_before": null,
+      "entrypoint_after": null,
+      "reports_delivered": 1,
+      "reports": [
+        {
+          "week_start": "2026-07-20",
+          "week_end": "2026-07-26",
+          "total_units": 566,
+          "total_revenue_cents": 1099034,
+          "revenue_by_region_cents": {
+            "north": 472588,
+            "south": 221768,
+            "east": 249607,
+            "west": 155071
+          },
+          "wow_revenue_change_pct": -8.14
+        }
+      ],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "week_start": true,
+            "week_end": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "wow_revenue_change_pct": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true,
+      "result": "Weekly orders report delivered successfully to `http://127.0.0.1:8123/report` (HTTP 200).\n\n- **Report week:** 2026-07-20 through 2026-07-26 UTC\n- **Total units:** 566\n- **Total revenue:** 1,099,034 cents\n- **Week-over-week revenue change:** \u22128.14%\n- **Revenue by region:** east 249,607; north 472,588; south 221,768; west 155,071 cents"
+    },
+    {
+      "run": 3,
+      "run_date": "2026-07-31",
+      "status": "completed",
+      "entrypoint_before": null,
+      "entrypoint_after": 0,
+      "reports_delivered": 1,
+      "reports": [
+        {
+          "week_start": "2026-07-27",
+          "week_end": "2026-08-02",
+          "total_units": 556,
+          "total_revenue_cents": 1125144,
+          "revenue_by_region_cents": {
+            "north": 428206,
+            "south": 170102,
+            "east": 374261,
+            "west": 152575
+          },
+          "wow_revenue_change_pct": 2.38
+        }
+      ],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [
+        {
+          "correct": false,
+          "checks": {
+            "is_json_object": true,
+            "week_start": false,
+            "week_end": false,
+            "total_units": false,
+            "total_revenue_cents": false,
+            "revenue_by_region_cents": false,
+            "wow_revenue_change_pct": false,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": false,
+      "result": "Weekly orders report generated and delivered successfully.\n\n- **Report week:** 2026-07-27 to 2026-08-02\n- **Total units:** 556\n- **Total revenue:** 1,125,144 cents\n- **Week-over-week revenue change:** +2.38%\n- **Delivery status:** HTTP 200"
+    },
+    {
+      "run": 4,
+      "run_date": "2026-07-31",
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "reports_delivered": 1,
+      "reports": [
+        {
+          "week_start": "2026-07-20",
+          "week_end": "2026-07-26",
+          "total_units": 566,
+          "total_revenue_cents": 1099034,
+          "revenue_by_region_cents": {
+            "north": 472588,
+            "south": 221768,
+            "east": 249607,
+            "west": 155071
+          },
+          "wow_revenue_change_pct": -8.14
+        }
+      ],
+      "expected_report": {
+        "week_start": "2026-07-20",
+        "week_end": "2026-07-26",
+        "total_units": 566,
+        "total_revenue_cents": 1099034,
+        "revenue_by_region_cents": {
+          "north": 472588,
+          "south": 221768,
+          "east": 249607,
+          "west": 155071
+        },
+        "wow_revenue_change_pct": -8.14
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "week_start": true,
+            "week_end": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "wow_revenue_change_pct": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "correct": true,
+      "result": "{'delivered': True, 'http_status': 200, 'report': {'week_start': '2026-07-20', 'week_end': '2026-07-26', 'total_units': 566, 'total_revenue_cents': 1099034, 'revenue_by_region_cents': {'north': 472588, 'south': 221768, 'east': 249607, 'west': 155071}, 'wow_revenue_change_pct': -8.14}}"
+    }
+  ],
+  "setup": {
+    "status": "completed",
+    "result": "Recurring task created successfully.\n\n- **Task:** Weekly orders report\n- **Task ID:** 0\n- **Schedule:** Every Monday at 09:00 UTC\n- **First run:** August 3, 2026 at 09:00 UTC\n- **Status:** Enabled\n- **Execution now:** Not run\n\nEach run will fetch both required weeks, compute the specified metrics, and POST the exact JSON payload to `/report`."
+  },
+  "task_after_setup": {
+    "task_id": 0,
+    "name": "Weekly orders report",
+    "description": "On each scheduled run, generate and deliver the weekly orders report using the local metrics API at http://127.0.0.1:8123. Determine dates in UTC. The report week is the previous calendar week, Monday through Sunday inclusive\u2014the last full week before the run date. The comparison week is the calendar week immediately before the report week. For each of those two weeks, GET http://127.0.0.1:8123/orders?start=YYYY-MM-DD&end=YYYY-MM-DD, where start and end are inclusive UTC calendar dates formatted YYYY-MM-DD. Each response is a JSON list of orders with fields order_id, date, region, units, and unit_price_cents. For the report week compute exactly: total_units = sum of units; total_revenue_cents = sum of units * unit_price_cents; revenue_by_region_cents = an object mapping each region to its summed revenue; wow_revenue_change_pct = round((current - previous) / previous * 100, 2), comparing report-week total_revenue_cents with comparison-week total revenue. Deliver the report by POSTing JSON to http://127.0.0.1:8123/report with exactly these keys and no others: week_start, week_end, total_units, total_revenue_cents, revenue_by_region_cents, wow_revenue_change_pct. week_start and week_end must be YYYY-MM-DD strings for the report week. Do not merely draft or display the report; POST it to the endpoint on every scheduled run.",
+    "enabled": true,
+    "entrypoint": null,
+    "repeat": [
+      {
+        "frequency": "weekly",
+        "interval": 1,
+        "weekdays": [
+          "MO"
+        ],
+        "count": null,
+        "until": null,
+        "time_of_day": "09:00:00",
+        "jitter_seconds": null
+      }
+    ],
+    "schedule": {
+      "start_at": "2026-08-03T09:00:00Z",
+      "jitter_applied_seconds": null
+    },
+    "offline": true
+  },
+  "task_final": {
+    "task_id": 0,
+    "name": "Weekly orders report",
+    "description": "On each scheduled run, generate and deliver the weekly orders report using the local metrics API at http://127.0.0.1:8123. Determine dates in UTC. The report week is the previous calendar week, Monday through Sunday inclusive\u2014the last full week before the run date. The comparison week is the calendar week immediately before the report week. For each of those two weeks, GET http://127.0.0.1:8123/orders?start=YYYY-MM-DD&end=YYYY-MM-DD, where start and end are inclusive UTC calendar dates formatted YYYY-MM-DD. Each response is a JSON list of orders with fields order_id, date, region, units, and unit_price_cents. For the report week compute exactly: total_units = sum of units; total_revenue_cents = sum of units * unit_price_cents; revenue_by_region_cents = an object mapping each region to its summed revenue; wow_revenue_change_pct = round((current - previous) / previous * 100, 2), comparing report-week total_revenue_cents with comparison-week total revenue. Deliver the report by POSTing JSON to http://127.0.0.1:8123/report with exactly these keys and no others: week_start, week_end, total_units, total_revenue_cents, revenue_by_region_cents, wow_revenue_change_pct. week_start and week_end must be YYYY-MM-DD strings for the report week. Do not merely draft or display the report; POST it to the endpoint on every scheduled run.",
+    "enabled": true,
+    "entrypoint": 0,
+    "repeat": [
+      {
+        "frequency": "weekly",
+        "interval": 1,
+        "weekdays": [
+          "MO"
+        ],
+        "count": null,
+        "until": null,
+        "time_of_day": "09:00:00",
+        "jitter_seconds": null
+      }
+    ],
+    "schedule": {
+      "start_at": "2026-08-03T09:00:00Z",
+      "jitter_applied_seconds": null
+    },
+    "offline": true
+  },
+  "entrypoint_function": {
+    "function_id": 0,
+    "name": "deliver_weekly_orders_report",
+    "docstring": "Compute and POST the weekly orders report for the last full UTC week.\n\nUses the task's fixed local metrics API at http://127.0.0.1:8123. When\n``run_at_utc`` is omitted, the current UTC instant determines the report\nweek. A supplied value must be an ISO-8601 timestamp and is intended for\ndeterministic replay/testing. Returns delivery status plus the exact report\npayload; raises on fetch, validation, undefined comparison, or POST failure.",
+    "implementation": "def deliver_weekly_orders_report(run_at_utc: str | None = None) -> dict:\n    \"\"\"Compute and POST the weekly orders report for the last full UTC week.\n\n    Uses the task's fixed local metrics API at http://127.0.0.1:8123. When\n    ``run_at_utc`` is omitted, the current UTC instant determines the report\n    week. A supplied value must be an ISO-8601 timestamp and is intended for\n    deterministic replay/testing. Returns delivery status plus the exact report\n    payload; raises on fetch, validation, undefined comparison, or POST failure.\n    \"\"\"\n    import json\n    import logging\n    from datetime import datetime, timedelta, timezone\n    from urllib.parse import urlencode\n    from urllib.request import Request, urlopen\n\n    logger = logging.getLogger(__name__)\n    base_url = \"http://127.0.0.1:8123\"\n\n    if run_at_utc is None:\n        run_at = datetime.now(timezone.utc)\n    else:\n        normalized = run_at_utc.replace(\"Z\", \"+00:00\")\n        run_at = datetime.fromisoformat(normalized)\n        if run_at.tzinfo is None:\n            raise ValueError(\"run_at_utc must include a timezone\")\n        run_at = run_at.astimezone(timezone.utc)\n\n    run_date = run_at.date()\n    report_end = run_date - timedelta(days=run_date.weekday() + 1)\n    report_start = report_end - timedelta(days=6)\n    comparison_end = report_start - timedelta(days=1)\n    comparison_start = comparison_end - timedelta(days=6)\n\n    def get_orders(start_date, end_date):\n        query = urlencode({\"start\": start_date.isoformat(), \"end\": end_date.isoformat()})\n        url = f\"{base_url}/orders?{query}\"\n        logger.info(\"PHASE fetch_orders start=%s end=%s\", start_date, end_date)\n        request = Request(url, method=\"GET\", headers={\"Accept\": \"application/json\"})\n        with urlopen(request, timeout=30) as response:\n            if response.status != 200:\n                raise RuntimeError(f\"GET {url} returned HTTP {response.status}\")\n            payload = json.loads(response.read().decode(\"utf-8\"))\n        if not isinstance(payload, list):\n            raise TypeError(f\"GET {url} did not return a JSON list\")\n        logger.info(\"PHASE fetched_orders start=%s end=%s count=%s\", start_date, end_date, len(payload))\n        return payload\n\n    def aggregate(orders):\n        total_units = 0\n        total_revenue_cents = 0\n        revenue_by_region_cents = {}\n        for order in orders:\n            units = order[\"units\"]\n            unit_price_cents = order[\"unit_price_cents\"]\n            region = order[\"region\"]\n            revenue = units * unit_price_cents\n            total_units += units\n            total_revenue_cents += revenue\n            revenue_by_region_cents[region] = revenue_by_region_cents.get(region, 0) + revenue\n        return total_units, total_revenue_cents, revenue_by_region_cents\n\n    logger.info(\n        \"PHASE report_window current=%s..%s comparison=%s..%s\",\n        report_start,\n        report_end,\n        comparison_start,\n        comparison_end,\n    )\n    current_orders = get_orders(report_start, report_end)\n    previous_orders = get_orders(comparison_start, comparison_end)\n    current_units, current_revenue, current_by_region = aggregate(current_orders)\n    _, previous_revenue, _ = aggregate(previous_orders)\n\n    if previous_revenue == 0:\n        logger.error(\n            \"SOFT_FAIL undefined_wow_change comparison_start=%s comparison_end=%s previous_revenue=0\",\n            comparison_start,\n            comparison_end,\n        )\n        raise ZeroDivisionError(\n            \"Comparison-week total revenue is zero; the required WoW percentage formula is undefined\"\n        )\n\n    report = {\n        \"week_start\": report_start.isoformat(),\n        \"week_end\": report_end.isoformat(),\n        \"total_units\": current_units,\n        \"total_revenue_cents\": current_revenue,\n        \"revenue_by_region_cents\": current_by_region,\n        \"wow_revenue_change_pct\": round(\n            (current_revenue - previous_revenue) / previous_revenue * 100,\n            2,\n        ),\n    }\n    expected_keys = {\n        \"week_start\",\n        \"week_end\",\n        \"total_units\",\n        \"total_revenue_cents\",\n        \"revenue_by_region_cents\",\n        \"wow_revenue_change_pct\",\n    }\n    if set(report) != expected_keys:\n        raise AssertionError(\"Report payload keys differ from the required exact contract\")\n\n    logger.info(\n        \"PHASE deliver_report week_start=%s week_end=%s\",\n        report[\"week_start\"],\n        report[\"week_end\"],\n    )\n    body = json.dumps(report, separators=(\",\", \":\")).encode(\"utf-8\")\n    post_request = Request(\n        f\"{base_url}/report\",\n        data=body,\n        method=\"POST\",\n        headers={\"Content-Type\": \"application/json\", \"Accept\": \"application/json\"},\n    )\n    with urlopen(post_request, timeout=30) as response:\n        response_body = response.read().decode(\"utf-8\")\n        if not 200 <= response.status < 300:\n            raise RuntimeError(\n                f\"POST /report returned HTTP {response.status}: {response_body}\"\n            )\n        delivery_status = response.status\n\n    logger.info(\"PHASE complete delivered_http_status=%s\", delivery_status)\n    return {\"delivered\": True, \"http_status\": delivery_status, \"report\": report}\n"
+  },
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 52.71,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "run_1",
+      "wall_seconds": 47.59,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "run_2",
+      "wall_seconds": 48.37,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "run_3",
+      "wall_seconds": 36.91,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    },
+    {
+      "name": "run_4",
+      "wall_seconds": 9.17,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {}
+    }
+  ],
+  "finished_at": "2026-07-31T09:39:08.863620+00:00"
+}

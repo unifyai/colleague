@@ -1,0 +1,109 @@
+# Recurring weekly report
+
+**Question:** given one natural-language request — *"every Monday, pull last
+week's orders, compute the totals, and deliver a report"* — what does each
+architecture converge to unattended, and what does week-N cost look like?
+
+**Unify's expected lifecycle** (all mechanized, none hand-configured):
+
+1. `setup` — the CodeAct actor turns the utterance into a recurring
+   `TaskScheduler` task (no entrypoint yet, per the actor's own policy).
+2. `run_1` — the task executes description-driven (full CodeAct loop). The
+   post-run review ("Storing reusable workflow") may store a
+   `FunctionManager` function from the trajectory and attach it as the task's
+   `entrypoint`.
+3. `run_2+` — `TaskScheduler.execute` sees the entrypoint and executes the
+   stored function **without invoking the CodeAct LLM loop**
+   (`_CodeActEntrypointHandle`): the expected steady state is **0 LLM calls,
+   0 tokens**, with a bounded LLM repair loop only on failure.
+
+The hermes-agent comparison arm (`run_hermes.sh` / `hermes.py`)
+applies the identical protocol: the same utterance via headless
+`hermes chat -q` in a throwaway `HERMES_HOME`, then manual
+`hermes cron run` fires of whatever the agent created, metered by a local
+recording proxy in front of OpenRouter (`colleague/arms/proxy.py`). First
+result: the hermes agent also converged to a zero-LLM steady state
+(`no_agent` cron + standalone script), but encoded the schedule as
+hourly-on-Mondays with an in-script wall-clock gate — off-spec, and inert
+when fired on demand (see the `*-hermes` results NOTE.md).
+
+The OpenClaw arm (`run_openclaw.sh` / `openclaw.py`, driving the shared
+toolkit in `colleague/arms/openclaw.py`) applies the
+same protocol via a throwaway `OPENCLAW_STATE_DIR`, a managed Gateway
+child, and `openclaw cron run` fires. Measured result: the cheapest setup
+of the three arms by an order of magnitude (67k tokens) and 4/4 exact
+on-demand deliveries — but no zero-token steady state exists to converge
+to: every fire boots an agent turn (~16.8k tokens), forever (see the
+`*-openclaw` results NOTE.md).
+
+The OpenCode arm (`run_opencode.sh` / `opencode.py`) has no
+scheduler to register with, so the harness executes whatever the agent
+itself declared — preferring the command named in any crontab spec it
+writes. Measured result: **0/4 delivered when fired as declared**, because
+the agent encoded "every Monday 09:00" as an hourly job whose script exits
+unless the clock reads Monday 09:00 UTC — independently reproducing the
+same off-spec shape hermes chose. Its setup is the cheapest of any arm
+(85k) and the script itself is exactly correct: an earlier run that fired
+the script bare, bypassing the gate, delivered 4/4 byte-exact reports (see
+both `*-opencode` NOTE.md files).
+
+## Task definition
+
+- Fixture: a seeded deterministic orders API (`fixture.py`), four regions,
+  integer cents — every (seed, date) produces identical data forever.
+- Delivery: `POST /report` to the fixture; the harness scores each delivered
+  report field-by-field against independently recomputed ground truth
+  (exact integer equality; ±0.005 on the rounded percent). No LLM judging.
+- The exact utterance is `UTTERANCE_TEMPLATE` in `harness.py` and is recorded
+  verbatim in every result file.
+
+## Protocol
+
+- Target: **staging Orchestra** in an isolated context tree
+  (`colleague/tracks/standing/recurring_report/<run-id>/...`), never a real
+  assistant. `UNILLM_CACHE=false` — every number is real inference.
+- The harness boots the brain standalone (same wiring as the
+  ConversationManager sandbox), issues the utterance once, then drives N
+  weekly wakes through `TaskScheduler.execute` with the same delegate
+  mechanics the production ConversationManager uses for due tasks.
+- Accounting: unillm's process-global LLM event hook records every call
+  (model, prompt/completion tokens, provider cost) into a per-phase ledger.
+  Calls outside phase windows surface in a `background` bucket rather than
+  disappearing.
+- All simulated weeks trigger on the harness's real run date, so every run's
+  report covers the same "previous Mon–Sun" window (recorded per run). Known
+  v1 limitation; it does not affect token accounting, which is the headline
+  metric.
+
+## Run it
+
+```bash
+bash colleague/tracks/standing/recurring_report/run.sh          # unify arm
+bash colleague/tracks/standing/recurring_report/run_hermes.sh   # hermes-agent arm
+bash colleague/tracks/standing/recurring_report/run_openclaw.sh # openclaw arm
+bash colleague/tracks/standing/recurring_report/run_opencode.sh # opencode arm
+```
+
+Knobs (env): `RWR_RUNS` (default 4), `RWR_SEED`, `RWR_PORT`,
+`RWR_ORCHESTRA_URL`, `RWR_UNIFY_KEY`, `RWR_PHASE_TIMEOUT_S`.
+
+Outputs land in `results/<run-id>/`:
+
+- `results.json` — full record: utterance, task snapshots, per-run reports +
+  scores, per-phase token/cost table, the stored entrypoint function source
+  (when attached).
+- `ledger.jsonl` — every LLM call (model, tokens, cost, origin).
+- `summary.md` — the human-readable table.
+
+## Reading the numbers
+
+The claim is falsifiable on three axes visible in `summary.md`:
+
+- **Convergence**: does `entrypoint_after` flip from `None` to a function id
+  without any prompt engineering? If not, that is a real finding — the fix
+  belongs in the actor/review prompts, not in the benchmark.
+- **Steady state**: `run_2+` should show `LLM calls = 0`. Any nonzero value
+  is either a repair loop (visible in the ledger) or a leak in the claimed
+  architecture.
+- **Correctness**: every delivered report must match ground truth exactly —
+  a zero-token run that delivers a wrong report is a failure, not a win.

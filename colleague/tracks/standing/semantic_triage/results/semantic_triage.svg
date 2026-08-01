@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="672" viewBox="0 0 860 672" font-family="system-ui, -apple-system, Segoe UI, sans-serif">
+<rect width="860" height="672" fill="#fcfcfb"/>
+<text x="84" y="26" fill="#1a1a19" font-size="17" font-weight="700">Recurring work with a judgment step: what every single firing costs</text>
+<text x="84" y="44" fill="#6f6e6a" font-size="12">One natural-language request · gpt-5.6-sol via OpenRouter · accuracy 100% vs 100% vs 100% vs 100% on 96 inquiries each</text>
+<text x="84" y="82" fill="#1a1a19" font-size="14" font-weight="600">Per-fire LLM tokens (log scale)</text>
+<line x1="84" y1="326.0" x2="665" y2="326.0" stroke="#e8e7e4" stroke-width="1"/>
+<text x="76" y="330.0" fill="#6f6e6a" font-size="11" text-anchor="end">100</text>
+<line x1="84" y1="270.5" x2="665" y2="270.5" stroke="#e8e7e4" stroke-width="1"/>
+<text x="76" y="274.5" fill="#6f6e6a" font-size="11" text-anchor="end">1.0k</text>
+<line x1="84" y1="215.0" x2="665" y2="215.0" stroke="#e8e7e4" stroke-width="1"/>
+<text x="76" y="219.0" fill="#6f6e6a" font-size="11" text-anchor="end">10k</text>
+<line x1="84" y1="159.5" x2="665" y2="159.5" stroke="#e8e7e4" stroke-width="1"/>
+<text x="76" y="163.5" fill="#6f6e6a" font-size="11" text-anchor="end">100k</text>
+<line x1="84" y1="104.0" x2="665" y2="104.0" stroke="#e8e7e4" stroke-width="1"/>
+<text x="76" y="108.0" fill="#6f6e6a" font-size="11" text-anchor="end">1.0M</text>
+<polyline points="156.6,196.2 229.2,196.7 301.9,196.8 374.5,195.3 447.1,196.8 519.8,195.4 592.4,195.1 665.0,196.6" fill="none" stroke="#eb6834" stroke-width="2"/>
+<rect x="152.6" y="192.2" width="8" height="8" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<rect x="225.2" y="192.7" width="8" height="8" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<rect x="297.9" y="192.8" width="8" height="8" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<rect x="370.5" y="191.3" width="8" height="8" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<rect x="443.1" y="192.8" width="8" height="8" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<rect x="515.8" y="191.4" width="8" height="8" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<rect x="588.4" y="191.1" width="8" height="8" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<rect x="661.0" y="192.6" width="8" height="8" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<polyline points="156.6,188.1 229.2,187.7 301.9,187.8 374.5,193.9 447.1,188.0 519.8,187.9 592.4,187.8 665.0,188.0" fill="none" stroke="#009E73" stroke-width="2"/>
+<path d="M 156.6 183.1 L 161.1 192.1 L 152.1 192.1 Z" fill="#009E73" stroke="#fcfcfb" stroke-width="2"/>
+<path d="M 229.2 182.7 L 233.8 191.7 L 224.8 191.7 Z" fill="#009E73" stroke="#fcfcfb" stroke-width="2"/>
+<path d="M 301.9 182.8 L 306.4 191.8 L 297.4 191.8 Z" fill="#009E73" stroke="#fcfcfb" stroke-width="2"/>
+<path d="M 374.5 188.9 L 379.0 197.9 L 370.0 197.9 Z" fill="#009E73" stroke="#fcfcfb" stroke-width="2"/>
+<path d="M 447.1 183.0 L 451.6 192.0 L 442.6 192.0 Z" fill="#009E73" stroke="#fcfcfb" stroke-width="2"/>
+<path d="M 519.8 182.9 L 524.2 191.9 L 515.2 191.9 Z" fill="#009E73" stroke="#fcfcfb" stroke-width="2"/>
+<path d="M 592.4 182.8 L 596.9 191.8 L 587.9 191.8 Z" fill="#009E73" stroke="#fcfcfb" stroke-width="2"/>
+<path d="M 665.0 183.0 L 669.5 192.0 L 660.5 192.0 Z" fill="#009E73" stroke="#fcfcfb" stroke-width="2"/>
+<polyline points="156.6,199.7 229.2,199.6 301.9,199.6 374.5,199.6 447.1,199.5 519.8,199.7 592.4,199.7 665.0,199.7" fill="none" stroke="#7B52AB" stroke-width="2"/>
+<path d="M 156.6 194.7 L 161.6 199.7 L 156.6 204.7 L 151.6 199.7 Z" fill="#7B52AB" stroke="#fcfcfb" stroke-width="2"/>
+<path d="M 229.2 194.6 L 234.2 199.6 L 229.2 204.6 L 224.2 199.6 Z" fill="#7B52AB" stroke="#fcfcfb" stroke-width="2"/>
+<path d="M 301.9 194.6 L 306.9 199.6 L 301.9 204.6 L 296.9 199.6 Z" fill="#7B52AB" stroke="#fcfcfb" stroke-width="2"/>
+<path d="M 374.5 194.6 L 379.5 199.6 L 374.5 204.6 L 369.5 199.6 Z" fill="#7B52AB" stroke="#fcfcfb" stroke-width="2"/>
+<path d="M 447.1 194.5 L 452.1 199.5 L 447.1 204.5 L 442.1 199.5 Z" fill="#7B52AB" stroke="#fcfcfb" stroke-width="2"/>
+<path d="M 519.8 194.7 L 524.8 199.7 L 519.8 204.7 L 514.8 199.7 Z" fill="#7B52AB" stroke="#fcfcfb" stroke-width="2"/>
+<path d="M 592.4 194.7 L 597.4 199.7 L 592.4 204.7 L 587.4 199.7 Z" fill="#7B52AB" stroke="#fcfcfb" stroke-width="2"/>
+<path d="M 665.0 194.7 L 670.0 199.7 L 665.0 204.7 L 660.0 199.7 Z" fill="#7B52AB" stroke="#fcfcfb" stroke-width="2"/>
+<polyline points="156.6,108.7 229.2,281.1 301.9,280.4 374.5,280.8 447.1,280.9 519.8,281.4 592.4,281.0 665.0,281.9" fill="none" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="156.6" cy="108.7" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="229.2" cy="281.1" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="301.9" cy="280.4" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="374.5" cy="280.8" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="447.1" cy="280.9" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="519.8" cy="281.4" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="592.4" cy="281.0" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<circle cx="665.0" cy="281.9" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<rect x="673" y="276.9" width="10" height="10" fill="#2a78d6"/>
+<text x="688" y="285.9" fill="#1a1a19" font-size="12">Unify · 645/fire</text>
+<rect x="673" y="191.6" width="10" height="10" fill="#eb6834"/>
+<text x="688" y="200.6" fill="#1a1a19" font-size="12">hermes · 22k/fire</text>
+<rect x="673" y="215.0" width="10" height="10" fill="#009E73"/>
+<text x="688" y="224.0" fill="#1a1a19" font-size="12">openclaw · 30k/fire</text>
+<rect x="673" y="242.7" width="10" height="10" fill="#7B52AB"/>
+<text x="688" y="251.7" fill="#1a1a19" font-size="12">opencode · 19k/fire</text>
+<text x="156.6" y="96.7" fill="#6f6e6a" font-size="11" text-anchor="middle">fire 1 distills the function</text>
+<text x="84" y="382" fill="#1a1a19" font-size="14" font-weight="600">Cumulative LLM tokens — measured through fire 8, then projected at the measured per-fire rates</text>
+<line x1="84" y1="570.5" x2="665" y2="570.5" stroke="#e8e7e4" stroke-width="1"/>
+<text x="76" y="574.5" fill="#6f6e6a" font-size="11" text-anchor="end">560k</text>
+<line x1="84" y1="515.0" x2="665" y2="515.0" stroke="#e8e7e4" stroke-width="1"/>
+<text x="76" y="519.0" fill="#6f6e6a" font-size="11" text-anchor="end">1.1M</text>
+<line x1="84" y1="459.5" x2="665" y2="459.5" stroke="#e8e7e4" stroke-width="1"/>
+<text x="76" y="463.5" fill="#6f6e6a" font-size="11" text-anchor="end">1.7M</text>
+<line x1="84" y1="404.0" x2="665" y2="404.0" stroke="#e8e7e4" stroke-width="1"/>
+<text x="76" y="408.0" fill="#6f6e6a" font-size="11" text-anchor="end">2.2M</text>
+<line x1="84" y1="626.0" x2="665" y2="626.0" stroke="#6f6e6a" stroke-width="1"/>
+<line x1="148.6" y1="390" x2="148.6" y2="626.0" stroke="#6f6e6a" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="154.6" y="402" fill="#6f6e6a" font-size="11">measured | projected</text>
+<polyline points="84.0,610.7 92.1,608.5 100.1,606.4 108.2,604.3 116.3,602.0 124.3,599.9 132.4,597.7 140.5,595.4 148.6,593.3" fill="none" stroke="#eb6834" stroke-width="2"/>
+<polyline points="148.6,593.3 156.6,591.1 164.7,588.9 172.8,586.8 180.8,584.6 188.9,582.4 197.0,580.3 205.0,578.1 213.1,575.9 221.2,573.8 229.2,571.6 237.3,569.4 245.4,567.2 253.5,565.1 261.5,562.9 269.6,560.7 277.7,558.6 285.7,556.4 293.8,554.2 301.9,552.0 309.9,549.9 318.0,547.7 326.1,545.5 334.2,543.4 342.2,541.2 350.3,539.0 358.4,536.9 366.4,534.7 374.5,532.5 382.6,530.3 390.6,528.2 398.7,526.0 406.8,523.8 414.8,521.7 422.9,519.5 431.0,517.3 439.1,515.1 447.1,513.0 455.2,510.8 463.3,508.6 471.3,506.5 479.4,504.3 487.5,502.1 495.5,500.0 503.6,497.8 511.7,495.6 519.8,493.4 527.8,491.3 535.9,489.1 544.0,486.9 552.0,484.8 560.1,482.6 568.2,480.4 576.2,478.2 584.3,476.1 592.4,473.9 600.4,471.7 608.5,469.6 616.6,467.4 624.7,465.2 632.7,463.1 640.8,460.9 648.9,458.7 656.9,456.5 665.0,454.4" fill="none" stroke="#eb6834" stroke-width="2" stroke-dasharray="5 5" opacity="0.75"/>
+<polyline points="84.0,617.7 92.1,614.6 100.1,611.6 108.2,608.5 116.3,606.1 124.3,603.1 132.4,600.0 140.5,597.0 148.6,593.9" fill="none" stroke="#009E73" stroke-width="2"/>
+<polyline points="148.6,593.9 156.6,591.0 164.7,588.0 172.8,585.0 180.8,582.1 188.9,579.1 197.0,576.1 205.0,573.1 213.1,570.2 221.2,567.2 229.2,564.2 237.3,561.3 245.4,558.3 253.5,555.3 261.5,552.4 269.6,549.4 277.7,546.4 285.7,543.5 293.8,540.5 301.9,537.5 309.9,534.6 318.0,531.6 326.1,528.6 334.2,525.7 342.2,522.7 350.3,519.7 358.4,516.8 366.4,513.8 374.5,510.8 382.6,507.9 390.6,504.9 398.7,501.9 406.8,499.0 414.8,496.0 422.9,493.0 431.0,490.1 439.1,487.1 447.1,484.1 455.2,481.2 463.3,478.2 471.3,475.2 479.4,472.3 487.5,469.3 495.5,466.3 503.6,463.4 511.7,460.4 519.8,457.4 527.8,454.4 535.9,451.5 544.0,448.5 552.0,445.5 560.1,442.6 568.2,439.6 576.2,436.6 584.3,433.7 592.4,430.7 600.4,427.7 608.5,424.8 616.6,421.8 624.7,418.8 632.7,415.9 640.8,412.9 648.9,409.9 656.9,407.0 665.0,404.0" fill="none" stroke="#009E73" stroke-width="2" stroke-dasharray="5 5" opacity="0.75"/>
+<polyline points="84.0,613.6 92.1,611.8 100.1,609.9 108.2,608.0 116.3,606.1 124.3,604.2 132.4,602.4 140.5,600.5 148.6,598.6" fill="none" stroke="#7B52AB" stroke-width="2"/>
+<polyline points="148.6,598.6 156.6,596.8 164.7,594.9 172.8,593.0 180.8,591.1 188.9,589.3 197.0,587.4 205.0,585.5 213.1,583.6 221.2,581.8 229.2,579.9 237.3,578.0 245.4,576.1 253.5,574.3 261.5,572.4 269.6,570.5 277.7,568.7 285.7,566.8 293.8,564.9 301.9,563.0 309.9,561.2 318.0,559.3 326.1,557.4 334.2,555.5 342.2,553.7 350.3,551.8 358.4,549.9 366.4,548.0 374.5,546.2 382.6,544.3 390.6,542.4 398.7,540.5 406.8,538.7 414.8,536.8 422.9,534.9 431.0,533.0 439.1,531.2 447.1,529.3 455.2,527.4 463.3,525.5 471.3,523.7 479.4,521.8 487.5,519.9 495.5,518.0 503.6,516.2 511.7,514.3 519.8,512.4 527.8,510.5 535.9,508.7 544.0,506.8 552.0,504.9 560.1,503.0 568.2,501.2 576.2,499.3 584.3,497.4 592.4,495.6 600.4,493.7 608.5,491.8 616.6,489.9 624.7,488.1 632.7,486.2 640.8,484.3 648.9,482.4 656.9,480.6 665.0,478.7" fill="none" stroke="#7B52AB" stroke-width="2" stroke-dasharray="5 5" opacity="0.75"/>
+<polyline points="84.0,563.0 92.1,481.6 100.1,481.5 108.2,481.5 116.3,481.4 124.3,481.3 132.4,481.3 140.5,481.2 148.6,481.1" fill="none" stroke="#2a78d6" stroke-width="2"/>
+<polyline points="148.6,481.1 156.6,481.1 164.7,481.0 172.8,481.0 180.8,480.9 188.9,480.8 197.0,480.8 205.0,480.7 213.1,480.6 221.2,480.6 229.2,480.5 237.3,480.4 245.4,480.4 253.5,480.3 261.5,480.3 269.6,480.2 277.7,480.1 285.7,480.1 293.8,480.0 301.9,479.9 309.9,479.9 318.0,479.8 326.1,479.7 334.2,479.7 342.2,479.6 350.3,479.5 358.4,479.5 366.4,479.4 374.5,479.4 382.6,479.3 390.6,479.2 398.7,479.2 406.8,479.1 414.8,479.0 422.9,479.0 431.0,478.9 439.1,478.8 447.1,478.8 455.2,478.7 463.3,478.7 471.3,478.6 479.4,478.5 487.5,478.5 495.5,478.4 503.6,478.3 511.7,478.3 519.8,478.2 527.8,478.1 535.9,478.1 544.0,478.0 552.0,477.9 560.1,477.9 568.2,477.8 576.2,477.8 584.3,477.7 592.4,477.6 600.4,477.6 608.5,477.5 616.6,477.4 624.7,477.4 632.7,477.3 640.8,477.2 648.9,477.2 656.9,477.1 665.0,477.1" fill="none" stroke="#2a78d6" stroke-width="2" stroke-dasharray="5 5" opacity="0.75"/>
+<rect x="673" y="472.1" width="10" height="10" fill="#2a78d6"/>
+<text x="688" y="481.1" fill="#1a1a19" font-size="12">Unify · 1.5M @ fire 72</text>
+<rect x="673" y="449.4" width="10" height="10" fill="#eb6834"/>
+<text x="688" y="458.4" fill="#1a1a19" font-size="12">hermes · 1.7M @ fire 72</text>
+<rect x="673" y="399.0" width="10" height="10" fill="#009E73"/>
+<text x="688" y="408.0" fill="#1a1a19" font-size="12">openclaw · 2.2M @ fire 72</text>
+<rect x="673" y="489.7" width="10" height="10" fill="#7B52AB"/>
+<text x="688" y="498.7" fill="#1a1a19" font-size="12">opencode · 1.5M @ fire 72</text>
+<circle cx="584.3" cy="477.7" r="5" fill="none" stroke="#1a1a19" stroke-width="1.5"/>
+<text x="584.3" y="467.7" fill="#1a1a19" font-size="11" text-anchor="middle">Unify cheaper from fire 62</text>
+<text x="92.1" y="642.0" fill="#6f6e6a" font-size="11" text-anchor="middle">1</text>
+<text x="148.6" y="642.0" fill="#6f6e6a" font-size="11" text-anchor="middle">8</text>
+<text x="277.7" y="642.0" fill="#6f6e6a" font-size="11" text-anchor="middle">24</text>
+<text x="471.3" y="642.0" fill="#6f6e6a" font-size="11" text-anchor="middle">48</text>
+<text x="665.0" y="642.0" fill="#6f6e6a" font-size="11" text-anchor="middle">72</text>
+</svg>
