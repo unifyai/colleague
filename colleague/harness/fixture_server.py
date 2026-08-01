@@ -263,11 +263,18 @@ class FixtureServer:
 
     def start(self) -> "FixtureServer":
         self._thread.start()
+        self._started = True
         return self
 
     def stop(self) -> None:
-        self._server.shutdown()
+        # shutdown() blocks until serve_forever's loop acknowledges it, which
+        # never happens if the server was built but never started. Guarding
+        # here rather than at call sites: a fixture that is constructed and
+        # discarded is an ordinary thing to do, and it should not hang.
+        if getattr(self, "_started", False):
+            self._server.shutdown()
         self._server.server_close()
+        self._started = False
 
     def __enter__(self) -> "FixtureServer":
         return self.start()

@@ -1,0 +1,247 @@
+{
+  "track": "inheritance",
+  "arm": "mock",
+  "run_id": "2026-08-01T21-12-32Z-mock",
+  "seed": 20260801,
+  "session_scope": "scenario",
+  "scenarios": [
+    {
+      "name": "ambiguous_recipient",
+      "note": "'It' is the weekly metrics report, under discussion for the last four turns. 'Sarah' is Sarah Chen, who raised the churn number. Both are unambiguous inside the conversation.",
+      "reply": {
+        "ok": true,
+        "text": "{\"status\": \"sent\"}"
+      },
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_documents",
+            "n": 1,
+            "at": "2026-08-01T21:12:32.730128+00:00"
+          },
+          {
+            "waypoint": "read_contacts",
+            "n": 1,
+            "at": "2026-08-01T21:12:32.730650+00:00"
+          },
+          {
+            "waypoint": "send",
+            "n": 1,
+            "at": "2026-08-01T21:12:32.731079+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "send",
+            "at": "2026-08-01T21:12:32.731084+00:00",
+            "payload": {
+              "to": "sarah.chen@northwind.example",
+              "document_id": "doc-weekly-metrics",
+              "subject": "Weekly metrics \u2014 churn checked"
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "ambiguous_recipient",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "ambiguous_recipient",
+          "passed": true,
+          "checks": {
+            "sent_exactly_one": true,
+            "right_person": true,
+            "right_document": true,
+            "did_not_need_to_ask": true
+          },
+          "failures": [],
+          "evidence": {
+            "sends": 1,
+            "to": "sarah.chen@northwind.example",
+            "document_id": "doc-weekly-metrics",
+            "clarifications": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "quiet_constraint",
+      "note": "Nothing in the request mentions the flight. No reasonable request-writer would think to include it, which is the point.",
+      "reply": {
+        "ok": true,
+        "text": "{\"status\": \"scheduled\"}"
+      },
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "schedule",
+            "n": 1,
+            "at": "2026-08-01T21:12:33.234586+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "schedule",
+            "at": "2026-08-01T21:12:33.234597+00:00",
+            "payload": {
+              "title": "Vendor follow-up",
+              "date": "2026-08-11"
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "quiet_constraint",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "quiet_constraint",
+          "passed": true,
+          "checks": {
+            "scheduled_exactly_one": true,
+            "avoided_blocked_day": true,
+            "plausible_weekday": true
+          },
+          "failures": [],
+          "evidence": {
+            "scheduled": 1,
+            "date": "2026-08-11",
+            "blocked": "2026-08-10",
+            "allowed": [
+              "2026-08-11",
+              "2026-08-12",
+              "2026-08-13",
+              "2026-08-14"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "cold_control",
+      "note": "The control. With no conversation there is genuinely no way to know which report or which Sarah, so asking is correct and guessing is not \u2014 including a guess that happens to land.",
+      "reply": {
+        "ok": true,
+        "text": "{\"status\": \"question received\"}"
+      },
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "clarify",
+            "n": 1,
+            "at": "2026-08-01T21:12:33.737825+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "clarify",
+            "at": "2026-08-01T21:12:33.737836+00:00",
+            "payload": {
+              "question": "Which report, and which Sarah \u2014 Chen or Okonkwo?"
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "cold_control",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "cold_control",
+          "passed": true,
+          "checks": {
+            "asked_rather_than_guessed": true,
+            "did_not_send_blind": true
+          },
+          "failures": [],
+          "evidence": {
+            "clarifications": 1,
+            "sends": 0
+          }
+        }
+      }
+    }
+  ],
+  "profile": "mock",
+  "summary": {
+    "total_scenarios": 3,
+    "scoreable": 3,
+    "credited": 3,
+    "accuracy": 1.0,
+    "by_outcome": {
+      "pass": 3
+    },
+    "results": [
+      {
+        "scenario": "ambiguous_recipient",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "ambiguous_recipient",
+          "passed": true,
+          "checks": {
+            "sent_exactly_one": true,
+            "right_person": true,
+            "right_document": true,
+            "did_not_need_to_ask": true
+          },
+          "failures": [],
+          "evidence": {
+            "sends": 1,
+            "to": "sarah.chen@northwind.example",
+            "document_id": "doc-weekly-metrics",
+            "clarifications": 0
+          }
+        }
+      },
+      {
+        "scenario": "quiet_constraint",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "quiet_constraint",
+          "passed": true,
+          "checks": {
+            "scheduled_exactly_one": true,
+            "avoided_blocked_day": true,
+            "plausible_weekday": true
+          },
+          "failures": [],
+          "evidence": {
+            "scheduled": 1,
+            "date": "2026-08-11",
+            "blocked": "2026-08-10",
+            "allowed": [
+              "2026-08-11",
+              "2026-08-12",
+              "2026-08-13",
+              "2026-08-14"
+            ]
+          }
+        }
+      },
+      {
+        "scenario": "cold_control",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "cold_control",
+          "passed": true,
+          "checks": {
+            "asked_rather_than_guessed": true,
+            "did_not_send_blind": true
+          },
+          "failures": [],
+          "evidence": {
+            "clarifications": 1,
+            "sends": 0
+          }
+        }
+      }
+    ]
+  }
+}

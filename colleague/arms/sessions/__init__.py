@@ -30,6 +30,7 @@ def _load(name: str) -> None:
         "hermes": "colleague.arms.sessions.hermes_session",
         "openclaw": "colleague.arms.sessions.openclaw_session",
         "opencode": "colleague.arms.sessions.opencode_session",
+        "mock": "colleague.arms.sessions.mock_session",
     }.get(name)
     if module:
         importlib.import_module(module)
