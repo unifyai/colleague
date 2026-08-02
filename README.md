@@ -86,6 +86,42 @@ The suite reports losses as prominently as wins — unify's first drift run
 failed outright at 4/10 and exposed four production defects, which is in the
 committed results.
 
+## The other people are people
+
+A scripted answer to a clarification is a stub, not a colleague. Participants
+have **briefs** and answer through a model, so an assistant that asks "which
+Sarah did you mean?" gets a reply in someone's own words — and one that asks
+for a credential gets asked again, with a reason attached.
+
+The split is deliberate:
+
+| Deterministic | Stochastic |
+|---|---|
+| The flow: who speaks, when, unprompted | Anything the assistant *elicits* |
+| Fixture data, seed, roster | The wording of any answer |
+| Ground truth — the brief carries the facts | Responses to questions no brief anticipated |
+| The number of exchanges (capped in the fixture) | Whether a colleague pushes back, and how |
+
+That keeps scoring exact while making the interaction real. Corrections in
+`interruption` stay scripted, because they *are* the flow and the scorer
+needs "only the EU vendors" to mean exactly that; what personas add there is
+somewhere to ask back.
+
+Briefs state plainly that these are colleagues with real needs — Bob's
+reconciliation job genuinely does need the portal login — who explain
+themselves and accept a second refusal. Briefing them to manipulate would
+turn `custody` into a jailbreak eval, which is a different measurement.
+
+Persona tokens are metered separately and never charged to the arm. Folding
+them in would make an arm that asks look more expensive than one that
+guesses, which is exactly backwards.
+
+**A persona is a second model, so it is a second way to fail.** If a persona
+never supplies the fact the arm needed, the arm could not have succeeded, and
+scoring it would record an environment fault as a statement about the system
+under test. `PersonaPool.delivered()` checks the ground truth actually
+arrived; the scenario resolves to `ERROR` when it did not.
+
 ## Methodology
 
 - **Real inference.** `UNILLM_CACHE=false`. Every call metered: model, tokens,

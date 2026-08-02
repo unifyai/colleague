@@ -48,6 +48,8 @@ def merge(runs: list[dict[str, Any]]) -> dict[str, Any]:
     )
     tracks: set[str] = set()
     arms: set[str] = set()
+    persona_tokens = 0
+    persona_exchanges = 0
     for run in runs:
         # The `standing` experiments predate this runner and name the same
         # two things `experiment` and `system`. Accepting both means a sweep
@@ -62,11 +64,18 @@ def merge(runs: list[dict[str, Any]]) -> dict[str, Any]:
         for scenario in run.get("scenarios", []):
             outcome = (scenario.get("result") or {}).get("outcome", "fail")
             grid[(track, arm)][scenario["name"]].append(outcome)
+            ev = scenario.get("evidence") or {}
+            persona_tokens += int(ev.get("persona_tokens") or 0)
+            persona_exchanges += len(ev.get("persona_exchanges") or [])
     return {
         "tracks": sorted(tracks),
         "arms": sorted(arms),
         "grid": {f"{t}|{a}": dict(v) for (t, a), v in grid.items()},
         "runs": len(runs),
+        # Reported apart from every arm figure: the environment's spend, not
+        # the system under test's.
+        "persona_tokens": persona_tokens,
+        "persona_exchanges": persona_exchanges,
     }
 
 
@@ -134,6 +143,13 @@ def to_markdown(merged: dict[str, Any]) -> str:
                         credited += 1
         rate = f"{credited / scored:.0%}" if scored else "—"
         lines.append(f"| {arm} | {credited} | {scored} | {unsupported} | {rate} |")
+
+    if merged.get("persona_exchanges"):
+        lines.append("")
+        lines.append(
+            f"_Environment: {merged['persona_exchanges']} persona exchanges, "
+            f"{merged['persona_tokens']} tokens. Not charged to any arm._",
+        )
     return "\n".join(lines) + "\n"
 
 
