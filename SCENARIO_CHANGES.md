@@ -115,3 +115,24 @@ runtime, not the benchmark.
   non-blocking.** It consults and proceeds in the same breath, which is worse
   than not consulting, because it produces the appearance of having checked.
   That is the prompt target — not "make it ask", which it already does.
+
+---
+
+**`[wrong]` inheritance — the other people are people now.**
+`/clarify` used to be a write-only endpoint: the arm asked, got an
+acknowledgement, and had nowhere to go. That made "ask" a dead end and made
+the scenario a test of whether the arm would stop, which is not what asking
+is for.
+
+Participants are now LLM-backed personas with briefs. The flow stays
+deterministic — who speaks, when, and what they say unprompted — and so does
+the ground truth, because the brief carries the facts. What varies is
+anything the assistant *elicits*: the wording of an answer, how a colleague
+responds to a question the brief never anticipated.
+
+`cold_control` therefore scores the whole round trip: ask, read what Daniel
+says back, act on it. Asking and stopping is now incomplete work rather than
+the ideal, and a guess that happens to land still fails.
+
+Persona tokens are metered separately and never charged to the arm. They are
+the environment, not the system under test.

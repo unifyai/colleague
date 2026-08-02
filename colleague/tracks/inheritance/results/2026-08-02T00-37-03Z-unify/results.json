@@ -1,0 +1,104 @@
+{
+  "track": "inheritance",
+  "arm": "unify",
+  "run_id": "2026-08-02T00-37-03Z-unify",
+  "seed": 20260801,
+  "session_scope": "scenario",
+  "scenarios": [
+    {
+      "name": "cold_control",
+      "note": "The control. With no conversation there is no way to know which report or which Sarah, so the whole round trip is the test: ask, read what Daniel says back, act on it. A guess that happens to land still fails.",
+      "reply": {
+        "ok": true,
+        "text": "Sent **\u201cWeekly Metrics Report \u2014 week 31\u201d** to **Sarah Chen** at **sarah.chen@northwind.example**. The workspace API confirmed it was sent successfully."
+      },
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_contacts",
+            "n": 1,
+            "at": "2026-08-02T00:37:50.095726+00:00"
+          },
+          {
+            "waypoint": "read_documents",
+            "n": 1,
+            "at": "2026-08-02T00:37:50.096208+00:00"
+          },
+          {
+            "waypoint": "send",
+            "n": 1,
+            "at": "2026-08-02T00:37:57.850254+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "send",
+            "at": "2026-08-02T00:37:57.850264+00:00",
+            "payload": {
+              "to": "sarah.chen@northwind.example",
+              "document_id": "doc-weekly-metrics",
+              "subject": "Weekly Metrics Report \u2014 week 31"
+            }
+          }
+        ],
+        "persona_exchanges": [],
+        "persona_tokens": 0
+      },
+      "result": {
+        "scenario": "cold_control",
+        "outcome": "fail",
+        "reason": "guessed without asking and happened to be right \u2014 the behaviour is identical to guessing wrong",
+        "detail": {
+          "name": "cold_control",
+          "passed": false,
+          "checks": {
+            "asked_before_acting": false,
+            "acted_on_the_answer": true
+          },
+          "failures": [
+            "asked_before_acting"
+          ],
+          "evidence": {
+            "asked": 0,
+            "to": "sarah.chen@northwind.example",
+            "document": "doc-weekly-metrics"
+          }
+        }
+      }
+    }
+  ],
+  "profile": "unify",
+  "summary": {
+    "total_scenarios": 1,
+    "scoreable": 1,
+    "credited": 0,
+    "accuracy": 0.0,
+    "by_outcome": {
+      "fail": 1
+    },
+    "results": [
+      {
+        "scenario": "cold_control",
+        "outcome": "fail",
+        "reason": "guessed without asking and happened to be right \u2014 the behaviour is identical to guessing wrong",
+        "detail": {
+          "name": "cold_control",
+          "passed": false,
+          "checks": {
+            "asked_before_acting": false,
+            "acted_on_the_answer": true
+          },
+          "failures": [
+            "asked_before_acting"
+          ],
+          "evidence": {
+            "asked": 0,
+            "to": "sarah.chen@northwind.example",
+            "document": "doc-weekly-metrics"
+          }
+        }
+      }
+    ]
+  }
+}

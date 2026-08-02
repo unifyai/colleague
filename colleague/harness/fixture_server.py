@@ -315,7 +315,14 @@ class FixtureServer:
 
     def evidence(self) -> dict[str, Any]:
         """Everything the fixture witnessed, for the run record."""
-        return {
+        out = {
             "waypoints": self.waypoints.log(),
             "recorded": self.recorder.all(),
         }
+        # Personas are the environment, not the system under test, so their
+        # exchanges and their token spend are reported apart from the arm's.
+        pool = self.state.get("personas")
+        if pool is not None:
+            out["persona_exchanges"] = pool.transcript()
+            out["persona_tokens"] = pool.tokens
+        return out
