@@ -165,6 +165,8 @@ class UnifySession(ArmSession):
         self._loop: _LoopThread | None = None
         self._actor: Any = None
         self._persistent: UnifyRunHandle | None = None
+        self._responder = None
+        self._clarifications: list[dict[str, Any]] = []
 
     def setup(self) -> None:
         require_env()
@@ -204,6 +206,38 @@ class UnifySession(ArmSession):
             knowledge_manager=ManagerRegistry.get_knowledge_manager(),
         )
 
+    def on_clarification(self, responder) -> None:
+        self._responder = responder
+
+    def clarifications(self) -> list[dict[str, Any]]:
+        return list(self._clarifications)
+
+    def _watch_clarifications(self, handle: Any) -> None:
+        """Answer questions the actor raises, through its own channel.
+
+        This is the whole point of the capability: `request_clarification`
+        blocks the call site, so the answer resumes the work rather than
+        arriving after it. Nothing in the fixture provides this — an arm
+        without the channel simply never raises one.
+        """
+
+        async def _pump() -> None:
+            while True:
+                q = await handle.next_clarification()
+                question = str(q.get("question") or q.get("content") or "")
+                call_id = q.get("call_id") or q.get("id") or ""
+                answer = (
+                    self._responder(question)
+                    if self._responder is not None
+                    else "No answer available."
+                )
+                self._clarifications.append(
+                    {"question": question, "answer": answer, "call_id": call_id},
+                )
+                await handle.answer_clarification(call_id, answer)
+
+        self._loop.submit(_pump())
+
     def begin(
         self,
         text: str,
@@ -215,6 +249,7 @@ class UnifySession(ArmSession):
         assert self._loop is not None and self._actor is not None, "call setup() first"
         prompt = compose(context, text if sender is None else f"[{sender}] {text}")
         handle = self._loop.run(self._actor.act(prompt, persist=persist), timeout=120)
+        self._watch_clarifications(handle)
         run = UnifyRunHandle(self._loop, handle, persist=persist)
         if persist:
             self._persistent = run

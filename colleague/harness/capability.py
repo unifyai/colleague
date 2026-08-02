@@ -102,6 +102,20 @@ class ArmProfile:
     multi_party: bool
     """Whether the harness models more than one human correspondent."""
 
+    clarification: bool
+    """Whether the harness can ask the user a question and *block* on it.
+
+    The distinction that matters is blocking. Any arm can emit a question;
+    the capability is suspending the work until an answer arrives, so the
+    task resumes with it rather than proceeding on a guess.
+
+    A fixture must never provide this. An earlier version of `inheritance`
+    exposed a `/clarify` HTTP endpoint, which handed a fake mechanism to arms
+    that have none and steered the one arm that has a real one away from it —
+    a task description that names an endpoint gets that endpoint called from
+    code, and code cannot wait for a person. It measured who used the stub.
+    """
+
     accepts_images: bool
     """Whether image content can reach the arm through its normal input path."""
 
@@ -118,6 +132,7 @@ class ArmProfile:
 PROFILES: dict[str, ArmProfile] = {
     "unify": ArmProfile(
         name="unify",
+        clarification=True,
         steering=Steering.LIVE_INTERJECT,
         storage=Storage.SCOPED,
         persistent_sessions=True,
@@ -132,6 +147,7 @@ PROFILES: dict[str, ArmProfile] = {
     ),
     "hermes": ArmProfile(
         name="hermes",
+        clarification=False,
         steering=Steering.RESTART_ONLY,
         storage=Storage.FLAT,
         persistent_sessions=False,
@@ -146,6 +162,7 @@ PROFILES: dict[str, ArmProfile] = {
     ),
     "openclaw": ArmProfile(
         name="openclaw",
+        clarification=False,
         steering=Steering.QUEUED_FOLLOWUP,
         storage=Storage.FLAT,
         persistent_sessions=True,
@@ -159,6 +176,7 @@ PROFILES: dict[str, ArmProfile] = {
     ),
     "opencode": ArmProfile(
         name="opencode",
+        clarification=False,
         steering=Steering.RESTART_ONLY,
         storage=Storage.FLAT,
         persistent_sessions=False,

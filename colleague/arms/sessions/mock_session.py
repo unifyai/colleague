@@ -29,6 +29,7 @@ from colleague.harness.session import ArmSession, Reply, RunHandle, ThreadedRunH
 
 MOCK_PROFILE = ArmProfile(
     name="mock",
+    clarification=True,
     steering=Steering.LIVE_INTERJECT,
     storage=Storage.SCOPED,
     persistent_sessions=True,
@@ -84,6 +85,8 @@ class MockSession(ArmSession):
         self.mode = mode
         self._plan = plan
         self.corrections: list[dict[str, Any]] = []
+        self._responder = None
+        self._clarifications: list[dict[str, Any]] = []
         self.memory: dict[str, Any] = {}
         """Survives across scenarios, standing in for a live session.
 
@@ -96,6 +99,18 @@ class MockSession(ArmSession):
 
     def setup(self) -> None:
         return None
+
+    def on_clarification(self, responder) -> None:
+        self._responder = responder
+
+    def clarifications(self) -> list[dict[str, Any]]:
+        return list(self._clarifications)
+
+    def ask_user(self, question: str) -> str:
+        """What a plan calls instead of POSTing a question somewhere."""
+        answer = self._responder(question) if self._responder else "No answer."
+        self._clarifications.append({"question": question, "answer": answer})
+        return answer
 
     def bind(self, *, fixture: Any, scenario: str, plan: Callable) -> None:
         self._fixture = fixture
@@ -111,6 +126,7 @@ class MockSession(ArmSession):
             corrections=self.corrections,
             fixture=self._fixture,
             memory=self.memory,
+            ask_user=self.ask_user,
         )
         return Reply(text=json.dumps(out, default=str), ok=True)
 

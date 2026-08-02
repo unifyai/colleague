@@ -172,6 +172,21 @@ class ArmSession(ABC):
         """Anything the arm produced that belongs in the run record."""
         return {}
 
+    def on_clarification(self, responder) -> None:
+        """Route the arm's native clarification channel to ``responder``.
+
+        ``responder(question) -> str``. Arms without a blocking clarification
+        mechanism ignore this, and scenarios that need one resolve to
+        UNSUPPORTED for them rather than scoring them as having declined to
+        ask. Whether the arm has the channel is a property of the harness and
+        is declared in its profile.
+        """
+        return None
+
+    def clarifications(self) -> list[dict[str, Any]]:
+        """Questions the arm raised through its own channel, with answers."""
+        return []
+
 
 def compose(context: str | None, text: str) -> str:
     """The one place a preamble is glued to a request.

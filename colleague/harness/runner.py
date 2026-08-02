@@ -168,12 +168,25 @@ def run_track(
                     scenario=name,
                     plan=scenario_module.mock_plan,
                 )
-            record: dict[str, Any] = {"name": name, "note": live.get("note", "")}
+            record: dict[str, Any] = {
+                "name": name,
+                "note": live.get("note", ""),
+                "profile": session.profile,
+            }
             print(f"[{track}/{arm}] scenario {name} — fixture {fixture.base_url}")
 
             try:
                 if shared_session is None or own_session:
                     session.setup()
+
+                # The arm asks through its own channel; the fixture provides
+                # none. Whoever the track has cast answers.
+                pool = fixture.state.get("personas")
+                if pool is not None:
+                    who = str(live.get("clarify_persona") or "daniel")
+                    session.on_clarification(
+                        lambda q, _w=who, _p=pool: _p.answer(_w, q),
+                    )
                     results.setdefault("profile", session.profile.name)
 
                 turns = []
@@ -247,7 +260,8 @@ def run_track(
                     # arm with no steering mechanism resolves to UNSUPPORTED
                     # rather than being marked wrong for a capability it never
                     # had.
-                    result = scenario_module.score(name, fixture, record=record)
+                    record["clarifications"] = session.clarifications()
+                result = scenario_module.score(name, fixture, record=record)
             except Unsupported as exc:
                 result = ScenarioResult(
                     name,
@@ -267,6 +281,7 @@ def run_track(
                 )
 
             record["evidence"] = fixture.evidence()
+            record["clarifications"] = session.clarifications()
             record["result"] = result.as_dict()
             results["scenarios"].append(record)
             outcomes.append(result)

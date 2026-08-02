@@ -183,3 +183,31 @@ Scenarios can now request `fresh_session: True` and the runner builds them
 their own, regardless of track scope.
 
 Until it is re-run, **teaching's 3/3 is not evidence of retention.**
+
+---
+
+**`[wrong]` inheritance — the fixture was faking the capability under test.**
+`/clarify` was an HTTP endpoint the fixture provided. That was backwards in
+three ways at once. It handed a clarification mechanism to arms that have
+none, so the track could not distinguish a harness with native clarification
+from one without. It pulled the one arm that *does* have a native blocking
+channel away from using it — a task description that names an endpoint gets
+that endpoint called from generated code, and code cannot wait for a person.
+And it then scored that arm down for using the thing the fixture advertised.
+
+Traced from a unillm dump: `request_clarification` was never invoked once.
+The question was written inline in Python — `post_json("/clarify", ...)`
+inside an `else:` branch — which is sound conditional logic and structurally
+incapable of receiving an answer. The script asked, printed, exited, and the
+next turn sent anyway.
+
+The endpoint is gone. The API doc now says there is no endpoint for asking
+and to use whatever mechanism the arm has. `clarification` is a declared
+capability; the unify adapter bridges `next_clarification` /
+`answer_clarification` to the track's personas; and an arm without the
+channel resolves to `UNSUPPORTED` rather than being scored as having
+declined to ask.
+
+A fixture must never supply the capability a track exists to measure. This
+is the clearest instance of that rule in the suite, and it was found by
+reading a trace rather than by any score looking wrong.

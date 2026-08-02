@@ -108,7 +108,9 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
     ]
 
 
-def mock_plan(*, scenario: str, mode: str, client, **_: Any) -> dict[str, Any]:
+def mock_plan(
+    *, scenario: str, mode: str, client, ask_user=None, **_: Any
+) -> dict[str, Any]:
     """Self-test plans: `ideal` must PASS, `naive` must FAIL.
 
     `naive` is what a loop with no memory of the conversation would plausibly
@@ -142,11 +144,9 @@ def mock_plan(*, scenario: str, mode: str, client, **_: Any) -> dict[str, Any]:
 
     if scenario == "cold_control":
         if mode == "ideal":
-            # Ask, then act on what came back — the whole round trip.
-            client.post(
-                "/clarify",
-                {"question": "Which report, and which Sarah — Chen or Okonkwo?"},
-            )
+            # Ask through the arm's own channel, then act on what came back.
+            if ask_user is not None:
+                ask_user("Which report, and which Sarah — Chen or Okonkwo?")
             return client.post(
                 "/send",
                 {
@@ -168,10 +168,21 @@ def mock_plan(*, scenario: str, mode: str, client, **_: Any) -> dict[str, Any]:
     raise KeyError(f"no mock plan for {scenario!r}")
 
 
-def score(name: str, fixture: FixtureServer, **_: Any) -> ScenarioResult:
+def score(
+    name: str,
+    fixture: FixtureServer,
+    *,
+    record: dict[str, Any] | None = None,
+    **_: Any,
+) -> ScenarioResult:
     sends = fixture.recorder.all("send")
     schedules = fixture.recorder.all("schedule")
-    clarifies = fixture.recorder.all("clarify")
+    # Asking is observed through the arm's own channel. The fixture used to
+    # expose a /clarify endpoint, which handed a fake mechanism to arms that
+    # have none and pulled the one arm that has a real one into calling an
+    # HTTP route from inside generated code — where nothing can wait for an
+    # answer. It measured who used the stub.
+    clarifies = (record or {}).get("clarifications") or []
 
     if name == "ambiguous_recipient":
         card = Scorecard(name)
@@ -220,8 +231,15 @@ def score(name: str, fixture: FixtureServer, **_: Any) -> ScenarioResult:
         return ScenarioResult(name, outcome, card.as_dict(), reason)
 
     if name == "cold_control":
-        # If the arm asked and the environment never supplied the answer,
-        # nothing about the arm was measured.
+        # An arm with no way to ask is not declining to ask.
+        profile = (record or {}).get("profile")
+        if profile is not None and not profile.clarification:
+            return ScenarioResult(
+                name,
+                Outcome.UNSUPPORTED,
+                {},
+                "no mechanism for putting a question to the user and waiting",
+            )
         pool = fixture.state.get("personas")
         if clarifies and pool is not None and not pool.delivered(*CLARIFY_GROUND_TRUTH):
             return ScenarioResult(
