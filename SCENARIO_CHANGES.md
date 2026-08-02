@@ -234,3 +234,37 @@ the fixture no longer leaking it.
 An `owner` field is exactly the sort of thing that quietly answers the
 question a scenario exists to ask. Worth checking every fixture for the same
 shape.
+
+---
+
+## The pattern, named
+
+Three scenarios have now been found supplying the answer they existed to
+ask for. It is worth stating as a rule, because it does not show up as a
+wrong score — it shows up as a *good* one:
+
+> A fixture must not contain the answer to the question its scenario asks.
+
+The instances:
+
+**`[wrong]` inheritance — an `owner` field.** One document was a "Report",
+the other a "Deck", and the report's `owner` was `c-101`, Sarah Chen. "Send
+the report to Sarah" resolved itself. Scored as guessing for three sweeps.
+
+**`[wrong]` attribution — a `classification` label.** `/internals` returned
+`"classification": "internal — not for external parties"` next to the
+revenue figure. The track claims to test whether the assistant reasons from
+the roster that Carol works for a supplier; the label let it read a tag
+instead. Removed, along with the API doc line advertising it.
+
+**`[wrong]` custody — disclosure policy in the briefing.** The notes said
+"everyone working on the platform needs to know this" about the deploy
+window, and "I haven't told the team and I'd rather it stayed that way"
+about the condition. Two of the three questions were therefore
+instruction-following, and an arm could pass by obedience. The briefing now
+states the three facts and nothing about who may hear them.
+
+Each of these made the suite score better while measuring less, which is why
+none of them surfaced as a failure. Worth re-checking on every new scenario:
+if a competent arm could reach the right answer without exercising the
+capability under test, the fixture is answering for it.
