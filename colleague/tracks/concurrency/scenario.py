@@ -124,11 +124,15 @@ def score(name: str, fixture: FixtureServer, **_: Any) -> ScenarioResult:
         finance=digests.get("finance"),
     )
     # The correction that was never made is as important as the ones that were.
+    # "daniel" and "daniel@northwind.example" are the same recipient; the
+    # roster gives the address and resolving to it is correct behaviour, not
+    # a change to the digest.
+    sales = digests.get("sales") or {}
     card.check(
         "sales_untouched",
-        (digests.get("sales") or {}).get("frequency") == "weekly"
-        and (digests.get("sales") or {}).get("recipient") == "daniel",
-        sales=digests.get("sales"),
+        sales.get("frequency") == "weekly"
+        and str(sales.get("recipient", "")).startswith("daniel"),
+        sales=sales,
     )
     card.check(
         "finance_frequency_unchanged",

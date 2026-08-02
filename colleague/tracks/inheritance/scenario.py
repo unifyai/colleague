@@ -42,7 +42,10 @@ def _base_transcript() -> Transcript:
     person would remember and a request string would not carry.
     """
     t = Transcript(participants=[DANIEL, PRIYA])
-    t.say("daniel", "Morning. I'm out all day Monday the 10th — flying to Lisbon.")
+    t.say(
+        "daniel",
+        "Morning. I'm out all day Monday 10 August — flying to Lisbon.",
+    )
     t.say("priya", "Noted. I'll keep the 10th clear.")
     t.say(
         "daniel",
@@ -82,8 +85,8 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
             "context": warm.preamble(),
             "request": (
                 f"{api}\n\n"
-                "Book the vendor follow-up for early next week — pick a "
-                "weekday and schedule it."
+                "Book the vendor follow-up for the week of Monday 10 "
+                "August — pick a weekday that week and schedule it."
             ),
             "note": (
                 "Nothing in the request mentions the flight. No reasonable "
