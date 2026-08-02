@@ -21,6 +21,7 @@ from __future__ import annotations
 import json
 import os
 import traceback
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -91,7 +92,14 @@ def run_track(
     only: str | None = None,
     mode: str = "ideal",
 ) -> int:
-    run_id = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ") + f"-{arm}"
+    # The suffix is load-bearing. run_id is the aggregate's dedupe key, and
+    # parallel repeats of one scenario start within the same second — so a
+    # timestamp alone collapsed 9 of 42 legitimate results into their
+    # neighbours and reported the survivors as the whole sweep.
+    run_id = (
+        datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
+        + f"-{arm}-{uuid.uuid4().hex[:6]}"
+    )
     results_dir = results_root / run_id
     results_dir.mkdir(parents=True, exist_ok=True)
     seed = (

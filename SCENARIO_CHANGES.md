@@ -268,3 +268,18 @@ Each of these made the suite score better while measuring less, which is why
 none of them surfaced as a failure. Worth re-checking on every new scenario:
 if a competent arm could reach the right answer without exercising the
 capability under test, the fixture is answering for it.
+
+**`[wrong]` concurrency — "the board" is the board.**
+`finance_now_to_board` required the recipient to be exactly `"board"`. The
+agent wrote `"the board"`, echoing the correction's own wording ("finance
+should go to the board"), and both corrections had in fact landed on the
+right digests. Third identifier-form false negative after `daniel` and
+`carol nwosu`. The article is not a different recipient.
+
+**Harness bug, not a scenario: colliding run ids.**
+`run_id` was a timestamp to the second plus the arm, and it is the
+aggregate's dedupe key. Parallel repeats of one scenario start within the
+same second, so a 42-shard sweep deduped to 33 results and reported the
+survivors as the whole thing — n counts ragged, some scenarios showing n=1
+on a three-repeat run. A short random suffix now makes each shard distinct
+while a genuinely re-uploaded file still collapses.

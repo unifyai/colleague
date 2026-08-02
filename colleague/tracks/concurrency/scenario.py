@@ -118,9 +118,13 @@ def score(name: str, fixture: FixtureServer, **_: Any) -> ScenarioResult:
         (digests.get("support") or {}).get("frequency") == "daily",
         support=digests.get("support"),
     )
+    # The agent wrote "the board", echoing the correction's own wording.
+    # Third identifier-form false negative after "daniel" and "carol nwosu";
+    # the article is not a different recipient.
+    finance_to = str((digests.get("finance") or {}).get("recipient", "")).lower()
     card.check(
         "finance_now_to_board",
-        (digests.get("finance") or {}).get("recipient") == "board",
+        finance_to.removeprefix("the ").strip() == "board",
         finance=digests.get("finance"),
     )
     # The correction that was never made is as important as the ones that were.
