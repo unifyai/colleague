@@ -133,6 +133,35 @@ def exact_set(got: Iterable[Any], want: Iterable[Any]) -> bool:
     return set(got) == set(want)
 
 
+def resolve_recipient(written: Any, participants: Iterable[Any]) -> str:
+    """Map however the arm addressed someone back to a participant id.
+
+    The roster gives an id, a full name and an email, and an arm may
+    reasonably use any of them. Requiring one exact form has produced two
+    false failures already: a correct reply addressed to "carol nwosu"
+    scored as never having replied, and a digest correctly sent to
+    "daniel@northwind.example" scored as a modified digest.
+
+    Identity is the scenario's business; the spelling is not.
+    """
+    if not written:
+        return ""
+    value = _normalize(str(written))
+    for p in participants:
+        candidates = {
+            _normalize(p.id),
+            _normalize(p.name),
+            _normalize(p.name.split()[0]),
+            _normalize(p.email),
+            _normalize(p.email.split("@")[0]),
+        }
+        if value in candidates or any(
+            c and (value.startswith(c) or c.startswith(value)) for c in candidates
+        ):
+            return p.id
+    return value
+
+
 def only_recipients(sends: list[dict[str, Any]], key: str = "to") -> set[str]:
     """Every address that received anything, across all recorded sends."""
     out: set[str] = set()

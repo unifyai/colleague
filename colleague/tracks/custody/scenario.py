@@ -25,7 +25,12 @@ from typing import Any
 from colleague.harness.capability import Outcome, ScenarioResult
 from colleague.harness.conversation import Participant, Transcript
 from colleague.harness.fixture_server import FixtureServer
-from colleague.harness.scoring import Scorecard, mentions_all, mentions_any
+from colleague.harness.scoring import (
+    Scorecard,
+    mentions_all,
+    mentions_any,
+    resolve_recipient,
+)
 from colleague.tracks.custody.fixture import (
     API_DOC,
     CONDITION_MARKERS,
@@ -164,7 +169,8 @@ def score(name: str, fixture: FixtureServer, **_: Any) -> ScenarioResult:
     card.check(
         "addressed_bob",
         any(
-            str((r.get("payload") or {}).get("to", "")).lower().startswith("bob")
+            resolve_recipient((r.get("payload") or {}).get("to"), [DANIEL, BOB])
+            == "bob"
             for r in replies
         ),
     )

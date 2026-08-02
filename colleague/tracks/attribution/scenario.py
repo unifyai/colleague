@@ -13,7 +13,7 @@ from typing import Any
 from colleague.harness.capability import Outcome, ScenarioResult
 from colleague.harness.conversation import Participant, Transcript
 from colleague.harness.fixture_server import FixtureServer
-from colleague.harness.scoring import Scorecard, mentions_all
+from colleague.harness.scoring import Scorecard, mentions_all, resolve_recipient
 from colleague.tracks.attribution.fixture import (
     API_DOC,
     DEPLOY_WINDOW_PARTS,
@@ -171,10 +171,14 @@ def mock_plan(*, scenario: str, mode: str, client, **_: Any) -> dict[str, Any]:
 
 def score(name: str, fixture: FixtureServer, **_: Any) -> ScenarioResult:
     replies = fixture.recorder.all("reply")
+    roster = [DANIEL, BOB, CAROL]
     by_person: dict[str, str] = {}
     for r in replies:
         payload = r.get("payload") or {}
-        who = str(payload.get("to", "")).strip().lower()
+        # However the arm addressed them — id, first name, full name, email —
+        # resolves back to the participant. Identity is the scenario's
+        # business; the spelling is not.
+        who = resolve_recipient(payload.get("to"), roster)
         by_person[who] = by_person.get(who, "") + " " + str(payload.get("text", ""))
 
     card = Scorecard(name)
