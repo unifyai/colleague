@@ -32,13 +32,24 @@ GLYPH = {
 
 
 def load(root: Path) -> list[dict[str, Any]]:
-    runs = []
+    """Every results.json under ``root``, one per run_id.
+
+    Deduplication is load-bearing rather than tidy. Each shard uploads its
+    track's whole results tree, so a results file that ever reaches the repo
+    is re-uploaded by every later shard — and a sweep merges the same stale
+    run dozens of times, from a code version that no longer exists, as if it
+    were part of the fresh one.
+    """
+    runs: dict[str, dict[str, Any]] = {}
     for path in sorted(root.rglob("results.json")):
         try:
-            runs.append(json.loads(path.read_text()))
+            data = json.loads(path.read_text())
         except (json.JSONDecodeError, OSError) as exc:
             print(f"skipping {path}: {exc}", file=sys.stderr)
-    return runs
+            continue
+        key = str(data.get("run_id") or path)
+        runs[key] = data
+    return list(runs.values())
 
 
 def merge(runs: list[dict[str, Any]]) -> dict[str, Any]:

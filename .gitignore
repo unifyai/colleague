@@ -23,3 +23,11 @@ colleague/tracks/*/*/results/*/requests.jsonl
 # Mock-arm runs are self-test output, not evidence: they make no LLM calls
 # and prove things about the suite rather than about any harness.
 colleague/tracks/*/results/*-mock/
+
+# Track results are run artifacts, not evidence: CI uploads them and the
+# aggregate reads them from there. Committing a local debugging run means
+# every future shard re-uploads it, and stale results from an older code
+# version get merged into a fresh sweep as if they were part of it.
+# (standing/ keeps its committed results — they are the published record,
+# and they live one level deeper so this does not match them.)
+colleague/tracks/*/results/
