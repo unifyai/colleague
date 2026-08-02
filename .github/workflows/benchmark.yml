@@ -106,6 +106,35 @@ jobs:
     - name: Self-test the suite before spending anything
       run: PYTHONPATH=. python -m colleague.selftest
 
+    # A sweep against an unfunded tenant does not fail — it produces a full
+    # set of well-formed failures describing no work, which is worse. Two
+    # seconds here rather than fourteen shards of plausible nonsense.
+    - name: Preflight the unify backend
+      if: contains(inputs.arms, 'unify') || inputs.arms == 'all'
+      env:
+        UNIFY_KEY: ${{ secrets.UNIFY_KEY }}
+        ORCHESTRA_URL: ${{ vars.ORCHESTRA_URL || 'https://api.staging.internal.saas.unify.ai/v0' }}
+      run: |
+        set -euo pipefail
+        code=$(curl -s -o /tmp/p.json -w "%{http_code}" --max-time 20 \
+          -H "Authorization: Bearer $UNIFY_KEY" "${ORCHESTRA_URL%/}/credits")
+        if [[ "$code" != "200" ]]; then
+          echo "::error::UNIFY_KEY rejected by $ORCHESTRA_URL (HTTP $code)"
+          exit 1
+        fi
+        credits=$(python -c "import json;print(json.load(open('/tmp/p.json')).get('credits',0))")
+        echo "staging credits: $credits" >> "$GITHUB_STEP_SUMMARY"
+        python - <<PY
+        import sys
+        c = float("$credits")
+        if c < 2:
+            print(f"::error::staging balance is {c} — top up before sweeping; "
+                  "every shard would return SpendingLimitExceededError as "
+                  "ordinary reply text and score as an arm that did nothing")
+            sys.exit(1)
+        print(f"balance {c} — enough to start")
+        PY
+
   run:
     needs: plan
     runs-on: ubuntu-latest

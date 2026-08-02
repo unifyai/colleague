@@ -72,6 +72,27 @@ if (( SHARDS > 40 )) && [[ -z "$CONFIRM" ]]; then
   exit 1
 fi
 
+# Same preflight the workflow runs, done here so the answer arrives before a
+# round trip. An unfunded tenant does not fail a sweep — it fills it with
+# well-formed failures describing no work.
+if [[ "$ARMS" == *unify* || "$ARMS" == "all" ]]; then
+  KEY=$(grep -E "^[[:space:]]*(export[[:space:]]+)?SHARED_UNIFY_KEY=" \
+    "$HOME/unify/.env" 2>/dev/null | tail -1 | sed 's/^[^=]*=//; s/^"//; s/"$//' || true)
+  URL="${ORCHESTRA_URL:-https://api.staging.internal.saas.unify.ai/v0}"
+  if [[ -n "$KEY" ]]; then
+    BAL=$(curl -s --max-time 15 -H "Authorization: Bearer $KEY" "${URL%/}/credits" \
+      | python3 -c 'import json,sys; print(json.load(sys.stdin).get("credits",0))' 2>/dev/null || echo "")
+    if [[ -n "$BAL" ]]; then
+      echo "staging credits: $BAL"
+      if python3 -c "import sys; sys.exit(0 if float('$BAL') < 2 else 1)"; then
+        echo "balance too low — top up before sweeping, or every shard will"
+        echo "return SpendingLimitExceededError and score as an idle agent."
+        exit 1
+      fi
+    fi
+  fi
+fi
+
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 if ! git diff --quiet || ! git diff --cached --quiet; then
   echo "note: uncommitted changes are not included; CI runs $BRANCH as pushed" >&2
