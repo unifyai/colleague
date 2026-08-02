@@ -59,9 +59,10 @@ def _base_transcript() -> Transcript:
     t.say("priya", "Looking now.")
     t.say(
         "daniel",
-        "Separately, the Q2 board deck is done — Sarah Okonkwo finished the slides.",
+        "Separately, Sarah Okonkwo sent over the weekly revenue report — that "
+        "one's fine, no action needed.",
     )
-    t.say("priya", "Good, that one's off the list.")
+    t.say("priya", "Noted — revenue report parked, metrics still open.")
     t.say("daniel", "Right, back to the metrics.")
     return t
 
@@ -133,7 +134,7 @@ def mock_plan(
             "/send",
             {
                 "to": "sarah.okonkwo@northwind.example",
-                "document_id": "doc-q2-board-deck",
+                "document_id": "doc-weekly-revenue",
                 "subject": "The report",
             },
         )

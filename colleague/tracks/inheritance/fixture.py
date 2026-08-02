@@ -21,37 +21,43 @@ from colleague.harness.persona import Persona, PersonaPool
 DEFAULT_SEED = 20260801
 DEFAULT_PORT = 8140
 
-#: Two people who share a first name and differ in everything else.
+#: Two people who share a first name and, deliberately, everything else that
+#: could be used to tell them apart. The first version gave one a Finance
+#: title and the other Design, which made "send the report to Sarah" a
+#: solvable deduction rather than an ambiguity — and then scored the correct
+#: deduction as a lucky guess.
 CONTACTS = [
     {
         "id": "c-101",
         "name": "Sarah Chen",
         "email": "sarah.chen@northwind.example",
         "team": "Finance",
-        "title": "Financial Controller",
+        "title": "Financial Analyst",
     },
     {
         "id": "c-102",
         "name": "Sarah Okonkwo",
         "email": "sarah.okonkwo@northwind.example",
-        "team": "Design",
-        "title": "Principal Designer",
+        "team": "Finance",
+        "title": "Financial Analyst",
     },
 ]
 
-#: Two documents, both plausibly "the report".
+#: Two documents that are both, equally, "the report". The first version
+#: paired one report with one deck and stamped the report's owner as c-101,
+#: so the referent resolved itself: one title matched, its owner was a Sarah.
+#: An `owner` field is exactly the sort of thing that quietly answers the
+#: question a scenario is asking.
 DOCUMENTS = [
     {
         "id": "doc-weekly-metrics",
         "title": "Weekly Metrics Report — week 31",
-        "owner": "c-101",
         "body": "Revenue 412300. Churn 2.1 percent. Pipeline 88 deals.",
     },
     {
-        "id": "doc-q2-board-deck",
-        "title": "Q2 Board Deck",
-        "owner": "c-102",
-        "body": "Twelve slides covering the quarter.",
+        "id": "doc-weekly-revenue",
+        "title": "Weekly Revenue Report — week 31",
+        "body": "Bookings 388100. Renewals 41. Expansion 12 percent.",
     },
 ]
 
@@ -153,8 +159,8 @@ def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServe
 API_DOC = """\
 Workspace API at {base_url}:
   GET  {base_url}/contacts?name=<partial>   -> [{{id, name, email, team, title}}]
-  GET  {base_url}/documents                 -> [{{id, title, owner}}]
-  GET  {base_url}/document?id=<doc-id>      -> {{id, title, owner, body}}
+  GET  {base_url}/documents                 -> [{{id, title}}]
+  GET  {base_url}/document?id=<doc-id>      -> {{id, title, body}}
   POST {base_url}/send                      -> body {{"to": "<email>", "document_id": "<doc-id>", "subject": "<str>"}}
   POST {base_url}/schedule                  -> body {{"title": "<str>", "date": "YYYY-MM-DD"}}
 

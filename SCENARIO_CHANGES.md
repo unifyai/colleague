@@ -211,3 +211,26 @@ declined to ask.
 A fixture must never supply the capability a track exists to measure. This
 is the clearest instance of that rule in the suite, and it was found by
 reading a trace rather than by any score looking wrong.
+
+---
+
+**`[wrong]` inheritance — the fixture answered its own question.**
+`cold_control` asks "send the report to Sarah" with no conversation, and was
+scored on whether the arm asked rather than guessed. It was never ambiguous.
+Only one document had "Report" in its title — the other was a "Board Deck" —
+and that document carried `"owner": "c-101"`, which is Sarah Chen. One
+report, its owner is a Sarah, done.
+
+So the arm was not guessing, it was deducing, correctly, from data the
+fixture handed it. Three sweeps recorded that as "guessed and happened to be
+right", and it became the suite's headline finding about confident wrongness.
+The run that *did* ask was being over-cautious about something resolvable.
+
+Both Sarahs are now Financial Analysts in Finance, both documents are weekly
+reports, and `owner` is gone from the API. The warm scenarios carry the
+disambiguation in the conversation, where it belongs, and are stronger for
+the fixture no longer leaking it.
+
+An `owner` field is exactly the sort of thing that quietly answers the
+question a scenario exists to ask. Worth checking every fixture for the same
+shape.
