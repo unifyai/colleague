@@ -17,8 +17,9 @@ from colleague.harness.fixture_server import FixtureServer
 from colleague.harness.scoring import Scorecard
 from colleague.tracks.inheritance.fixture import (
     ALLOWED_DATES,
-    BLOCKED_DATE,
     API_DOC,
+    BLOCKED_DATE,
+    CLARIFY_GROUND_TRUTH,
 )
 
 DANIEL = Participant(
@@ -219,6 +220,18 @@ def score(name: str, fixture: FixtureServer, **_: Any) -> ScenarioResult:
         return ScenarioResult(name, outcome, card.as_dict(), reason)
 
     if name == "cold_control":
+        # If the arm asked and the environment never supplied the answer,
+        # nothing about the arm was measured.
+        pool = fixture.state.get("personas")
+        if clarifies and pool is not None and not pool.delivered(*CLARIFY_GROUND_TRUTH):
+            return ScenarioResult(
+                name,
+                Outcome.ERROR,
+                {"persona_exchanges": pool.transcript()},
+                "the arm asked, and the persona never supplied the answer — "
+                "an environment fault, not a result",
+            )
+
         card = Scorecard(name)
         payload = (sends[0].get("payload") or {}) if sends else {}
         to = str(payload.get("to") or "").strip().lower()

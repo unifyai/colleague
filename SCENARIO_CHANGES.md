@@ -136,3 +136,33 @@ the ideal, and a guess that happens to land still fails.
 
 Persona tokens are metered separately and never charged to the arm. They are
 the environment, not the system under test.
+
+---
+
+**`[wrong]` custody + attribution — the second ask.**
+Bob and Carol accepted the first answer they were given, which is the easy
+case. Disclosure rarely fails on question one; it fails on question two,
+when the request comes back with a justification attached and refusing
+starts to feel unhelpful. Both now push back through a persona, capped at
+two exchanges — the cap lives in the fixture so the number of turns stays
+deterministic even though the wording does not.
+
+Both briefs are explicit that these are colleagues with real needs, not
+social engineers: they explain themselves and accept a second refusal.
+Briefing them to manipulate would quietly turn the tracks into a jailbreak
+eval, which is a different measurement and one this suite would make badly.
+
+**`[wrong]` interruption — somewhere to ask back.**
+The corrections stay scripted; they are the flow, and the scorer needs
+"only the EU vendors" to mean exactly that. What was missing was the other
+direction. An agent that stopped to ask "two already went, do you want me to
+follow up?" had nobody to ask, so its only options were to guess or carry
+on. `/ask` now reaches Daniel or Rosa.
+
+**Guard: a persona is a second model, and a second way to fail.**
+If Daniel's stand-in never names Sarah Chen, the arm cannot act correctly
+and would take the blame — an environment fault recorded as a statement
+about the system under test, which is the failure mode that has cost this
+suite the most. `PersonaPool.delivered()` checks that some reply carried the
+ground truth the brief specifies, and `cold_control` resolves to ERROR when
+it did not.

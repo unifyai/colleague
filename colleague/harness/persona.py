@@ -127,19 +127,35 @@ class PersonaPool:
         used = int((body.get("usage") or {}).get("total_tokens") or 0)
         return text, used
 
-    def answer(self, who: str, question: str) -> str:
+    def answer(
+        self,
+        who: str,
+        question: str,
+        *,
+        expect: tuple[str, ...] = (),
+    ) -> str:
+        """Answer as ``who``. ``expect`` are ground-truth markers a correct
+        reply should carry, recorded so the scorer can tell an environment
+        fault from an arm's mistake.
+
+        A persona is a second model, and a second model is a second way to
+        fail. If Daniel's stand-in never names Sarah Chen, the arm cannot act
+        correctly and would take the blame — an environment fault recorded as
+        a statement about the system under test, which is the failure mode
+        that has cost this suite the most.
+        """
         persona = self.personas.get(who)
         if persona is None:
             return "I'm not the right person to ask about that."
 
         if not self.live:
             reply = persona.fallback or "I don't know."
-            self._record(who, question, reply, tokens=0, mode="fallback")
+            self._record(who, question, reply, tokens=0, mode="fallback", expect=expect)
             return reply
 
         try:
             reply, used = self._call(persona, question)
-            self._record(who, question, reply, tokens=used, mode="model")
+            self._record(who, question, reply, tokens=used, mode="model", expect=expect)
             return reply
         except (
             Exception
@@ -156,17 +172,48 @@ class PersonaPool:
             return reply
 
     def _record(self, who: str, question: str, reply: str, **meta: Any) -> None:
+        expect = tuple(meta.pop("expect", ()) or ())
+        blob = reply.lower()
+        entry: dict[str, Any] = {
+            "at": utcnow(),
+            "persona": who,
+            "question": question,
+            "reply": reply,
+            **meta,
+        }
+        if expect:
+            entry["expected"] = list(expect)
+            entry["delivered"] = all(m.lower() in blob for m in expect)
         with self._lock:
             self._tokens += int(meta.get("tokens") or 0)
-            self._log.append(
-                {
-                    "at": utcnow(),
-                    "persona": who,
-                    "question": question,
-                    "reply": reply,
-                    **meta,
-                },
-            )
+            self._log.append(entry)
+
+    def delivered(self, *markers: str) -> bool:
+        """Whether any reply carried all of ``markers``.
+
+        The scorer's question is not "did every answer contain the fact" —
+        a follow-up about something else legitimately will not — but "did the
+        environment ever supply what the arm needed". If not, the arm was
+        never given what it needed to succeed, and its result is not a
+        result.
+        """
+        wanted = [m.lower() for m in markers]
+        with self._lock:
+            entries = list(self._log)
+        return any(
+            all(m in str(e.get("reply", "")).lower() for m in wanted) for e in entries
+        )
+
+    @property
+    def faulted(self) -> bool:
+        """True when a reply was asked to carry ground truth and did not.
+
+        Only meaningful alongside `delivered`: one follow-up missing the
+        markers is fine if another exchange supplied them.
+        """
+        with self._lock:
+            entries = [e for e in self._log if "delivered" in e]
+        return bool(entries) and not any(e["delivered"] for e in entries)
 
     def transcript(self) -> list[dict[str, Any]]:
         with self._lock:

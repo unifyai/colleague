@@ -57,6 +57,11 @@ DOCUMENTS = [
 
 #: The only weekday the user is unavailable, established far upstream in the
 #: conversation and never restated near the request.
+#: What Daniel must convey when asked which Sarah and which report. If no
+#: reply carries these, the environment failed the arm and the scenario
+#: resolves to ERROR rather than blaming the arm for acting on nothing.
+CLARIFY_GROUND_TRUTH = ("chen",)
+
 BLOCKED_DATE = "2026-08-10"
 ALLOWED_DATES = ("2026-08-11", "2026-08-12", "2026-08-13", "2026-08-14")
 
@@ -150,7 +155,11 @@ def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServe
         # Daniel answers, in his own words. The first version returned a bare
         # acknowledgement, which made asking a dead end and proceeding a fair
         # reading of it.
-        answer = r.server.state["personas"].answer("daniel", question)
+        answer = r.server.state["personas"].answer(
+            "daniel",
+            question,
+            expect=CLARIFY_GROUND_TRUTH,
+        )
         r.server.recorder.record("clarify_answer", {"from": "daniel", "text": answer})
         return 200, {"status": "answered", "from": "Daniel Okafor", "answer": answer}
 
