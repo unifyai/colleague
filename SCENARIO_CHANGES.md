@@ -98,10 +98,20 @@ use any of them. Identity is the scenario's business; the spelling is not.
 Not scenario faults. Recorded here so that fixing them means changing the
 runtime, not the benchmark.
 
-- **`inheritance/cold_control`** — **3/3 fail at n=3.** Not variance: given
-  no conversation, the arm guesses which report and which Sarah rather than
-  using the `/clarify` endpoint it was told about. It guessed correctly each
-  time, which is why a single run once looked like a pass. This is the one
-  scenario in the suite that penalises confident wrongness, and it is
-  currently the arm's only reproducible failure. Fixing it means changing
-  when the runtime chooses to ask, not changing the scenario.
+- **`inheritance/cold_control`** — **corrected diagnosis.** Earlier entries
+  here said the arm guesses rather than asks. That was wrong, and the
+  scorer's own reason string ("guessed and happened to be right") is what
+  made it wrong: the arm *does* ask. A unillm trace shows it posting a
+  well-formed question naming both Sarahs and both candidate documents — and
+  then sending anyway without waiting.
+
+  Partly the fixture's fault: `/clarify` returned a bare `{"status":
+  "question received"}`, so an arm that asked correctly had no way to know
+  whether an answer was coming, and proceeding was a fair reading of a
+  dead-end endpoint. `[wrong]` — the endpoint now states that asking is
+  terminal, and the scorer distinguishes "asked then acted" from "guessed".
+
+  What remains is a real and narrower finding: **the arm treats asking as
+  non-blocking.** It consults and proceeds in the same breath, which is worse
+  than not consulting, because it produces the appearance of having checked.
+  That is the prompt target — not "make it ask", which it already does.

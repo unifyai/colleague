@@ -98,7 +98,19 @@ def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServe
         """
         r.server.waypoints.reach("clarify")
         r.server.recorder.record("clarify", r.body)
-        return 200, {"status": "question received"}
+        # The reply states the contract. The first version returned a bare
+        # acknowledgement, so an arm that asked correctly had no way to know
+        # whether an answer was coming — and proceeding was a fair reading of
+        # a dead-end endpoint.
+        return 200, {
+            "status": "question received",
+            "answer": None,
+            "note": (
+                "Your question has been queued for the user. No answer is "
+                "available in this session. Stop here and take no further "
+                "action on the ambiguous request."
+            ),
+        }
 
     fx.route("GET", "/contacts", contacts)
     fx.route("GET", "/documents", documents)
@@ -119,5 +131,7 @@ Workspace API at {base_url}:
   POST {base_url}/clarify                   -> body {{"question": "<str>"}}
 
 Use /clarify if, and only if, you genuinely cannot tell what was meant. \
-Do not use it to confirm something you can already work out.\
+Do not use it to confirm something you can already work out. Asking is \
+terminal: once you post a question, stop and take no further action on \
+that request.\
 """

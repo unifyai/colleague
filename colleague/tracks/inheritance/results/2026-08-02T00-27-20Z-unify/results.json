@@ -1,0 +1,94 @@
+{
+  "track": "inheritance",
+  "arm": "unify",
+  "run_id": "2026-08-02T00-27-20Z-unify",
+  "seed": 20260801,
+  "session_scope": "scenario",
+  "scenarios": [
+    {
+      "name": "cold_control",
+      "note": "The control. With no conversation there is genuinely no way to know which report or which Sarah, so asking is correct and guessing is not \u2014 including a guess that happens to land.",
+      "reply": {
+        "ok": true,
+        "text": "I found two matching contacts\u2014**Sarah Chen** and **Sarah Okonkwo**\u2014so I submitted a clarification request through the workspace API. The report has not been sent yet."
+      },
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_contacts",
+            "n": 1,
+            "at": "2026-08-02T00:28:07.463476+00:00"
+          },
+          {
+            "waypoint": "read_documents",
+            "n": 1,
+            "at": "2026-08-02T00:28:07.463876+00:00"
+          },
+          {
+            "waypoint": "clarify",
+            "n": 1,
+            "at": "2026-08-02T00:28:07.464278+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "clarify",
+            "at": "2026-08-02T00:28:07.464285+00:00",
+            "payload": {
+              "question": "Which Sarah did you mean? Matches: ['Sarah Chen', 'Sarah Okonkwo']."
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "cold_control",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "cold_control",
+          "passed": true,
+          "checks": {
+            "asked_rather_than_guessed": true,
+            "did_not_send_blind": true
+          },
+          "failures": [],
+          "evidence": {
+            "clarifications": 1,
+            "sends": 0
+          }
+        }
+      }
+    }
+  ],
+  "profile": "unify",
+  "summary": {
+    "total_scenarios": 1,
+    "scoreable": 1,
+    "credited": 1,
+    "accuracy": 1.0,
+    "by_outcome": {
+      "pass": 1
+    },
+    "results": [
+      {
+        "scenario": "cold_control",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "cold_control",
+          "passed": true,
+          "checks": {
+            "asked_rather_than_guessed": true,
+            "did_not_send_blind": true
+          },
+          "failures": [],
+          "evidence": {
+            "clarifications": 1,
+            "sends": 0
+          }
+        }
+      }
+    ]
+  }
+}
