@@ -85,10 +85,13 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
                 f"{api}\n\nRun the weekly invoice chase for week 32 — send "
                 "reminders for the overdue invoices."
             ),
+            "fresh_session": True,
             "note": (
-                "The control: no walkthrough, ever. Establishes what the API "
-                "alone yields, so week 32's score can be read as retention "
-                "rather than inference."
+                "The control: no walkthrough, ever, in a session that never "
+                "saw one. It ran third in the shared session and passed by "
+                "remembering, which made the taught result unreadable — a "
+                "control contaminated by the thing it controls for is worse "
+                "than no control."
             ),
         },
     ]

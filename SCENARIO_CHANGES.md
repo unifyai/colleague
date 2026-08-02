@@ -166,3 +166,20 @@ about the system under test, which is the failure mode that has cost this
 suite the most. `PersonaPool.delivered()` checks that some reply carried the
 ground truth the brief specifies, and `cold_control` resolves to ERROR when
 it did not.
+
+---
+
+**`[wrong]` teaching — the untaught control was taught.**
+`untaught_control` exists to establish what the API alone yields, so the
+taught week's score can be read as retention. It ran third *in the shared
+session*, under `SESSION_SCOPE = "track"` — so it still remembered the
+walkthrough, passed 3/3, and made `week_32_replay` unreadable. The scorer
+even reported it as "guessed both exceptions from the API alone", which
+described something that did not happen.
+
+A control contaminated by the thing it controls for is worse than no
+control: it converts an unproven claim into an apparently-measured one.
+Scenarios can now request `fresh_session: True` and the runner builds them
+their own, regardless of track scope.
+
+Until it is re-run, **teaching's 3/3 is not evidence of retention.**

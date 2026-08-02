@@ -147,7 +147,14 @@ def run_track(
                 for s in scenario_module.scenarios(fixture.base_url)
                 if s["name"] == name
             )
-            session = shared_session or _session_for(
+            # A scenario may demand a clean session even under track scope.
+            # `teaching/untaught_control` is the reason: it ran third in the
+            # shared session and still remembered the walkthrough, so the
+            # control that exists to establish what the API alone yields was
+            # measuring retention instead — and made the taught result
+            # unreadable.
+            own_session = bool(live.get("fresh_session"))
+            session = (None if own_session else shared_session) or _session_for(
                 arm,
                 track=track,
                 run_id=f"{run_id}-{name}",
@@ -165,7 +172,7 @@ def run_track(
             print(f"[{track}/{arm}] scenario {name} — fixture {fixture.base_url}")
 
             try:
-                if shared_session is None:
+                if shared_session is None or own_session:
                     session.setup()
                     results.setdefault("profile", session.profile.name)
 
@@ -267,7 +274,7 @@ def run_track(
 
             if shared_fixture is None:
                 fixture.stop()
-            if shared_session is None:
+            if shared_session is None or own_session:
                 session.close()
     finally:
         if shared_fixture is not None:
