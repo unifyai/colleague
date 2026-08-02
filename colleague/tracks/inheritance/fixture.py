@@ -98,19 +98,27 @@ def _personas() -> PersonaPool:
                     "ask, but you would much rather it asked than guessed."
                 ),
                 knowledge={
+                    # Both Sarahs are Finance analysts and both documents are
+                    # weekly reports, so the surname and the title are the only
+                    # things that distinguish them. An earlier version of this
+                    # brief still said "Not Sarah Okonkwo in Design" and "not
+                    # the Q2 board deck" — describing a fixture that no longer
+                    # existed, which left the persona with nothing to say.
                     "which Sarah": (
-                        "Sarah Chen, in Finance — sarah.chen@northwind.example. "
-                        "Not Sarah Okonkwo in Design."
+                        "Sarah Chen — sarah.chen@northwind.example. Say the "
+                        "surname Chen explicitly; both Sarahs are Finance "
+                        "analysts and the surname is the only thing that "
+                        "tells them apart."
                     ),
                     "which report": (
                         "The Weekly Metrics Report (doc-weekly-metrics), the "
-                        "one with the churn number Sarah Chen flagged. Not the "
-                        "Q2 board deck."
+                        "one with the churn number. Not the Weekly Revenue "
+                        "Report."
                     ),
                 },
                 fallback=(
-                    "Sarah Chen in Finance, and the weekly metrics report — "
-                    "the one with the churn number."
+                    "Sarah Chen, and the weekly metrics report — the one with "
+                    "the churn number."
                 ),
             ),
         ],
