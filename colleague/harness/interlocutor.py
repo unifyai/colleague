@@ -56,10 +56,16 @@ class Delivery:
     """How it reached the arm: live_interject / queued_followup / not_delivered."""
 
     recorder_seq: int
-    """Fixture recorder sequence at the moment of delivery.
+    """Fixture recorder sequence when the turn was **dispatched**.
 
-    Compared against the sequence of the side effect under test to decide
-    whether the message landed in time, without reference to wall clock.
+    Not when the arm received it. For a live interjection those differ by an
+    LLM round trip, and reading this as receipt once produced a scored
+    failure against an agent that had correctly reported the correction
+    arriving too late to act on.
+
+    Scenarios that depend on the correction being in hand must widen the
+    window themselves — hold the response that precedes the irreversible
+    step — rather than inferring receipt from this number.
     """
 
     at: str
