@@ -28,6 +28,7 @@ from typing import Any
 from colleague.arms.sessions import build as build_session
 from colleague.harness.capability import Outcome, ScenarioResult, summarize
 from colleague.harness.interlocutor import Interlocutor
+from colleague.harness.scoring import infra_failure
 from colleague.harness.session import ArmSession, Reply, RunHandle, Unsupported
 
 
@@ -221,10 +222,25 @@ def run_track(
                         timeout_s=timeout_s,
                     )
 
-                # The scorer sees how the correction was delivered, so an arm
-                # with no steering mechanism resolves to UNSUPPORTED rather
-                # than being marked wrong for a capability it never had.
-                result = scenario_module.score(name, fixture, record=record)
+                # Before scoring at all: did the run actually happen? An arm
+                # that catches its own LLM failure and returns the message as
+                # text is indistinguishable, to a scorer, from an arm that
+                # did nothing — which is how an out-of-credit tenant produced
+                # a full set of plausible-looking failures.
+                marker = infra_failure(reply.text, reply.error)
+                if marker:
+                    result = ScenarioResult(
+                        name,
+                        Outcome.ERROR,
+                        {"marker": marker, "reply": reply.text[:500]},
+                        f"infrastructure failure ({marker}) — nothing was measured",
+                    )
+                else:
+                    # The scorer sees how the correction was delivered, so an
+                    # arm with no steering mechanism resolves to UNSUPPORTED
+                    # rather than being marked wrong for a capability it never
+                    # had.
+                    result = scenario_module.score(name, fixture, record=record)
             except Unsupported as exc:
                 result = ScenarioResult(
                     name,

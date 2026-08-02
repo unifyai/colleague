@@ -50,6 +50,42 @@ class Scorecard:
         }
 
 
+#: Substrings that mean the run never happened, whatever the arm reported.
+#:
+#: An arm that catches its own LLM failure and returns the message as ordinary
+#: text looks, to a scorer, exactly like an arm that did nothing. That is how a
+#: sweep against an out-of-credit tenant produced "unify scored 3/11" — a
+#: plausible, publishable-looking number describing no work at all.
+INFRA_FAILURE_MARKERS = (
+    "insufficient credits",
+    "spendinglimitexceeded",
+    "llm call failed",
+    "inner task failed",
+    "rate limit",
+    "429 too many requests",
+    "invalid api key",
+    "authenticationerror",
+    "connection refused",
+    "service unavailable",
+)
+
+
+def infra_failure(*texts: Any) -> str:
+    """The first infrastructure-failure marker present, or ''.
+
+    Checked before scoring. A hit means the harness could not measure, so the
+    scenario resolves to ERROR rather than to a statement about the arm.
+    """
+    for text in texts:
+        if not text:
+            continue
+        blob = (text if isinstance(text, str) else repr(text)).lower()
+        for marker in INFRA_FAILURE_MARKERS:
+            if marker in blob:
+                return marker
+    return ""
+
+
 def mentions(haystack: Any, needle: str) -> bool:
     """Case-insensitive containment over anything renderable as text.
 
