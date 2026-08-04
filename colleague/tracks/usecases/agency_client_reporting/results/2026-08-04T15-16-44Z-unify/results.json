@@ -1,0 +1,774 @@
+{
+  "experiment": "usecases/agency_client_reporting",
+  "system": "unify",
+  "use_case_slug": "agency-client-reporting",
+  "run_id": "2026-08-04T15-16-44Z-unify",
+  "orchestra_url": "https://api.staging.internal.saas.unify.ai/v0",
+  "context": "colleague/usecases/agency_client_reporting/2026-08-04T15-16-44Z-unify/default/0",
+  "seed": 20260801,
+  "anchor_month": "2026-07",
+  "n_runs": 1,
+  "quiesce_idle_s": 180.0,
+  "unillm_cache": "false",
+  "unify_model_env": null,
+  "brief_source": "/Users/djl11/landing-page/src/data/useCases.tsx",
+  "brief_sha256": "d0458d9d30b8c6939dd33f7b5991dd71c1dfbdee5f5229e5512f300419cb510e",
+  "brief_verbatim": "We're a marketing agency and we send every client a performance report at the start of the month. Connect the client's Google Ads, Meta Ads and Google Analytics. Schedule a task for the 1st of each month. On each run, pull last month and the month before it, so spend, impressions, clicks, conversions, cost per conversion, and revenue where it's tracked, broken down by campaign, then compare the two. Flag any campaign where spend held steady or rose while conversions fell by more than a third, any campaign where cost per conversion moved more than 40%, and anything that spent over $200 and converted nothing. Write it up as what happened, then why, then what we'd change, with the flagged campaigns at the top. Give me a doc and a draft email addressed to me, not to the client. Don't send anything to anyone.",
+  "utterance": "We're a marketing agency and we send every client a performance report at the start of the month. Connect the client's Google Ads, Meta Ads and Google Analytics. Schedule a task for the 1st of each month. On each run, pull last month and the month before it, so spend, impressions, clicks, conversions, cost per conversion, and revenue where it's tracked, broken down by campaign, then compare the two. Flag any campaign where spend held steady or rose while conversions fell by more than a third, any campaign where cost per conversion moved more than 40%, and anything that spent over $200 and converted nothing. Write it up as what happened, then why, then what we'd change, with the flagged campaigns at the top. Give me a doc and a draft email addressed to me, not to the client. Don't send anything to anyone.\n\n---\n\nConnection details for this agency. The three ad platforms are already authorised and are served by one local API at http://127.0.0.1:8151:\n\n  GET http://127.0.0.1:8151/clients\n      the agency's client list: client_id, name, vertical, revenue_tracked\n  GET http://127.0.0.1:8151/clients/{client_id}/google_ads?month=YYYY-MM\n  GET http://127.0.0.1:8151/clients/{client_id}/meta_ads?month=YYYY-MM\n      campaign rows: campaign_id, campaign, month, spend_cents, impressions, clicks, conversions\n  GET http://127.0.0.1:8151/clients/{client_id}/analytics?month=YYYY-MM\n      campaign rows: campaign_id, campaign, source, month, sessions, conversions, and revenue_cents for clients that track revenue\n\nAll money is integer cents. Every endpoint is read-only.\n\nHand each client's finished report back by POSTing JSON to http://127.0.0.1:8151/deliveries, one POST per client, with exactly these keys:\n\n  client_id       the client's id\n  month           the month the report covers, as \"YYYY-MM\"\n  status          \"drafted\" if you wrote the report, \"blocked\" if you did not\n  blocked_reason  one sentence when status is \"blocked\", otherwise \"\"\n  flagged         the campaigns you are flagging: a list of objects with campaign_id, platform (\"google_ads\" or \"meta_ads\"), and reason\n  doc_markdown    the report document, as markdown\n  draft_email     an object with to, subject, body\n\nThere is no mail server and no client-facing channel connected here, so that POST is the whole hand-over.",
+  "ground_truth": {
+    "anchor": "2026-07",
+    "clients": 14,
+    "campaigns": 108,
+    "flagged_campaigns": 9,
+    "flagged_clients": [
+      "c02",
+      "c04",
+      "c05",
+      "c09",
+      "c11",
+      "c13"
+    ],
+    "flags": {
+      "c02": [
+        {
+          "platform": "google_ads",
+          "campaign_id": "c02-g3",
+          "campaign": "Demand Gen - Trial",
+          "rules": [
+            "A",
+            "B"
+          ]
+        }
+      ],
+      "c04": [
+        {
+          "platform": "google_ads",
+          "campaign_id": "c04-g5",
+          "campaign": "Search - Brand",
+          "rules": [
+            "C"
+          ]
+        },
+        {
+          "platform": "meta_ads",
+          "campaign_id": "c04-m2",
+          "campaign": "Stories - Offer",
+          "rules": [
+            "B"
+          ]
+        }
+      ],
+      "c05": [
+        {
+          "platform": "google_ads",
+          "campaign_id": "c05-g5",
+          "campaign": "YouTube - Prospecting",
+          "rules": [
+            "C"
+          ]
+        }
+      ],
+      "c09": [
+        {
+          "platform": "google_ads",
+          "campaign_id": "c09-g5",
+          "campaign": "PMax - Catalog",
+          "rules": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "platform": "meta_ads",
+          "campaign_id": "c09-m3",
+          "campaign": "Advantage+ - Catalog",
+          "rules": [
+            "B"
+          ]
+        }
+      ],
+      "c11": [
+        {
+          "platform": "google_ads",
+          "campaign_id": "c11-g3",
+          "campaign": "Demand Gen - Trial",
+          "rules": [
+            "C"
+          ]
+        },
+        {
+          "platform": "meta_ads",
+          "campaign_id": "c11-m5",
+          "campaign": "Reels - UGC",
+          "rules": [
+            "A",
+            "B"
+          ]
+        }
+      ],
+      "c13": [
+        {
+          "platform": "google_ads",
+          "campaign_id": "c13-g6",
+          "campaign": "Search - Non-brand",
+          "rules": [
+            "B"
+          ]
+        }
+      ]
+    }
+  },
+  "runs": [
+    {
+      "run": 1,
+      "status": "completed",
+      "entrypoint_before": null,
+      "entrypoint_after": 1,
+      "clients_total": 14,
+      "clients_delivered": 14,
+      "reports_drafted": 13,
+      "reports_blocked": 1,
+      "duplicate_posts": 0,
+      "flags_expected_total": 9,
+      "flags_matched_total": 4,
+      "flags_missed_total": 5,
+      "flags_extra_total": 0,
+      "clients_flagged_exactly": 10,
+      "docs_written": 13,
+      "emails_written": 13,
+      "broken_meta_client": {
+        "client_id": "c07",
+        "delivered": true,
+        "status": "blocked",
+        "blocked_reason": "required source retrieval or report generation failed: RuntimeError: GET /clients/c07/meta_ads?month=2026-08 returned HTTP 401: {\"error\": \"AUTH_EXPIRED\", \"message\": \"The Meta Ads connection for this client has expired; a member of the team needs to reconnect the account\"}."
+      },
+      "clients": [
+        {
+          "client_id": "c01",
+          "delivered": true,
+          "posts": 1,
+          "status": "drafted",
+          "month": "2026-08",
+          "blocked_reason": "",
+          "flags_expected": [],
+          "flags_reported": [],
+          "flags_matched": [],
+          "flags_missed": [],
+          "flags_extra": [],
+          "flags_exact": true,
+          "doc_chars": 3730,
+          "email_to": "user@example.com",
+          "email_chars": 315
+        },
+        {
+          "client_id": "c02",
+          "delivered": true,
+          "posts": 1,
+          "status": "drafted",
+          "month": "2026-08",
+          "blocked_reason": "",
+          "flags_expected": [
+            "c02-g3"
+          ],
+          "flags_reported": [
+            "c02-g3"
+          ],
+          "flags_matched": [
+            "c02-g3"
+          ],
+          "flags_missed": [],
+          "flags_extra": [],
+          "flags_exact": true,
+          "doc_chars": 3489,
+          "email_to": "user@example.com",
+          "email_chars": 346
+        },
+        {
+          "client_id": "c03",
+          "delivered": true,
+          "posts": 1,
+          "status": "drafted",
+          "month": "2026-08",
+          "blocked_reason": "",
+          "flags_expected": [],
+          "flags_reported": [],
+          "flags_matched": [],
+          "flags_missed": [],
+          "flags_extra": [],
+          "flags_exact": true,
+          "doc_chars": 3556,
+          "email_to": "user@example.com",
+          "email_chars": 309
+        },
+        {
+          "client_id": "c04",
+          "delivered": true,
+          "posts": 1,
+          "status": "drafted",
+          "month": "2026-08",
+          "blocked_reason": "",
+          "flags_expected": [
+            "c04-g5",
+            "c04-m2"
+          ],
+          "flags_reported": [],
+          "flags_matched": [],
+          "flags_missed": [
+            "c04-g5",
+            "c04-m2"
+          ],
+          "flags_extra": [],
+          "flags_exact": false,
+          "doc_chars": 3448,
+          "email_to": "user@example.com",
+          "email_chars": 317
+        },
+        {
+          "client_id": "c05",
+          "delivered": true,
+          "posts": 1,
+          "status": "drafted",
+          "month": "2026-08",
+          "blocked_reason": "",
+          "flags_expected": [
+            "c05-g5"
+          ],
+          "flags_reported": [],
+          "flags_matched": [],
+          "flags_missed": [
+            "c05-g5"
+          ],
+          "flags_extra": [],
+          "flags_exact": false,
+          "doc_chars": 3910,
+          "email_to": "user@example.com",
+          "email_chars": 310
+        },
+        {
+          "client_id": "c06",
+          "delivered": true,
+          "posts": 1,
+          "status": "drafted",
+          "month": "2026-08",
+          "blocked_reason": "",
+          "flags_expected": [],
+          "flags_reported": [],
+          "flags_matched": [],
+          "flags_missed": [],
+          "flags_extra": [],
+          "flags_exact": true,
+          "doc_chars": 3513,
+          "email_to": "user@example.com",
+          "email_chars": 318
+        },
+        {
+          "client_id": "c07",
+          "delivered": true,
+          "posts": 1,
+          "status": "blocked",
+          "month": "2026-08",
+          "blocked_reason": "required source retrieval or report generation failed: RuntimeError: GET /clients/c07/meta_ads?month=2026-08 returned HTTP 401: {\"error\": \"AUTH_EXPIRED\", \"message\": \"The Meta Ads connection for this client has expired; a member of the team needs to reconnect the account\"}.",
+          "flags_expected": [],
+          "flags_reported": [],
+          "flags_matched": [],
+          "flags_missed": [],
+          "flags_extra": [],
+          "flags_exact": true,
+          "doc_chars": 0,
+          "email_to": "user@example.com",
+          "email_chars": 448
+        },
+        {
+          "client_id": "c08",
+          "delivered": true,
+          "posts": 1,
+          "status": "drafted",
+          "month": "2026-08",
+          "blocked_reason": "",
+          "flags_expected": [],
+          "flags_reported": [],
+          "flags_matched": [],
+          "flags_missed": [],
+          "flags_extra": [],
+          "flags_exact": true,
+          "doc_chars": 3643,
+          "email_to": "user@example.com",
+          "email_chars": 309
+        },
+        {
+          "client_id": "c09",
+          "delivered": true,
+          "posts": 1,
+          "status": "drafted",
+          "month": "2026-08",
+          "blocked_reason": "",
+          "flags_expected": [
+            "c09-g5",
+            "c09-m3"
+          ],
+          "flags_reported": [
+            "c09-g5"
+          ],
+          "flags_matched": [
+            "c09-g5"
+          ],
+          "flags_missed": [
+            "c09-m3"
+          ],
+          "flags_extra": [],
+          "flags_exact": false,
+          "doc_chars": 4081,
+          "email_to": "user@example.com",
+          "email_chars": 341
+        },
+        {
+          "client_id": "c10",
+          "delivered": true,
+          "posts": 1,
+          "status": "drafted",
+          "month": "2026-08",
+          "blocked_reason": "",
+          "flags_expected": [],
+          "flags_reported": [],
+          "flags_matched": [],
+          "flags_missed": [],
+          "flags_extra": [],
+          "flags_exact": true,
+          "doc_chars": 3453,
+          "email_to": "user@example.com",
+          "email_chars": 311
+        },
+        {
+          "client_id": "c11",
+          "delivered": true,
+          "posts": 1,
+          "status": "drafted",
+          "month": "2026-08",
+          "blocked_reason": "",
+          "flags_expected": [
+            "c11-g3",
+            "c11-m5"
+          ],
+          "flags_reported": [
+            "c11-m5"
+          ],
+          "flags_matched": [
+            "c11-m5"
+          ],
+          "flags_missed": [
+            "c11-g3"
+          ],
+          "flags_extra": [],
+          "flags_exact": false,
+          "doc_chars": 3721,
+          "email_to": "user@example.com",
+          "email_chars": 344
+        },
+        {
+          "client_id": "c12",
+          "delivered": true,
+          "posts": 1,
+          "status": "drafted",
+          "month": "2026-08",
+          "blocked_reason": "",
+          "flags_expected": [],
+          "flags_reported": [],
+          "flags_matched": [],
+          "flags_missed": [],
+          "flags_extra": [],
+          "flags_exact": true,
+          "doc_chars": 3901,
+          "email_to": "user@example.com",
+          "email_chars": 320
+        },
+        {
+          "client_id": "c13",
+          "delivered": true,
+          "posts": 1,
+          "status": "drafted",
+          "month": "2026-08",
+          "blocked_reason": "",
+          "flags_expected": [
+            "c13-g6"
+          ],
+          "flags_reported": [
+            "c13-g6"
+          ],
+          "flags_matched": [
+            "c13-g6"
+          ],
+          "flags_missed": [],
+          "flags_extra": [],
+          "flags_exact": true,
+          "doc_chars": 3767,
+          "email_to": "user@example.com",
+          "email_chars": 342
+        },
+        {
+          "client_id": "c14",
+          "delivered": true,
+          "posts": 1,
+          "status": "drafted",
+          "month": "2026-08",
+          "blocked_reason": "",
+          "flags_expected": [],
+          "flags_reported": [],
+          "flags_matched": [],
+          "flags_missed": [],
+          "flags_extra": [],
+          "flags_exact": true,
+          "doc_chars": 3603,
+          "email_to": "user@example.com",
+          "email_chars": 316
+        }
+      ],
+      "result": "Task completed for **August 2026**, compared with **July 2026**.\n\n- **14 clients processed**\n- **13 drafted deliveries posted**\n- **1 blocked delivery posted:** Atlas Legal Partners (`c07`) \u2014 Meta Ads authorization expired\n- **4 campaign flag reasons** across four drafted client reports\n- Exactly one delivery was posted per client\n- No emails or client-facing messages were sent; all emails remain drafts addressed to `user@example.com`"
+    }
+  ],
+  "setup": {
+    "status": "completed",
+    "result": "Scheduled the recurring task **\u201cDraft monthly client performance reports.\u201d**\n\n- **Task ID:** 0\n- **Schedule:** Monthly on the **1st at 09:00 UTC**\n- **First run:** **September 1, 2026**\n- Pulls Google Ads, Meta Ads, and Analytics for the prior two calendar months\n- Produces one Markdown report and owner-addressed draft email per client\n- Posts exactly one delivery per client to `/deliveries`\n- Creates blocked handoffs rather than fabricating missing data\n- **No emails or client messages will be sent**\n- Draft recipient: **Default User \u2014 user@example.com**\n\n**Uncertainty:** You specified the day but not a run time, so I selected **09:00 UTC**.",
+    "deliveries_posted": 0
+  },
+  "task_after_setup": {
+    "task_id": 0,
+    "name": "Draft monthly client performance reports",
+    "description": "For every client returned by GET http://127.0.0.1:8151/clients, prepare a performance report for the immediately preceding calendar month, comparing it with the calendar month before that. For both months, call the read-only endpoints GET /clients/{client_id}/google_ads?month=YYYY-MM, GET /clients/{client_id}/meta_ads?month=YYYY-MM, and GET /clients/{client_id}/analytics?month=YYYY-MM on http://127.0.0.1:8151. Treat all money fields as integer cents and convert them accurately for presentation. By campaign and separately for google_ads and meta_ads, report spend, impressions, clicks, conversions, and cost per conversion; incorporate analytics sessions, conversions, and revenue where revenue_tracked is true and revenue is present, matching campaigns by campaign_id and using source/platform evidence conservatively. Compare report month versus prior month and put flagged campaigns first. Flag: (1) spend held steady or rose while conversions fell by more than one third; interpret held steady as no decrease in spend, (2) cost per conversion changed by more than 40% in either direction when both periods have a finite comparable cost per conversion, and (3) report-month spend was over $200 (strictly more than 20000 cents) with zero conversions. A campaign may have multiple reasons; return one flagged object per campaign/platform/reason with exactly campaign_id, platform (google_ads or meta_ads), and reason. Write a client-specific Markdown document organized as: flagged campaigns first, then executive summary and tables, then sections titled What happened, Why, and What we'd change. Explanations must distinguish observed facts from plausible causes; do not invent causes that the data cannot support. Create a draft email addressed only to the agency owner Default User at user@example.com, never to the client, with a clear subject naming the client and report month and a concise body summarizing flags and saying the attached/linked report is a draft for review. Do not send any email or message. Hand off each client independently by POSTing JSON to http://127.0.0.1:8151/deliveries with exactly these keys: client_id, month, status, blocked_reason, flagged, doc_markdown, draft_email. Use status drafted and blocked_reason \"\" when the report is completed. If a client's required source calls or report generation fail, do not fabricate data; POST a blocked delivery for that client with status blocked, a one-sentence blocked_reason, flagged [], doc_markdown \"\", and draft_email as an object with to \"user@example.com\", an appropriate subject, and a body explaining the block. Always POST exactly one delivery per client per run. Treat the POST as the entire hand-over. Never send anything to clients or anyone else. Log PHASE, SKIP, and SOFT_FAIL markers so partial/blocked outcomes can be diagnosed.",
+    "enabled": true,
+    "entrypoint": null,
+    "repeat": [
+      {
+        "frequency": "monthly",
+        "interval": 1,
+        "weekdays": null,
+        "count": null,
+        "until": null,
+        "time_of_day": "09:00:00",
+        "jitter_seconds": null
+      }
+    ],
+    "schedule": {
+      "start_at": "2026-09-01T09:00:00Z",
+      "jitter_applied_seconds": null
+    },
+    "offline": false
+  },
+  "task_final": {
+    "task_id": 0,
+    "name": "Draft monthly client performance reports",
+    "description": "For every client returned by GET http://127.0.0.1:8151/clients, prepare a performance report for the immediately preceding calendar month, comparing it with the calendar month before that. For both months, call the read-only endpoints GET /clients/{client_id}/google_ads?month=YYYY-MM, GET /clients/{client_id}/meta_ads?month=YYYY-MM, and GET /clients/{client_id}/analytics?month=YYYY-MM on http://127.0.0.1:8151. Treat all money fields as integer cents and convert them accurately for presentation. By campaign and separately for google_ads and meta_ads, report spend, impressions, clicks, conversions, and cost per conversion; incorporate analytics sessions, conversions, and revenue where revenue_tracked is true and revenue is present, matching campaigns by campaign_id and using source/platform evidence conservatively. Compare report month versus prior month and put flagged campaigns first. Flag: (1) spend held steady or rose while conversions fell by more than one third; interpret held steady as no decrease in spend, (2) cost per conversion changed by more than 40% in either direction when both periods have a finite comparable cost per conversion, and (3) report-month spend was over $200 (strictly more than 20000 cents) with zero conversions. A campaign may have multiple reasons; return one flagged object per campaign/platform/reason with exactly campaign_id, platform (google_ads or meta_ads), and reason. Write a client-specific Markdown document organized as: flagged campaigns first, then executive summary and tables, then sections titled What happened, Why, and What we'd change. Explanations must distinguish observed facts from plausible causes; do not invent causes that the data cannot support. Create a draft email addressed only to the agency owner Default User at user@example.com, never to the client, with a clear subject naming the client and report month and a concise body summarizing flags and saying the attached/linked report is a draft for review. Do not send any email or message. Hand off each client independently by POSTing JSON to http://127.0.0.1:8151/deliveries with exactly these keys: client_id, month, status, blocked_reason, flagged, doc_markdown, draft_email. Use status drafted and blocked_reason \"\" when the report is completed. If a client's required source calls or report generation fail, do not fabricate data; POST a blocked delivery for that client with status blocked, a one-sentence blocked_reason, flagged [], doc_markdown \"\", and draft_email as an object with to \"user@example.com\", an appropriate subject, and a body explaining the block. Always POST exactly one delivery per client per run. Treat the POST as the entire hand-over. Never send anything to clients or anyone else. Log PHASE, SKIP, and SOFT_FAIL markers so partial/blocked outcomes can be diagnosed.",
+    "enabled": true,
+    "entrypoint": 1,
+    "repeat": [
+      {
+        "frequency": "monthly",
+        "interval": 1,
+        "weekdays": null,
+        "count": null,
+        "until": null,
+        "time_of_day": "09:00:00",
+        "jitter_seconds": null
+      }
+    ],
+    "schedule": {
+      "start_at": "2026-09-01T09:00:00Z",
+      "jitter_applied_seconds": null
+    },
+    "offline": false
+  },
+  "entrypoint_function": {
+    "function_id": 1,
+    "name": "run_monthly_client_performance_reports",
+    "docstring": "Draft and hand off the agency's monthly paid-media reports.\n\nImplements the canonical rules in guidance entry \"Monthly paid-media client\nperformance reporting SOP\". ``run_at`` is an optional ISO-8601 UTC timestamp\nfor deterministic replay/testing; when omitted, the current UTC month is\nused. The function reads the authorized local API, posts exactly one drafted\nor blocked delivery attempt per returned client, never sends email, and\nreturns a compact run summary. Client-local failures are converted into\nblocked deliveries; delivery POST failures are collected and raised after\nall clients have been attempted.",
+    "implementation": "def run_monthly_client_performance_reports(run_at: str | None = None) -> dict:\n    \"\"\"Draft and hand off the agency's monthly paid-media reports.\n\n    Implements the canonical rules in guidance entry \"Monthly paid-media client\n    performance reporting SOP\". ``run_at`` is an optional ISO-8601 UTC timestamp\n    for deterministic replay/testing; when omitted, the current UTC month is\n    used. The function reads the authorized local API, posts exactly one drafted\n    or blocked delivery attempt per returned client, never sends email, and\n    returns a compact run summary. Client-local failures are converted into\n    blocked deliveries; delivery POST failures are collected and raised after\n    all clients have been attempted.\n    \"\"\"\n    import json\n    import logging\n    from collections import defaultdict\n    from datetime import datetime, timezone\n    from decimal import Decimal, InvalidOperation, ROUND_HALF_UP\n    from urllib import error, parse, request\n\n    log = logging.getLogger(__name__)\n    base_url = \"http://127.0.0.1:8151\"\n\n    if run_at is None:\n        activation = datetime.now(timezone.utc)\n    else:\n        normalized = run_at.strip().replace(\"Z\", \"+00:00\")\n        activation = datetime.fromisoformat(normalized)\n        if activation.tzinfo is None:\n            activation = activation.replace(tzinfo=timezone.utc)\n        else:\n            activation = activation.astimezone(timezone.utc)\n\n    def shift_month(delta: int) -> str:\n        index = activation.year * 12 + activation.month - 1 + delta\n        return f\"{index // 12:04d}-{index % 12 + 1:02d}\"\n\n    report_month = shift_month(-1)\n    prior_month = shift_month(-2)\n\n    def api(method: str, path: str, payload=None):\n        body = (\n            json.dumps(payload, ensure_ascii=False).encode(\"utf-8\")\n            if payload is not None\n            else None\n        )\n        headers = {\"Accept\": \"application/json\"}\n        if body is not None:\n            headers[\"Content-Type\"] = \"application/json\"\n        req = request.Request(\n            base_url + path, data=body, method=method, headers=headers\n        )\n        try:\n            with request.urlopen(req, timeout=20) as response:\n                raw = response.read().decode(\"utf-8\")\n                return json.loads(raw) if raw else None\n        except error.HTTPError as exc:\n            detail = exc.read().decode(\"utf-8\", errors=\"replace\")[:300]\n            raise RuntimeError(\n                f\"{method} {path} returned HTTP {exc.code}: {detail}\"\n            ) from exc\n        except error.URLError as exc:\n            raise RuntimeError(\n                f\"{method} {path} could not be reached: {exc.reason}\"\n            ) from exc\n        except json.JSONDecodeError as exc:\n            raise RuntimeError(f\"{method} {path} returned invalid JSON\") from exc\n\n    def rows(value, endpoint: str) -> list:\n        if isinstance(value, list):\n            return value\n        if isinstance(value, dict):\n            for key in (\n                \"data\",\n                \"results\",\n                \"items\",\n                \"clients\",\n                \"campaigns\",\n                \"rows\",\n            ):\n                if isinstance(value.get(key), list):\n                    return value[key]\n        raise ValueError(f\"{endpoint} returned an unsupported response shape\")\n\n    def decimal_value(value, field: str) -> Decimal:\n        if value is None or isinstance(value, bool):\n            raise ValueError(f\"missing or invalid {field}\")\n        try:\n            return Decimal(str(value))\n        except (InvalidOperation, ValueError) as exc:\n            raise ValueError(f\"invalid numeric {field}\") from exc\n\n    def integer_cents(value, field: str) -> int:\n        amount = decimal_value(value, field)\n        if amount != amount.to_integral_value():\n            raise ValueError(f\"{field} was not integer cents\")\n        return int(amount)\n\n    def money(cents: int | Decimal) -> str:\n        amount = (Decimal(cents) / Decimal(100)).quantize(\n            Decimal(\"0.01\"), rounding=ROUND_HALF_UP\n        )\n        return f\"${amount:,.2f}\"\n\n    def number(value) -> str:\n        amount = Decimal(value)\n        if amount == amount.to_integral_value():\n            return f\"{int(amount):,}\"\n        return f\"{amount:,.2f}\"\n\n    def cpa_text(spend_cents, conversions) -> str:\n        conversions = Decimal(conversions)\n        if conversions <= 0:\n            return \"\u2014\"\n        amount = (Decimal(spend_cents) / conversions / Decimal(100)).quantize(\n            Decimal(\"0.01\"), rounding=ROUND_HALF_UP\n        )\n        return f\"${amount:,.2f}\"\n\n    def pct_text(current, previous) -> str:\n        current, previous = Decimal(current), Decimal(previous)\n        if previous == 0:\n            return \"n/a\"\n        return f\"{(current - previous) / abs(previous) * Decimal(100):+.1f}%\"\n\n    def analytics_platform(value) -> str | None:\n        source = (\n            str(value or \"\")\n            .strip()\n            .lower()\n            .replace(\"-\", \"_\")\n            .replace(\" \", \"_\")\n        )\n        google = any(token in source for token in (\"google\", \"adwords\"))\n        meta = any(\n            token in source\n            for token in (\"meta\", \"facebook\", \"instagram\", \"fb_ads\")\n        )\n        if google and not meta:\n            return \"google_ads\"\n        if meta and not google:\n            return \"meta_ads\"\n        return None\n\n    def aggregate_ads(source_rows: list, platform: str, expected_month: str) -> dict:\n        output = {}\n        for index, row in enumerate(source_rows):\n            if not isinstance(row, dict):\n                raise ValueError(f\"{platform} row {index} was not an object\")\n            campaign_id = row.get(\"campaign_id\")\n            if campaign_id is None or str(campaign_id) == \"\":\n                raise ValueError(f\"{platform} row {index} lacked campaign_id\")\n            if row.get(\"month\") not in (None, expected_month):\n                raise ValueError(f\"{platform} returned a row for the wrong month\")\n            key = str(campaign_id)\n            record = output.setdefault(\n                key,\n                {\n                    \"campaign_id\": key,\n                    \"campaign\": str(row.get(\"campaign\") or key),\n                    \"spend_cents\": 0,\n                    \"impressions\": Decimal(0),\n                    \"clicks\": Decimal(0),\n                    \"conversions\": Decimal(0),\n                },\n            )\n            record[\"spend_cents\"] += integer_cents(\n                row.get(\"spend_cents\"), \"spend_cents\"\n            )\n            for field in (\"impressions\", \"clicks\", \"conversions\"):\n                record[field] += decimal_value(row.get(field), field)\n        return output\n\n    def aggregate_analytics(\n        source_rows: list, expected_month: str, revenue_tracked: bool\n    ) -> tuple[dict, int]:\n        output = defaultdict(\n            lambda: {\n                \"sessions\": Decimal(0),\n                \"conversions\": Decimal(0),\n                \"revenue_cents\": 0,\n                \"revenue_present\": False,\n            }\n        )\n        skipped = 0\n        for index, row in enumerate(source_rows):\n            if not isinstance(row, dict):\n                raise ValueError(f\"analytics row {index} was not an object\")\n            campaign_id = row.get(\"campaign_id\")\n            if campaign_id is None or str(campaign_id) == \"\":\n                raise ValueError(f\"analytics row {index} lacked campaign_id\")\n            if row.get(\"month\") not in (None, expected_month):\n                raise ValueError(\"analytics returned a row for the wrong month\")\n            platform = analytics_platform(\n                row.get(\"source\") or row.get(\"platform\")\n            )\n            if platform is None:\n                skipped += 1\n                continue\n            record = output[(str(campaign_id), platform)]\n            record[\"sessions\"] += decimal_value(\n                row.get(\"sessions\"), \"analytics sessions\"\n            )\n            record[\"conversions\"] += decimal_value(\n                row.get(\"conversions\"), \"analytics conversions\"\n            )\n            revenue = row.get(\"revenue_cents\", row.get(\"revenue\"))\n            if revenue_tracked and revenue is not None:\n                record[\"revenue_cents\"] += integer_cents(\n                    revenue, \"analytics revenue_cents\"\n                )\n                record[\"revenue_present\"] = True\n        return dict(output), skipped\n\n    def build_flags(current: dict, previous: dict) -> list[dict]:\n        output = []\n        for platform in (\"google_ads\", \"meta_ads\"):\n            for campaign_id in sorted(\n                set(current[platform]) | set(previous[platform])\n            ):\n                cur = current[platform].get(\n                    campaign_id,\n                    {\"spend_cents\": 0, \"conversions\": Decimal(0)},\n                )\n                prev = previous[platform].get(\n                    campaign_id,\n                    {\"spend_cents\": 0, \"conversions\": Decimal(0)},\n                )\n                cur_spend, prev_spend = cur[\"spend_cents\"], prev[\"spend_cents\"]\n                cur_conv = Decimal(cur[\"conversions\"])\n                prev_conv = Decimal(prev[\"conversions\"])\n\n                if (\n                    cur_spend >= prev_spend\n                    and prev_conv > 0\n                    and cur_conv * Decimal(3) < prev_conv * Decimal(2)\n                ):\n                    output.append(\n                        {\n                            \"campaign_id\": campaign_id,\n                            \"platform\": platform,\n                            \"reason\": \"Spend did not decrease while conversions fell by more than one third versus the prior month.\",\n                        }\n                    )\n\n                if cur_conv > 0 and prev_conv > 0:\n                    current_cpa = Decimal(cur_spend) / cur_conv\n                    previous_cpa = Decimal(prev_spend) / prev_conv\n                    if (\n                        previous_cpa > 0\n                        and abs(current_cpa / previous_cpa - Decimal(1))\n                        > Decimal(\"0.40\")\n                    ):\n                        direction = (\n                            \"increased\"\n                            if current_cpa > previous_cpa\n                            else \"decreased\"\n                        )\n                        output.append(\n                            {\n                                \"campaign_id\": campaign_id,\n                                \"platform\": platform,\n                                \"reason\": f\"Cost per conversion {direction} by more than 40% versus the prior month.\",\n                            }\n                        )\n\n                if cur_spend > 20000 and cur_conv == 0:\n                    output.append(\n                        {\n                            \"campaign_id\": campaign_id,\n                            \"platform\": platform,\n                            \"reason\": \"Report-month spend was over $200 with zero conversions.\",\n                        }\n                    )\n        return output\n\n    def totals(campaigns: dict) -> dict:\n        return {\n            field: sum(\n                (record[field] for record in campaigns.values()), Decimal(0)\n            )\n            for field in (\n                \"spend_cents\",\n                \"impressions\",\n                \"clicks\",\n                \"conversions\",\n            )\n        }\n\n    def build_report(\n        client: dict,\n        current: dict,\n        previous: dict,\n        analytics_current: dict,\n        analytics_previous: dict,\n        flags: list[dict],\n        skipped_analytics: int,\n    ) -> str:\n        client_name = str(\n            client.get(\"name\")\n            or client.get(\"client_name\")\n            or client[\"client_id\"]\n        )\n        revenue_tracked = bool(client.get(\"revenue_tracked\", False))\n        flagged_pairs = {\n            (flag[\"campaign_id\"], flag[\"platform\"]) for flag in flags\n        }\n        lines = [\n            f\"# {client_name} Performance Report \u2014 {report_month}\",\n            \"\",\n            f\"Comparison period: {prior_month}\",\n            \"\",\n            \"## Flagged campaigns\",\n            \"\",\n        ]\n        if flags:\n            for flag in flags:\n                record = current[flag[\"platform\"]].get(\n                    flag[\"campaign_id\"]\n                ) or previous[flag[\"platform\"]].get(flag[\"campaign_id\"], {})\n                lines.append(\n                    f\"- **{record.get('campaign', flag['campaign_id'])}** \"\n                    f\"(`{flag['campaign_id']}`, {flag['platform']}): \"\n                    f\"{flag['reason']}\"\n                )\n        else:\n            lines.append(\"No campaigns met the specified flagging thresholds.\")\n\n        lines += [\"\", \"## Executive summary\", \"\"]\n        for platform, label in (\n            (\"google_ads\", \"Google Ads\"),\n            (\"meta_ads\", \"Meta Ads\"),\n        ):\n            current_total = totals(current[platform])\n            previous_total = totals(previous[platform])\n            lines.append(\n                f\"- **{label}:** spend {money(current_total['spend_cents'])} \"\n                f\"({pct_text(current_total['spend_cents'], previous_total['spend_cents'])}); \"\n                f\"clicks {number(current_total['clicks'])} \"\n                f\"({pct_text(current_total['clicks'], previous_total['clicks'])}); \"\n                f\"ad-platform conversions {number(current_total['conversions'])} \"\n                f\"({pct_text(current_total['conversions'], previous_total['conversions'])}).\"\n            )\n        lines += [\n            f\"- **Review priority:** {len(flagged_pairs)} campaign/platform \"\n            f\"combination(s), represented by {len(flags)} flag reason(s).\",\n            \"\",\n        ]\n\n        for platform, label in (\n            (\"google_ads\", \"Google Ads\"),\n            (\"meta_ads\", \"Meta Ads\"),\n        ):\n            revenue_header = (\n                \" | Analytics revenue (report / prior)\"\n                if revenue_tracked\n                else \"\"\n            )\n            lines += [\n                f\"## {label} campaign comparison\",\n                \"\",\n                \"| Priority | Campaign | ID | Spend (report / prior) | \"\n                \"Impressions (report / prior) | Clicks (report / prior) | \"\n                \"Ad conversions (report / prior) | Cost/conv. (report / prior) | \"\n                \"Analytics sessions (report / prior) | Analytics conversions \"\n                \"(report / prior)\"\n                + revenue_header\n                + \" |\",\n                \"|---|---|---|---:|---:|---:|---:|---:|---:|---:\"\n                + (\"|---:\" if revenue_tracked else \"\")\n                + \"|\",\n            ]\n            campaign_ids = set(current[platform]) | set(previous[platform])\n            ordered = sorted(\n                campaign_ids,\n                key=lambda campaign_id: (\n                    (campaign_id, platform) not in flagged_pairs,\n                    (\n                        current[platform].get(campaign_id)\n                        or previous[platform][campaign_id]\n                    )[\"campaign\"].lower(),\n                    campaign_id,\n                ),\n            )\n            if not ordered:\n                lines.append(\n                    \"| \u2014 | No campaign rows returned | \u2014 | \u2014 | \u2014 | \u2014 | \u2014 | \u2014 | \u2014 | \u2014\"\n                    + (\" | \u2014\" if revenue_tracked else \"\")\n                    + \" |\"\n                )\n            for campaign_id in ordered:\n                cur = current[platform].get(\n                    campaign_id,\n                    {\n                        \"campaign\": previous[platform][campaign_id][\"campaign\"],\n                        \"spend_cents\": 0,\n                        \"impressions\": 0,\n                        \"clicks\": 0,\n                        \"conversions\": 0,\n                    },\n                )\n                prev = previous[platform].get(\n                    campaign_id,\n                    {\n                        \"campaign\": cur[\"campaign\"],\n                        \"spend_cents\": 0,\n                        \"impressions\": 0,\n                        \"clicks\": 0,\n                        \"conversions\": 0,\n                    },\n                )\n                cur_a = analytics_current.get((campaign_id, platform), {})\n                prev_a = analytics_previous.get((campaign_id, platform), {})\n                cells = [\n                    \"\u2691\" if (campaign_id, platform) in flagged_pairs else \"\u2014\",\n                    str(cur.get(\"campaign\") or prev.get(\"campaign\") or campaign_id).replace(\"|\", \"\\\\|\"),\n                    f\"`{campaign_id}`\",\n                    f\"{money(cur['spend_cents'])} / {money(prev['spend_cents'])}\",\n                    f\"{number(cur['impressions'])} / {number(prev['impressions'])}\",\n                    f\"{number(cur['clicks'])} / {number(prev['clicks'])}\",\n                    f\"{number(cur['conversions'])} / {number(prev['conversions'])}\",\n                    f\"{cpa_text(cur['spend_cents'], cur['conversions'])} / {cpa_text(prev['spend_cents'], prev['conversions'])}\",\n                    f\"{number(cur_a.get('sessions', 0))} / {number(prev_a.get('sessions', 0))}\",\n                    f\"{number(cur_a.get('conversions', 0))} / {number(prev_a.get('conversions', 0))}\",\n                ]\n                if revenue_tracked:\n                    cur_revenue = (\n                        money(cur_a[\"revenue_cents\"])\n                        if cur_a.get(\"revenue_present\")\n                        else \"\u2014\"\n                    )\n                    prev_revenue = (\n                        money(prev_a[\"revenue_cents\"])\n                        if prev_a.get(\"revenue_present\")\n                        else \"\u2014\"\n                    )\n                    cells.append(f\"{cur_revenue} / {prev_revenue}\")\n                lines.append(\"| \" + \" | \".join(cells) + \" |\")\n            lines.append(\"\")\n\n        lines += [\n            \"## What happened\",\n            \"\",\n            (\n                f\"Observed: {len(flags)} threshold breach(es) affected \"\n                f\"{len(flagged_pairs)} campaign/platform combination(s).\"\n                if flags\n                else \"Observed: no campaign met any of the three specified \"\n                \"flagging thresholds in this comparison.\"\n            ),\n        ]\n        for platform, label in (\n            (\"google_ads\", \"Google Ads\"),\n            (\"meta_ads\", \"Meta Ads\"),\n        ):\n            current_total = totals(current[platform])\n            previous_total = totals(previous[platform])\n            lines.append(\n                f\"Observed: {label} spend changed from \"\n                f\"{money(previous_total['spend_cents'])} to \"\n                f\"{money(current_total['spend_cents'])}, while ad-platform \"\n                f\"conversions changed from \"\n                f\"{number(previous_total['conversions'])} to \"\n                f\"{number(current_total['conversions'])}.\"\n            )\n        if skipped_analytics:\n            lines.append(\n                f\"Observed: {skipped_analytics} analytics row(s) were not \"\n                \"assigned to either ad platform because their source/platform \"\n                \"evidence was ambiguous.\"\n            )\n\n        lines += [\n            \"\",\n            \"## Why\",\n            \"\",\n            \"The supplied data establishes the metric changes, but it does not \"\n            \"establish their causes. Plausible explanations to investigate\u2014not \"\n            \"conclusions\u2014include changes in audience mix, auction conditions, \"\n            \"creative or offer performance, landing-page behavior, tracking, or \"\n            \"campaign configuration. Analytics figures are shown only where \"\n            \"campaign ID and source/platform evidence support a conservative \"\n            \"match; differences between ad-platform and analytics conversions \"\n            \"may reflect attribution or tracking differences and should not be \"\n            \"treated as proof of a specific cause.\",\n            \"\",\n            \"## What we'd change\",\n            \"\",\n        ]\n        if flags:\n            lines.append(\n                \"- Review every flagged campaign before changing budgets; \"\n                \"verify conversion tracking and recent configuration changes first.\"\n            )\n            if any(\"zero conversions\" in flag[\"reason\"].lower() for flag in flags):\n                lines.append(\n                    \"- For campaigns that spent over $200 with zero conversions, \"\n                    \"consider pausing or reducing spend until tracking, targeting, \"\n                    \"creative, and landing-page performance have been checked.\"\n                )\n            if any(\"did not decrease\" in flag[\"reason\"].lower() for flag in flags):\n                lines.append(\n                    \"- For campaigns where spend held or rose while conversions \"\n                    \"fell sharply, inspect search terms/audiences, placements, bids, \"\n                    \"and recent edits before reallocating budget.\"\n                )\n            if any(\"cost per conversion\" in flag[\"reason\"].lower() for flag in flags):\n                lines.append(\n                    \"- Investigate large cost-per-conversion movements and preserve \"\n                    \"beneficial decreases only after validating conversion quality \"\n                    \"and tracking consistency.\"\n                )\n        else:\n            lines.append(\n                \"- No threshold-triggered budget change is recommended from this \"\n                \"report alone; continue monitoring and validate conversion quality \"\n                \"and tracking consistency.\"\n            )\n        lines.append(\n            \"- Treat these as review actions, not automated changes; the dataset \"\n            \"does not support a causal diagnosis on its own.\"\n        )\n        return \"\\n\".join(lines).strip() + \"\\n\"\n\n    def draft_email(client_name: str, flags: list[dict]) -> dict:\n        if flags:\n            pairs = {\n                (flag[\"campaign_id\"], flag[\"platform\"]) for flag in flags\n            }\n            summary = (\n                f\"The draft identifies {len(flags)} flag reason(s) across \"\n                f\"{len(pairs)} campaign/platform combination(s).\"\n            )\n        else:\n            summary = \"No campaigns met the specified flagging thresholds.\"\n        return {\n            \"to\": \"user@example.com\",\n            \"subject\": f\"Draft performance report for {client_name} \u2014 {report_month}\",\n            \"body\": (\n                f\"Hi Default User,\\n\\nThe {report_month} performance report for \"\n                f\"{client_name}, compared with {prior_month}, is ready as a draft \"\n                f\"for your review. {summary}\\n\\nPlease review the attached/linked \"\n                \"draft report before any client-facing use. No email has been \"\n                \"sent to the client.\\n\\nBest,\\nUnify\"\n            ),\n        }\n\n    def blocked_delivery(client_id, client_name: str, exception: Exception) -> dict:\n        reason = \" \".join(\n            f\"required source retrieval or report generation failed: \"\n            f\"{type(exception).__name__}: {exception}\".split()\n        )\n        reason = reason.replace(\".\", \"\")[:400].rstrip() + \".\"\n        return {\n            \"client_id\": client_id,\n            \"month\": report_month,\n            \"status\": \"blocked\",\n            \"blocked_reason\": reason,\n            \"flagged\": [],\n            \"doc_markdown\": \"\",\n            \"draft_email\": {\n                \"to\": \"user@example.com\",\n                \"subject\": f\"Blocked draft performance report for {client_name} \u2014 {report_month}\",\n                \"body\": (\n                    f\"Hi Default User,\\n\\nThe {report_month} draft performance \"\n                    f\"report for {client_name} is blocked because \"\n                    f\"{reason[0].lower() + reason[1:]} No report data has been \"\n                    \"fabricated, and nothing has been sent.\\n\\nBest,\\nUnify\"\n                ),\n            },\n        }\n\n    log.info(\n        \"PHASE client_list_fetch report_month=%s prior_month=%s\",\n        report_month,\n        prior_month,\n    )\n    clients = rows(api(\"GET\", \"/clients\"), \"/clients\")\n    if not all(\n        isinstance(client, dict) and client.get(\"client_id\") is not None\n        for client in clients\n    ):\n        raise RuntimeError(\"GET /clients returned one or more clients without client_id\")\n    log.info(\"PHASE client_list_ready client_count=%d\", len(clients))\n    if not clients:\n        log.info(\"SKIP no_clients_returned\")\n\n    summaries = []\n    delivery_failures = []\n    for index, client in enumerate(clients, 1):\n        client_id = client[\"client_id\"]\n        client_name = str(\n            client.get(\"name\") or client.get(\"client_name\") or client_id\n        )\n        encoded_id = parse.quote(str(client_id), safe=\"\")\n        log.info(\n            \"PHASE client_start client_id=%s client_index=%d/%d\",\n            client_id,\n            index,\n            len(clients),\n        )\n        try:\n            current, previous = {}, {}\n            for platform in (\"google_ads\", \"meta_ads\"):\n                current[platform] = aggregate_ads(\n                    rows(\n                        api(\n                            \"GET\",\n                            f\"/clients/{encoded_id}/{platform}?month={report_month}\",\n                        ),\n                        platform,\n                    ),\n                    platform,\n                    report_month,\n                )\n                previous[platform] = aggregate_ads(\n                    rows(\n                        api(\n                            \"GET\",\n                            f\"/clients/{encoded_id}/{platform}?month={prior_month}\",\n                        ),\n                        platform,\n                    ),\n                    platform,\n                    prior_month,\n                )\n\n            analytics_current, skipped_current = aggregate_analytics(\n                rows(\n                    api(\n                        \"GET\",\n                        f\"/clients/{encoded_id}/analytics?month={report_month}\",\n                    ),\n                    \"analytics\",\n                ),\n                report_month,\n                bool(client.get(\"revenue_tracked\", False)),\n            )\n            analytics_previous, skipped_previous = aggregate_analytics(\n                rows(\n                    api(\n                        \"GET\",\n                        f\"/clients/{encoded_id}/analytics?month={prior_month}\",\n                    ),\n                    \"analytics\",\n                ),\n                prior_month,\n                bool(client.get(\"revenue_tracked\", False)),\n            )\n            skipped_total = skipped_current + skipped_previous\n            if skipped_total:\n                log.info(\n                    \"SKIP ambiguous_analytics_rows client_id=%s count=%d\",\n                    client_id,\n                    skipped_total,\n                )\n            log.info(\"PHASE source_fetch_complete client_id=%s\", client_id)\n\n            flags = build_flags(current, previous)\n            payload = {\n                \"client_id\": client_id,\n                \"month\": report_month,\n                \"status\": \"drafted\",\n                \"blocked_reason\": \"\",\n                \"flagged\": flags,\n                \"doc_markdown\": build_report(\n                    client,\n                    current,\n                    previous,\n                    analytics_current,\n                    analytics_previous,\n                    flags,\n                    skipped_total,\n                ),\n                \"draft_email\": draft_email(client_name, flags),\n            }\n            log.info(\n                \"PHASE report_generated client_id=%s flags=%d\",\n                client_id,\n                len(flags),\n            )\n        except Exception as exc:\n            log.exception(\"SOFT_FAIL client_blocked client_id=%s\", client_id)\n            payload = blocked_delivery(client_id, client_name, exc)\n\n        if set(payload) != {\n            \"client_id\",\n            \"month\",\n            \"status\",\n            \"blocked_reason\",\n            \"flagged\",\n            \"doc_markdown\",\n            \"draft_email\",\n        }:\n            raise RuntimeError(\"delivery payload keys violated the exact contract\")\n\n        try:\n            api(\"POST\", \"/deliveries\", payload)\n            log.info(\n                \"PHASE delivery_posted client_id=%s status=%s\",\n                client_id,\n                payload[\"status\"],\n            )\n            summaries.append(\n                {\n                    \"client_id\": client_id,\n                    \"client_name\": client_name,\n                    \"status\": payload[\"status\"],\n                    \"flag_count\": len(payload[\"flagged\"]),\n                }\n            )\n        except Exception as exc:\n            log.exception(\"SOFT_FAIL delivery_post_failed client_id=%s\", client_id)\n            delivery_failures.append(\n                {\"client_id\": client_id, \"error\": str(exc)}\n            )\n\n    if delivery_failures:\n        raise RuntimeError(\n            f\"Delivery POST failed for {len(delivery_failures)} client(s): \"\n            f\"{delivery_failures}\"\n        )\n\n    drafted = sum(item[\"status\"] == \"drafted\" for item in summaries)\n    blocked = sum(item[\"status\"] == \"blocked\" for item in summaries)\n    log.info(\n        \"PHASE run_complete clients=%d drafted=%d blocked=%d\",\n        len(summaries),\n        drafted,\n        blocked,\n    )\n    return {\n        \"report_month\": report_month,\n        \"prior_month\": prior_month,\n        \"clients\": summaries,\n    }\n"
+  },
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 686.21,
+      "llm_calls": 35,
+      "prompt_tokens": 3170700,
+      "completion_tokens": 12964,
+      "total_tokens": 3183664,
+      "provider_cost_usd": 6.335959,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 35
+      }
+    },
+    {
+      "name": "run_1",
+      "wall_seconds": 683.61,
+      "llm_calls": 14,
+      "prompt_tokens": 1416255,
+      "completion_tokens": 28511,
+      "total_tokens": 1444766,
+      "provider_cost_usd": 3.229801,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 14
+      }
+    },
+    {
+      "name": "run_1_review",
+      "wall_seconds": 404.84,
+      "llm_calls": 9,
+      "prompt_tokens": 1256100,
+      "completion_tokens": 11207,
+      "total_tokens": 1267307,
+      "provider_cost_usd": 2.031836,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 9
+      }
+    }
+  ],
+  "deliveries": [
+    {
+      "received_at": "2026-08-04T15:39:28.076596+00:00",
+      "body": {
+        "client_id": "c01",
+        "month": "2026-08",
+        "status": "drafted",
+        "blocked_reason": "",
+        "flagged": [],
+        "doc_markdown": "# Bluepine Outdoor Co. Performance Report \u2014 2026-08\n\nComparison period: 2026-07\n\n## Flagged campaigns\n\nNo campaigns met the specified flagging thresholds.\n\n## Executive summary\n\n- **Google Ads:** spend $15,777.84 (-3.3%); clicks 54,064 (-2.1%); ad-platform conversions 489 (-1.8%).\n- **Meta Ads:** spend $19,439.31 (+3.9%); clicks 35,914 (+4.5%); ad-platform conversions 685 (+7.7%).\n- **Review priority:** 0 campaign/platform combination(s), represented by 0 flag reason(s).\n\n## Google Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) | Analytics revenue (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Demand Gen - Trial | `c01-g1` | $6,644.58 / $7,068.43 | 274,342 / 291,842 | 15,061 / 16,022 | 117 / 121 | $56.79 / $58.42 | 12,952 / 13,778 | 117 / 121 | $37,058.20 / $37,074.65 |\n| \u2014 | Search - Brand | `c01-g2` | $4,837.43 / $4,939.60 | 233,016 / 237,938 | 6,734 / 6,876 | 97 / 95 | $49.87 / $52.00 | 5,791 / 6,394 | 97 / 95 | $29,442.21 / $30,211.99 |\n| \u2014 | Search - Non-brand | `c01-g3` | $4,295.83 / $4,301.10 | 680,797 / 681,632 | 32,269 / 32,309 | 275 / 282 | $15.62 / $15.25 | 29,364 / 25,847 | 275 / 282 | $84,731.44 / $82,051.06 |\n\n## Meta Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) | Analytics revenue (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Advantage+ - Catalog | `c01-m4` | $1,462.23 / $1,509.90 | 119,560 / 123,458 | 1,362 / 1,407 | 279 / 254 | $5.24 / $5.94 | 1,307 / 1,407 | 279 / 254 | $83,686.20 / $80,715.19 |\n| \u2014 | Prospecting - Broad | `c01-m1` | $7,478.01 / $7,254.87 | 522,937 / 507,333 | 9,151 / 8,878 | 143 / 138 | $52.29 / $52.57 | 7,869 / 7,723 | 143 / 138 | $43,107.17 / $42,135.80 |\n| \u2014 | Retargeting - 30d | `c01-m2` | $5,208.77 / $4,845.95 | 276,327 / 257,079 | 11,743 / 10,925 | 230 / 211 | $22.65 / $22.97 | 10,451 / 9,395 | 230 / 211 | $69,818.46 / $64,199.23 |\n| \u2014 | Retargeting - Cart | `c01-m3` | $5,290.30 / $5,093.78 | 641,248 / 617,427 | 13,658 / 13,151 | 33 / 33 | $160.31 / $154.36 | 11,609 / 12,887 | 33 / 33 | $10,384.71 / $10,539.08 |\n\n## What happened\n\nObserved: no campaign met any of the three specified flagging thresholds in this comparison.\nObserved: Google Ads spend changed from $16,309.13 to $15,777.84, while ad-platform conversions changed from 498 to 489.\nObserved: Meta Ads spend changed from $18,704.50 to $19,439.31, while ad-platform conversions changed from 636 to 685.\n\n## Why\n\nThe supplied data establishes the metric changes, but it does not establish their causes. Plausible explanations to investigate\u2014not conclusions\u2014include changes in audience mix, auction conditions, creative or offer performance, landing-page behavior, tracking, or campaign configuration. Analytics figures are shown only where campaign ID and source/platform evidence support a conservative match; differences between ad-platform and analytics conversions may reflect attribution or tracking differences and should not be treated as proof of a specific cause.\n\n## What we'd change\n\n- No threshold-triggered budget change is recommended from this report alone; continue monitoring and validate conversion quality and tracking consistency.\n- Treat these as review actions, not automated changes; the dataset does not support a causal diagnosis on its own.\n",
+        "draft_email": {
+          "to": "user@example.com",
+          "subject": "Draft performance report for Bluepine Outdoor Co. \u2014 2026-08",
+          "body": "Hi Default User,\n\nThe 2026-08 performance report for Bluepine Outdoor Co., compared with 2026-07, is ready as a draft for your review. No campaigns met the specified flagging thresholds.\n\nPlease review the attached/linked draft report before any client-facing use. No email has been sent to the client.\n\nBest,\nUnify"
+        }
+      }
+    },
+    {
+      "received_at": "2026-08-04T15:39:28.079071+00:00",
+      "body": {
+        "client_id": "c02",
+        "month": "2026-08",
+        "status": "drafted",
+        "blocked_reason": "",
+        "flagged": [
+          {
+            "campaign_id": "c02-g3",
+            "platform": "google_ads",
+            "reason": "Cost per conversion decreased by more than 40% versus the prior month."
+          }
+        ],
+        "doc_markdown": "# Harbor & Oak Furniture Performance Report \u2014 2026-08\n\nComparison period: 2026-07\n\n## Flagged campaigns\n\n- **Demand Gen - Trial** (`c02-g3`, google_ads): Cost per conversion decreased by more than 40% versus the prior month.\n\n## Executive summary\n\n- **Google Ads:** spend $14,055.78 (-1.3%); clicks 50,464 (-2.0%); ad-platform conversions 600 (+20.2%).\n- **Meta Ads:** spend $17,465.57 (-1.6%); clicks 43,445 (-0.4%); ad-platform conversions 468 (+2.2%).\n- **Review priority:** 1 campaign/platform combination(s), represented by 1 flag reason(s).\n\n## Google Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2691 | Demand Gen - Trial | `c02-g3` | $5,508.01 / $5,966.47 | 493,991 / 662,941 | 7,706 / 9,944 | 233 / 123 | $23.64 / $48.51 | 7,166 / 10,739 | 233 / 123 |\n| \u2014 | Search - Local | `c02-g2` | $6,879.49 / $6,575.32 | 730,306 / 698,016 | 31,622 / 30,224 | 278 / 280 | $24.75 / $23.48 | 32,886 / 25,085 | 278 / 280 |\n| \u2014 | YouTube - Prospecting | `c02-g1` | $1,668.28 / $1,697.76 | 222,734 / 226,670 | 11,136 / 11,333 | 89 / 96 | $18.74 / $17.69 | 11,247 / 9,973 | 89 / 96 |\n\n## Meta Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Prospecting - Broad | `c02-m2` | $2,978.12 / $3,045.43 | 408,521 / 417,754 | 11,479 / 11,738 | 184 / 179 | $16.19 / $17.01 | 9,986 / 12,442 | 184 / 179 |\n| \u2014 | Prospecting - Lookalike | `c02-m1` | $6,726.98 / $6,652.20 | 722,554 / 714,522 | 26,011 / 25,722 | 80 / 85 | $84.09 / $78.26 | 26,791 / 23,149 | 80 / 85 |\n| \u2014 | Retargeting - 30d | `c02-m3` | $7,760.47 / $8,050.50 | 465,255 / 482,643 | 5,955 / 6,177 | 204 / 194 | $38.04 / $41.50 | 5,121 / 5,126 | 204 / 194 |\n\n## What happened\n\nObserved: 1 threshold breach(es) affected 1 campaign/platform combination(s).\nObserved: Google Ads spend changed from $14,239.55 to $14,055.78, while ad-platform conversions changed from 499 to 600.\nObserved: Meta Ads spend changed from $17,748.13 to $17,465.57, while ad-platform conversions changed from 458 to 468.\n\n## Why\n\nThe supplied data establishes the metric changes, but it does not establish their causes. Plausible explanations to investigate\u2014not conclusions\u2014include changes in audience mix, auction conditions, creative or offer performance, landing-page behavior, tracking, or campaign configuration. Analytics figures are shown only where campaign ID and source/platform evidence support a conservative match; differences between ad-platform and analytics conversions may reflect attribution or tracking differences and should not be treated as proof of a specific cause.\n\n## What we'd change\n\n- Review every flagged campaign before changing budgets; verify conversion tracking and recent configuration changes first.\n- Investigate large cost-per-conversion movements and preserve beneficial decreases only after validating conversion quality and tracking consistency.\n- Treat these as review actions, not automated changes; the dataset does not support a causal diagnosis on its own.\n",
+        "draft_email": {
+          "to": "user@example.com",
+          "subject": "Draft performance report for Harbor & Oak Furniture \u2014 2026-08",
+          "body": "Hi Default User,\n\nThe 2026-08 performance report for Harbor & Oak Furniture, compared with 2026-07, is ready as a draft for your review. The draft identifies 1 flag reason(s) across 1 campaign/platform combination(s).\n\nPlease review the attached/linked draft report before any client-facing use. No email has been sent to the client.\n\nBest,\nUnify"
+        }
+      }
+    },
+    {
+      "received_at": "2026-08-04T15:39:28.081219+00:00",
+      "body": {
+        "client_id": "c03",
+        "month": "2026-08",
+        "status": "drafted",
+        "blocked_reason": "",
+        "flagged": [],
+        "doc_markdown": "# Verra Skincare Performance Report \u2014 2026-08\n\nComparison period: 2026-07\n\n## Flagged campaigns\n\nNo campaigns met the specified flagging thresholds.\n\n## Executive summary\n\n- **Google Ads:** spend $22,952.24 (-4.3%); clicks 72,331 (-4.1%); ad-platform conversions 955 (-3.7%).\n- **Meta Ads:** spend $13,187.36 (-2.9%); clicks 21,466 (-2.9%); ad-platform conversions 260 (-4.1%).\n- **Review priority:** 0 campaign/platform combination(s), represented by 0 flag reason(s).\n\n## Google Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) | Analytics revenue (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Demand Gen - Trial | `c03-g1` | $6,446.07 / $6,817.87 | 282,227 / 298,505 | 14,958 / 15,820 | 347 / 354 | $18.58 / $19.26 | 14,808 / 17,085 | 347 / 354 | $21,556.39 / $23,723.73 |\n| \u2014 | Search - Brand | `c03-g2` | $5,959.92 / $6,100.01 | 660,013 / 675,527 | 28,578 / 29,250 | 47 / 49 | $126.81 / $124.49 | 25,720 / 31,590 | 47 / 49 | $3,117.85 / $3,169.43 |\n| \u2014 | Search - Competitors | `c03-g4` | $7,174.92 / $7,369.95 | 634,387 / 651,631 | 16,620 / 17,072 | 268 / 264 | $26.77 / $27.92 | 15,789 / 16,389 | 268 / 264 | $17,489.06 / $16,937.88 |\n| \u2014 | Search - Non-brand | `c03-g3` | $3,371.33 / $3,684.98 | 209,920 / 229,450 | 12,175 / 13,308 | 293 / 325 | $11.51 / $11.34 | 12,662 / 10,779 | 293 / 325 | $18,815.53 / $21,618.47 |\n\n## Meta Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) | Analytics revenue (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Advantage+ - Catalog | `c03-m2` | $6,859.54 / $6,895.89 | 372,194 / 374,166 | 11,054 / 11,112 | 206 / 218 | $33.30 / $31.63 | 11,717 / 10,667 | 206 / 218 | $12,935.67 / $14,361.48 |\n| \u2014 | Retargeting - Cart | `c03-m1` | $6,327.82 / $6,688.65 | 1,334,983 / 1,411,107 | 10,412 / 11,006 | 54 / 53 | $117.18 / $126.20 | 9,162 / 10,125 | 54 / 53 | $3,447.11 / $3,568.64 |\n\n## What happened\n\nObserved: no campaign met any of the three specified flagging thresholds in this comparison.\nObserved: Google Ads spend changed from $23,972.81 to $22,952.24, while ad-platform conversions changed from 992 to 955.\nObserved: Meta Ads spend changed from $13,584.54 to $13,187.36, while ad-platform conversions changed from 271 to 260.\n\n## Why\n\nThe supplied data establishes the metric changes, but it does not establish their causes. Plausible explanations to investigate\u2014not conclusions\u2014include changes in audience mix, auction conditions, creative or offer performance, landing-page behavior, tracking, or campaign configuration. Analytics figures are shown only where campaign ID and source/platform evidence support a conservative match; differences between ad-platform and analytics conversions may reflect attribution or tracking differences and should not be treated as proof of a specific cause.\n\n## What we'd change\n\n- No threshold-triggered budget change is recommended from this report alone; continue monitoring and validate conversion quality and tracking consistency.\n- Treat these as review actions, not automated changes; the dataset does not support a causal diagnosis on its own.\n",
+        "draft_email": {
+          "to": "user@example.com",
+          "subject": "Draft performance report for Verra Skincare \u2014 2026-08",
+          "body": "Hi Default User,\n\nThe 2026-08 performance report for Verra Skincare, compared with 2026-07, is ready as a draft for your review. No campaigns met the specified flagging thresholds.\n\nPlease review the attached/linked draft report before any client-facing use. No email has been sent to the client.\n\nBest,\nUnify"
+        }
+      }
+    },
+    {
+      "received_at": "2026-08-04T15:39:28.083247+00:00",
+      "body": {
+        "client_id": "c04",
+        "month": "2026-08",
+        "status": "drafted",
+        "blocked_reason": "",
+        "flagged": [],
+        "doc_markdown": "# Northgate Dental Group Performance Report \u2014 2026-08\n\nComparison period: 2026-07\n\n## Flagged campaigns\n\nNo campaigns met the specified flagging thresholds.\n\n## Executive summary\n\n- **Google Ads:** spend $27,803.98 (+6.2%); clicks 60,352 (+0.7%); ad-platform conversions 1,032 (+23.6%).\n- **Meta Ads:** spend $7,870.09 (-4.0%); clicks 20,978 (-7.3%); ad-platform conversions 204 (+7.4%).\n- **Review priority:** 0 campaign/platform combination(s), represented by 0 flag reason(s).\n\n## Google Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Demand Gen - Trial | `c04-g4` | $4,809.98 / $4,975.43 | 244,782 / 253,202 | 10,843 / 11,216 | 131 / 126 | $36.72 / $39.49 | 11,168 / 10,206 | 131 / 126 |\n| \u2014 | Display - Retargeting | `c04-g1` | $7,166.44 / $7,256.12 | 375,993 / 380,698 | 10,039 / 10,164 | 356 / 330 | $20.13 / $21.99 | 9,938 / 8,944 | 356 / 330 |\n| \u2014 | Search - Brand | `c04-g5` | $2,252.43 / $304.94 | 159,294 / 33,882 | 1,401 / 406 | 137 / 0 | $16.44 / \u2014 | 1,485 / 328 | 137 / 0 |\n| \u2014 | Search - Local | `c04-g3` | $6,244.85 / $5,908.61 | 324,576 / 307,100 | 18,371 / 17,381 | 333 / 303 | $18.75 / $19.50 | 16,533 / 18,423 | 333 / 303 |\n| \u2014 | YouTube - Prospecting | `c04-g2` | $7,330.28 / $7,735.79 | 461,314 / 486,833 | 19,698 / 20,787 | 75 / 76 | $97.74 / $101.79 | 18,319 / 22,449 | 75 / 76 |\n\n## Meta Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Advantage+ - Catalog | `c04-m1` | $6,925.16 / $6,989.25 | 420,982 / 424,878 | 20,417 / 20,606 | 147 / 143 | $47.11 / $48.88 | 18,783 / 22,666 | 147 / 143 |\n| \u2014 | Stories - Offer | `c04-m2` | $944.93 / $1,212.24 | 47,603 / 134,693 | 561 / 2,020 | 57 / 47 | $16.58 / $25.79 | 476 / 1,939 | 57 / 47 |\n\n## What happened\n\nObserved: no campaign met any of the three specified flagging thresholds in this comparison.\nObserved: Google Ads spend changed from $26,180.89 to $27,803.98, while ad-platform conversions changed from 835 to 1,032.\nObserved: Meta Ads spend changed from $8,201.49 to $7,870.09, while ad-platform conversions changed from 190 to 204.\n\n## Why\n\nThe supplied data establishes the metric changes, but it does not establish their causes. Plausible explanations to investigate\u2014not conclusions\u2014include changes in audience mix, auction conditions, creative or offer performance, landing-page behavior, tracking, or campaign configuration. Analytics figures are shown only where campaign ID and source/platform evidence support a conservative match; differences between ad-platform and analytics conversions may reflect attribution or tracking differences and should not be treated as proof of a specific cause.\n\n## What we'd change\n\n- No threshold-triggered budget change is recommended from this report alone; continue monitoring and validate conversion quality and tracking consistency.\n- Treat these as review actions, not automated changes; the dataset does not support a causal diagnosis on its own.\n",
+        "draft_email": {
+          "to": "user@example.com",
+          "subject": "Draft performance report for Northgate Dental Group \u2014 2026-08",
+          "body": "Hi Default User,\n\nThe 2026-08 performance report for Northgate Dental Group, compared with 2026-07, is ready as a draft for your review. No campaigns met the specified flagging thresholds.\n\nPlease review the attached/linked draft report before any client-facing use. No email has been sent to the client.\n\nBest,\nUnify"
+        }
+      }
+    },
+    {
+      "received_at": "2026-08-04T15:39:28.085432+00:00",
+      "body": {
+        "client_id": "c05",
+        "month": "2026-08",
+        "status": "drafted",
+        "blocked_reason": "",
+        "flagged": [],
+        "doc_markdown": "# Brightside HVAC Performance Report \u2014 2026-08\n\nComparison period: 2026-07\n\n## Flagged campaigns\n\nNo campaigns met the specified flagging thresholds.\n\n## Executive summary\n\n- **Google Ads:** spend $18,466.03 (+64.5%); clicks 44,056 (+45.3%); ad-platform conversions 1,169 (+37.5%).\n- **Meta Ads:** spend $25,260.19 (+0.7%); clicks 95,304 (+1.7%); ad-platform conversions 1,508 (-2.5%).\n- **Review priority:** 0 campaign/platform combination(s), represented by 0 flag reason(s).\n\n## Google Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Display - Retargeting | `c05-g4` | $5,366.36 / $5,614.98 | 474,060 / 496,022 | 19,246 / 20,138 | 167 / 167 | $32.13 / $33.62 | 18,091 / 17,520 | 167 / 167 |\n| \u2014 | PMax - Catalog | `c05-g3` | $211.79 / $213.81 | 18,876 / 19,056 | 683 / 689 | 245 / 249 | $0.86 / $0.86 | 730 / 585 | 245 / 249 |\n| \u2014 | Search - Competitors | `c05-g2` | $170.72 / $174.67 | 14,051 / 14,376 | 415 / 425 | 43 / 40 | $3.97 / $4.37 | 406 / 361 | 43 / 40 |\n| \u2014 | Search - Non-brand | `c05-g1` | $4,864.37 / $4,955.05 | 359,790 / 366,497 | 8,563 / 8,722 | 398 / 394 | $12.22 / $12.58 | 7,963 / 7,849 | 398 / 394 |\n| \u2014 | YouTube - Prospecting | `c05-g5` | $7,852.79 / $266.15 | 319,608 / 29,572 | 15,149 / 354 | 316 / 0 | $24.85 / \u2014 | 13,179 / 332 | 316 / 0 |\n\n## Meta Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Advantage+ - Catalog | `c05-m5` | $5,298.57 / $5,357.40 | 440,080 / 444,966 | 8,537 / 8,632 | 153 / 152 | $34.63 / $35.25 | 8,110 / 8,718 | 153 / 152 |\n| \u2014 | Prospecting - Broad | `c05-m2` | $5,592.00 / $5,258.48 | 323,798 / 304,486 | 19,039 / 17,903 | 247 / 240 | $22.64 / $21.91 | 18,467 / 18,977 | 247 / 240 |\n| \u2014 | Prospecting - Lookalike | `c05-m1` | $7,032.25 / $7,291.75 | 409,566 / 424,679 | 16,915 / 17,539 | 363 / 366 | $19.37 / $19.92 | 17,422 / 14,732 | 363 / 366 |\n| \u2014 | Retargeting - 30d | `c05-m3` | $6,129.95 / $5,914.76 | 904,122 / 872,383 | 43,307 / 41,787 | 370 / 399 | $16.57 / $14.82 | 38,110 / 42,622 | 370 / 399 |\n| \u2014 | Retargeting - Cart | `c05-m4` | $1,207.42 / $1,256.79 | 152,259 / 158,485 | 7,506 / 7,813 | 375 / 390 | $3.22 / $3.22 | 8,256 / 6,953 | 375 / 390 |\n\n## What happened\n\nObserved: no campaign met any of the three specified flagging thresholds in this comparison.\nObserved: Google Ads spend changed from $11,224.66 to $18,466.03, while ad-platform conversions changed from 850 to 1,169.\nObserved: Meta Ads spend changed from $25,079.18 to $25,260.19, while ad-platform conversions changed from 1,547 to 1,508.\n\n## Why\n\nThe supplied data establishes the metric changes, but it does not establish their causes. Plausible explanations to investigate\u2014not conclusions\u2014include changes in audience mix, auction conditions, creative or offer performance, landing-page behavior, tracking, or campaign configuration. Analytics figures are shown only where campaign ID and source/platform evidence support a conservative match; differences between ad-platform and analytics conversions may reflect attribution or tracking differences and should not be treated as proof of a specific cause.\n\n## What we'd change\n\n- No threshold-triggered budget change is recommended from this report alone; continue monitoring and validate conversion quality and tracking consistency.\n- Treat these as review actions, not automated changes; the dataset does not support a causal diagnosis on its own.\n",
+        "draft_email": {
+          "to": "user@example.com",
+          "subject": "Draft performance report for Brightside HVAC \u2014 2026-08",
+          "body": "Hi Default User,\n\nThe 2026-08 performance report for Brightside HVAC, compared with 2026-07, is ready as a draft for your review. No campaigns met the specified flagging thresholds.\n\nPlease review the attached/linked draft report before any client-facing use. No email has been sent to the client.\n\nBest,\nUnify"
+        }
+      }
+    },
+    {
+      "received_at": "2026-08-04T15:39:28.087614+00:00",
+      "body": {
+        "client_id": "c06",
+        "month": "2026-08",
+        "status": "drafted",
+        "blocked_reason": "",
+        "flagged": [],
+        "doc_markdown": "# Fernway Coffee Roasters Performance Report \u2014 2026-08\n\nComparison period: 2026-07\n\n## Flagged campaigns\n\nNo campaigns met the specified flagging thresholds.\n\n## Executive summary\n\n- **Google Ads:** spend $9,558.89 (-2.0%); clicks 9,568 (-0.6%); ad-platform conversions 613 (-0.5%).\n- **Meta Ads:** spend $8,616.03 (-2.9%); clicks 50,516 (-2.9%); ad-platform conversions 1,002 (+5.7%).\n- **Review priority:** 0 campaign/platform combination(s), represented by 0 flag reason(s).\n\n## Google Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) | Analytics revenue (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Display - Retargeting | `c06-g1` | $5,998.12 / $6,275.65 | 314,861 / 329,430 | 3,872 / 4,051 | 140 / 134 | $42.84 / $46.83 | 3,872 / 3,564 | 140 / 134 | $10,405.08 / $9,978.74 |\n| \u2014 | Search - Local | `c06-g3` | $3,068.79 / $2,974.73 | 355,184 / 344,297 | 4,723 / 4,579 | 269 / 285 | $11.41 / $10.44 | 4,250 / 4,166 | 269 / 285 | $19,923.77 / $20,225.12 |\n| \u2014 | YouTube - Prospecting | `c06-g2` | $491.98 / $501.66 | 20,237 / 20,635 | 973 / 992 | 204 / 197 | $2.41 / $2.55 | 778 / 872 | 204 / 197 | $15,527.19 / $14,350.42 |\n\n## Meta Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) | Analytics revenue (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Prospecting - Lookalike | `c06-m3` | $3,160.45 / $3,219.40 | 397,041 / 404,447 | 22,551 / 22,972 | 399 / 372 | $7.92 / $8.65 | 23,227 / 19,526 | 399 / 372 | $28,134.26 / $26,271.25 |\n| \u2014 | Reels - UGC | `c06-m2` | $4,931.64 / $5,120.27 | 637,162 / 661,533 | 27,780 / 28,842 | 397 / 373 | $12.42 / $13.73 | 29,724 / 29,418 | 397 / 373 | $30,077.78 / $27,582.99 |\n| \u2014 | Stories - Offer | `c06-m1` | $523.94 / $530.38 | 22,612 / 22,890 | 185 / 187 | 206 / 203 | $2.54 / $2.61 | 181 / 164 | 206 / 203 | $14,465.20 / $15,474.83 |\n\n## What happened\n\nObserved: no campaign met any of the three specified flagging thresholds in this comparison.\nObserved: Google Ads spend changed from $9,752.04 to $9,558.89, while ad-platform conversions changed from 616 to 613.\nObserved: Meta Ads spend changed from $8,870.05 to $8,616.03, while ad-platform conversions changed from 948 to 1,002.\n\n## Why\n\nThe supplied data establishes the metric changes, but it does not establish their causes. Plausible explanations to investigate\u2014not conclusions\u2014include changes in audience mix, auction conditions, creative or offer performance, landing-page behavior, tracking, or campaign configuration. Analytics figures are shown only where campaign ID and source/platform evidence support a conservative match; differences between ad-platform and analytics conversions may reflect attribution or tracking differences and should not be treated as proof of a specific cause.\n\n## What we'd change\n\n- No threshold-triggered budget change is recommended from this report alone; continue monitoring and validate conversion quality and tracking consistency.\n- Treat these as review actions, not automated changes; the dataset does not support a causal diagnosis on its own.\n",
+        "draft_email": {
+          "to": "user@example.com",
+          "subject": "Draft performance report for Fernway Coffee Roasters \u2014 2026-08",
+          "body": "Hi Default User,\n\nThe 2026-08 performance report for Fernway Coffee Roasters, compared with 2026-07, is ready as a draft for your review. No campaigns met the specified flagging thresholds.\n\nPlease review the attached/linked draft report before any client-facing use. No email has been sent to the client.\n\nBest,\nUnify"
+        }
+      }
+    },
+    {
+      "received_at": "2026-08-04T15:39:28.089812+00:00",
+      "body": {
+        "client_id": "c07",
+        "month": "2026-08",
+        "status": "blocked",
+        "blocked_reason": "required source retrieval or report generation failed: RuntimeError: GET /clients/c07/meta_ads?month=2026-08 returned HTTP 401: {\"error\": \"AUTH_EXPIRED\", \"message\": \"The Meta Ads connection for this client has expired; a member of the team needs to reconnect the account\"}.",
+        "flagged": [],
+        "doc_markdown": "",
+        "draft_email": {
+          "to": "user@example.com",
+          "subject": "Blocked draft performance report for Atlas Legal Partners \u2014 2026-08",
+          "body": "Hi Default User,\n\nThe 2026-08 draft performance report for Atlas Legal Partners is blocked because required source retrieval or report generation failed: RuntimeError: GET /clients/c07/meta_ads?month=2026-08 returned HTTP 401: {\"error\": \"AUTH_EXPIRED\", \"message\": \"The Meta Ads connection for this client has expired; a member of the team needs to reconnect the account\"}. No report data has been fabricated, and nothing has been sent.\n\nBest,\nUnify"
+        }
+      }
+    },
+    {
+      "received_at": "2026-08-04T15:39:28.091826+00:00",
+      "body": {
+        "client_id": "c08",
+        "month": "2026-08",
+        "status": "drafted",
+        "blocked_reason": "",
+        "flagged": [],
+        "doc_markdown": "# Cobalt Cycling Performance Report \u2014 2026-08\n\nComparison period: 2026-07\n\n## Flagged campaigns\n\nNo campaigns met the specified flagging thresholds.\n\n## Executive summary\n\n- **Google Ads:** spend $28,583.04 (-1.2%); clicks 68,242 (-0.7%); ad-platform conversions 1,066 (+3.2%).\n- **Meta Ads:** spend $15,937.11 (+3.3%); clicks 34,548 (+4.5%); ad-platform conversions 413 (+2.7%).\n- **Review priority:** 0 campaign/platform combination(s), represented by 0 flag reason(s).\n\n## Google Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Display - Retargeting | `c08-g4` | $7,110.00 / $6,733.59 | 643,438 / 609,374 | 24,128 / 22,851 | 54 / 54 | $131.67 / $124.70 | 20,750 / 23,079 | 54 / 54 |\n| \u2014 | PMax - Catalog | `c08-g3` | $2,928.47 / $3,142.90 | 197,070 / 211,500 | 11,469 / 12,309 | 306 / 286 | $9.57 / $10.99 | 9,863 / 10,955 | 306 / 286 |\n| \u2014 | Search - Competitors | `c08-g2` | $4,723.83 / $4,823.21 | 214,427 / 218,938 | 7,140 / 7,290 | 318 / 298 | $14.85 / $16.19 | 6,497 / 6,488 | 318 / 298 |\n| \u2014 | Search - Non-brand | `c08-g1` | $6,226.08 / $6,395.09 | 304,602 / 312,871 | 10,539 / 10,825 | 108 / 106 | $57.65 / $60.33 | 10,222 / 9,093 | 108 / 106 |\n| \u2014 | YouTube - Prospecting | `c08-g5` | $7,594.66 / $7,822.91 | 413,427 / 425,852 | 14,966 / 15,415 | 280 / 289 | $27.12 / $27.07 | 13,170 / 14,798 | 280 / 289 |\n\n## Meta Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Prospecting - Broad | `c08-m2` | $3,995.88 / $4,177.63 | 228,466 / 238,858 | 4,318 / 4,514 | 132 / 131 | $30.27 / $31.89 | 4,447 / 4,829 | 132 / 131 |\n| \u2014 | Prospecting - Lookalike | `c08-m1` | $7,703.41 / $7,226.04 | 817,771 / 767,095 | 12,184 / 11,429 | 128 / 123 | $60.18 / $58.75 | 11,452 / 12,000 | 128 / 123 |\n| \u2014 | Retargeting - 30d | `c08-m3` | $4,237.82 / $4,018.62 | 311,146 / 295,052 | 18,046 / 17,113 | 153 / 148 | $27.70 / $27.15 | 18,948 / 14,203 | 153 / 148 |\n\n## What happened\n\nObserved: no campaign met any of the three specified flagging thresholds in this comparison.\nObserved: Google Ads spend changed from $28,917.70 to $28,583.04, while ad-platform conversions changed from 1,033 to 1,066.\nObserved: Meta Ads spend changed from $15,422.29 to $15,937.11, while ad-platform conversions changed from 402 to 413.\n\n## Why\n\nThe supplied data establishes the metric changes, but it does not establish their causes. Plausible explanations to investigate\u2014not conclusions\u2014include changes in audience mix, auction conditions, creative or offer performance, landing-page behavior, tracking, or campaign configuration. Analytics figures are shown only where campaign ID and source/platform evidence support a conservative match; differences between ad-platform and analytics conversions may reflect attribution or tracking differences and should not be treated as proof of a specific cause.\n\n## What we'd change\n\n- No threshold-triggered budget change is recommended from this report alone; continue monitoring and validate conversion quality and tracking consistency.\n- Treat these as review actions, not automated changes; the dataset does not support a causal diagnosis on its own.\n",
+        "draft_email": {
+          "to": "user@example.com",
+          "subject": "Draft performance report for Cobalt Cycling \u2014 2026-08",
+          "body": "Hi Default User,\n\nThe 2026-08 performance report for Cobalt Cycling, compared with 2026-07, is ready as a draft for your review. No campaigns met the specified flagging thresholds.\n\nPlease review the attached/linked draft report before any client-facing use. No email has been sent to the client.\n\nBest,\nUnify"
+        }
+      }
+    },
+    {
+      "received_at": "2026-08-04T15:39:28.094324+00:00",
+      "body": {
+        "client_id": "c09",
+        "month": "2026-08",
+        "status": "drafted",
+        "blocked_reason": "",
+        "flagged": [
+          {
+            "campaign_id": "c09-g5",
+            "platform": "google_ads",
+            "reason": "Cost per conversion decreased by more than 40% versus the prior month."
+          }
+        ],
+        "doc_markdown": "# Meridian Software Performance Report \u2014 2026-08\n\nComparison period: 2026-07\n\n## Flagged campaigns\n\n- **PMax - Catalog** (`c09-g5`, google_ads): Cost per conversion decreased by more than 40% versus the prior month.\n\n## Executive summary\n\n- **Google Ads:** spend $24,483.07 (-2.3%); clicks 87,552 (+19.1%); ad-platform conversions 981 (+4.4%).\n- **Meta Ads:** spend $14,729.69 (-12.0%); clicks 49,069 (-11.8%); ad-platform conversions 750 (+3.3%).\n- **Review priority:** 1 campaign/platform combination(s), represented by 1 flag reason(s).\n\n## Google Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) | Analytics revenue (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n| \u2691 | PMax - Catalog | `c09-g5` | $6,127.43 / $7,134.96 | 407,951 / 792,773 | 24,436 / 11,891 | 100 / 44 | $61.27 / $162.16 | 21,014 / 12,961 | 100 / 44 | $8,930.64 / $3,796.77 |\n| \u2014 | Demand Gen - Trial | `c09-g1` | $4,804.70 / $4,713.31 | 265,893 / 260,836 | 3,243 / 3,182 | 325 / 308 | $14.78 / $15.30 | 2,626 / 2,959 | 325 / 308 | $28,204.46 / $27,242.86 |\n| \u2014 | Search - Brand | `c09-g2` | $6,443.23 / $6,252.74 | 774,426 / 751,531 | 44,606 / 43,288 | 224 / 240 | $28.76 / $26.05 | 45,052 / 40,690 | 224 / 240 | $20,107.23 / $20,510.57 |\n| \u2014 | Search - Competitors | `c09-g4` | $3,136.32 / $2,985.90 | 189,277 / 180,199 | 3,009 / 2,865 | 159 / 156 | $19.73 / $19.14 | 2,708 / 2,549 | 159 / 156 | $13,509.93 / $13,263.11 |\n| \u2014 | Search - Non-brand | `c09-g3` | $3,971.39 / $3,983.13 | 253,277 / 254,026 | 12,258 / 12,294 | 173 / 192 | $22.96 / $20.75 | 12,012 / 10,449 | 173 / 192 | $14,819.09 / $16,174.50 |\n\n## Meta Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) | Analytics revenue (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Advantage+ - Catalog | `c09-m3` | $5,673.67 / $7,147.12 | 255,916 / 794,124 | 7,856 / 11,911 | 94 / 74 | $60.36 / $96.58 | 7,384 / 12,863 | 94 / 74 | $8,361.49 / $6,593.32 |\n| \u2014 | Retargeting - 30d | `c09-m1` | $6,835.32 / $7,259.90 | 1,148,793 / 1,220,151 | 34,578 / 36,726 | 382 / 391 | $17.89 / $18.57 | 37,344 / 34,522 | 382 / 391 | $34,408.86 / $35,307.40 |\n| \u2014 | Retargeting - Cart | `c09-m2` | $2,220.70 / $2,337.49 | 115,601 / 121,680 | 6,635 / 6,984 | 274 / 261 | $8.10 / $8.96 | 7,232 / 7,263 | 274 / 261 | $24,138.45 / $22,808.24 |\n\n## What happened\n\nObserved: 1 threshold breach(es) affected 1 campaign/platform combination(s).\nObserved: Google Ads spend changed from $25,070.04 to $24,483.07, while ad-platform conversions changed from 940 to 981.\nObserved: Meta Ads spend changed from $16,744.51 to $14,729.69, while ad-platform conversions changed from 726 to 750.\n\n## Why\n\nThe supplied data establishes the metric changes, but it does not establish their causes. Plausible explanations to investigate\u2014not conclusions\u2014include changes in audience mix, auction conditions, creative or offer performance, landing-page behavior, tracking, or campaign configuration. Analytics figures are shown only where campaign ID and source/platform evidence support a conservative match; differences between ad-platform and analytics conversions may reflect attribution or tracking differences and should not be treated as proof of a specific cause.\n\n## What we'd change\n\n- Review every flagged campaign before changing budgets; verify conversion tracking and recent configuration changes first.\n- Investigate large cost-per-conversion movements and preserve beneficial decreases only after validating conversion quality and tracking consistency.\n- Treat these as review actions, not automated changes; the dataset does not support a causal diagnosis on its own.\n",
+        "draft_email": {
+          "to": "user@example.com",
+          "subject": "Draft performance report for Meridian Software \u2014 2026-08",
+          "body": "Hi Default User,\n\nThe 2026-08 performance report for Meridian Software, compared with 2026-07, is ready as a draft for your review. The draft identifies 1 flag reason(s) across 1 campaign/platform combination(s).\n\nPlease review the attached/linked draft report before any client-facing use. No email has been sent to the client.\n\nBest,\nUnify"
+        }
+      }
+    },
+    {
+      "received_at": "2026-08-04T15:39:28.096309+00:00",
+      "body": {
+        "client_id": "c10",
+        "month": "2026-08",
+        "status": "drafted",
+        "blocked_reason": "",
+        "flagged": [],
+        "doc_markdown": "# Sunhaven Resorts Performance Report \u2014 2026-08\n\nComparison period: 2026-07\n\n## Flagged campaigns\n\nNo campaigns met the specified flagging thresholds.\n\n## Executive summary\n\n- **Google Ads:** spend $20,484.35 (-3.6%); clicks 60,802 (-4.0%); ad-platform conversions 1,236 (-2.0%).\n- **Meta Ads:** spend $2,714.92 (+1.5%); clicks 6,265 (+1.5%); ad-platform conversions 161 (+1.3%).\n- **Review priority:** 0 campaign/platform combination(s), represented by 0 flag reason(s).\n\n## Google Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Demand Gen - Trial | `c10-g5` | $5,849.07 / $5,810.74 | 852,634 / 847,046 | 7,758 / 7,708 | 340 / 368 | $17.20 / $15.79 | 7,292 / 6,243 | 340 / 368 |\n| \u2014 | Display - Retargeting | `c10-g2` | $1,488.60 / $1,604.26 | 153,305 / 165,217 | 1,625 / 1,751 | 230 / 231 | $6.47 / $6.94 | 1,446 / 1,680 | 230 / 231 |\n| \u2014 | PMax - Catalog | `c10-g1` | $1,859.76 / $2,055.64 | 248,299 / 274,451 | 7,846 / 8,672 | 223 / 224 | $8.34 / $9.18 | 8,316 / 7,891 | 223 / 224 |\n| \u2014 | Search - Local | `c10-g4` | $7,306.17 / $7,441.03 | 611,394 / 622,680 | 32,159 / 32,752 | 188 / 179 | $38.86 / $41.57 | 30,551 / 29,804 | 188 / 179 |\n| \u2014 | YouTube - Prospecting | `c10-g3` | $3,980.75 / $4,333.06 | 358,949 / 390,717 | 11,414 / 12,424 | 255 / 259 | $15.61 / $16.73 | 10,843 / 10,436 | 255 / 259 |\n\n## Meta Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Advantage+ - Catalog | `c10-m2` | $1,415.21 / $1,395.69 | 94,159 / 92,860 | 4,500 / 4,438 | 114 / 109 | $12.41 / $12.80 | 3,915 / 3,772 | 114 / 109 |\n| \u2014 | Retargeting - Cart | `c10-m1` | $1,299.71 / $1,278.18 | 93,909 / 92,354 | 1,765 / 1,736 | 47 / 50 | $27.65 / $25.56 | 1,570 / 1,874 | 47 / 50 |\n\n## What happened\n\nObserved: no campaign met any of the three specified flagging thresholds in this comparison.\nObserved: Google Ads spend changed from $21,244.73 to $20,484.35, while ad-platform conversions changed from 1,261 to 1,236.\nObserved: Meta Ads spend changed from $2,673.87 to $2,714.92, while ad-platform conversions changed from 159 to 161.\n\n## Why\n\nThe supplied data establishes the metric changes, but it does not establish their causes. Plausible explanations to investigate\u2014not conclusions\u2014include changes in audience mix, auction conditions, creative or offer performance, landing-page behavior, tracking, or campaign configuration. Analytics figures are shown only where campaign ID and source/platform evidence support a conservative match; differences between ad-platform and analytics conversions may reflect attribution or tracking differences and should not be treated as proof of a specific cause.\n\n## What we'd change\n\n- No threshold-triggered budget change is recommended from this report alone; continue monitoring and validate conversion quality and tracking consistency.\n- Treat these as review actions, not automated changes; the dataset does not support a causal diagnosis on its own.\n",
+        "draft_email": {
+          "to": "user@example.com",
+          "subject": "Draft performance report for Sunhaven Resorts \u2014 2026-08",
+          "body": "Hi Default User,\n\nThe 2026-08 performance report for Sunhaven Resorts, compared with 2026-07, is ready as a draft for your review. No campaigns met the specified flagging thresholds.\n\nPlease review the attached/linked draft report before any client-facing use. No email has been sent to the client.\n\nBest,\nUnify"
+        }
+      }
+    },
+    {
+      "received_at": "2026-08-04T15:39:28.098540+00:00",
+      "body": {
+        "client_id": "c11",
+        "month": "2026-08",
+        "status": "drafted",
+        "blocked_reason": "",
+        "flagged": [
+          {
+            "campaign_id": "c11-m5",
+            "platform": "meta_ads",
+            "reason": "Cost per conversion decreased by more than 40% versus the prior month."
+          }
+        ],
+        "doc_markdown": "# Pallas Home Security Performance Report \u2014 2026-08\n\nComparison period: 2026-07\n\n## Flagged campaigns\n\n- **Reels - UGC** (`c11-m5`, meta_ads): Cost per conversion decreased by more than 40% versus the prior month.\n\n## Executive summary\n\n- **Google Ads:** spend $8,586.78 (+64.0%); clicks 12,696 (+44.1%); ad-platform conversions 545 (+64.7%).\n- **Meta Ads:** spend $11,309.74 (-4.6%); clicks 24,909 (+9.2%); ad-platform conversions 848 (+12.6%).\n- **Review priority:** 1 campaign/platform combination(s), represented by 1 flag reason(s).\n\n## Google Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Demand Gen - Trial | `c11-g3` | $4,324.82 / $711.05 | 208,425 / 79,005 | 5,293 / 948 | 229 / 0 | $18.89 / \u2014 | 4,816 / 777 | 229 / 0 |\n| \u2014 | Search - Local | `c11-g2` | $906.59 / $953.49 | 38,285 / 40,265 | 1,313 / 1,381 | 31 / 34 | $29.24 / $28.04 | 1,260 / 1,477 | 31 / 34 |\n| \u2014 | YouTube - Prospecting | `c11-g1` | $3,355.37 / $3,571.78 | 186,824 / 198,874 | 6,090 / 6,483 | 285 / 297 | $11.77 / $12.03 | 5,968 / 5,251 | 285 / 297 |\n\n## Meta Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2691 | Reels - UGC | `c11-m5` | $3,168.14 / $3,439.34 | 182,286 / 382,148 | 7,947 / 5,732 | 215 / 109 | $14.74 / $31.55 | 7,629 / 4,814 | 215 / 109 |\n| \u2014 | Advantage+ - Catalog | `c11-m3` | $448.79 / $434.66 | 55,066 / 53,332 | 754 / 730 | 142 / 143 | $3.16 / $3.04 | 829 / 635 | 142 / 143 |\n| \u2014 | Retargeting - 30d | `c11-m1` | $2,511.50 / $2,531.63 | 337,567 / 340,272 | 10,093 / 10,174 | 201 / 203 | $12.50 / $12.47 | 9,992 / 9,868 | 201 / 203 |\n| \u2014 | Retargeting - Cart | `c11-m2` | $1,735.08 / $1,678.97 | 80,142 / 77,550 | 4,095 / 3,962 | 231 / 242 | $7.51 / $6.94 | 4,176 / 3,367 | 231 / 242 |\n| \u2014 | Stories - Offer | `c11-m4` | $3,446.23 / $3,774.68 | 174,139 / 190,736 | 2,020 / 2,212 | 59 / 56 | $58.41 / $67.41 | 1,696 / 1,791 | 59 / 56 |\n\n## What happened\n\nObserved: 1 threshold breach(es) affected 1 campaign/platform combination(s).\nObserved: Google Ads spend changed from $5,236.32 to $8,586.78, while ad-platform conversions changed from 331 to 545.\nObserved: Meta Ads spend changed from $11,859.28 to $11,309.74, while ad-platform conversions changed from 753 to 848.\n\n## Why\n\nThe supplied data establishes the metric changes, but it does not establish their causes. Plausible explanations to investigate\u2014not conclusions\u2014include changes in audience mix, auction conditions, creative or offer performance, landing-page behavior, tracking, or campaign configuration. Analytics figures are shown only where campaign ID and source/platform evidence support a conservative match; differences between ad-platform and analytics conversions may reflect attribution or tracking differences and should not be treated as proof of a specific cause.\n\n## What we'd change\n\n- Review every flagged campaign before changing budgets; verify conversion tracking and recent configuration changes first.\n- Investigate large cost-per-conversion movements and preserve beneficial decreases only after validating conversion quality and tracking consistency.\n- Treat these as review actions, not automated changes; the dataset does not support a causal diagnosis on its own.\n",
+        "draft_email": {
+          "to": "user@example.com",
+          "subject": "Draft performance report for Pallas Home Security \u2014 2026-08",
+          "body": "Hi Default User,\n\nThe 2026-08 performance report for Pallas Home Security, compared with 2026-07, is ready as a draft for your review. The draft identifies 1 flag reason(s) across 1 campaign/platform combination(s).\n\nPlease review the attached/linked draft report before any client-facing use. No email has been sent to the client.\n\nBest,\nUnify"
+        }
+      }
+    },
+    {
+      "received_at": "2026-08-04T15:39:28.100477+00:00",
+      "body": {
+        "client_id": "c12",
+        "month": "2026-08",
+        "status": "drafted",
+        "blocked_reason": "",
+        "flagged": [],
+        "doc_markdown": "# Quill & Willow Stationery Performance Report \u2014 2026-08\n\nComparison period: 2026-07\n\n## Flagged campaigns\n\nNo campaigns met the specified flagging thresholds.\n\n## Executive summary\n\n- **Google Ads:** spend $9,896.30 (-4.7%); clicks 20,706 (-5.7%); ad-platform conversions 718 (+0.4%).\n- **Meta Ads:** spend $16,940.86 (+0.1%); clicks 21,354 (-0.5%); ad-platform conversions 1,341 (+3.8%).\n- **Review priority:** 0 campaign/platform combination(s), represented by 0 flag reason(s).\n\n## Google Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) | Analytics revenue (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Display - Retargeting | `c12-g3` | $1,423.93 / $1,463.21 | 91,044 / 93,555 | 1,420 / 1,459 | 128 / 132 | $11.12 / $11.08 | 1,278 / 1,531 | 128 / 132 | $7,644.99 / $8,042.00 |\n| \u2014 | PMax - Catalog | `c12-g2` | $3,880.96 / $3,987.26 | 187,305 / 192,435 | 8,185 / 8,409 | 160 / 157 | $24.26 / $25.40 | 7,857 / 8,072 | 160 / 157 | $10,036.80 / $9,248.54 |\n| \u2014 | Search - Competitors | `c12-g1` | $3,691.00 / $4,069.45 | 292,936 / 322,972 | 10,076 / 11,110 | 333 / 333 | $11.08 / $12.22 | 10,176 / 10,110 | 333 / 333 | $19,576.26 / $19,700.53 |\n| \u2014 | YouTube - Prospecting | `c12-g4` | $900.41 / $865.92 | 37,160 / 35,737 | 1,025 / 986 | 97 / 93 | $9.28 / $9.31 | 1,014 / 926 | 97 / 93 | $5,844.26 / $5,359.76 |\n\n## Meta Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) | Analytics revenue (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Advantage+ - Catalog | `c12-m4` | $2,960.70 / $3,072.27 | 178,678 / 185,411 | 5,306 / 5,506 | 270 / 270 | $10.97 / $11.38 | 5,093 / 4,680 | 270 / 270 | $15,802.76 / $16,677.08 |\n| \u2014 | Prospecting - Broad | `c12-m1` | $2,746.12 / $2,861.81 | 118,011 / 122,982 | 5,463 / 5,694 | 357 / 345 | $7.69 / $8.30 | 4,916 / 4,669 | 357 / 345 | $21,835.93 / $20,958.66 |\n| \u2014 | Retargeting - 30d | `c12-m2` | $4,860.26 / $4,636.69 | 232,882 / 222,170 | 7,009 / 6,687 | 403 / 395 | $12.06 / $11.74 | 6,938 / 6,218 | 403 / 395 | $24,256.57 / $23,261.50 |\n| \u2014 | Retargeting - Cart | `c12-m3` | $6,373.78 / $6,353.41 | 337,415 / 336,337 | 3,576 / 3,565 | 311 / 282 | $20.49 / $22.53 | 3,897 / 3,422 | 311 / 282 | $19,398.59 / $17,257.03 |\n\n## What happened\n\nObserved: no campaign met any of the three specified flagging thresholds in this comparison.\nObserved: Google Ads spend changed from $10,385.84 to $9,896.30, while ad-platform conversions changed from 715 to 718.\nObserved: Meta Ads spend changed from $16,924.18 to $16,940.86, while ad-platform conversions changed from 1,292 to 1,341.\n\n## Why\n\nThe supplied data establishes the metric changes, but it does not establish their causes. Plausible explanations to investigate\u2014not conclusions\u2014include changes in audience mix, auction conditions, creative or offer performance, landing-page behavior, tracking, or campaign configuration. Analytics figures are shown only where campaign ID and source/platform evidence support a conservative match; differences between ad-platform and analytics conversions may reflect attribution or tracking differences and should not be treated as proof of a specific cause.\n\n## What we'd change\n\n- No threshold-triggered budget change is recommended from this report alone; continue monitoring and validate conversion quality and tracking consistency.\n- Treat these as review actions, not automated changes; the dataset does not support a causal diagnosis on its own.\n",
+        "draft_email": {
+          "to": "user@example.com",
+          "subject": "Draft performance report for Quill & Willow Stationery \u2014 2026-08",
+          "body": "Hi Default User,\n\nThe 2026-08 performance report for Quill & Willow Stationery, compared with 2026-07, is ready as a draft for your review. No campaigns met the specified flagging thresholds.\n\nPlease review the attached/linked draft report before any client-facing use. No email has been sent to the client.\n\nBest,\nUnify"
+        }
+      }
+    },
+    {
+      "received_at": "2026-08-04T15:39:28.102529+00:00",
+      "body": {
+        "client_id": "c13",
+        "month": "2026-08",
+        "status": "drafted",
+        "blocked_reason": "",
+        "flagged": [
+          {
+            "campaign_id": "c13-g6",
+            "platform": "google_ads",
+            "reason": "Cost per conversion increased by more than 40% versus the prior month."
+          }
+        ],
+        "doc_markdown": "# Redrock Auto Glass Performance Report \u2014 2026-08\n\nComparison period: 2026-07\n\n## Flagged campaigns\n\n- **Search - Non-brand** (`c13-g6`, google_ads): Cost per conversion increased by more than 40% versus the prior month.\n\n## Executive summary\n\n- **Google Ads:** spend $19,315.74 (+1.2%); clicks 63,405 (+1.2%); ad-platform conversions 1,436 (-5.7%).\n- **Meta Ads:** spend $9,962.95 (-0.6%); clicks 13,545 (+2.3%); ad-platform conversions 444 (+2.5%).\n- **Review priority:** 1 campaign/platform combination(s), represented by 1 flag reason(s).\n\n## Google Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2691 | Search - Non-brand | `c13-g6` | $386.19 / $400.61 | 20,988 / 44,512 | 640 / 667 | 70 / 157 | $5.52 / $2.55 | 652 / 580 | 70 / 157 |\n| \u2014 | Demand Gen - Trial | `c13-g4` | $2,089.39 / $2,058.32 | 192,393 / 189,532 | 6,541 / 6,444 | 381 / 403 | $5.48 / $5.11 | 6,279 / 6,895 | 381 / 403 |\n| \u2014 | Display - Retargeting | `c13-g1` | $4,933.29 / $4,920.63 | 549,364 / 547,954 | 23,073 / 23,014 | 89 / 88 | $55.43 / $55.92 | 20,996 / 23,014 | 89 / 88 |\n| \u2014 | Search - Brand | `c13-g5` | $703.83 / $754.82 | 29,823 / 31,983 | 1,604 / 1,720 | 130 / 125 | $5.41 / $6.04 | 1,604 / 1,702 | 130 / 125 |\n| \u2014 | Search - Local | `c13-g3` | $6,017.47 / $5,886.16 | 570,376 / 557,929 | 14,145 / 13,836 | 373 / 350 | $16.13 / $16.82 | 15,135 / 13,974 | 373 / 350 |\n| \u2014 | YouTube - Prospecting | `c13-g2` | $5,185.57 / $5,058.55 | 321,087 / 313,222 | 17,402 / 16,976 | 393 / 399 | $13.19 / $12.68 | 18,098 / 17,655 | 393 / 399 |\n\n## Meta Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Prospecting - Broad | `c13-m1` | $3,793.44 / $3,434.55 | 162,459 / 147,089 | 7,538 / 6,824 | 132 / 127 | $28.74 / $27.04 | 6,105 / 6,209 | 132 / 127 |\n| \u2014 | Retargeting - 30d | `c13-m2` | $6,169.51 / $6,591.57 | 294,487 / 314,633 | 6,007 / 6,418 | 312 / 306 | $19.77 / $21.54 | 6,487 / 5,198 | 312 / 306 |\n\n## What happened\n\nObserved: 1 threshold breach(es) affected 1 campaign/platform combination(s).\nObserved: Google Ads spend changed from $19,079.09 to $19,315.74, while ad-platform conversions changed from 1,522 to 1,436.\nObserved: Meta Ads spend changed from $10,026.12 to $9,962.95, while ad-platform conversions changed from 433 to 444.\n\n## Why\n\nThe supplied data establishes the metric changes, but it does not establish their causes. Plausible explanations to investigate\u2014not conclusions\u2014include changes in audience mix, auction conditions, creative or offer performance, landing-page behavior, tracking, or campaign configuration. Analytics figures are shown only where campaign ID and source/platform evidence support a conservative match; differences between ad-platform and analytics conversions may reflect attribution or tracking differences and should not be treated as proof of a specific cause.\n\n## What we'd change\n\n- Review every flagged campaign before changing budgets; verify conversion tracking and recent configuration changes first.\n- Investigate large cost-per-conversion movements and preserve beneficial decreases only after validating conversion quality and tracking consistency.\n- Treat these as review actions, not automated changes; the dataset does not support a causal diagnosis on its own.\n",
+        "draft_email": {
+          "to": "user@example.com",
+          "subject": "Draft performance report for Redrock Auto Glass \u2014 2026-08",
+          "body": "Hi Default User,\n\nThe 2026-08 performance report for Redrock Auto Glass, compared with 2026-07, is ready as a draft for your review. The draft identifies 1 flag reason(s) across 1 campaign/platform combination(s).\n\nPlease review the attached/linked draft report before any client-facing use. No email has been sent to the client.\n\nBest,\nUnify"
+        }
+      }
+    },
+    {
+      "received_at": "2026-08-04T15:39:28.104651+00:00",
+      "body": {
+        "client_id": "c14",
+        "month": "2026-08",
+        "status": "drafted",
+        "blocked_reason": "",
+        "flagged": [],
+        "doc_markdown": "# Lanternfield Tutoring Performance Report \u2014 2026-08\n\nComparison period: 2026-07\n\n## Flagged campaigns\n\nNo campaigns met the specified flagging thresholds.\n\n## Executive summary\n\n- **Google Ads:** spend $14,713.60 (-1.6%); clicks 29,993 (-1.4%); ad-platform conversions 985 (-0.8%).\n- **Meta Ads:** spend $7,297.87 (+3.5%); clicks 12,401 (+1.0%); ad-platform conversions 776 (+1.3%).\n- **Review priority:** 0 campaign/platform combination(s), represented by 0 flag reason(s).\n\n## Google Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Display - Retargeting | `c14-g4` | $5,275.47 / $5,463.86 | 250,973 / 259,936 | 9,361 / 9,695 | 41 / 41 | $128.67 / $133.26 | 8,986 / 10,179 | 41 / 41 |\n| \u2014 | PMax - Catalog | `c14-g3` | $2,407.35 / $2,399.81 | 115,682 / 115,320 | 4,303 / 4,289 | 302 / 286 | $7.97 / $8.39 | 4,647 / 3,774 | 302 / 286 |\n| \u2014 | Search - Competitors | `c14-g2` | $3,976.39 / $3,914.55 | 246,216 / 242,386 | 7,164 / 7,053 | 195 / 203 | $20.39 / $19.28 | 5,874 / 6,700 | 195 / 203 |\n| \u2014 | Search - Non-brand | `c14-g1` | $1,656.65 / $1,762.78 | 316,759 / 337,051 | 1,868 / 1,988 | 107 / 105 | $15.48 / $16.79 | 1,531 / 1,928 | 107 / 105 |\n| \u2014 | YouTube - Prospecting | `c14-g5` | $1,397.74 / $1,417.63 | 342,583 / 347,458 | 7,297 / 7,400 | 340 / 358 | $4.11 / $3.96 | 7,005 / 7,474 | 340 / 358 |\n\n## Meta Ads campaign comparison\n\n| Priority | Campaign | ID | Spend (report / prior) | Impressions (report / prior) | Clicks (report / prior) | Ad conversions (report / prior) | Cost/conv. (report / prior) | Analytics sessions (report / prior) | Analytics conversions (report / prior) |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n| \u2014 | Advantage+ - Catalog | `c14-m3` | $4,926.18 / $4,644.24 | 307,501 / 289,902 | 3,936 / 3,710 | 261 / 272 | $18.87 / $17.07 | 4,132 / 4,043 | 261 / 272 |\n| \u2014 | Retargeting - 30d | `c14-m1` | $406.58 / $408.25 | 48,750 / 48,950 | 2,422 / 2,432 | 215 / 218 | $1.89 / $1.87 | 2,373 / 2,042 | 215 / 218 |\n| \u2014 | Retargeting - Cart | `c14-m2` | $1,965.11 / $1,995.84 | 128,859 / 130,874 | 6,043 / 6,137 | 300 / 276 | $6.55 / $7.23 | 5,015 / 6,443 | 300 / 276 |\n\n## What happened\n\nObserved: no campaign met any of the three specified flagging thresholds in this comparison.\nObserved: Google Ads spend changed from $14,958.63 to $14,713.60, while ad-platform conversions changed from 993 to 985.\nObserved: Meta Ads spend changed from $7,048.33 to $7,297.87, while ad-platform conversions changed from 766 to 776.\n\n## Why\n\nThe supplied data establishes the metric changes, but it does not establish their causes. Plausible explanations to investigate\u2014not conclusions\u2014include changes in audience mix, auction conditions, creative or offer performance, landing-page behavior, tracking, or campaign configuration. Analytics figures are shown only where campaign ID and source/platform evidence support a conservative match; differences between ad-platform and analytics conversions may reflect attribution or tracking differences and should not be treated as proof of a specific cause.\n\n## What we'd change\n\n- No threshold-triggered budget change is recommended from this report alone; continue monitoring and validate conversion quality and tracking consistency.\n- Treat these as review actions, not automated changes; the dataset does not support a causal diagnosis on its own.\n",
+        "draft_email": {
+          "to": "user@example.com",
+          "subject": "Draft performance report for Lanternfield Tutoring \u2014 2026-08",
+          "body": "Hi Default User,\n\nThe 2026-08 performance report for Lanternfield Tutoring, compared with 2026-07, is ready as a draft for your review. No campaigns met the specified flagging thresholds.\n\nPlease review the attached/linked draft report before any client-facing use. No email has been sent to the client.\n\nBest,\nUnify"
+        }
+      }
+    }
+  ],
+  "finished_at": "2026-08-04T15:46:41.870657+00:00"
+}
