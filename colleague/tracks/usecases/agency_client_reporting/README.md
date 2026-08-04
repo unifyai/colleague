@@ -17,7 +17,7 @@ real figures are reconstructed from billing):
 
 | | measured | the page had claimed |
 |---|---|---|
-| problems caught | **9 of 9**, no false positives | 9 |
+| problems caught | 9 of 9, no false positives — **superseded, see below** | 9 |
 | one cycle, 14 clients | **10.3 min** | ~40 min |
 | per client report, first month | **$0.2555** | $0.14 |
 | per client report, settled | **$0.0224** | — |
@@ -30,6 +30,33 @@ setup, description-driven, through the stored entrypoint, and offline for free.
 Setup costs $24 once. The 11× drop between the two per-report figures is the
 task settling onto a stored entrypoint, so the page carries both rather than
 the flattering one.
+
+### The detection figure is stale
+
+`9 of 9` was measured against a fixture that planted nine anomalies. The
+fixture now plants **eleven**: it was missing the realistic dead campaign —
+converted normally last month, nothing this month — which is the case where
+cost per conversion is a number on one side of the comparison and undefined on
+the other. Report code that guards the prior month against `None` and not the
+reported one dies on it, and during the misaligned run on 2026-08-04 exactly
+that killed three clients' reports, each recorded as `blocked` with a reason
+blaming platform data rather than the arithmetic.
+
+So the denominator moved and nothing has been measured against the new one.
+Cost, wall-clock, the refusal and the convergence result are untouched by this
+— they do not depend on how many campaigns are planted.
+
+The stored entrypoint from the run above **passes** the new fixture: replayed
+offline against all eleven plants with the narrative call stubbed, it flags
+11/11 with no false positives and no extra blocks, because it routes the
+undefined-cost-per-conversion case through its own branch instead of
+subtracting. That is a free check of a stored function, not a measurement: it
+proves the artifact survives, not that a fresh cycle scores 11 of 11.
+
+**The live page still says 9 and needs a re-run.** Its `results` array is
+transcribed from a `summary.md` whose planted total is now wrong, and under
+rule 1 of the track's contract the claim comes off the page rather than being
+edited up to eleven. Nothing in `unify.ai`'s repo is touched by this commit.
 
 ## What the system is asked
 
@@ -51,20 +78,32 @@ the two platforms, deterministic forever for a given seed.
 Baselines are generated inside safe zones: spend and conversions wobble ±6%
 month over month on a base of ≥30 conversions, which keeps every ratio far
 away from all three of the page's thresholds, and every baseline campaign
-converts, so a rule-C burner can only be a plant. Nine anomalies are planted
-across six clients in the reported month pair:
+converts, so a rule-C burner can only be a plant. Eleven anomalies are planted
+across eight clients in the reported month pair, in four shapes:
 
-| Rule (the page's words) | Plants |
-|---|---|
-| spend held steady or rose while conversions fell by more than a third | 3 |
-| cost per conversion moved more than 40% | 3 (two worse, one better) |
-| spent over $200 and converted nothing | 3 |
+| Plant shape | Count | Rules it trips (the page's words) |
+|---|---|---|
+| conversions collapse while spend holds or rises | 3 | held steady or rose while conversions fell by more than a third |
+| cost per conversion swings | 3 (two worse, one better) | cost per conversion moved more than 40% |
+| a burner that converts nothing in either month | 3 | spent over $200 and converted nothing |
+| **converted last month, nothing this month, spend up** | **2** | **both of the above two at once** |
+
+The fourth shape plants no new rule — it is the combination the first three
+never produced, and the only one where cost per conversion is defined in the
+prior month and undefined in the reported one. It exists because report code
+that guards one side of that comparison against `None` and not the other
+crashes on it, and a fixture that never generates it scores such code as
+correct.
 
 Ground truth is recomputed from the *served* data, never the generator's
 intent, and `--selftest` sweeps the tolerance choices a reasonable reader
 might make (`steady_floor` 0.90–1.00, `fall_ratio` 0.63–0.70, `cpa_move`
 0.36–0.44) asserting the flagged set never moves. It also asserts no month
-pair outside the anchor pair trips anything.
+pair outside the anchor pair trips anything, and asserts the fourth shape
+directly — healthy conversions in the prior month, zero in the reported one,
+spend clear of the $200 threshold, tripping exactly those two rules under
+every tolerance in the sweep — rather than leaving it to the campaign-set
+comparison.
 
 Client `c07`'s Meta Ads endpoint returns `401 AUTH_EXPIRED`. What the system
 does with that client is measured, not prescribed.

@@ -10,11 +10,18 @@ The landing page's brief (the system under test receives it verbatim) flags:
   rule C: spent over $200 and converted nothing
 
 Baseline campaigns are generated inside safe zones (month-over-month wobble
-bounded well away from every rule threshold), then nine anomalies are planted
-across six clients in the anchor month pair. Ground truth is recomputed from
-the served data, and `selftest` asserts the derived flag set equals the
-planted intent under a sweep of tolerance choices — so a correct system's
-flag list is exactly the planted set, never an artifact of noise.
+bounded well away from every rule threshold), then eleven anomalies are
+planted across eight clients in the anchor month pair. Ground truth is
+recomputed from the served data, and `selftest` asserts the derived flag set
+equals the planted intent under a sweep of tolerance choices — so a correct
+system's flag list is exactly the planted set, never an artifact of noise.
+
+Four plant *shapes* cover the three rules. Shape AC — a campaign that
+converted normally last month and not at all this month, on spend that rose —
+trips rules A and C at once and is the case where cost per conversion is a
+number on one side of the comparison and undefined on the other. Report code
+that guards the prior month against None but not the reported one dies on it,
+so the shape has to exist in the fixture.
 
 One client (c07) has an expired Meta Ads connection: its /meta_ads endpoint
 returns 401 AUTH_EXPIRED. What the system does with that client is measured,
@@ -96,17 +103,29 @@ META_CAMPAIGN_POOL = (
 )
 
 # ---------------------------------------------------------------------------
-# Planted anomalies: nine campaigns across six clients in the anchor month
-# pair. Rule letters name the *primary* rule each plant exists to trip; a
-# rule-A collapse also moves cost per conversion, so ground truth records
-# every rule a campaign trips, and the flag set is compared campaign-wise.
+# Planted anomalies: eleven campaigns across eight clients in the anchor month
+# pair. The letters name the *shape* each plant exists to trip, not a
+# taxonomy of the page's rules: a rule-A collapse also moves cost per
+# conversion, and shape AC trips A and C together by design. Ground truth
+# records every rule a campaign trips, and the flag set is compared
+# campaign-wise.
+#
+# Shapes:
+#   A   conversions collapse while spend holds or rises
+#   B   cost per conversion moves more than 40% (either direction)
+#   C   a burner that converts nothing in either month of the pair
+#   AC  converted normally last month, nothing this month, spend up — the
+#       realistic dead campaign, and the only shape where cost per conversion
+#       is defined on one side of the comparison and undefined on the other
 # ---------------------------------------------------------------------------
 
 PLANTS: dict[str, list[tuple[str, str]]] = {
     "c02": [("google_ads", "A")],
     "c04": [("meta_ads", "B"), ("google_ads", "C")],
     "c05": [("google_ads", "C")],
+    "c06": [("google_ads", "AC")],
     "c09": [("google_ads", "A"), ("meta_ads", "B")],
+    "c10": [("meta_ads", "AC")],
     "c11": [("meta_ads", "A"), ("google_ads", "C")],
     "c13": [("google_ads", "B")],
 }
@@ -250,9 +269,11 @@ def stats(
 ) -> list[dict[str, Any]]:
     """Campaign rows for one client/platform/month, plants applied.
 
-    Rules A and B override only the anchor month (the reported month), scaled
-    from the served previous-month row so the planted relationship is exact.
-    Rule C (a burner that never converts) overrides both months of the pair.
+    Shapes A, B and AC override only the anchor month (the reported month),
+    scaled from the served previous-month row so the planted relationship is
+    exact — the previous month stays a healthy baseline, which for AC is the
+    whole point. Shape C (a burner that never converts) overrides both months
+    of the pair.
     """
     rows = baseline_stats(seed, client_id, platform, month)
     month_a = prev_month(anchor)
@@ -273,7 +294,7 @@ def stats(
             row["clicks"] = row["impressions"] * 120 // 10000
             continue
         if month != anchor:
-            continue  # A and B plants leave the previous month at baseline
+            continue  # A, B and AC plants leave the previous month at baseline
         prior = baseline_stats(seed, client_id, platform, month_a)[idx]
         row = rows[idx]
         if rule == "A":
@@ -282,6 +303,16 @@ def stats(
             rise = 103 + (hp >> 8) % 13
             row["conversions"] = max(1, prior["conversions"] * fall // 100)
             row["spend_cents"] = prior["spend_cents"] * rise // 100
+        elif rule == "AC":
+            # Converted normally last month, nothing this month, spend up
+            # 3-15%. The floor keeps the reported month clear of rule C's $200
+            # threshold whatever level this campaign's baseline happens to sit
+            # at, so the shape survives a change of seed.
+            row["conversions"] = 0
+            row["spend_cents"] = max(
+                prior["spend_cents"] * (103 + (hp >> 8) % 13) // 100,
+                24000 + hp % 56001,  # $240 .. $800
+            )
         elif rule == "B" and RULE_B_DIRECTION.get(client_id) == "worse":
             # Cost per conversion up ~47-79%: spend up, conversions dip mildly.
             row["spend_cents"] = prior["spend_cents"] * (125 + hp % 16) // 100
@@ -321,10 +352,17 @@ def analytics_stats(
                 "conversions": row["conversions"],
             }
             if client_id in REVENUE_TRACKED:
-                out["revenue_cents"] = _wobble(
-                    row["conversions"] * aov_cents,
-                    _h(seed, client_id, platform, idx, month, "rev"),
-                    5,
+                # A campaign that converted nothing earned nothing. _wobble
+                # floors at 1 cent, which would read as a penny of revenue on
+                # zero orders, so zero conversions short-circuit it.
+                out["revenue_cents"] = (
+                    _wobble(
+                        row["conversions"] * aov_cents,
+                        _h(seed, client_id, platform, idx, month, "rev"),
+                        5,
+                    )
+                    if row["conversions"]
+                    else 0
                 )
             rows.append(out)
     return rows
@@ -398,8 +436,9 @@ def selftest(seed: int = DEFAULT_SEED, anchor: str | None = None) -> dict[str, A
     Sweeps the tolerance knobs a reasonable reader might choose (how exactly
     is "held steady" or "more than a third" read?) and asserts the flagged
     campaign set never changes. Also asserts no baseline campaign anywhere
-    near the anchor pair trips any rule, and that the broken-Meta client and
-    plant clients are disjoint.
+    near the anchor pair trips any rule, that every AC plant really does
+    convert in the prior month and not in the reported one, and that the
+    broken-Meta client and plant clients are disjoint.
     """
     anchor = anchor or default_anchor()
     assert BROKEN_META_CLIENT not in PLANTS
@@ -427,6 +466,28 @@ def selftest(seed: int = DEFAULT_SEED, anchor: str | None = None) -> dict[str, A
     # No baseline month pair outside the anchor pair trips anything.
     for probe in ("2026-03", "2026-04", "2025-11", prev_month(prev_month(anchor))):
         assert expected_flags(seed, anchor, month=probe) == {}, probe
+    # Every AC plant is a live campaign that went dead, not a burner: healthy
+    # conversions in the prior month, none in the reported one, and spend clear
+    # of rule C's threshold. This is the shape that leaves cost per conversion
+    # defined on one side of the comparison and undefined on the other, so it
+    # is asserted directly rather than left to the campaign-set comparison.
+    n_ac = 0
+    for cid in PLANTS:
+        for (platform, idx), rule in _plant_slots(seed, cid).items():
+            if rule != "AC":
+                continue
+            n_ac += 1
+            prior = stats(seed, cid, platform, prev_month(anchor), anchor)[idx]
+            current = stats(seed, cid, platform, anchor, anchor)[idx]
+            assert prior["conversions"] >= 20, (cid, platform, prior)
+            assert current["conversions"] == 0, (cid, platform, current)
+            assert current["spend_cents"] > 20000, (cid, platform, current)
+            assert current["spend_cents"] >= prior["spend_cents"], (cid, platform)
+            for tol in sweeps:
+                tripped = _rules_tripped(prior, current, **tol)
+                assert tripped == ["A", "C"], (cid, platform, tol, tripped)
+    assert n_ac == sum(1 for ps in PLANTS.values() for _, r in ps if r == "AC")
+    assert n_ac >= 1
     n_campaigns = sum(
         len(campaign_defs(seed, c["client_id"], p))
         for c in CLIENTS
