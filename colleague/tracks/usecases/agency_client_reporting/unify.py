@@ -137,27 +137,24 @@ def _task_snapshot(task: Any) -> dict[str, Any]:
     }
 
 
-def _activation_anchor(task_snapshot: dict[str, Any]) -> str | None:
-    """The month a run fired by this task's schedule would report on.
+def _window_alignment(scored: dict[str, Any], anchor: str) -> dict[str, Any]:
+    """Whether the system reported on the month the plants are pinned to.
 
-    The system computes "last month" from the activation it believes it is
-    running at, not from the wall clock: a task whose first fire is
-    2026-09-01 reports 2026-08 even when the harness fires it in August. That
-    reading is correct for that date, so the fixture follows the task rather
-    than the other way round — otherwise the compressed schedule puts every
-    planted anomaly outside the pair the system compares, and the run measures
-    nothing.
+    The two execution regimes disagree about what "last month" means when a
+    task is fired ahead of its schedule. A description-driven run reads the
+    activation it believes it is running at, so a task whose first fire is
+    2026-09-01 reports 2026-08; a stored entrypoint reads the wall clock and
+    reports the month before today. The fixture can only pin its anomalies to
+    one pair, so a run that lands on the other one measures nothing about
+    detection — and it does so silently, looking like a perfect zero-flag
+    month. This is the guard that stops that reaching a page as a figure.
     """
-    from colleague.tracks.usecases.agency_client_reporting.fixture import (
-        month_str,
-        prev_month,
-    )
-
-    start_at = (task_snapshot.get("schedule") or {}).get("start_at")
-    if not start_at:
-        return None
-    activation = datetime.fromisoformat(str(start_at).replace("Z", "+00:00"))
-    return prev_month(month_str(activation.date()))
+    reported = sorted({r["month"] for r in scored["clients"] if r["month"]})
+    return {
+        "aligned": reported == [anchor],
+        "anchor": anchor,
+        "months_reported": reported,
+    }
 
 
 def _function_snapshot(function_id: int) -> dict[str, Any]:
@@ -349,24 +346,9 @@ async def main() -> int:
         f"repeat={'yes' if task.repeat else 'no'}",
     )
 
-    activation_anchor = _activation_anchor(results["task_after_setup"])
-    if activation_anchor and activation_anchor != anchor:
-        print(
-            f"[align] task activates "
-            f"{results['task_after_setup']['schedule']['start_at']}, which reports "
-            f"{activation_anchor}; re-anchoring the fixture from {anchor}",
-        )
-        results["anchor_month_clock"] = anchor
-        anchor = activation_anchor
-        fixture.set_anchor(anchor)
-        ground_truth = fixture_selftest(seed, anchor)
-        scorer_selftest(seed, anchor)
-        results["anchor_month"] = anchor
-        results["ground_truth"] = ground_truth
-        print(
-            f"[align] ground truth re-derived: {ground_truth['flagged_campaigns']} "
-            f"planted flags across {len(ground_truth['flagged_clients'])} clients",
-        )
+    start_at = (results["task_after_setup"].get("schedule") or {}).get("start_at")
+    if start_at:
+        print(f"[align] task activates {start_at}; fixture is pinned to {anchor}")
 
     # ── Phases: monthly wakes ───────────────────────────────────────────────
     delegate = _MeasuredTaskExecutionDelegate(actor)
@@ -409,17 +391,26 @@ async def main() -> int:
             "status": run_status,
             "entrypoint_before": before.entrypoint,
             "entrypoint_after": after.entrypoint,
+            "regime": "entrypoint" if before.entrypoint is not None else "description",
+            "window": _window_alignment(scored, anchor),
             **scored,
             "result": run_text[:2000],
         }
         results["runs"].append(row)
         print(
-            f"[run_{i}] {run_status}; delivered={row['clients_delivered']}"
+            f"[run_{i}] {run_status} ({row['regime']}); "
+            f"delivered={row['clients_delivered']}"
             f"/{row['clients_total']} drafted={row['reports_drafted']} "
             f"blocked={row['reports_blocked']} flags={row['flags_matched_total']}"
             f"/{row['flags_expected_total']} extra={row['flags_extra_total']} "
             f"entrypoint_after={after.entrypoint}",
         )
+        if not row["window"]["aligned"]:
+            print(
+                f"[run_{i}] WINDOW MISALIGNED: reported "
+                f"{row['window']['months_reported']} but anomalies are pinned to "
+                f"{anchor} — flag counts from this run mean nothing",
+            )
 
     final_task = scheduler._filter_tasks(filter=f"task_id == {task.task_id}")[0]
     results["task_final"] = _task_snapshot(final_task)
@@ -442,18 +433,33 @@ def _usd(amount: float) -> str:
 def _transcription_block(results: dict[str, Any], phases: list[Any]) -> list[str]:
     """The figures eligible for the landing page, and the ones that are not.
 
-    Only the first month is page-eligible: it is the description-driven
-    regime every agency actually starts in. A converged run costs less, and
-    quoting that as typical would flatter the product with a number no first
-    month produces.
+    Figures come from the first metered month, whichever regime it ran in,
+    and the regime is named beside them: a run executing a stored entrypoint
+    is cheaper than one reasoning from the description, so a cost quoted
+    without its regime describes a steady state a first month may not have
+    reached. A run whose reported month missed the anomalies yields nothing —
+    it looks like a clean sweep and is worth less than no measurement.
     """
     runs = results.get("runs") or []
     if not runs:
         return ["", "## Landing-page transcription", "", "No run completed — nothing eligible."]
-    first = runs[0]
+    # The earliest run that actually looked at the anomalies. A description-driven
+    # first month can miss the window while the entrypoint month after it lands.
+    first = next((r for r in runs if r["window"]["aligned"]), None)
+    if first is None:
+        return [
+            "",
+            "## Landing-page transcription",
+            "",
+            f"**Nothing is eligible.** No run reported on {runs[0]['window']['anchor']}, "
+            f"where the anomalies are pinned — months seen: "
+            f"{[r['window']['months_reported'] for r in runs]}. Those flag counts are "
+            f"not detection rates, and those costs are for reports with fewer flagged "
+            f"campaigns to write up.",
+        ]
     by_name = {p.to_json()["name"]: p.to_json() for p in phases}
-    exec_phase = by_name.get("run_1", {})
-    review_phase = by_name.get("run_1_review", {})
+    exec_phase = by_name.get(f"run_{first['run']}", {})
+    review_phase = by_name.get(f"run_{first['run']}_review", {})
     setup_phase = by_name.get("setup", {})
     reports = first["reports_drafted"]
     exec_cost = float(exec_phase.get("provider_cost_usd") or 0.0)
@@ -472,7 +478,8 @@ def _transcription_block(results: dict[str, Any], phases: list[Any]) -> list[str
     if reports:
         lines += [
             f"| cost of one client's report | {_usd(exec_cost / reports)} | "
-            f"run_1 provider cost {_usd(exec_cost)} / {reports} reports drafted |",
+            f"run_1 ({first['regime']} regime) provider cost {_usd(exec_cost)} / "
+            f"{reports} reports drafted |",
             f"| one reporting cycle | {wall_min:.0f} min | "
             f"run_1 wall time, all {first['clients_total']} clients |",
             f"| flagged campaigns | {first['flags_matched_total']} | "

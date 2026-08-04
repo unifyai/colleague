@@ -9,6 +9,28 @@ draft going to the account manager rather than the client.
 The page carried three figures. None of them had been measured. This track
 replaces them with figures from an instrumented run and commits the ledger.
 
+## Result
+
+From [`results/2026-08-04T17-36-52Z-unify`](results/2026-08-04T17-36-52Z-unify/)
+(read its `NOTE.md` first — the cost column in `summary.md` is void and the
+real figures are reconstructed from billing):
+
+| | measured | the page had claimed |
+|---|---|---|
+| problems caught | **9 of 9**, no false positives | 9 |
+| one cycle, 14 clients | **10.3 min** | ~40 min |
+| per client report, first month | **$0.2555** | $0.14 |
+| per client report, settled | **$0.0224** | — |
+| reports | 13 drafted, 1 refused | — |
+
+The page had understated cost by about 2× for a first month and overstated
+cycle time by about 4×. Detection was confirmed four times over: ad hoc during
+setup, description-driven, through the stored entrypoint, and offline for free.
+
+Setup costs $24 once. The 11× drop between the two per-report figures is the
+task settling onto a stored entrypoint, so the page carries both rather than
+the flattering one.
+
 ## What the system is asked
 
 The page's `brief` field, read out of `src/data/useCases.tsx` at run time and
