@@ -28,7 +28,6 @@ from pathlib import Path
 from typing import Any
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
-REPO_ROOT = EXPERIMENT_DIR.parent.parent
 
 STAGING_ORCHESTRA_HOST = "api.staging.internal.saas.unify.ai"
 
