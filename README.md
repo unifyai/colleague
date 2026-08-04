@@ -52,9 +52,11 @@ chained unillm hook. Both produce the same per-phase ledger.
 | [`custody`](colleague/tracks/custody/) | Where a fact is filed decides who can get it back out | built |
 | [`concurrency`](colleague/tracks/concurrency/) | Several tasks, several people — does each correction land in the right one? | built |
 | [`teaching`](colleague/tracks/teaching/) | Does a walked-through workflow become a reusable artifact? | built |
+| [`usecases`](colleague/tracks/usecases/) | Are the figures on our own use-case pages real? | built — 1 of 19 pages |
 
-"Built" means the fixture, scenarios and scorers exist and self-test. Only
-`standing` has been run against live arms — every number below is from it.
+"Built" means the fixture, scenarios and scorers exist and self-test. Every
+number below is from `standing`, the only track with completed live runs;
+`usecases` has run once and is not yet reporting figures.
 
 Full scope, scoring rules and the fairness constraints are in
 [`DESIGN.md`](DESIGN.md).
