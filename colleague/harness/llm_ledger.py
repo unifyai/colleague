@@ -1,15 +1,21 @@
 """Per-phase LLM accounting for benchmark runs.
 
-Installs unillm's process-global LLM event hook and records every completed
-LLM call (model, token usage, provider cost). Phases mark index windows over
-the ledger, so each benchmark phase (setup, run_1, run_2, ...) gets an exact
+Registers a unillm LLM event listener and records every completed LLM call
+(model, token usage, provider cost). Phases mark index windows over the ledger,
+so each benchmark phase (setup, run_1, run_2, ...) gets an exact
 call/token/cost attribution. Calls that land outside any phase window are
 attributed to a "background" bucket rather than silently dropped.
 
-The hook fires synchronously inside the LLM client after each completion, from
-whatever thread made the call, so accounting is complete regardless of
+The listener fires synchronously inside the LLM client after each completion,
+from whatever thread made the call, so accounting is complete regardless of
 asyncio/thread topology. Non-streaming calls only (the Unify runtime does not
 stream), so usage is always present on the response.
+
+unillm isolates a listener that raises, so a ledger whose callback drifts out
+of step with `LLMEvent` records nothing and reports $0 — a missing measurement
+that reads as a free run. `install` drives a synthetic event through the real
+callback to make that mismatch fail immediately, and `metering_fault` reports
+any loss that happened during the run.
 
 Failed calls are recorded too, via a LiteLLM failure callback rather than the
 unillm hook, which only ever sees completions. Without them a provider timeout
@@ -34,7 +40,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterator
 
-from unillm import get_global_llm_event_hook, set_global_llm_event_hook
+from unillm import add_llm_event_listener
 from unillm.llm_events import LLMEvent
 
 
@@ -46,7 +52,6 @@ class LLMCallRecord:
     completion_tokens: int
     total_tokens: int
     provider_cost: float | None
-    billed_cost: float | None
     origin: str | None
     usage_raw: dict[str, Any] | None
     # Set only on a call that never completed. A failure carries no usage and
@@ -68,7 +73,6 @@ class LLMCallRecord:
             "completion_tokens": self.completion_tokens,
             "total_tokens": self.total_tokens,
             "provider_cost": self.provider_cost,
-            "billed_cost": self.billed_cost,
             "origin": self.origin,
             "usage_raw": self.usage_raw,
             "error": self.error,
@@ -141,7 +145,7 @@ class LLMLedger:
         self._lock = threading.Lock()
         self._phase_marks: list[tuple[str, int, int, float]] = []
         self._boundaries: list[tuple[str, int, float | None]] = []
-        self._chained_hook: Any = None
+        self._listener: Any = None
         self._failure_hook_installed = False
         # Full request bodies enable offline replay of specific decision
         # points (rerun a critical call with modified prompts without paying
@@ -150,12 +154,11 @@ class LLMLedger:
         self._capture_requests_path = capture_requests_path
 
     def install(self) -> None:
-        """Install as the process-global hook, chaining any existing hook.
+        """Register as a unillm listener, after self-testing the record path.
 
-        unify.init() installs its own global hook (EventBus wiring), and
-        set_global_llm_event_hook is last-write-wins — so this must run
-        AFTER unify.init(), and the pre-existing hook is forwarded to so
-        production wiring keeps working.
+        Listener registration is additive and process-global, so this coexists
+        with the EventBus listener unify.init() registers regardless of which
+        ran first, and neither displaces the other.
 
         Also registers a LiteLLM failure callback, because the unillm event
         hook structurally cannot report a failure: LLMEvent carries only
@@ -166,9 +169,14 @@ class LLMLedger:
         recorded as a detection miss. LiteLLM is the transport under every
         provider call here, and its failure_callback is the one place in this
         repo's reach where a dead call is observable.
+
+        Raises:
+            RuntimeError: if the record path cannot handle a synthetic event,
+                which means this ledger and the installed unillm disagree about
+                LLMEvent and every total would come out zero.
         """
-        self._chained_hook = get_global_llm_event_hook()
-        set_global_llm_event_hook(self._on_event)
+        self._self_test()
+        self._listener = add_llm_event_listener(self._on_event)
         try:
             import litellm
 
@@ -178,9 +186,82 @@ class LLMLedger:
         except Exception:
             pass  # metering must never be what breaks a paid run
 
+    def _self_test(self) -> None:
+        """Prove the record path works before the run spends anything.
+
+        unillm calls a listener inside a try/except so a raising listener can
+        never fail an LLM call. That isolation means a `_on_event` which reads a
+        field `LLMEvent` no longer carries records nothing at all, and the run
+        ends with a $0 phase table that looks like a free run rather than a
+        broken measurement — the exact way three runs were lost. Driving one
+        synthetic event through the real callback, unguarded, turns that whole
+        class of drift into an error at t=0, before any provider is paid.
+
+        Drives the same callback that gets registered, then discards whatever it
+        recorded, so the probe is exactly as representative as the real path and
+        still leaves no record or captured request behind. Runs before
+        registration, so nothing else can be writing to `_records`.
+        """
+        before = self._count()
+        capture, self._capture_requests_path = self._capture_requests_path, None
+        try:
+            self._on_event(
+                LLMEvent(
+                    request={"model": "probe/metering-self-test"},
+                    response={
+                        "usage": {
+                            "prompt_tokens": 1,
+                            "completion_tokens": 1,
+                            "total_tokens": 2,
+                        },
+                    },
+                    provider_cost=0.0,
+                ),
+            )
+            recorded = self._count() - before
+        except Exception as exc:
+            raise RuntimeError(
+                "LLM metering is broken: recording an event raised "
+                f"{type(exc).__name__}: {exc}. This ledger and the installed "
+                "unillm disagree about LLMEvent, so every cost and token total "
+                "would be reported as zero. Refusing to start a paid run.",
+            ) from exc
+        finally:
+            self._capture_requests_path = capture
+            with self._lock:
+                del self._records[before:]
+        if recorded != 1:
+            raise RuntimeError(
+                "LLM metering is broken: recording a synthetic event produced "
+                f"{recorded} records instead of 1. Refusing to start a paid run "
+                "that could not be measured.",
+            )
+
+    def metering_fault(self) -> str | None:
+        """Why these totals cannot be trusted, or None when they can.
+
+        Distinguishes "nothing was spent" from "spending was not observed", so a
+        zero-cost phase table is never read as a free run.
+        """
+        if self._listener is None:
+            return "ledger was never installed; no LLM call was observed"
+        if not self._listener.healthy:
+            return (
+                f"{self._listener.failed} event(s) were lost: "
+                f"{self._listener.last_error!r}"
+            )
+        return None
+
+    def require_metering(self) -> None:
+        """Raise if any observed spending went unrecorded."""
+        fault = self.metering_fault()
+        if fault is not None:
+            raise RuntimeError(f"LLM metering is unreliable: {fault}")
+
     def uninstall(self) -> None:
-        set_global_llm_event_hook(self._chained_hook)
-        self._chained_hook = None
+        if self._listener is not None:
+            self._listener.remove()
+            self._listener = None
         if self._failure_hook_installed:
             try:
                 import litellm
@@ -215,7 +296,6 @@ class LLMLedger:
                 completion_tokens=0,
                 total_tokens=0,
                 provider_cost=None,
-                billed_cost=None,
                 origin="litellm.failure_callback",
                 usage_raw=None,
                 error=type(exc).__name__ if exc is not None else "UnknownError",
@@ -240,7 +320,6 @@ class LLMLedger:
             completion_tokens=completion,
             total_tokens=total,
             provider_cost=event.provider_cost,
-            billed_cost=event.billed_cost,
             origin=event.origin,
             usage_raw=usage,
         )
@@ -262,11 +341,6 @@ class LLMLedger:
                         )
                 except Exception:
                     pass  # capture is best-effort; never break accounting
-        if self._chained_hook is not None:
-            try:
-                self._chained_hook(event)
-            except Exception:
-                pass  # never let downstream wiring break accounting
 
     def _count(self) -> int:
         with self._lock:
