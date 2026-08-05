@@ -43,6 +43,38 @@ fi
 
 cd "$REPO_ROOT"
 
+# Two runs cannot share this machine: both bind the fixture port, and the
+# second would score the first's deliveries. On 2026-08-05 a cycle was launched
+# while another session was mid-edit in this tree, which is how this guard came
+# to exist.
+if [[ "${ACR_CHECK:-}" != "true" ]]; then
+  fixture_port="${ACR_PORT:-8151}"
+  if lsof -nP -iTCP:"$fixture_port" -sTCP:LISTEN >/dev/null 2>&1; then
+    echo "error: something is already listening on 127.0.0.1:$fixture_port —" >&2
+    echo "       another run or a manual fixture is live. Wait for it, or set" >&2
+    echo "       ACR_PORT to a free port." >&2
+    exit 3
+  fi
+  if pgrep -f "agency_client_reporting.unify" >/dev/null 2>&1; then
+    echo "error: an agency_client_reporting driver is already running." >&2
+    exit 3
+  fi
+
+  # A figure may only go on a page if it can be re-derived from a commit, so a
+  # cycle metered against uncommitted fixture, protocol or driver code produces
+  # nothing transcribable — and code can change underneath a 45-minute setup.
+  track_rel="colleague/tracks/usecases/agency_client_reporting"
+  dirty="$(git status --porcelain -- "$track_rel" 2>/dev/null | grep -v "^.. $track_rel/results/" || true)"
+  if [[ -n "$dirty" ]]; then
+    echo "error: uncommitted changes under $track_rel:" >&2
+    echo "$dirty" >&2
+    echo "       Commit them first — a run metered against an uncommitted tree" >&2
+    echo "       has no commit to transcribe from. ACR_ALLOW_DIRTY=true to override." >&2
+    [[ "${ACR_ALLOW_DIRTY:-}" == "true" ]] || exit 3
+    echo "       (ACR_ALLOW_DIRTY=true set; continuing, figures are not page-eligible)" >&2
+  fi
+fi
+
 if [[ ! -x .venv/bin/python ]]; then
   echo "error: .venv missing — run: pip install uv && uv sync --all-groups" >&2
   exit 1

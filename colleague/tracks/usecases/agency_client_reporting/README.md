@@ -53,14 +53,27 @@ undefined-cost-per-conversion case through its own branch instead of
 subtracting. That is a free check of a stored function, not a measurement: it
 proves the artifact survives, not that a fresh cycle scores 11 of 11.
 
-**The live page still says 9 and needs a re-run.** Its `results` array is
-transcribed from a `summary.md` whose planted total is now wrong, and under
-rule 1 of the track's contract the claim comes off the page rather than being
-edited up to eleven. Nothing in `unify.ai`'s repo is touched by this commit.
+**The claim is off the live page** — the `results` array, and the three pieces
+of surrounding copy that carried the same count (the scene's speech bubble, the
+run-history subtitle, the last timeline row). Under rule 1 of the track's
+contract an unmeasured figure comes off rather than being edited up to eleven,
+and that applies to the replay's `11 of 11` too: the replay stubs the narrative
+calls, so it would sit under a disclosure promising every model call was
+metered, and it measures whether a stored artifact survives a harder fixture
+rather than what a cycle scores. Cost and cycle time stay on the page — they
+come from the metered run and do not move with the plant count.
 
-A re-run is worth paying for now that the harness follows the task's own
-window rather than hoping the two agree (see Protocol) — before that, whether
-a cycle measured anything was luck.
+**A re-run cannot produce the figure yet, so it is not worth paying for today.**
+Setup dies before creating a task: the actor web-searches model pricing for its
+own narrative step, and that search's summarisation call returns whitespace
+instead of JSON, which aborts the task. It cost about $19 on this track on
+2026-08-05 before being diagnosed, and the same brief reaches the same path on
+the trading-review track. The detection row returns when that is fixed and a
+live cycle produces it.
+
+What *is* ready is the window logic: the harness now follows the task's own
+reading of its schedule rather than hoping the two regimes agree (see
+Protocol), so whether a cycle measures anything is no longer luck.
 
 ## What the system is asked
 
@@ -168,8 +181,13 @@ bash colleague/tracks/usecases/agency_client_reporting/run_unify.sh
 
 `ACR_CHECK=true` boots everything, prints the exact utterance and spends
 nothing — always run it first. A bare run is real provider spend, about $30
-for a two-wake cycle, so the launcher takes no arguments and answers `--help`
-instead of starting one.
+for a two-wake cycle, so the launcher refuses four ways before starting one: an
+argument (it takes none, and answers `--help`), the fixture port already bound,
+another driver already running, and uncommitted changes under this directory.
+The last is the track's contract, not tidiness — a cycle metered against
+uncommitted code has no commit to transcribe a figure from, and code can be
+edited underneath a 45-minute setup. `ACR_ALLOW_DIRTY=true` overrides it and
+says so. `ACR_CHECK=true` skips all four, since it spends nothing.
 
 Knobs (env): `ACR_RUNS` (default 1; 2 also measures whether the task
 converges onto a stored entrypoint), `ACR_SEED`, `ACR_PORT`,
