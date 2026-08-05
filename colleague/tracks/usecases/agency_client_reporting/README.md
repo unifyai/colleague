@@ -58,6 +58,10 @@ transcribed from a `summary.md` whose planted total is now wrong, and under
 rule 1 of the track's contract the claim comes off the page rather than being
 edited up to eleven. Nothing in `unify.ai`'s repo is touched by this commit.
 
+A re-run is worth paying for now that the harness follows the task's own
+window rather than hoping the two agree (see Protocol) — before that, whether
+a cycle measured anything was luck.
+
 ## What the system is asked
 
 The page's `brief` field, read out of `src/data/useCases.tsx` at run time and
@@ -135,6 +139,26 @@ the brief asks for a schedule and never forbids running one immediately, so a
 setup dry run is a fair reading of it — but it is not the first month, and its
 reports must not divide the first month's cost.
 
+**Each run is anchored to the pair it is actually going to compare.** The two
+regimes disagree about what "last month" means when a task is fired ahead of
+its schedule: a description-driven run reads its own activation, so a task
+first activating 2026-09-01 reports 2026-08, while a stored entrypoint reads
+the wall clock and reports the month before today. The fixture pins its
+anomalies to one pair at a time, so before each wake the harness derives the
+month that run will report from its regime, moves the plants there, and
+re-derives and re-proves ground truth at that anchor. Both regimes are
+therefore measurable in one cycle. `_window_alignment` still checks the
+prediction afterwards, and a run that reported some third month yields no
+figures at all — it looks like a clean sweep and is worth less than no
+measurement.
+
+Two related guards, because a wasted cycle costs about $30. Re-anchoring is
+wrapped so a defect there degrades to the anchor already being served instead
+of discarding a paid-for setup. And a phase that did real work while metering
+zero LLM calls is labelled a missing measurement, not a cheap one — the
+unillm hook has gone missing mid-run before, and the transcription block now
+refuses to quote a cost from a phase like that rather than printing $0.0000.
+
 ## Run it
 
 ```bash
@@ -143,12 +167,27 @@ bash colleague/tracks/usecases/agency_client_reporting/run_unify.sh
 ```
 
 `ACR_CHECK=true` boots everything, prints the exact utterance and spends
-nothing — always run it first.
+nothing — always run it first. A bare run is real provider spend, about $30
+for a two-wake cycle, so the launcher takes no arguments and answers `--help`
+instead of starting one.
 
 Knobs (env): `ACR_RUNS` (default 1; 2 also measures whether the task
 converges onto a stored entrypoint), `ACR_SEED`, `ACR_PORT`,
 `ACR_PHASE_TIMEOUT_S`, `ACR_ORCHESTRA_URL`, `ACR_UNIFY_KEY`,
 `ACR_USECASES_TSX`.
+
+Before paying for any of that, three checks cost nothing:
+
+```bash
+python -m colleague.tracks.usecases.agency_client_reporting.fixture --selftest
+python -m colleague.tracks.usecases.agency_client_reporting.protocol --selftest
+python -m colleague.tracks.usecases.agency_client_reporting.replay_entrypoint
+```
+
+The third replays the newest committed run's stored entrypoint against the
+fixture with the narrative call stubbed. It is how a fixture change is checked
+against the artifact that has to keep working — but it measures a stored
+function, not the system, so its flag count is never page-eligible.
 
 Outputs land in `results/<run-id>/`:
 

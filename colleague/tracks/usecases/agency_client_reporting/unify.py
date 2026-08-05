@@ -409,24 +409,42 @@ async def main() -> int:
         # runs. Data is generated per request, so re-anchoring takes effect for
         # the next fetch; a run's own two months are therefore internally
         # consistent even when a later run is measured against a different pair.
-        run_anchor = _expected_anchor(regime, activation_anchor, boot_anchor)
-        if run_anchor != fixture.anchor:
-            fixture.set_anchor(run_anchor)
+        # By the time this runs, setup has already been paid for. A defect in
+        # re-anchoring must not take the cycle down with it: fall back to the
+        # anchor the fixture is already serving, record that it happened, and
+        # let the alignment guard downstream decide what the run is worth.
+        try:
+            run_anchor = _expected_anchor(regime, activation_anchor, boot_anchor)
+            if run_anchor != fixture.anchor:
+                fixture.set_anchor(run_anchor)
+                print(
+                    f"[align] run_{i} runs {regime}, so it reports {run_anchor}; "
+                    f"re-anchoring the fixture from {anchor} and re-deriving "
+                    f"ground truth",
+                )
+            # Prove the fixture and the scorer at this anchor, not just at boot:
+            # the sweep and the planted set are anchor-dependent, and this is
+            # the ground truth the run about to execute is scored against.
+            run_truth = fixture_selftest(seed, run_anchor)
+            scorer_selftest(seed, run_anchor)
+            anchor = run_anchor
+            results.setdefault("ground_truth_by_anchor", {})[anchor] = run_truth
             print(
-                f"[align] run_{i} runs {regime}, so it reports {run_anchor}; "
-                f"re-anchoring the fixture from {anchor} and re-deriving ground truth",
+                f"[run_{i}] anchor={anchor} "
+                f"planted_flags={run_truth['flagged_campaigns']} "
+                f"across {len(run_truth['flagged_clients'])} clients",
             )
-        anchor = run_anchor
-        # Prove the fixture and the scorer at this anchor, not just at boot:
-        # the sweep and the planted set are anchor-dependent, and this is the
-        # ground truth the run about to execute will be scored against.
-        run_truth = fixture_selftest(seed, anchor)
-        scorer_selftest(seed, anchor)
-        results.setdefault("ground_truth_by_anchor", {})[anchor] = run_truth
-        print(
-            f"[run_{i}] anchor={anchor} planted_flags={run_truth['flagged_campaigns']} "
-            f"across {len(run_truth['flagged_clients'])} clients",
-        )
+        except Exception as exc:
+            realign_error = f"{type(exc).__name__}: {exc}"
+            results.setdefault("realign_failures", []).append(
+                {"run": i, "regime": regime, "error": realign_error},
+            )
+            fixture.set_anchor(anchor)
+            print(
+                f"[align] run_{i} re-anchoring FAILED ({realign_error}); "
+                f"leaving the fixture on {anchor} — this run measures detection "
+                f"only if it happens to report that month",
+            )
         print(f"[run_{i}] executing (entrypoint before: {before.entrypoint}) ...")
         with ledger.phase(f"run_{i}"):
             token = current_task_execution_delegate.set(delegate)
