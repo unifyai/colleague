@@ -12,13 +12,24 @@ license = { file = "LICENSE" }
 dependencies = []
 
 [project.optional-dependencies]
-# Only the unify arm needs these; it is metered in-process through a chained
-# unillm hook rather than through the recording proxy.
+# Only the unify arm needs these; it is metered in-process through a registered
+# unillm event listener rather than through the recording proxy.
 unify = ["unify", "unillm"]
+
+# The arm runs against the sibling checkouts, not PyPI releases: it meters the
+# runtime through unillm's listener API, so the two must be the versions being
+# developed. Without these, `uv sync` resolves the names from PyPI — where
+# `unify` is an unrelated package — and silently replaces the editable installs.
+[tool.uv.sources]
+unify = { path = "../unify", editable = true }
+unillm = { path = "../unillm", editable = true }
 
 [dependency-groups]
 lint = ["black==25.1.0", "isort>=5.13", "autoflake>=2.3"]
-dev = [{ include-group = "lint" }]
+# The metering tests skip themselves when unillm is absent, so the suite still
+# runs in a stdlib-only checkout.
+test = ["pytest>=8.0"]
+dev = [{ include-group = "lint" }, { include-group = "test" }]
 
 [tool.black]
 target-version = ["py312"]
