@@ -2,13 +2,19 @@
 
 `hermes chat -q` is a one-shot headless turn. There is no loop to address
 once it starts, so `interject` raises and the scenario records
-`UNSUPPORTED` rather than a failure. Turns are stateless with respect to
-each other, which the `continuity` track measures directly: the second
-request re-derives everything the first one worked out.
+`UNSUPPORTED` rather than a failure.
+
+Continuation, however, is a real product capability this adapter previously
+discarded: the CLI persists every session to SQLite and its own source
+blesses the automation pattern `hermes chat -Q --resume <id> -q "..."`
+(hermes `cli_agent_setup_mixin.py`). `resume()` uses it, so `continuity`
+and `custody` measure hermes's session model rather than an adapter
+artifact. Fresh `begin()` turns stay stateless — that part is faithful.
 """
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from colleague.arms.hermes import (
@@ -22,6 +28,12 @@ from colleague.arms.sessions import register
 from colleague.arms.sessions.cli_base import CliSession
 from colleague.harness.capability import PROFILES
 from colleague.harness.session import Reply, RunHandle, ThreadedRunHandle, compose
+
+
+#: The CLI announces the durable session key two ways: quiet mode prints
+#: `session_id: <id>` and interactive exit prints `--resume <id>`. Both land
+#: in the combined log because stderr is folded into it.
+_SESSION_ID_RE = re.compile(r"(?:session_id:\s*|--resume\s+)([0-9a-zA-Z_]+)")
 
 
 class HermesSession(CliSession):
@@ -40,17 +52,33 @@ class HermesSession(CliSession):
             CONFIG_TEMPLATE.format(model=BENCH_MODEL),
             encoding="utf-8",
         )
+        self._last_session_id: str | None = None
 
-    def _turn(self, prompt: str) -> Reply:
+    def _turn(self, prompt: str, *, resume_id: str | None = None) -> Reply:
+        args = ["chat", "-Q", "-q", prompt]
+        if resume_id:
+            args += ["--resume", resume_id]
         code, tail = _run_hermes(
-            ["chat", "-q", prompt],
+            args,
             hermes_home=self.home,
             workdir=self.workdir,
             proxy_base_url=self.proxy_base_url,
             log_path=self.log_path,
             timeout_s=self.timeout_s,
         )
+        ids = _SESSION_ID_RE.findall(tail)
+        if ids:
+            self._last_session_id = ids[-1]
         return self._reply(code, tail)
+
+    def resume(self, text: str, *, sender: str | None = None) -> Reply:
+        """Continue the most recent session through hermes's own `--resume`."""
+        if self._last_session_id is None:
+            # No prior turn to continue — a cold turn is the honest fallback,
+            # and the run record will show it (no resume flag in the log).
+            return self._turn(text if sender is None else f"[{sender}] {text}")
+        prompt = text if sender is None else f"[{sender}] {text}"
+        return self._turn(prompt, resume_id=self._last_session_id)
 
     def begin(
         self,

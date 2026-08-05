@@ -27,7 +27,9 @@ def _load(name: str) -> None:
 
     module = {
         "unify": "colleague.arms.sessions.unify_session",
+        "unify-cm": "colleague.arms.sessions.unify_cm_session",
         "hermes": "colleague.arms.sessions.hermes_session",
+        "hermes-tui": "colleague.arms.sessions.hermes_tui_session",
         "openclaw": "colleague.arms.sessions.openclaw_session",
         "opencode": "colleague.arms.sessions.opencode_session",
         "mock": "colleague.arms.sessions.mock_session",
@@ -36,4 +38,7 @@ def _load(name: str) -> None:
         importlib.import_module(module)
 
 
-ARMS = ("unify", "hermes", "openclaw", "opencode")
+#: `hermes-tui` and `unify-cm` are the faithful surfaces (product steering,
+#: clarification, identity); `hermes` and `unify` remain the v0 arms the
+#: published standing numbers used. Capability labels name a path.
+ARMS = ("unify", "unify-cm", "hermes", "hermes-tui", "openclaw", "opencode")

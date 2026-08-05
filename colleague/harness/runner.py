@@ -69,9 +69,9 @@ def _session_for(
 ) -> ArmSession:
     if arm == "mock":
         return build_session("mock", mode=mode)
-    if arm == "unify":
+    if arm in ("unify", "unify-cm"):
         return build_session(
-            "unify",
+            arm,
             run_id=run_id,
             track=track,
             results_dir=results_dir,

@@ -150,14 +150,39 @@ PROFILES: dict[str, ArmProfile] = {
         clarification=False,
         steering=Steering.RESTART_ONLY,
         storage=Storage.FLAT,
-        persistent_sessions=False,
+        persistent_sessions=True,
         multi_party=False,
         accepts_images=False,
         scheduler=True,
         notes=(
-            "`hermes chat -q` is one-shot; a converged automation is a "
-            "no_agent cron script with no loop to address. Skills live in "
-            "one directory readable by whoever runs the agent."
+            "`hermes chat -Q -q` is one-shot per turn, but sessions persist "
+            "to SQLite and `--resume <id>` continues one — a documented "
+            "automation pattern the adapter now uses for continuations. "
+            "Still no mid-run address and no clarify channel headless; a "
+            "converged automation is a no_agent cron script with no loop to "
+            "address. Skills live in one directory readable by whoever runs "
+            "the agent."
+        ),
+    ),
+    "hermes-tui": ArmProfile(
+        name="hermes-tui",
+        clarification=True,
+        steering=Steering.LIVE_INTERJECT,
+        storage=Storage.FLAT,
+        persistent_sessions=True,
+        multi_party=False,
+        accepts_images=False,
+        scheduler=True,
+        notes=(
+            "The TUI gateway JSON-RPC surface (`python -m tui_gateway.entry`),"
+            " documented by hermes as a public integration protocol. "
+            "prompt.submit returns at status=streaming; session.steer injects "
+            "into the running tool batch and session.redirect replaces the "
+            "in-flight model call; clarify.request/clarify.respond is a real "
+            "blocking question channel; session.resume/branch continue the "
+            "same SQLite sessions the CLI writes. Senders are still text in "
+            "one session — multi-person identity is a messaging-gateway "
+            "capability this surface does not carry."
         ),
     ),
     "openclaw": ArmProfile(
@@ -172,6 +197,25 @@ PROFILES: dict[str, ArmProfile] = {
         notes=(
             "Sessions persist and accept further turns, so a correction "
             "lands as the next turn rather than inside the running one."
+        ),
+    ),
+    "unify-cm": ArmProfile(
+        name="unify-cm",
+        clarification=True,
+        steering=Steering.LIVE_INTERJECT,
+        storage=Storage.SCOPED,
+        persistent_sessions=True,
+        multi_party=True,
+        accepts_images=True,
+        scheduler=True,
+        notes=(
+            "The ConversationManager surface — DESIGN.md's 'faithful surface "
+            "for these tracks'. Senders are first-class contacts on every "
+            "inbound event; replies are Sent events addressed to a contact; "
+            "silence is the `wait` tool, detected exactly; each in-flight "
+            "action exposes its own interject/stop/ask tools and routing a "
+            "correction to the right one is a recorded brain decision. Adds "
+            "a slow-brain model axis the plain `act` arm never had."
         ),
     ),
     "opencode": ArmProfile(

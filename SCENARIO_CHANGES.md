@@ -15,6 +15,39 @@ admission, and a reader is entitled to discount the result accordingly. The
 rule is that a change is `[wrong]` only if it would have mismeasured a
 *competent arm of any architecture* — not merely if unify failed it.
 
+## 2026-08-05
+
+**`[wrong]` conversational tracks — v0 adapters measured adapter debt as
+product limits.** The hermes arm was driven through `hermes chat -q`
+(one-shot, fresh session, clarifications auto-answered with a canned
+string) while the product has SQLite session resume, gateway
+steer/redirect, and a real blocking clarify channel; the unify arm was
+driven through `CodeActActor.act` while DESIGN.md itself names
+ConversationManager "the faithful surface for these tracks". Several
+UNSUPPORTED/DEGRADED cells would therefore have described the adapters,
+not the harnesses — mismeasuring competent arms of any architecture.
+
+Changes, all additive:
+- `hermes` (baseline arm) gains `resume()` via `hermes chat -Q -q ...
+  --resume <id>` — the automation pattern hermes's own source documents.
+  Its profile now declares `persistent_sessions=True`.
+- New arm **`hermes-tui`**: the TUI gateway JSON-RPC surface
+  (`python -m tui_gateway.entry`, documented by hermes as a public
+  integration protocol). prompt.submit / session.steer / session.redirect /
+  clarify.request+respond / session.resume. Profile: LIVE_INTERJECT,
+  clarification=True, persistent_sessions=True.
+- New arm **`unify-cm`**: ConversationManager driven standalone
+  (enable_comms_manager=False, in-memory outbound transport, real
+  CodeActActor), implementing DESIGN.md's "Next" item 5. Senders are
+  first-class contacts; silence is the `wait` tool; per-action steering
+  tools are the routing evidence. The slow brain is pinned to the bench
+  model.
+- The v0 arms stay registered; capability labels name a path, and results
+  from the two surfaces are not directly comparable (the CM brain adds its
+  own turns; the TUI gateway session persists across turns).
+
+No scenario or scorer text changed.
+
 ## 2026-08-01
 
 **`[wrong]` attribution — exact-literal disclosure checks.**
