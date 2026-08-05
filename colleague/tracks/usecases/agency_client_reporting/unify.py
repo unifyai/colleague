@@ -54,7 +54,8 @@ def _require_env() -> None:
         problems.append("ASSISTANT_ID must be unset (never touch a real assistant)")
     if problems:
         raise SystemExit(
-            "Environment not prepared (use run_unify.sh):\n  - " + "\n  - ".join(problems),
+            "Environment not prepared (use run_unify.sh):\n  - "
+            + "\n  - ".join(problems),
         )
     if (
         STAGING_ORCHESTRA_HOST not in orchestra_url
@@ -487,7 +488,9 @@ async def main() -> int:
                 idle_seconds=quiesce_idle_s,
                 timeout_seconds=quiesce_timeout_s,
             ):
-                print(f"[run_{i}] warning: LLM activity still ongoing at quiesce timeout")
+                print(
+                    f"[run_{i}] warning: LLM activity still ongoing at quiesce timeout"
+                )
 
         after = scheduler._filter_tasks(filter=f"task_id == {task.task_id}")[0]
         delivered = fixture.sink.snapshot()[deliveries_seen:]
@@ -566,7 +569,12 @@ def _transcription_block(results: dict[str, Any], phases: list[Any]) -> list[str
     """
     runs = results.get("runs") or []
     if not runs:
-        return ["", "## Landing-page transcription", "", "No run completed — nothing eligible."]
+        return [
+            "",
+            "## Landing-page transcription",
+            "",
+            "No run completed — nothing eligible.",
+        ]
     # The earliest run that actually looked at the anomalies. A description-driven
     # first month can miss the window while the entrypoint month after it lands.
     first = next((r for r in runs if r["window"]["aligned"]), None)
@@ -666,6 +674,10 @@ def _finalize(
 ) -> None:
     phases = ledger.summarize()
     results["phases"] = [p.to_json() for p in phases]
+    # What the ledger itself knows about its losses: exact where the wall-clock
+    # heuristic below can only guess. Non-null means some spending happened that
+    # was never recorded, so no figure in this file is complete.
+    results["ledger_metering_fault"] = ledger.metering_fault()
     # The unillm hook has been lost mid-run before, leaving a phase table of
     # zeros for a run that was really billed (see the NOTE.md in
     # results/2026-08-04T17-36-52Z-unify). Name those phases here so a reader
@@ -706,6 +718,13 @@ def _finalize(
             f"| {j['name']} | {j['llm_calls']} | {j['prompt_tokens']} | "
             f"{j['completion_tokens']} | {j['provider_cost_usd']} | {j['wall_seconds']} |",
         )
+    if results.get("ledger_metering_fault"):
+        lines += [
+            "",
+            f"> **Metering failed: {results['ledger_metering_fault']}.** Every "
+            f"figure in the table above is incomplete by an unknown amount. "
+            f"Reconstruct from `GET /v0/credits/transactions?category=llm`.",
+        ]
     if results.get("ledger_void_phases"):
         lines += [
             "",
