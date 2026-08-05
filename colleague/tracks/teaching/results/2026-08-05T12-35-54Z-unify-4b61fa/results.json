@@ -1,0 +1,424 @@
+{
+  "track": "teaching",
+  "arm": "unify",
+  "run_id": "2026-08-05T12-35-54Z-unify-4b61fa",
+  "seed": 20260801,
+  "session_scope": "track",
+  "scenarios": [
+    {
+      "name": "week_31_taught",
+      "note": "Taught. Any arm following instructions should get this right.",
+      "profile": "ArmProfile(name='unify', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, notes='ConversationManager holds per-action interject/ask/pause/stop tools; inner loops race generation against the interjection queue. Knowledge is written to typed contexts that carry scope.')",
+      "reply": {
+        "ok": true,
+        "text": "Week 31 invoice chase completed.\n\n- **5 invoices fetched**\n- **2 reminders sent successfully**\n  - `INV-31-4` \u2014 Ostrava Metals, 78 days overdue \u2192 `ap@ostrava.example`\n  - `INV-31-5` \u2014 Bergen Chemical, 63 days overdue \u2192 `amanda.reyes@northwind.example`\n\nI also saved the weekly chase procedure for future runs, including the strict **more than 45 days** threshold and Bergen Chemical exception."
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_invoices",
+            "n": 1,
+            "at": "2026-08-05T12:36:54.711415+00:00",
+            "week": 31
+          },
+          {
+            "waypoint": "remind",
+            "n": 1,
+            "at": "2026-08-05T12:36:54.711952+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 2,
+            "at": "2026-08-05T12:36:54.712282+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "remind",
+            "at": "2026-08-05T12:36:54.711960+00:00",
+            "payload": {
+              "to": "ap@ostrava.example",
+              "invoice_id": "INV-31-4"
+            }
+          },
+          {
+            "seq": 2,
+            "kind": "remind",
+            "at": "2026-08-05T12:36:54.712287+00:00",
+            "payload": {
+              "to": "amanda.reyes@northwind.example",
+              "invoice_id": "INV-31-5"
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "week_31_taught",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_31_taught",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 2
+          }
+        }
+      }
+    },
+    {
+      "name": "week_32_replay",
+      "note": "The measurement. Nothing is restated \u2014 not the threshold, not the exception, not the API.",
+      "profile": "ArmProfile(name='unify', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, notes='ConversationManager holds per-action interject/ask/pause/stop tools; inner loops race generation against the interjection queue. Knowledge is written to typed contexts that carry scope.')",
+      "reply": {
+        "ok": true,
+        "text": "Week 32 invoice chase completed.\n\n- **5 invoices fetched**\n- **2 reminders sent successfully**\n  - `INV-32-4` \u2014 Ostrava Metals, 56 days overdue \u2192 `ap@ostrava.example`\n  - `INV-32-5` \u2014 Bergen Chemical, 61 days overdue \u2192 `amanda.reyes@northwind.example`"
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_invoices",
+            "n": 1,
+            "at": "2026-08-05T12:37:52.265832+00:00",
+            "week": 32
+          },
+          {
+            "waypoint": "remind",
+            "n": 1,
+            "at": "2026-08-05T12:37:52.266806+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 2,
+            "at": "2026-08-05T12:37:52.267419+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "remind",
+            "at": "2026-08-05T12:37:52.266821+00:00",
+            "payload": {
+              "to": "ap@ostrava.example",
+              "invoice_id": "INV-32-4"
+            }
+          },
+          {
+            "seq": 2,
+            "kind": "remind",
+            "at": "2026-08-05T12:37:52.267426+00:00",
+            "payload": {
+              "to": "amanda.reyes@northwind.example",
+              "invoice_id": "INV-32-5"
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "week_32_replay",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_32_replay",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 2
+          }
+        }
+      }
+    },
+    {
+      "name": "untaught_control",
+      "note": "The control: no walkthrough, ever, in a session that never saw one. It ran third in the shared session and passed by remembering, which made the taught result unreadable \u2014 a control contaminated by the thing it controls for is worse than no control.",
+      "profile": "ArmProfile(name='unify', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, notes='ConversationManager holds per-action interject/ask/pause/stop tools; inner loops race generation against the interjection queue. Knowledge is written to typed contexts that carry scope.')",
+      "reply": {
+        "ok": true,
+        "text": "Week 32 invoice chase completed.\n\n- **5 overdue invoices found**\n- **5 reminder POSTs sent**\n- All returned **HTTP 200** with status **`sent`**\n\nInvoices: `INV-32-1` through `INV-32-5`."
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_invoices",
+            "n": 1,
+            "at": "2026-08-05T12:38:46.080309+00:00",
+            "week": 32
+          },
+          {
+            "waypoint": "remind",
+            "n": 1,
+            "at": "2026-08-05T12:38:57.385527+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 2,
+            "at": "2026-08-05T12:38:57.386448+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 3,
+            "at": "2026-08-05T12:38:57.387201+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 4,
+            "at": "2026-08-05T12:38:57.387835+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 5,
+            "at": "2026-08-05T12:38:57.388475+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "remind",
+            "at": "2026-08-05T12:38:57.385547+00:00",
+            "payload": {
+              "to": "ap@halden.example",
+              "invoice_id": "INV-32-1"
+            }
+          },
+          {
+            "seq": 2,
+            "kind": "remind",
+            "at": "2026-08-05T12:38:57.386458+00:00",
+            "payload": {
+              "to": "ap@trellis.example",
+              "invoice_id": "INV-32-2"
+            }
+          },
+          {
+            "seq": 3,
+            "kind": "remind",
+            "at": "2026-08-05T12:38:57.387209+00:00",
+            "payload": {
+              "to": "ap@cardinal.example",
+              "invoice_id": "INV-32-3"
+            }
+          },
+          {
+            "seq": 4,
+            "kind": "remind",
+            "at": "2026-08-05T12:38:57.387846+00:00",
+            "payload": {
+              "to": "ap@ostrava.example",
+              "invoice_id": "INV-32-4"
+            }
+          },
+          {
+            "seq": 5,
+            "kind": "remind",
+            "at": "2026-08-05T12:38:57.388484+00:00",
+            "payload": {
+              "to": "ap@bergen.example",
+              "invoice_id": "INV-32-5"
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "untaught_control",
+        "outcome": "unsupported",
+        "reason": "as designed: the exceptions are not discoverable without being told",
+        "detail": {
+          "name": "untaught_control",
+          "passed": false,
+          "checks": {
+            "exact_recipients": false,
+            "used_the_account_manager_route": false
+          },
+          "failures": [
+            "exact_recipients",
+            "used_the_account_manager_route"
+          ],
+          "evidence": {
+            "got": [
+              "ap@bergen.example",
+              "ap@cardinal.example",
+              "ap@halden.example",
+              "ap@ostrava.example",
+              "ap@trellis.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 5
+          }
+        }
+      },
+      "artifacts": {
+        "context": "colleague/teaching/2026-08-05T12-35-54Z-unify-4b61fa-untaught_control/default/0",
+        "project": "Benchmarks",
+        "llm_segments": [
+          {
+            "name": "turn_1",
+            "wall_seconds": 56.53,
+            "llm_calls": 6,
+            "prompt_tokens": 353045,
+            "completion_tokens": 1186,
+            "total_tokens": 354231,
+            "provider_cost_usd": 0.238819,
+            "models": {
+              "gpt-5.6-sol": 6
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "profile": "unify",
+  "artifacts": {
+    "context": "colleague/teaching/2026-08-05T12-35-54Z-unify-4b61fa/default/0",
+    "project": "Benchmarks",
+    "llm_segments": [
+      {
+        "name": "turn_1",
+        "wall_seconds": 62.67,
+        "llm_calls": 6,
+        "prompt_tokens": 363304,
+        "completion_tokens": 1526,
+        "total_tokens": 364830,
+        "provider_cost_usd": 0.269134,
+        "models": {
+          "gpt-5.6-sol": 6
+        }
+      },
+      {
+        "name": "turn_2",
+        "wall_seconds": 110.68,
+        "llm_calls": 11,
+        "prompt_tokens": 652477,
+        "completion_tokens": 2181,
+        "total_tokens": 654658,
+        "provider_cost_usd": 0.480116,
+        "models": {
+          "gpt-5.6-sol": 11
+        }
+      }
+    ]
+  },
+  "summary": {
+    "total_scenarios": 3,
+    "scoreable": 2,
+    "credited": 2,
+    "accuracy": 1.0,
+    "by_outcome": {
+      "pass": 2,
+      "unsupported": 1
+    },
+    "results": [
+      {
+        "scenario": "week_31_taught",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_31_taught",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 2
+          }
+        }
+      },
+      {
+        "scenario": "week_32_replay",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_32_replay",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 2
+          }
+        }
+      },
+      {
+        "scenario": "untaught_control",
+        "outcome": "unsupported",
+        "reason": "as designed: the exceptions are not discoverable without being told",
+        "detail": {
+          "name": "untaught_control",
+          "passed": false,
+          "checks": {
+            "exact_recipients": false,
+            "used_the_account_manager_route": false
+          },
+          "failures": [
+            "exact_recipients",
+            "used_the_account_manager_route"
+          ],
+          "evidence": {
+            "got": [
+              "ap@bergen.example",
+              "ap@cardinal.example",
+              "ap@halden.example",
+              "ap@ostrava.example",
+              "ap@trellis.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 5
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,397 @@
+{
+  "track": "teaching",
+  "arm": "hermes",
+  "run_id": "2026-08-05T12-35-51Z-hermes-4c40f1",
+  "seed": 20260801,
+  "session_scope": "track",
+  "scenarios": [
+    {
+      "name": "week_31_taught",
+      "note": "Taught. Any arm following instructions should get this right.",
+      "profile": "ArmProfile(name='hermes', steering=<Steering.RESTART_ONLY: 'restart_only'>, storage=<Storage.FLAT: 'flat'>, persistent_sessions=False, multi_party=False, clarification=False, accepts_images=False, scheduler=True, notes='`hermes chat -q` is one-shot; a converged automation is a no_agent cron script with no loop to address. Skills live in one directory readable by whoever runs the agent.')",
+      "reply": {
+        "ok": true,
+        "text": "API data, so I\u2019ll treat the data carefully. I\u2019ll use Python\u2019s urllib\n for the GET request and ensure I print sanitized data.\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n  \u250a \ud83d\udc0d preparing execute_code\u2026\n  \u250a \ud83d\udc0d exec      from hermes_tools import terminal  0.3s\n  \u250a \ud83d\udc0d preparing execute_code\u2026\n  \u250a \ud83d\udc0d exec      from hermes_tools import terminal  0.1s [Traceback (most recent call last):\n  File \"/t...]\n  \u250a \ud83d\udc0d preparing execute_code\u2026\n  \u250a \ud83d\udc0d exec      from hermes_tools import terminal  0.1s\n\n\u250c\u2500 Reasoning \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n**Evaluating workflow stability**\n\nI think it might be a good idea to save the durable workflow. The user mentioned taking\n it over, which makes me feel like it's a stable business rule. I\u2019m considering that\n this might be the right place for a memory-focused approach. It looks like I only\n need to make one call, so that simplifies things a bit. Let\u2019s focus on making sure\n everything is in order for the user!\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n  \u250a \ud83e\udde0 preparing memory\u2026\n  \u250a \ud83e\udde0 memory    +memory: \"Daniel Okafor's weekly invoice chase: fetch the requested week from the Invoices API; send one reminder per invoice only when days_overdue > 45. Bergen Chemical reminders go to amanda.reyes@northwind.example instead of the invoice contact; all others go to the invoice contact.\"  0.0s\n\n\u256d\u2500 \u2695 Hermes \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256e\nWeek 31 completed. Sent 2 reminders:\n\n- INV-31-4 (Ostrava Metals) \u2192 ap@ostrava.example\n- INV-31-5 (Bergen Chemical) \u2192 amanda.reyes@northwind.example\n\nBoth API responses confirmed sent. The other three invoices were not over 45 days overdue.\n\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256f\n\nResume this session with:\n  hermes --resume 20260805_173552_df2087\n\nSession:        20260805_173552_df2087\nDuration:       59s\nMessages:       10 (1 user, 8 tool calls)\n",
+        "meta": {
+          "exit_code": 0
+        }
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_invoices",
+            "n": 1,
+            "at": "2026-08-05T12:36:16.974686+00:00",
+            "week": 31
+          },
+          {
+            "waypoint": "remind",
+            "n": 1,
+            "at": "2026-08-05T12:36:35.865456+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 2,
+            "at": "2026-08-05T12:36:35.903740+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "remind",
+            "at": "2026-08-05T12:36:35.865478+00:00",
+            "payload": {
+              "to": "ap@ostrava.example",
+              "invoice_id": "INV-31-4"
+            }
+          },
+          {
+            "seq": 2,
+            "kind": "remind",
+            "at": "2026-08-05T12:36:35.903750+00:00",
+            "payload": {
+              "to": "amanda.reyes@northwind.example",
+              "invoice_id": "INV-31-5"
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "week_31_taught",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_31_taught",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 2
+          }
+        }
+      }
+    },
+    {
+      "name": "week_32_replay",
+      "note": "The measurement. Nothing is restated \u2014 not the threshold, not the exception, not the API.",
+      "profile": "ArmProfile(name='hermes', steering=<Steering.RESTART_ONLY: 'restart_only'>, storage=<Storage.FLAT: 'flat'>, persistent_sessions=False, multi_party=False, clarification=False, accepts_images=False, scheduler=True, notes='`hermes chat -q` is one-shot; a converged automation is a no_agent cron script with no loop to address. Skills live in one directory readable by whoever runs the agent.')",
+      "reply": {
+        "ok": true,
+        "text": " invoice only when days_overdue > 45. Bergen Chemical reminders go to amanda.reyes@northwind.example instead of the invoice contact; all others go to the invoice contact.\"  0.0s\n\n\u256d\u2500 \u2695 Hermes \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256e\nWeek 31 completed. Sent 2 reminders:\n\n- INV-31-4 (Ostrava Metals) \u2192 ap@ostrava.example\n- INV-31-5 (Bergen Chemical) \u2192 amanda.reyes@northwind.example\n\nBoth API responses confirmed sent. The other three invoices were not over 45 days overdue.\n\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256f\n\nResume this session with:\n  hermes --resume 20260805_173552_df2087\n\nSession:        20260805_173552_df2087\nDuration:       59s\nMessages:       10 (1 user, 8 tool calls)\n\n===== 2026-08-05T12:36:52.110717+00:00 ['chat', '-q', '[daniel] Run the invoice chase for week 32.']\nQuery:  Run the invoice chase for week 32.\nInitializing agent...\n  \u26a0 tirith security scanner enabled but not available \u2014 command scanning will use pattern matching only\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n  \u250a \ud83d\udcda preparing skill_view\u2026\n  \u250a \ud83d\udd0d preparing session_search\u2026\n  \u250a \ud83d\udcda skill     himalaya  0.0s\n  \u250a \ud83d\udd0d recall    \"\"invoice chase\" OR \"Invoices API\" OR \"Bergen Chemical\"\"  0.0s\n  \u250a \ud83d\udcbb preparing terminal\u2026\n  \u250a \ud83d\udcbb $         curl -sS --fail 'http://127.0.0.1:57402/invoices?week=32'  0.1s\n  \u250a \ud83d\udc0d preparing execute_code\u2026\n  \u250a \ud83d\udc0d exec      from hermes_tools import terminal  0.1s\n\n\u256d\u2500 \u2695 Hermes \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256e\nWeek 32 completed. Sent 2 reminders:\n\n- INV-32-4 (Ostrava Metals) \u2192 ap@ostrava.example\n- INV-32-5 (Bergen Chemical) \u2192 amanda.reyes@northwind.example\n\nBoth API responses confirmed sent. The other three invoices were not over 45 days overdue.\n\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256f\n\nResume this session with:\n  hermes --resume 20260805_173652_3b2a5f\n\nSession:        20260805_173652_3b2a5f\nDuration:       36s\nMessages:       9 (1 user, 7 tool calls)\n",
+        "meta": {
+          "exit_code": 0
+        }
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_invoices",
+            "n": 1,
+            "at": "2026-08-05T12:37:08.572350+00:00",
+            "week": 32
+          },
+          {
+            "waypoint": "remind",
+            "n": 1,
+            "at": "2026-08-05T12:37:22.038350+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 2,
+            "at": "2026-08-05T12:37:22.076260+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "remind",
+            "at": "2026-08-05T12:37:22.038364+00:00",
+            "payload": {
+              "to": "ap@ostrava.example",
+              "invoice_id": "INV-32-4"
+            }
+          },
+          {
+            "seq": 2,
+            "kind": "remind",
+            "at": "2026-08-05T12:37:22.076272+00:00",
+            "payload": {
+              "to": "amanda.reyes@northwind.example",
+              "invoice_id": "INV-32-5"
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "week_32_replay",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_32_replay",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 2
+          }
+        }
+      }
+    },
+    {
+      "name": "untaught_control",
+      "note": "The control: no walkthrough, ever, in a session that never saw one. It ran third in the shared session and passed by remembering, which made the taught result unreadable \u2014 a control contaminated by the thing it controls for is worse than no control.",
+      "profile": "ArmProfile(name='hermes', steering=<Steering.RESTART_ONLY: 'restart_only'>, storage=<Storage.FLAT: 'flat'>, persistent_sessions=False, multi_party=False, clarification=False, accepts_images=False, scheduler=True, notes='`hermes chat -q` is one-shot; a converged automation is a no_agent cron script with no loop to address. Skills live in one directory readable by whoever runs the agent.')",
+      "reply": {
+        "ok": true,
+        "text": ".1:57402:\\n  GET  http://127.0.0.1:57402/invoices?week=<n> -> [{id, vendor, days_overdue, amount, contact}]\\n  POST http://127.0.0.1:57402/remind            -> body {\"to\": \"<email>\", \"invoice_id\": \"<id>\"}\\n\\nSend one POST per reminder.\\n\\nRun the weekly invoice chase for week 32 \u2014 send reminders for the overdue invoices.']\nQuery: Invoices API at http://127.0.0.1:57402:\n  GET  http://127.0.0.1:57402/invoices?week=<n> -> [{id, vendor, days_overdue, \namount, contact}]\n  POST http://127.0.0.1:57402/remind            -> body {\"to\": \"<email>\", \n\"invoice_id\": \"<id>\"}\n\nSend one POST per reminder.\n\nRun the weekly invoice chase for week 32 \u2014 send reminders for the overdue \ninvoices.\nInitializing agent...\n  \u26a0 tirith security scanner enabled but not available \u2014 command scanning will use pattern matching only\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n\n\u250c\u2500 Reasoning \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n**Executing API calls**\n\nI need to execute an API, starting with inspecting the GET request and then moving\n to a POST request if there are overdue days (days_overdue > 0). I could use terminal\n curl, but executing multiple calls in logic 3+ sounds better. I must be careful about\n the external side effects and ensure the scope is explicit. The user asked me to\n send results, so I'll use one script for GET, filter for >0, and then POST each using\n urllib. Finally, I\u2019ll report the exact results.\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n  \u250a \ud83d\udc0d preparing execute_code\u2026\n  \u250a \ud83d\udc0d exec      import json  0.1s\n\n\u256d\u2500 \u2695 Hermes \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256e\nWeek 32 invoice chase complete: 5 overdue invoices found and 5 reminders sent successfully.\n\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256f\n\nResume this session with:\n  hermes --resume 20260805_173730_f110b0\n\nSession:        20260805_173730_f110b0\nDuration:       24s\nMessages:       4 (1 user, 2 tool calls)\n",
+        "meta": {
+          "exit_code": 0
+        }
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_invoices",
+            "n": 1,
+            "at": "2026-08-05T12:37:48.202253+00:00",
+            "week": 32
+          },
+          {
+            "waypoint": "remind",
+            "n": 1,
+            "at": "2026-08-05T12:37:48.202759+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 2,
+            "at": "2026-08-05T12:37:48.203138+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 3,
+            "at": "2026-08-05T12:37:48.203443+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 4,
+            "at": "2026-08-05T12:37:48.203729+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 5,
+            "at": "2026-08-05T12:37:48.204062+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "remind",
+            "at": "2026-08-05T12:37:48.202769+00:00",
+            "payload": {
+              "to": "ap@halden.example",
+              "invoice_id": "INV-32-1"
+            }
+          },
+          {
+            "seq": 2,
+            "kind": "remind",
+            "at": "2026-08-05T12:37:48.203142+00:00",
+            "payload": {
+              "to": "ap@trellis.example",
+              "invoice_id": "INV-32-2"
+            }
+          },
+          {
+            "seq": 3,
+            "kind": "remind",
+            "at": "2026-08-05T12:37:48.203446+00:00",
+            "payload": {
+              "to": "ap@cardinal.example",
+              "invoice_id": "INV-32-3"
+            }
+          },
+          {
+            "seq": 4,
+            "kind": "remind",
+            "at": "2026-08-05T12:37:48.203733+00:00",
+            "payload": {
+              "to": "ap@ostrava.example",
+              "invoice_id": "INV-32-4"
+            }
+          },
+          {
+            "seq": 5,
+            "kind": "remind",
+            "at": "2026-08-05T12:37:48.204065+00:00",
+            "payload": {
+              "to": "ap@bergen.example",
+              "invoice_id": "INV-32-5"
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "untaught_control",
+        "outcome": "unsupported",
+        "reason": "as designed: the exceptions are not discoverable without being told",
+        "detail": {
+          "name": "untaught_control",
+          "passed": false,
+          "checks": {
+            "exact_recipients": false,
+            "used_the_account_manager_route": false
+          },
+          "failures": [
+            "exact_recipients",
+            "used_the_account_manager_route"
+          ],
+          "evidence": {
+            "got": [
+              "ap@bergen.example",
+              "ap@cardinal.example",
+              "ap@halden.example",
+              "ap@ostrava.example",
+              "ap@trellis.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 5
+          }
+        }
+      },
+      "artifacts": {
+        "run_id": "2026-08-05T12-35-51Z-hermes-4c40f1-untaught_control",
+        "results_dir": "/Users/yushaarif/Unify/colleague/colleague/tracks/teaching/results/2026-08-05T12-35-51Z-hermes-4c40f1/untaught_control",
+        "ledger": "/Users/yushaarif/Unify/colleague/colleague/tracks/teaching/results/2026-08-05T12-35-51Z-hermes-4c40f1/untaught_control/proxy_ledger.jsonl",
+        "hermes_home": "/Users/yushaarif/Unify/colleague/colleague/tracks/teaching/results/2026-08-05T12-35-51Z-hermes-4c40f1/untaught_control/hermes_home"
+      }
+    }
+  ],
+  "profile": "hermes",
+  "artifacts": {
+    "run_id": "2026-08-05T12-35-51Z-hermes-4c40f1",
+    "results_dir": "/Users/yushaarif/Unify/colleague/colleague/tracks/teaching/results/2026-08-05T12-35-51Z-hermes-4c40f1",
+    "ledger": "/Users/yushaarif/Unify/colleague/colleague/tracks/teaching/results/2026-08-05T12-35-51Z-hermes-4c40f1/proxy_ledger.jsonl",
+    "hermes_home": "/Users/yushaarif/Unify/colleague/colleague/tracks/teaching/results/2026-08-05T12-35-51Z-hermes-4c40f1/hermes_home"
+  },
+  "summary": {
+    "total_scenarios": 3,
+    "scoreable": 2,
+    "credited": 2,
+    "accuracy": 1.0,
+    "by_outcome": {
+      "pass": 2,
+      "unsupported": 1
+    },
+    "results": [
+      {
+        "scenario": "week_31_taught",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_31_taught",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 2
+          }
+        }
+      },
+      {
+        "scenario": "week_32_replay",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_32_replay",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 2
+          }
+        }
+      },
+      {
+        "scenario": "untaught_control",
+        "outcome": "unsupported",
+        "reason": "as designed: the exceptions are not discoverable without being told",
+        "detail": {
+          "name": "untaught_control",
+          "passed": false,
+          "checks": {
+            "exact_recipients": false,
+            "used_the_account_manager_route": false
+          },
+          "failures": [
+            "exact_recipients",
+            "used_the_account_manager_route"
+          ],
+          "evidence": {
+            "got": [
+              "ap@bergen.example",
+              "ap@cardinal.example",
+              "ap@halden.example",
+              "ap@ostrava.example",
+              "ap@trellis.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 5
+          }
+        }
+      }
+    ]
+  }
+}
