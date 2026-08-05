@@ -339,7 +339,12 @@ async def main() -> int:
     # ── Phase: setup (the brief → a recurring monthly task) ─────────────────
     print("[setup] issuing the brief ...")
     with ledger.phase("setup"):
-        handle = await actor.act(utterance, persist=False)
+        # Unattended, as the page describes it: nobody is watching the 1st-of-
+        # the-month wake. With clarification on, an ambiguity in the brief stops
+        # the actor to ask and no task is ever created — the trading-review
+        # brief hit exactly that over the timezone of "Monday at 07:00".
+        # Whatever it settles on unattended is part of what this measures.
+        handle = await actor.act(utterance, persist=False, clarification_enabled=False)
         setup_status, setup_text = await _await_handle(handle, phase_timeout_s)
         # Detached post-act work (storage review) belongs to setup: wait for it.
         if not await ledger.wait_quiescent(

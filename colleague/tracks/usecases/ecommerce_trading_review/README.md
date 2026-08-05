@@ -100,6 +100,21 @@ described in the agency track's
 not a free run: reconstruct from `GET /v0/credits/transactions?category=llm`
 and cross-check against the balance delta.
 
+## The brief is ambiguous about timezone, and the system noticed
+
+`Schedule a task for Monday at 07:00` never says which timezone. On the first
+live attempt the actor stopped and asked — *"Which timezone should Monday at
+07:00 use… I've paused before creating the recurring workflow to avoid
+scheduling it at the wrong local time"* — and created nothing. That is the
+right instinct and it is worth recording as a finding about the page's own
+copy, not a defect.
+
+It is also not the situation the page describes: a Monday 07:00 wake nobody is
+watching. So setup runs with `clarification_enabled=False`, matching brain's
+guidance for unattended automation, and whatever timezone the system settles on
+by itself is part of what gets measured. Scoring is unaffected either way —
+the fixture's weeks are dates, not instants.
+
 ## Status
 
 Built and self-testing; not yet run against a live arm, and **do not start one

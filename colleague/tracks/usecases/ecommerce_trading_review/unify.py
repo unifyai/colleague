@@ -272,7 +272,13 @@ async def main() -> int:
     # ── Phase: setup (the brief → a recurring Monday task) ──────────────────
     print("[setup] issuing the brief ...")
     with ledger.phase("setup"):
-        handle = await actor.act(utterance, persist=False)
+        # Unattended, as the page describes it: nobody is watching the Monday
+        # 07:00 wake. With clarification on, the actor correctly stops to ask
+        # which timezone "07:00" means — the brief never says — and no task is
+        # ever created. Whatever it settles on instead is part of what this
+        # measures. (Timezone does not move the scoring: the fixture's weeks are
+        # dates, not instants.)
+        handle = await actor.act(utterance, persist=False, clarification_enabled=False)
         setup_status, setup_text = await _await_handle(handle, phase_timeout_s)
         if not await ledger.wait_quiescent(
             idle_seconds=quiesce_idle_s,
