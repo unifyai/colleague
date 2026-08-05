@@ -128,8 +128,33 @@ def score_run(
     *,
     seed: int,
     anchor: str,
+    infra_failures: int = 0,
 ) -> dict[str, Any]:
-    """Score one reporting cycle against the fixture's ground truth."""
+    """Score one reporting cycle against the fixture's ground truth.
+
+    `infra_failures` is the count of provider calls that died during this cycle
+    (from the LLM ledger). It exists to keep the detection figure honest about
+    what it can and cannot claim.
+
+    Three outcomes per client, not two:
+
+    * `measured` — the cycle got a real answer out of the system. Misses and
+      over-flags count.
+    * `blocked_by_design` — the fixture itself refused the data. Only ever the
+      expired-Meta client, which carries no plants, so it costs nothing.
+    * `void` — the client's report died and a provider call died in the same
+      cycle. Its planted flags are *not* counted as missed, and the whole run's
+      detection figure is marked ERROR.
+
+    The third case is the point. Detection is arithmetic over the served ad
+    data and needs no model at all — `replay_entrypoint` stubs the narrative
+    call out entirely and still scores every flag. So a dead model call can
+    destroy a client's report while the analysis behind it was fine, and
+    counting that as a miss publishes an infrastructure fault as a product
+    weakness. A void client makes the run unpublishable instead of quietly
+    cheap: the number never goes down for a reason the system did not cause,
+    and never goes up either.
+    """
     expected = expected_flags(seed, anchor)
     rows: list[dict[str, Any]] = []
     for client in CLIENTS:
@@ -145,12 +170,24 @@ def score_run(
                 if isinstance(f, dict) and f.get("campaign_id")
             }
         email = (body or {}).get("draft_email") or {}
+        status = (body or {}).get("status")
+        # A report that is missing or blocked has produced no answer. Whether
+        # that costs the run depends on who broke it: the fixture (by design),
+        # our own transport (void), or the system itself (a real miss).
+        answered = body is not None and status != "blocked"
+        if not answered and cid == BROKEN_META_CLIENT:
+            outcome = "blocked_by_design"
+        elif not answered and infra_failures:
+            outcome = "void"
+        else:
+            outcome = "measured"
         rows.append(
             {
                 "client_id": cid,
+                "outcome": outcome,
                 "delivered": body is not None,
                 "posts": found["posts"],
-                "status": (body or {}).get("status"),
+                "status": status,
                 "month": (body or {}).get("month"),
                 "blocked_reason": (body or {}).get("blocked_reason") or "",
                 "flags_expected": sorted(want),
@@ -171,6 +208,10 @@ def score_run(
     drafted = [r for r in delivered if r["status"] == "drafted"]
     blocked = [r for r in delivered if r["status"] == "blocked"]
     broken = next(r for r in rows if r["client_id"] == BROKEN_META_CLIENT)
+    # Void clients keep their per-row detail (so the failure is inspectable)
+    # but are excluded from every aggregate that could reach the page.
+    void = [r for r in rows if r["outcome"] == "void"]
+    scoreable = [r for r in rows if r["outcome"] != "void"]
     return {
         "clients_total": len(CLIENTS),
         "clients_delivered": len(delivered),
@@ -178,10 +219,20 @@ def score_run(
         "reports_blocked": len(blocked),
         "duplicate_posts": sum(max(0, r["posts"] - 1) for r in rows),
         "flags_expected_total": sum(len(v) for v in expected.values()),
-        "flags_matched_total": sum(len(r["flags_matched"]) for r in rows),
-        "flags_missed_total": sum(len(r["flags_missed"]) for r in rows),
-        "flags_extra_total": sum(len(r["flags_extra"]) for r in rows),
-        "clients_flagged_exactly": sum(1 for r in rows if r["flags_exact"]),
+        # The denominator a figure may be quoted against: everything planted,
+        # less whatever landed in a client this cycle could not measure.
+        "flags_measurable_total": sum(len(r["flags_expected"]) for r in scoreable),
+        "flags_matched_total": sum(len(r["flags_matched"]) for r in scoreable),
+        "flags_missed_total": sum(len(r["flags_missed"]) for r in scoreable),
+        "flags_extra_total": sum(len(r["flags_extra"]) for r in scoreable),
+        "flags_void_total": sum(len(r["flags_expected"]) for r in void),
+        "clients_void": [r["client_id"] for r in void],
+        "infra_failures": infra_failures,
+        # A run with any void client has not measured detection. The figure is
+        # withheld rather than published low — the same call the ledger already
+        # makes when a phase meters no calls and its cost column goes void.
+        "detection_status": "error" if void else "ok",
+        "clients_flagged_exactly": sum(1 for r in scoreable if r["flags_exact"]),
         "docs_written": sum(1 for r in drafted if r["doc_chars"] > 400),
         "emails_written": sum(1 for r in drafted if r["email_chars"] > 200),
         "broken_meta_client": {
@@ -268,10 +319,66 @@ def selftest(seed: int = DEFAULT_SEED, anchor: str | None = None) -> dict[str, A
     scored = score_run(over, seed=seed, anchor=anchor)
     assert scored["flags_extra_total"] == 1, scored
     assert scored["flags_missed_total"] == 0, scored
+
+    # A provider call dying must never read as a detection miss.
+    #
+    # This is the 2026-08-05 run reproduced offline: a client carrying two
+    # planted campaigns came back blocked because the narrative model call
+    # timed out after 600s, and the cycle scored 9/11 — a number that would
+    # have gone on the page as a product weakness when the analysis behind it
+    # was never in doubt. The same shape with no provider failure is still a
+    # real miss, so the two cases are asserted against each other.
+    victim = next(
+        c["body"]["client_id"]
+        for c in perfect
+        if len(c["body"]["flagged"]) >= 2 and c["body"]["client_id"] != BROKEN_META_CLIENT
+    )
+
+    def _blocked(reason: str) -> list[dict[str, Any]]:
+        out = json.loads(json.dumps(perfect))
+        target = next(c for c in out if c["body"]["client_id"] == victim)
+        target["body"].update(
+            {"status": "blocked", "blocked_reason": reason, "flagged": []},
+        )
+        return out
+
+    lost = len(
+        next(c for c in perfect if c["body"]["client_id"] == victim)["body"]["flagged"],
+    )
+    assert lost >= 2, victim
+
+    # With a provider failure recorded: void, ERROR, nothing counted as missed.
+    voided = score_run(
+        _blocked("the narrative call timed out"),
+        seed=seed,
+        anchor=anchor,
+        infra_failures=1,
+    )
+    assert voided["detection_status"] == "error", voided
+    assert voided["clients_void"] == [victim], voided
+    assert voided["flags_void_total"] == lost, voided
+    assert voided["flags_missed_total"] == 0, voided
+    assert voided["flags_measurable_total"] == clean["flags_expected_total"] - lost, voided
+    assert voided["flags_matched_total"] == voided["flags_measurable_total"], voided
+
+    # Without one: the system itself dropped the client, so it still counts.
+    genuine = score_run(_blocked("no reason given"), seed=seed, anchor=anchor)
+    assert genuine["detection_status"] == "ok", genuine
+    assert genuine["clients_void"] == [], genuine
+    assert genuine["flags_missed_total"] == lost, genuine
+    assert genuine["flags_measurable_total"] == clean["flags_expected_total"], genuine
+
+    # And the by-design block stays free even when the provider is misbehaving,
+    # since that client is the fixture's own refusal and carries no plants.
+    with_infra = score_run(perfect, seed=seed, anchor=anchor, infra_failures=3)
+    assert with_infra["detection_status"] == "ok", with_infra
+    assert with_infra["clients_void"] == [], with_infra
+    assert with_infra["flags_matched_total"] == clean["flags_expected_total"], with_infra
     return {
         "anchor": anchor,
         "flags_expected_total": clean["flags_expected_total"],
         "clients": clean["clients_total"],
+        "void_case": {"client": victim, "flags_protected": lost},
         "scorer": "ok",
     }
 

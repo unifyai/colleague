@@ -361,7 +361,13 @@ async def main() -> int:
         # Scored at the boot anchor: that is what the fixture was serving while
         # setup ran, so it is the only pair this dry run could have seen —
         # whatever month it chose to call "last month".
-        dry_score = score_run(setup_deliveries, seed=seed, anchor=boot_anchor)
+        dry_score = score_run(
+            setup_deliveries,
+            seed=seed,
+            anchor=boot_anchor,
+            # Everything that has failed so far belongs to setup.
+            infra_failures=len(ledger.failures()),
+        )
         dry_score["window"] = _window_alignment(dry_score, boot_anchor)
         results["setup"]["dry_run_score"] = dry_score
         print(
@@ -446,6 +452,11 @@ async def main() -> int:
                 f"only if it happens to report that month",
             )
         print(f"[run_{i}] executing (entrypoint before: {before.entrypoint}) ...")
+        # Provider failures across this cycle, execution plus its review tail.
+        # A dead call is why a client's report can come back empty on analysis
+        # that never failed, so the scorer needs the count to decide whether an
+        # unanswered client is a miss or unmeasurable.
+        failures_before = len(ledger.failures())
         with ledger.phase(f"run_{i}"):
             token = current_task_execution_delegate.set(delegate)
             try:
@@ -476,7 +487,13 @@ async def main() -> int:
         after = scheduler._filter_tasks(filter=f"task_id == {task.task_id}")[0]
         delivered = fixture.sink.snapshot()[deliveries_seen:]
         deliveries_seen += len(delivered)
-        scored = score_run(delivered, seed=seed, anchor=anchor)
+        run_failures = len(ledger.failures()) - failures_before
+        scored = score_run(
+            delivered,
+            seed=seed,
+            anchor=anchor,
+            infra_failures=run_failures,
+        )
         row = {
             "run": i,
             "status": run_status,
@@ -494,9 +511,17 @@ async def main() -> int:
             f"delivered={row['clients_delivered']}"
             f"/{row['clients_total']} drafted={row['reports_drafted']} "
             f"blocked={row['reports_blocked']} flags={row['flags_matched_total']}"
-            f"/{row['flags_expected_total']} extra={row['flags_extra_total']} "
+            f"/{row['flags_measurable_total']} extra={row['flags_extra_total']} "
             f"entrypoint_after={after.entrypoint}",
         )
+        if row["detection_status"] == "error":
+            print(
+                f"[run_{i}] DETECTION VOID: {row['flags_void_total']} planted flag(s) "
+                f"sat in client(s) {', '.join(row['clients_void'])}, whose report died "
+                f"while {run_failures} provider call(s) failed in this cycle. Detection "
+                f"is unmeasured for this run, not low — the figure is withheld rather "
+                f"than published against a denominator the run never reached.",
+            )
         if not row["window"]["aligned"]:
             print(
                 f"[run_{i}] WINDOW MISALIGNED: reported "
@@ -589,10 +614,26 @@ def _transcription_block(results: dict[str, Any], phases: list[Any]) -> list[str
         lines += [
             f"| one reporting cycle | {wall_min:.0f} min | "
             f"run_1 wall time, all {first['clients_total']} clients |",
-            f"| flagged campaigns | {first['flags_matched_total']} | "
-            f"matched of {first['flags_expected_total']} planted, "
-            f"{first['flags_extra_total']} extra, {first['flags_missed_total']} missed |",
         ]
+        # A void client means detection was not measured. Publishing
+        # `matched / planted` there would quote a real number against a
+        # denominator the run never reached, which is how an infrastructure
+        # timeout becomes a product weakness on a page.
+        if first.get("detection_status") == "error":
+            lines.append(
+                f"| flagged campaigns | — | **not measured**: "
+                f"{first['flags_void_total']} planted flag(s) sat in client(s) "
+                f"{', '.join(first['clients_void'])}, whose report died alongside "
+                f"{first.get('infra_failures', 0)} failed provider call(s). "
+                f"Re-run before quoting a detection figure |",
+            )
+        else:
+            lines.append(
+                f"| flagged campaigns | {first['flags_matched_total']} | "
+                f"matched of {first['flags_measurable_total']} measurable, "
+                f"{first['flags_extra_total']} extra, "
+                f"{first['flags_missed_total']} missed |",
+            )
     else:
         lines.append("| — | — | no report was drafted; nothing is eligible |")
     lines += [
@@ -681,9 +722,23 @@ def _finalize(
             f"| {r['run']} | {r['regime']} | `{r.get('anchor', '—')}`{window} "
             f"| {r['status']} | {r['clients_delivered']}/{r['clients_total']} "
             f"| {r['reports_drafted']} | {r['reports_blocked']} | "
-            f"{r['flags_matched_total']}/{r['flags_expected_total']} | "
+            f"{r['flags_matched_total']}/{r['flags_measurable_total']}"
+            f"{' ⚠︎void' if r['detection_status'] == 'error' else ''} | "
             f"{r['flags_extra_total']} | {r['flags_missed_total']} |",
         )
+    for r in results.get("runs", []):
+        if r["detection_status"] == "error":
+            lines += [
+                "",
+                f"⚠︎ Run {r['run']} — detection void. {r['flags_void_total']} planted "
+                f"flag(s) were in client(s) "
+                f"{', '.join('`' + c + '`' for c in r['clients_void'])}, whose report "
+                f"died while {r.get('infra_failures', 0)} provider call(s) failed. "
+                f"Those flags are excluded from the denominator rather than counted "
+                f"as missed: detection is arithmetic over the served data and needs no "
+                f"model, so a dead model call says nothing about whether the system "
+                f"would have found them. Not a detection rate.",
+            ]
     for r in results.get("runs", []):
         if not r["window"]["aligned"]:
             lines += [

@@ -11,6 +11,11 @@ whatever thread made the call, so accounting is complete regardless of
 asyncio/thread topology. Non-streaming calls only (the Unify runtime does not
 stream), so usage is always present on the response.
 
+Failed calls are recorded too, via a LiteLLM failure callback rather than the
+unillm hook, which only ever sees completions. Without them a provider timeout
+is invisible to the harness, and a scorer cannot tell "the system found
+nothing" from "the call that would have found it died" — see `install`.
+
 Lived in `tracks/standing/recurring_report/measure.py` first; promoted here
 once the conversational tracks needed the same metering — the unify arm has
 no proxy in front of it, so without this hook its token column is simply
@@ -44,6 +49,16 @@ class LLMCallRecord:
     billed_cost: float | None
     origin: str | None
     usage_raw: dict[str, Any] | None
+    # Set only on a call that never completed. A failure carries no usage and
+    # no cost, so it lives in the same list purely to share the index space the
+    # phase windows are cut from — see `_on_litellm_failure`.
+    error: str | None = None
+    status_code: int | None = None
+    detail: str | None = None
+
+    @property
+    def failed(self) -> bool:
+        return self.error is not None
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -56,6 +71,9 @@ class LLMCallRecord:
             "billed_cost": self.billed_cost,
             "origin": self.origin,
             "usage_raw": self.usage_raw,
+            "error": self.error,
+            "status_code": self.status_code,
+            "detail": self.detail,
         }
 
 
@@ -69,8 +87,19 @@ class PhaseStats:
     total_tokens: int = 0
     provider_cost: float = 0.0
     models: dict[str, int] = field(default_factory=dict)
+    failed_calls: int = 0
+    errors: dict[str, int] = field(default_factory=dict)
 
     def add(self, record: LLMCallRecord) -> None:
+        if record.failed:
+            # Counted apart from `llm_calls` on purpose. Callers read
+            # `llm_calls == 0` as "this phase was never metered" to label a
+            # void cost column; folding failures in would make an unmetered
+            # phase look metered and silently un-void the cost.
+            self.failed_calls += 1
+            key = record.error or "unknown"
+            self.errors[key] = self.errors.get(key, 0) + 1
+            return
         self.llm_calls += 1
         self.prompt_tokens += record.prompt_tokens
         self.completion_tokens += record.completion_tokens
@@ -88,6 +117,8 @@ class PhaseStats:
             "total_tokens": self.total_tokens,
             "provider_cost_usd": round(self.provider_cost, 6),
             "models": self.models,
+            "failed_calls": self.failed_calls,
+            "errors": self.errors,
         }
 
 
@@ -111,6 +142,7 @@ class LLMLedger:
         self._phase_marks: list[tuple[str, int, int, float]] = []
         self._boundaries: list[tuple[str, int, float | None]] = []
         self._chained_hook: Any = None
+        self._failure_hook_installed = False
         # Full request bodies enable offline replay of specific decision
         # points (rerun a critical call with modified prompts without paying
         # for a whole run). Written as JSONL; large, so results .gitignore
@@ -124,13 +156,80 @@ class LLMLedger:
         set_global_llm_event_hook is last-write-wins — so this must run
         AFTER unify.init(), and the pre-existing hook is forwarded to so
         production wiring keeps working.
+
+        Also registers a LiteLLM failure callback, because the unillm event
+        hook structurally cannot report a failure: LLMEvent carries only
+        request/response/cost/origin and fires *after* a completion, so a call
+        that never completed produces no event at all. That blind spot is not
+        cosmetic — a provider timeout looked identical to "the system chose not
+        to flag anything", which is precisely how an infrastructure fault got
+        recorded as a detection miss. LiteLLM is the transport under every
+        provider call here, and its failure_callback is the one place in this
+        repo's reach where a dead call is observable.
         """
         self._chained_hook = get_global_llm_event_hook()
         set_global_llm_event_hook(self._on_event)
+        try:
+            import litellm
+
+            if self._on_litellm_failure not in litellm.failure_callback:
+                litellm.failure_callback.append(self._on_litellm_failure)
+                self._failure_hook_installed = True
+        except Exception:
+            pass  # metering must never be what breaks a paid run
 
     def uninstall(self) -> None:
         set_global_llm_event_hook(self._chained_hook)
         self._chained_hook = None
+        if self._failure_hook_installed:
+            try:
+                import litellm
+
+                litellm.failure_callback.remove(self._on_litellm_failure)
+            except Exception:
+                pass
+            self._failure_hook_installed = False
+
+    def _on_litellm_failure(
+        self,
+        kwargs: Any = None,
+        response_obj: Any = None,
+        start_time: Any = None,
+        end_time: Any = None,
+    ) -> None:
+        """Record a provider call that never returned a completion.
+
+        Appended to the same `_records` list as successes so it lands inside
+        whichever phase window is open — the windows are cut by list index, so
+        a separate list would need a parallel set of boundaries to attribute.
+        `PhaseStats.add` keeps the two apart once the window is resolved.
+        """
+        try:
+            exc = (kwargs or {}).get("exception")
+            model = str((kwargs or {}).get("model") or "unknown")
+            status = getattr(exc, "status_code", None)
+            record = LLMCallRecord(
+                ts=time.time(),
+                model=model,
+                prompt_tokens=0,
+                completion_tokens=0,
+                total_tokens=0,
+                provider_cost=None,
+                billed_cost=None,
+                origin="litellm.failure_callback",
+                usage_raw=None,
+                error=type(exc).__name__ if exc is not None else "UnknownError",
+                status_code=status if isinstance(status, int) else None,
+                detail=" ".join(str(exc).split())[:300] if exc is not None else None,
+            )
+            with self._lock:
+                self._records.append(record)
+        except Exception:
+            pass  # a metering callback must never surface into the run
+
+    def failures(self) -> list[LLMCallRecord]:
+        with self._lock:
+            return [r for r in self._records if r.failed]
 
     def _on_event(self, event: LLMEvent) -> None:
         prompt, completion, total, usage = _extract_usage(event)
