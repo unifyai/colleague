@@ -67,6 +67,22 @@ INFRA_FAILURE_MARKERS = (
     "authenticationerror",
     "connection refused",
     "service unavailable",
+    # hermes exhausts its provider retries and returns the failure as its
+    # chat answer; a proxy that cannot reach upstream surfaces as 502/504.
+    # Both produced FAIL rows with zero side effects before these landed.
+    "api call failed after",
+    "http 502",
+    "bad gateway",
+    "http 504",
+    "gateway timeout",
+    # A provider rejecting the request shape (Fireworks refused unify's tool
+    # schemas) is the harness failing to converse, not the arm failing the
+    # scenario.
+    "badrequesterror",
+    "internalservererror",
+    "provider returned error",
+    # The proxy host missing CA certs turned every call into a 502 once.
+    "certificate verify failed",
 )
 
 

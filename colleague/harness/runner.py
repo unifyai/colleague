@@ -70,7 +70,12 @@ def _session_for(
     if arm == "mock":
         return build_session("mock", mode=mode)
     if arm == "unify":
-        return build_session("unify", run_id=run_id, track=track)
+        return build_session(
+            "unify",
+            run_id=run_id,
+            track=track,
+            results_dir=results_dir,
+        )
     return build_session(
         arm,
         results_dir=results_dir,
@@ -263,6 +268,18 @@ def run_track(
                         {"marker": marker, "reply": reply.text[:500]},
                         f"infrastructure failure ({marker}) — nothing was measured",
                     )
+                elif reply.error.startswith(("timed out after", "no response within")):
+                    # A scenario timeout is not a statement about the arm: the
+                    # first unify sweep timed out on a broken provider path and
+                    # its FAILs read as a teaching-track result. The error
+                    # string stays in the run file, so a genuinely-hung arm is
+                    # still visible — it just is not a scored loss.
+                    result = ScenarioResult(
+                        name,
+                        Outcome.ERROR,
+                        {"reply_error": reply.error},
+                        "scenario timed out — nothing conclusive was measured",
+                    )
                 else:
                     # The scorer sees how the correction was delivered, so an
                     # arm with no steering mechanism resolves to UNSUPPORTED
@@ -299,6 +316,7 @@ def run_track(
                 fixture.stop()
             if shared_session is None or own_session:
                 session.close()
+                record["artifacts"] = session.artifacts()
     finally:
         if shared_fixture is not None:
             shared_fixture.stop()

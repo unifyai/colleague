@@ -20,6 +20,7 @@ import asyncio
 import os
 import threading
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from colleague.arms.sessions import register
@@ -154,6 +155,7 @@ class UnifySession(ArmSession):
         track: str = "colleague",
         project: str | None = None,
         ledger: Any = None,
+        results_dir: Any = None,
     ) -> None:
         self.run_id = run_id or datetime.now(timezone.utc).strftime(
             "%Y-%m-%dT%H-%M-%SZ"
@@ -161,12 +163,14 @@ class UnifySession(ArmSession):
         self.track = track
         self.project = project or os.environ.get("COLLEAGUE_PROJECT", "Benchmarks")
         self.ledger = ledger
+        self.results_dir = Path(results_dir) if results_dir else None
         self.context = ""
         self._loop: _LoopThread | None = None
         self._actor: Any = None
         self._persistent: UnifyRunHandle | None = None
         self._responder = None
         self._clarifications: list[dict[str, Any]] = []
+        self._turns = 0
 
     def setup(self) -> None:
         require_env()
@@ -191,8 +195,16 @@ class UnifySession(ArmSession):
         ManagerRegistry.clear()
         ContextRegistry.clear()
         unify_pkg.init(project_name=self.project)
-        if self.ledger is not None:
-            self.ledger.install()
+        # Meter by default. Every CLI arm sits behind the recording proxy;
+        # unify has no proxy in front of it, so without this hook its token
+        # column is empty while everyone else's is exact — which quietly
+        # removes the vendor's own arm from the benchmark's cost axis.
+        # Install must come after unify.init, which sets its own global hook.
+        if self.ledger is None:
+            from colleague.harness.llm_ledger import LLMLedger
+
+            self.ledger = LLMLedger()
+        self.ledger.install()
 
         from unify.actor.code_act_actor import CodeActActor
         from unify.actor.environments import StateManagerEnvironment
@@ -247,6 +259,9 @@ class UnifySession(ArmSession):
         sender: str | None = None,
     ) -> RunHandle:
         assert self._loop is not None and self._actor is not None, "call setup() first"
+        self._turns += 1
+        if self.ledger is not None:
+            self.ledger.boundary(f"turn_{self._turns}")
         prompt = compose(context, text if sender is None else f"[{sender}] {text}")
         handle = self._loop.run(self._actor.act(prompt, persist=persist), timeout=120)
         self._watch_clarifications(handle)
@@ -264,6 +279,9 @@ class UnifySession(ArmSession):
         """
         if self._persistent is None:
             raise RuntimeError("no persistent session; call begin(persist=True) first")
+        self._turns += 1
+        if self.ledger is not None:
+            self.ledger.boundary(f"turn_{self._turns}")
         self._persistent.interject(text, sender=sender)
         # The interjection wakes the blocked loop; its answer arrives as the
         # next surfaced response, not by re-awaiting a future that already
@@ -275,9 +293,21 @@ class UnifySession(ArmSession):
             self._persistent.stop()
         if self._loop is not None:
             self._loop.close()
+        if self.ledger is not None and self.results_dir is not None:
+            try:
+                self.results_dir.mkdir(parents=True, exist_ok=True)
+                self.ledger.dump(self.results_dir / "unify_ledger.jsonl")
+            except Exception:  # noqa: BLE001 - metering must never break a run
+                pass
 
     def artifacts(self) -> dict[str, Any]:
-        return {"context": self.context, "project": self.project}
+        out: dict[str, Any] = {"context": self.context, "project": self.project}
+        if self.ledger is not None:
+            try:
+                out["llm_segments"] = [s.to_json() for s in self.ledger.segments()]
+            except Exception:  # noqa: BLE001 - metering must never break a run
+                pass
+        return out
 
 
 register("unify", UnifySession)
