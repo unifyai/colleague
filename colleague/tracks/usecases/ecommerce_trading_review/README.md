@@ -120,17 +120,29 @@ the fixture's weeks are dates, not instants.
 Built and self-testing; not yet run against a live arm, and **do not start one
 yet**.
 
-As of 2026-08-05 the setup phase dies before it creates a task. The actor
-web-searches Artificial Analysis and OpenRouter pricing to pick a model for its
-own narrative step, that search's summarisation call returns whitespace instead
-of JSON, litellm cannot parse it, and the exception aborts the whole task. It
-failed that way twice in a row on the agency track for about $19 of provider
-spend, and this brief drives the same actor down the same path.
+Setup sometimes dies before it creates a task, taking the whole cycle with it:
+
+    Error: inner task failed: Exception: LLM call failed: litellm.APIError:
+    OpenrouterException - Unable to get json response - Expecting value:
+    line 127 column 1 (char 693), Original Response: <~40 blank lines>
+
+OpenRouter returns a whitespace body, litellm cannot parse it as JSON, and the
+actor's own reasoning call has nowhere to go. It happened twice in a row on the
+agency track for about $19, then that track's next attempt sailed through
+setup — so it is flaky, not deterministic, and a retry is worth more than a
+diagnosis.
+
+It is *not* contained, and should not be confused with a nested failure. A
+nested manager's LLM failure is converted into a tool message the actor can
+react to (pinned by `tests/.../test_nested_llm_failure_degrades.py` in unify).
+This is the actor's top-level call, where there is no trajectory left to
+degrade into. The gap is that a malformed empty body is not retried.
 
 Not reproducible against OpenRouter directly: both models return valid JSON in
 `json_object` mode for a small prompt and for a 52k-token one, so prompt size
-is not the trigger. Most likely `json_object` combined with tool calling — the
-search loop's model returns empty content when it intends a tool call.
+is not the trigger.
 
-Run this once that is fixed, or with the web capability disabled and the change
-disclosed on the page.
+An earlier version of this note blamed a `WebSearcher.ask` call, on the strength
+of web-search entries sitting near the error in the log. That was proximity, not
+causation — the log lines immediately before the failure carry the actor's own
+`CodeActActor.act` span.
