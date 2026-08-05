@@ -1,0 +1,44 @@
+# Formatting gate.
+#
+# Runs the committed hook set itself, at the versions locked in the lint group,
+# so this and .githooks/pre-commit cannot drift — including which paths are
+# exempt. The hook is the fast local gate; this catches a commit made in a
+# clone where the hook was never enabled.
+#
+# Makes no LLM calls and costs nothing — unlike benchmark.yml, which is
+# dispatch-only for exactly that reason.
+name: Lint
+
+permissions:
+  contents: read
+
+on:
+  push:
+  pull_request:
+
+# One lint run per ref. A newer push replaces a pending one.
+concurrency:
+  group: lint-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+      # --no-install-project keeps this off the arms' dependency trees: the
+      # formatters and pre-commit are all that is needed to check formatting.
+    - name: Install locked formatters
+      run: uv sync --only-group lint --no-install-project --frozen
+
+    - name: Run the committed hooks
+      run: uv run --no-sync pre-commit run --all-files --show-diff-on-failure

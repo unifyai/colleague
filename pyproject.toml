@@ -25,7 +25,14 @@ unify = { path = "../unify", editable = true }
 unillm = { path = "../unillm", editable = true }
 
 [dependency-groups]
-lint = ["black==25.1.0", "isort>=5.13", "autoflake>=2.3"]
+# The committed git hook and CI both run these, so they are locked here rather
+# than pinned again in .pre-commit-config.yaml or in the workflow.
+lint = [
+    "black==25.1.0",
+    "isort>=5.13",
+    "autoflake>=2.3",
+    "pre-commit>=3.0.1",
+]
 # The metering tests skip themselves when unillm is absent, so the suite still
 # runs in a stdlib-only checkout.
 test = ["pytest>=8.0"]
@@ -33,9 +40,13 @@ dev = [{ include-group = "lint" }, { include-group = "test" }]
 
 [tool.black]
 target-version = ["py312"]
+# Committed run results are evidence, not source — see .pre-commit-config.yaml.
+# Repeated here so a bare `black .` cannot rewrite the record either.
+extend-exclude = "/results/"
 
 [tool.isort]
 profile = "black"
+extend_skip_glob = ["*/results/*"]
 
 [tool.setuptools.packages.find]
 include = ["colleague*"]
