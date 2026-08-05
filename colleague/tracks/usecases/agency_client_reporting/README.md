@@ -93,7 +93,7 @@ what to do about the account whose Meta connection is dead.
 the two platforms, deterministic forever for a given seed.
 
 Baselines are generated inside safe zones: spend and conversions wobble ±6%
-month over month on a base of ≥30 conversions, which keeps every ratio far
+month over month on a base of ≥60 conversions, which keeps every ratio far
 away from all three of the page's thresholds, and every baseline campaign
 converts, so a rule-C burner can only be a plant. Eleven anomalies are planted
 across eight clients in the reported month pair, in four shapes:
@@ -121,6 +121,16 @@ directly — healthy conversions in the prior month, zero in the reported one,
 spend clear of the $200 threshold, tripping exactly those two rules under
 every tolerance in the sweep — rather than leaving it to the campaign-set
 comparison.
+
+Passing that sweep at one seed is not the same as passing it at any seed.
+`ACR_SEED` is a documented knob, so a user can reach a seed the fixture was
+never tuned on, and a bare run is real provider spend — so `--selftest` also
+asserts every plant clears the *strictest* reading by a stated margin, and
+re-runs both halves across 64 seeds. Tuning a plant to land just the right
+side of a threshold now fails offline at whichever seed exposes it, instead of
+surfacing as an unwinnable client mid-run. `fixture.py` carries the measured
+distances; the nearest baseline sits ~0.17 of a ratio clear of the closest
+threshold, so the wobble is not where seed fragility comes from.
 
 Client `c07`'s Meta Ads endpoint returns `401 AUTH_EXPIRED`. What the system
 does with that client is measured, not prescribed.
