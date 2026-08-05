@@ -15,6 +15,30 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+
+# A bare run spends real provider money, and the driver takes no arguments, so
+# anything that looks like a request for usage is answered here rather than by
+# starting a run.
+case "${1:-}" in
+  -h | --help | help | -\? | usage)
+    sed -n '2,13p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+    cat <<'USAGE'
+
+This launcher takes no arguments; configure it with the env vars above.
+
+  ETR_CHECK=true bash .../run_unify.sh   boots everything, spends nothing
+  bash .../run_unify.sh                  a real cycle, tens of dollars
+
+Offline, for free: fixture.py --selftest and protocol.py --selftest.
+USAGE
+    exit 0
+    ;;
+esac
+if [[ $# -gt 0 ]]; then
+  echo "error: this launcher takes no arguments (got: $*) — see --help" >&2
+  exit 2
+fi
+
 cd "$REPO_ROOT"
 
 if [[ ! -x .venv/bin/python ]]; then

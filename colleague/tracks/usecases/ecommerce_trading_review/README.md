@@ -102,4 +102,20 @@ and cross-check against the balance delta.
 
 ## Status
 
-Built and self-testing; not yet run against a live arm.
+Built and self-testing; not yet run against a live arm, and **do not start one
+yet**.
+
+As of 2026-08-05 the setup phase dies before it creates a task. The actor
+web-searches Artificial Analysis and OpenRouter pricing to pick a model for its
+own narrative step, that search's summarisation call returns whitespace instead
+of JSON, litellm cannot parse it, and the exception aborts the whole task. It
+failed that way twice in a row on the agency track for about $19 of provider
+spend, and this brief drives the same actor down the same path.
+
+Not reproducible against OpenRouter directly: both models return valid JSON in
+`json_object` mode for a small prompt and for a 52k-token one, so prompt size
+is not the trigger. Most likely `json_object` combined with tool calling — the
+search loop's model returns empty content when it intends a tool call.
+
+Run this once that is fixed, or with the web capability disabled and the change
+disclosed on the page.
