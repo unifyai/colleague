@@ -463,8 +463,15 @@ def selftest(seed: int = DEFAULT_SEED, anchor: str | None = None) -> dict[str, A
             for f in fs
         }
         assert derived_set == planted, (tol, derived_set ^ planted)
-    # No baseline month pair outside the anchor pair trips anything.
-    for probe in ("2026-03", "2026-04", "2025-11", prev_month(prev_month(anchor))):
+    # No baseline month pair outside the anchor pair trips anything. Probes are
+    # derived from the anchor, never hardcoded: the pair (m - 1, m) is only
+    # plant-free for m at or before prev^2(anchor), because shape C overrides
+    # the anchor pair's *prior* month too. A fixed list silently becomes a
+    # false failure as soon as a caller anchors onto one of its months — and
+    # the harness now re-anchors mid-run, so that is reachable.
+    probe = prev_month(anchor)
+    for _ in range(6):
+        probe = prev_month(probe)  # prev^2 .. prev^7 of the anchor
         assert expected_flags(seed, anchor, month=probe) == {}, probe
     # Every AC plant is a live campaign that went dead, not a burner: healthy
     # conversions in the prior month, none in the reported one, and spend clear

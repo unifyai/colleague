@@ -137,17 +137,52 @@ def _task_snapshot(task: Any) -> dict[str, Any]:
     }
 
 
+def _activation_anchor(start_at: str | None) -> str | None:
+    """The month a wake firing at `start_at` reports on: the month before it.
+
+    A description-driven run reads the activation it believes it is running
+    at rather than the wall clock, so a task whose first fire is 2026-09-01
+    reports 2026-08 however early the harness fires it. Returns None when the
+    task carries no start_at, or one this cannot parse.
+    """
+    if not start_at:
+        return None
+    from colleague.tracks.usecases.agency_client_reporting.fixture import (
+        month_str,
+        prev_month,
+    )
+
+    try:
+        stamp = datetime.fromisoformat(str(start_at).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+    return prev_month(month_str(stamp.date()))
+
+
+def _expected_anchor(regime: str, activation: str | None, wall_clock: str) -> str:
+    """The month the next run will report on, given the regime it runs in.
+
+    The two regimes disagree about what "last month" means when a task is
+    fired ahead of its schedule: a description-driven run reads its own
+    activation, a stored entrypoint reads the wall clock. The fixture can only
+    pin its anomalies to one pair at a time, so the harness follows the run
+    rather than hoping the two agree — the task's reading of its own schedule
+    is the correct one, and so is the entrypoint's reading of the clock.
+    """
+    if regime == "entrypoint":
+        return wall_clock
+    return activation or wall_clock
+
+
 def _window_alignment(scored: dict[str, Any], anchor: str) -> dict[str, Any]:
     """Whether the system reported on the month the plants are pinned to.
 
-    The two execution regimes disagree about what "last month" means when a
-    task is fired ahead of its schedule. A description-driven run reads the
-    activation it believes it is running at, so a task whose first fire is
-    2026-09-01 reports 2026-08; a stored entrypoint reads the wall clock and
-    reports the month before today. The fixture can only pin its anomalies to
-    one pair, so a run that lands on the other one measures nothing about
-    detection — and it does so silently, looking like a perfect zero-flag
-    month. This is the guard that stops that reaching a page as a figure.
+    `_expected_anchor` should have moved the plants onto the pair this run was
+    always going to compare, so a misalignment here means that prediction was
+    wrong — the run read its window from something other than its activation
+    or the clock. Either way the flag count measures nothing about detection,
+    and it fails silently, looking like a perfect zero-flag month. This is the
+    guard that stops that reaching a page as a figure.
     """
     reported = sorted({r["month"] for r in scored["clients"] if r["month"]})
     return {
@@ -209,7 +244,11 @@ async def main() -> int:
     # Ground truth and the scoring path are proved before anything is spent.
     ground_truth = fixture_selftest(seed)
     scorer_selftest(seed, ground_truth["anchor"])
-    anchor = ground_truth["anchor"]
+    # The month before now. Setup runs against this, since the task whose
+    # activation decides the metered months does not exist yet; each metered
+    # run then re-anchors to the pair it is actually going to compare.
+    boot_anchor = ground_truth["anchor"]
+    anchor = boot_anchor
     print(
         f"[fixture] selftest ok — anchor={anchor} clients={ground_truth['clients']} "
         f"campaigns={ground_truth['campaigns']} "
@@ -275,7 +314,7 @@ async def main() -> int:
         "orchestra_url": os.environ["ORCHESTRA_URL"],
         "context": ctx,
         "seed": seed,
-        "anchor_month": anchor,
+        "anchor_month": boot_anchor,
         "n_runs": n_runs,
         "quiesce_idle_s": quiesce_idle_s,
         "unillm_cache": os.environ.get("UNILLM_CACHE"),
@@ -319,12 +358,17 @@ async def main() -> int:
     deliveries_seen = len(setup_deliveries)
     results["setup"]["deliveries_posted"] = deliveries_seen
     if deliveries_seen:
-        results["setup"]["dry_run_score"] = score_run(
-            setup_deliveries,
-            seed=seed,
-            anchor=anchor,
+        # Scored at the boot anchor: that is what the fixture was serving while
+        # setup ran, so it is the only pair this dry run could have seen —
+        # whatever month it chose to call "last month".
+        dry_score = score_run(setup_deliveries, seed=seed, anchor=boot_anchor)
+        dry_score["window"] = _window_alignment(dry_score, boot_anchor)
+        results["setup"]["dry_run_score"] = dry_score
+        print(
+            f"[setup] posted {deliveries_seen} deliveries during setup "
+            f"(scored separately, "
+            f"{'aligned' if dry_score['window']['aligned'] else 'WINDOW MISALIGNED'})",
         )
-        print(f"[setup] posted {deliveries_seen} deliveries during setup (scored separately)")
 
     tasks = [
         t
@@ -347,13 +391,42 @@ async def main() -> int:
     )
 
     start_at = (results["task_after_setup"].get("schedule") or {}).get("start_at")
+    activation_anchor = _activation_anchor(start_at)
+    results["activation_start_at"] = start_at
+    results["activation_anchor"] = activation_anchor
     if start_at:
-        print(f"[align] task activates {start_at}; fixture is pinned to {anchor}")
+        print(
+            f"[align] task activates {start_at} (reports {activation_anchor}); "
+            f"fixture booted pinned to {anchor}",
+        )
 
     # ── Phases: monthly wakes ───────────────────────────────────────────────
     delegate = _MeasuredTaskExecutionDelegate(actor)
     for i in range(1, n_runs + 1):
         before = scheduler._filter_tasks(filter=f"task_id == {task.task_id}")[0]
+        regime = "entrypoint" if before.entrypoint is not None else "description"
+        # Move the plants onto the pair this run is going to compare, before it
+        # runs. Data is generated per request, so re-anchoring takes effect for
+        # the next fetch; a run's own two months are therefore internally
+        # consistent even when a later run is measured against a different pair.
+        run_anchor = _expected_anchor(regime, activation_anchor, boot_anchor)
+        if run_anchor != fixture.anchor:
+            fixture.set_anchor(run_anchor)
+            print(
+                f"[align] run_{i} runs {regime}, so it reports {run_anchor}; "
+                f"re-anchoring the fixture from {anchor} and re-deriving ground truth",
+            )
+        anchor = run_anchor
+        # Prove the fixture and the scorer at this anchor, not just at boot:
+        # the sweep and the planted set are anchor-dependent, and this is the
+        # ground truth the run about to execute will be scored against.
+        run_truth = fixture_selftest(seed, anchor)
+        scorer_selftest(seed, anchor)
+        results.setdefault("ground_truth_by_anchor", {})[anchor] = run_truth
+        print(
+            f"[run_{i}] anchor={anchor} planted_flags={run_truth['flagged_campaigns']} "
+            f"across {len(run_truth['flagged_clients'])} clients",
+        )
         print(f"[run_{i}] executing (entrypoint before: {before.entrypoint}) ...")
         with ledger.phase(f"run_{i}"):
             token = current_task_execution_delegate.set(delegate)
@@ -391,7 +464,8 @@ async def main() -> int:
             "status": run_status,
             "entrypoint_before": before.entrypoint,
             "entrypoint_after": after.entrypoint,
-            "regime": "entrypoint" if before.entrypoint is not None else "description",
+            "regime": regime,
+            "anchor": anchor,
             "window": _window_alignment(scored, anchor),
             **scored,
             "result": run_text[:2000],
@@ -408,8 +482,10 @@ async def main() -> int:
         if not row["window"]["aligned"]:
             print(
                 f"[run_{i}] WINDOW MISALIGNED: reported "
-                f"{row['window']['months_reported']} but anomalies are pinned to "
-                f"{anchor} — flag counts from this run mean nothing",
+                f"{row['window']['months_reported']} but anomalies were re-anchored "
+                f"to {anchor} for this {regime} run — flag counts from this run mean "
+                f"nothing, and the run read its window from neither its activation "
+                f"({activation_anchor}) nor the clock ({boot_anchor})",
             )
 
     final_task = scheduler._filter_tasks(filter=f"task_id == {task.task_id}")[0]
@@ -465,21 +541,34 @@ def _transcription_block(results: dict[str, Any], phases: list[Any]) -> list[str
     exec_cost = float(exec_phase.get("provider_cost_usd") or 0.0)
     review_cost = float(review_phase.get("provider_cost_usd") or 0.0)
     wall_min = float(exec_phase.get("wall_seconds") or 0.0) / 60.0
+    # A phase that did real work and metered no calls is a missing measurement,
+    # not a free run: the unillm hook has gone missing mid-run before. Quoting
+    # its zero as a cost is how a $0.0000 reaches a page.
+    exec_metered = bool(exec_phase.get("llm_calls"))
     lines = [
         "",
         "## Landing-page transcription",
         "",
         f"Brief sha256 `{results['brief_sha256'][:16]}` · seed `{results['seed']}` "
-        f"· month `{results['anchor_month']}`",
+        f"· month `{first.get('anchor') or first['window']['anchor']}`",
         "",
         "| page figure | value | where it comes from |",
         "|---|---|---|",
     ]
-    if reports:
-        lines += [
+    if reports and exec_metered:
+        lines.append(
             f"| cost of one client's report | {_usd(exec_cost / reports)} | "
             f"run_1 ({first['regime']} regime) provider cost {_usd(exec_cost)} / "
             f"{reports} reports drafted |",
+        )
+    elif reports:
+        lines.append(
+            "| cost of one client's report | **not measured** | the ledger recorded "
+            "0 calls for this phase, so its cost is missing rather than zero — "
+            "reconstruct from billing before any cost figure goes on the page |",
+        )
+    if reports:
+        lines += [
             f"| one reporting cycle | {wall_min:.0f} min | "
             f"run_1 wall time, all {first['clients_total']} clients |",
             f"| flagged campaigns | {first['flags_matched_total']} | "
@@ -513,6 +602,16 @@ def _finalize(
 ) -> None:
     phases = ledger.summarize()
     results["phases"] = [p.to_json() for p in phases]
+    # The unillm hook has been lost mid-run before, leaving a phase table of
+    # zeros for a run that was really billed (see the NOTE.md in
+    # results/2026-08-04T17-36-52Z-unify). Name those phases here so a reader
+    # of the committed file cannot mistake a missing measurement for a cheap
+    # one, and so the transcription block refuses to quote their cost.
+    results["ledger_void_phases"] = [
+        j["name"]
+        for j in results["phases"]
+        if not j["llm_calls"] and float(j.get("wall_seconds") or 0.0) > 30.0
+    ]
     # Every delivery, verbatim, so a transcribed figure can be re-derived from
     # what the system actually posted rather than from this file's arithmetic.
     results["deliveries"] = fixture.sink.snapshot()
@@ -528,7 +627,11 @@ def _finalize(
         f"- orchestra: `{results['orchestra_url']}`",
         f"- context: `{results['context']}`",
         f"- UNILLM_CACHE: `{results.get('unillm_cache')}`",
-        f"- month reported: `{results['anchor_month']}` · seed `{results['seed']}`",
+        f"- fixture booted on `{results['anchor_month']}` (the month before now) "
+        f"· seed `{results['seed']}`",
+        f"- task activates `{results.get('activation_start_at') or '—'}`, which reports "
+        f"`{results.get('activation_anchor') or '—'}`; each run is re-anchored to the "
+        f"pair its own regime compares",
         "",
         "| phase | LLM calls | prompt tok | completion tok | cost (USD) | wall (s) |",
         "|---|---|---|---|---|---|",
@@ -539,18 +642,38 @@ def _finalize(
             f"| {j['name']} | {j['llm_calls']} | {j['prompt_tokens']} | "
             f"{j['completion_tokens']} | {j['provider_cost_usd']} | {j['wall_seconds']} |",
         )
+    if results.get("ledger_void_phases"):
+        lines += [
+            "",
+            f"> **The cost column is void for "
+            f"{', '.join('`' + n + '`' for n in results['ledger_void_phases'])}.** "
+            f"Those phases did real work and the ledger metered no calls, so their "
+            f"cost is missing, not zero. Reconstruct from "
+            f"`GET /v0/credits/transactions?category=llm` and cross-check against the "
+            f"account balance delta before any cost figure is quoted.",
+        ]
     lines += [
         "",
-        "| run | status | delivered | drafted | blocked | flags matched | extra | missed |",
-        "|---|---|---|---|---|---|---|---|",
+        "| run | regime | month | status | delivered | drafted | blocked | flags matched | extra | missed |",
+        "|---|---|---|---|---|---|---|---|---|---|",
     ]
     for r in results.get("runs", []):
+        window = "" if r["window"]["aligned"] else " ⚠︎"
         lines.append(
-            f"| {r['run']} | {r['status']} | {r['clients_delivered']}/{r['clients_total']} "
+            f"| {r['run']} | {r['regime']} | `{r.get('anchor', '—')}`{window} "
+            f"| {r['status']} | {r['clients_delivered']}/{r['clients_total']} "
             f"| {r['reports_drafted']} | {r['reports_blocked']} | "
             f"{r['flags_matched_total']}/{r['flags_expected_total']} | "
             f"{r['flags_extra_total']} | {r['flags_missed_total']} |",
         )
+    for r in results.get("runs", []):
+        if not r["window"]["aligned"]:
+            lines += [
+                "",
+                f"⚠︎ Run {r['run']} reported {r['window']['months_reported']}, not "
+                f"`{r['window']['anchor']}` where the anomalies were pinned for it. "
+                f"Its flag count is not a detection rate.",
+            ]
     for r in results.get("runs", []):
         broken = r["broken_meta_client"]
         lines += [
