@@ -9,7 +9,6 @@ request re-derives everything the first one worked out.
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 from colleague.arms.hermes import (

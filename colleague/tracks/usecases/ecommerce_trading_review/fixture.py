@@ -131,7 +131,14 @@ def _repeat_rate_bp(seed: int, anchor: str, week: str) -> int:
     return REPEAT_BASE_BP + level + jitter
 
 
-def _prefix_sum(seed: int, anchor: str, week: str, key: str, step: int, pct: int) -> int:
+def _prefix_sum(
+    seed: int,
+    anchor: str,
+    week: str,
+    key: str,
+    step: int,
+    pct: int,
+) -> int:
     """Sum of positive increments from a fixed origin, so it never decreases."""
     idx = _week_index(anchor, week)
     total = 0
@@ -237,7 +244,10 @@ def meta_week(seed: int, anchor: str, week: str) -> dict[str, Any]:
     if idx == 0:
         prior = [
             _spend_cents(seed, anchor, shift_weeks(anchor, d))
-            / max(1, shopify_week(seed, anchor, shift_weeks(anchor, d))["new_customers"])
+            / max(
+                1,
+                shopify_week(seed, anchor, shift_weeks(anchor, d))["new_customers"],
+            )
             for d in (-4, -3, -2, -1)
         ]
         target = sum(prior) / 4 * CAC_PLANT_MULTIPLIER / 100
@@ -293,7 +303,12 @@ def rules_tripped(
     return tripped
 
 
-def expected_flags(seed: int, anchor: str, week: str | None = None, **tol: Any) -> list[str]:
+def expected_flags(
+    seed: int,
+    anchor: str,
+    week: str | None = None,
+    **tol: Any,
+) -> list[str]:
     return rules_tripped(seed, anchor, week or anchor, **tol)
 
 
@@ -473,7 +488,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
-    parser.add_argument("--anchor", default=None, help="reported week start, YYYY-MM-DD")
+    parser.add_argument(
+        "--anchor",
+        default=None,
+        help="reported week start, YYYY-MM-DD",
+    )
     parser.add_argument("--selftest", action="store_true")
     args = parser.parse_args()
     if args.selftest:

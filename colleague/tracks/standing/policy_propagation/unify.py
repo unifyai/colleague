@@ -160,8 +160,8 @@ async def main() -> int:
 
     ledger = LLMLedger()
 
-    import unisdk
     import unify as unify_pkg
+    import unisdk
     from unify.common.context_registry import ContextRegistry
     from unify.manager_registry import ManagerRegistry
     from unify.session_details import (

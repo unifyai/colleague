@@ -121,6 +121,7 @@ def _function_snapshot(function_id: int) -> dict[str, Any]:
 async def main() -> int:
     _require_env()
 
+    from colleague.tracks.standing.recurring_report.measure import LLMLedger
     from colleague.tracks.standing.semantic_triage.fixture import (
         DEFAULT_PORT,
         DEFAULT_SEED,
@@ -132,7 +133,6 @@ async def main() -> int:
         prepare_fire,
         score_fire,
     )
-    from colleague.tracks.standing.recurring_report.measure import LLMLedger
 
     seed = int(os.environ.get("ST_SEED", DEFAULT_SEED))
     port = int(os.environ.get("ST_PORT", DEFAULT_PORT))
@@ -149,8 +149,8 @@ async def main() -> int:
 
     ledger = LLMLedger()
 
-    import unisdk
     import unify as unify_pkg
+    import unisdk
     from unify.common.context_registry import ContextRegistry
     from unify.manager_registry import ManagerRegistry
     from unify.session_details import (

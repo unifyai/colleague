@@ -29,7 +29,6 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -38,21 +37,6 @@ from typing import Any
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 
-from colleague.tracks.standing.recurring_report.fixture import (  # noqa: E402
-    DEFAULT_PORT,
-    DEFAULT_SEED,
-    FixtureServer,
-    expected_report,
-    score_report,
-)
-from colleague.tracks.standing.recurring_report.harness import (
-    UTTERANCE_TEMPLATE,
-)  # noqa: E402
-from colleague.arms.proxy import (  # noqa: E402
-    RecordingProxy,
-)
-
-from colleague.harness.ledger import PhaseLedger  # noqa: E402
 from colleague.arms.hermes import (  # noqa: E402
     BENCH_MODEL,
     CONFIG_TEMPLATE,
@@ -62,6 +46,20 @@ from colleague.arms.hermes import (  # noqa: E402
     _run_hermes,
     _snapshot_profile_artifacts,
     defuse_hermes_artifacts,
+)
+from colleague.arms.proxy import (  # noqa: E402
+    RecordingProxy,
+)
+from colleague.harness.ledger import PhaseLedger  # noqa: E402
+from colleague.tracks.standing.recurring_report.fixture import (  # noqa: E402
+    DEFAULT_PORT,
+    DEFAULT_SEED,
+    FixtureServer,
+    expected_report,
+    score_report,
+)
+from colleague.tracks.standing.recurring_report.harness import (  # noqa: E402
+    UTTERANCE_TEMPLATE,
 )
 
 

@@ -36,7 +36,6 @@ import json
 import os
 import signal
 import subprocess
-import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -44,6 +43,10 @@ from typing import Any
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 
+from colleague.arms.proxy import (  # noqa: E402
+    RecordingProxy,
+)
+from colleague.harness.ledger import PhaseLedger  # noqa: E402
 from colleague.tracks.standing.recurring_report.fixture import (  # noqa: E402
     DEFAULT_PORT,
     DEFAULT_SEED,
@@ -51,12 +54,8 @@ from colleague.tracks.standing.recurring_report.fixture import (  # noqa: E402
     expected_report,
     score_report,
 )
-from colleague.tracks.standing.recurring_report.harness import (
+from colleague.tracks.standing.recurring_report.harness import (  # noqa: E402
     UTTERANCE_TEMPLATE,
-)  # noqa: E402
-from colleague.harness.ledger import PhaseLedger  # noqa: E402
-from colleague.arms.proxy import (  # noqa: E402
-    RecordingProxy,
 )
 
 OPENCLAW_REPO = Path(

@@ -26,6 +26,27 @@ from typing import Any
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 
+from colleague.arms.opencode import (  # noqa: E402
+    BENCH_MODEL,
+    OPENCODE_REPO,
+    WAKE_PROMPT,
+    arm_crontab_guard,
+    defuse_host_artifacts,
+    discover_commands,
+    discover_scripts,
+    fire_automation,
+    prepare_workspace,
+    require_opencode,
+    run_opencode,
+    scrub_state_archive,
+    snapshot_crontab,
+    workspace_files,
+    write_opencode_config,
+)
+from colleague.arms.proxy import (  # noqa: E402
+    RecordingProxy,
+)
+from colleague.harness.ledger import PhaseLedger  # noqa: E402
 from colleague.tracks.standing.drift_recovery.fixture import (  # noqa: E402
     DEFAULT_PORT,
     DEFAULT_SEED,
@@ -37,27 +58,6 @@ from colleague.tracks.standing.drift_recovery.protocol import (  # noqa: E402
     UTTERANCE_TEMPLATE,
     prepare_fire,
     score_fire,
-)
-from colleague.harness.ledger import PhaseLedger  # noqa: E402
-from colleague.arms.opencode import (  # noqa: E402
-    BENCH_MODEL,
-    OPENCODE_REPO,
-    arm_crontab_guard,
-    defuse_host_artifacts,
-    snapshot_crontab,
-    WAKE_PROMPT,
-    discover_commands,
-    discover_scripts,
-    fire_automation,
-    prepare_workspace,
-    require_opencode,
-    run_opencode,
-    scrub_state_archive,
-    workspace_files,
-    write_opencode_config,
-)
-from colleague.arms.proxy import (  # noqa: E402
-    RecordingProxy,
 )
 
 OPERATOR_FIX_AFTER_FAILURES = 2

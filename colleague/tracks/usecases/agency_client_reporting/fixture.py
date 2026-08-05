@@ -71,14 +71,26 @@ CLIENTS: list[dict[str, str]] = [
     {"client_id": "c01", "name": "Bluepine Outdoor Co.", "vertical": "ecommerce"},
     {"client_id": "c02", "name": "Harbor & Oak Furniture", "vertical": "ecommerce"},
     {"client_id": "c03", "name": "Verra Skincare", "vertical": "ecommerce"},
-    {"client_id": "c04", "name": "Northgate Dental Group", "vertical": "local services"},
+    {
+        "client_id": "c04",
+        "name": "Northgate Dental Group",
+        "vertical": "local services",
+    },
     {"client_id": "c05", "name": "Brightside HVAC", "vertical": "local services"},
     {"client_id": "c06", "name": "Fernway Coffee Roasters", "vertical": "ecommerce"},
-    {"client_id": "c07", "name": "Atlas Legal Partners", "vertical": "professional services"},
+    {
+        "client_id": "c07",
+        "name": "Atlas Legal Partners",
+        "vertical": "professional services",
+    },
     {"client_id": "c08", "name": "Cobalt Cycling", "vertical": "ecommerce"},
     {"client_id": "c09", "name": "Meridian Software", "vertical": "b2b saas"},
     {"client_id": "c10", "name": "Sunhaven Resorts", "vertical": "travel"},
-    {"client_id": "c11", "name": "Pallas Home Security", "vertical": "consumer services"},
+    {
+        "client_id": "c11",
+        "name": "Pallas Home Security",
+        "vertical": "consumer services",
+    },
     {"client_id": "c12", "name": "Quill & Willow Stationery", "vertical": "ecommerce"},
     {"client_id": "c13", "name": "Redrock Auto Glass", "vertical": "local services"},
     {"client_id": "c14", "name": "Lanternfield Tutoring", "vertical": "education"},
@@ -431,7 +443,11 @@ def analytics_stats(
     aov_cents = 4500 + _h(seed, client_id, "aov") % 27501  # $45 .. $320
     for platform in ("google_ads", "meta_ads"):
         for idx, row in enumerate(stats(seed, client_id, platform, month, anchor)):
-            sessions = row["clicks"] * (80 + _h(seed, client_id, platform, idx, month, "sess") % 31) // 100
+            sessions = (
+                row["clicks"]
+                * (80 + _h(seed, client_id, platform, idx, month, "sess") % 31)
+                // 100
+            )
             out = {
                 "campaign_id": row["campaign_id"],
                 "campaign": row["campaign"],
@@ -474,7 +490,11 @@ def _rules_tripped(
     rules = []
     spend_a, spend_b = prior["spend_cents"], current["spend_cents"]
     conv_a, conv_b = prior["conversions"], current["conversions"]
-    if spend_b >= spend_a * steady_floor and conv_a > 0 and conv_b < conv_a * fall_ratio:
+    if (
+        spend_b >= spend_a * steady_floor
+        and conv_a > 0
+        and conv_b < conv_a * fall_ratio
+    ):
         rules.append("A")
     if conv_a > 0 and conv_b > 0:
         cpa_ratio = (spend_b / conv_b) / (spend_a / conv_a)

@@ -211,8 +211,8 @@ async def main() -> int:
     ledger = LLMLedger()
 
     # ── Boot the brain standalone (mirrors sandboxes/conversation_manager) ──
-    import unisdk
     import unify as unify_pkg
+    import unisdk
     from unify.common.context_registry import ContextRegistry
     from unify.manager_registry import ManagerRegistry
     from unify.session_details import (

@@ -34,8 +34,6 @@ from __future__ import annotations
 
 import json
 import os
-import signal
-import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -44,26 +42,11 @@ from typing import Any
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 
-from colleague.tracks.standing.recurring_report.fixture import (  # noqa: E402
-    DEFAULT_PORT,
-    DEFAULT_SEED,
-    FixtureServer,
-    expected_report,
-    score_report,
-)
-from colleague.tracks.standing.recurring_report.harness import (
-    UTTERANCE_TEMPLATE,
-)  # noqa: E402
-from colleague.harness.ledger import PhaseLedger  # noqa: E402
-from colleague.arms.proxy import (  # noqa: E402
-    RecordingProxy,
-)
-
 from colleague.arms.openclaw import (  # noqa: E402
     BENCH_MODEL,
     EXPERIMENT_DIR,
-    GatewayProcess,
     OPENCLAW_REPO,
+    GatewayProcess,
     cron_fire,
     cron_jobs,
     defuse_openclaw_artifacts,
@@ -71,6 +54,20 @@ from colleague.arms.openclaw import (  # noqa: E402
     run_openclaw,
     snapshot_artifacts,
     write_openclaw_config,
+)
+from colleague.arms.proxy import (  # noqa: E402
+    RecordingProxy,
+)
+from colleague.harness.ledger import PhaseLedger  # noqa: E402
+from colleague.tracks.standing.recurring_report.fixture import (  # noqa: E402
+    DEFAULT_PORT,
+    DEFAULT_SEED,
+    FixtureServer,
+    expected_report,
+    score_report,
+)
+from colleague.tracks.standing.recurring_report.harness import (  # noqa: E402
+    UTTERANCE_TEMPLATE,
 )
 
 

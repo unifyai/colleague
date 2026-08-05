@@ -80,7 +80,11 @@ class MockSession(ArmSession):
     profile = MOCK_PROFILE
 
     def __init__(
-        self, *, mode: str = "ideal", plan: Callable | None = None, **_: Any
+        self,
+        *,
+        mode: str = "ideal",
+        plan: Callable | None = None,
+        **_: Any,
     ) -> None:
         self.mode = mode
         self._plan = plan

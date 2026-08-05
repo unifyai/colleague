@@ -37,6 +37,8 @@ from colleague.tracks.usecases.agency_client_reporting.fixture import (
     DEFAULT_SEED,
     FixtureServer,
     default_anchor,
+)
+from colleague.tracks.usecases.agency_client_reporting.fixture import (
     selftest as fixture_selftest,
 )
 from colleague.tracks.usecases.agency_client_reporting.protocol import score_run

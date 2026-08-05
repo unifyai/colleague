@@ -130,7 +130,7 @@ def to_markdown(merged: dict[str, Any]) -> str:
             row = [scenario]
             for arm in arms:
                 row.append(
-                    _cell(merged["grid"].get(f"{track}|{arm}", {}).get(scenario, []))
+                    _cell(merged["grid"].get(f"{track}|{arm}", {}).get(scenario, [])),
                 )
             lines.append("| " + " | ".join(row) + " |")
         lines.append("")

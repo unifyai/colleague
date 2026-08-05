@@ -104,7 +104,10 @@ def score(name: str, fixture: FixtureServer, **_: Any) -> ScenarioResult:
     # The measurement: a warm follow-up should not need to authenticate again.
     if auths == 0:
         return ScenarioResult(
-            name, Outcome.PASS, card.as_dict(), "reused the open session"
+            name,
+            Outcome.PASS,
+            card.as_dict(),
+            "reused the open session",
         )
     return ScenarioResult(
         name,

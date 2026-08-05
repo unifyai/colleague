@@ -76,7 +76,12 @@ def turns(name: str) -> list[ScriptedTurn]:
 
 
 def mock_plan(
-    *, scenario: str, mode: str, client, corrections, **_: Any
+    *,
+    scenario: str,
+    mode: str,
+    client,
+    corrections,
+    **_: Any,
 ) -> dict[str, Any]:
     import time
 

@@ -25,10 +25,10 @@ import hashlib
 import json
 import threading
 from dataclasses import dataclass, field
-from datetime import date, timedelta, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 REGIONS = ("north", "south", "east", "west")
 BASE_PRICE_CENTS = {"north": 1999, "south": 1499, "east": 2499, "west": 999}

@@ -113,7 +113,10 @@ def utterance(brief: str, base_url: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _client_delivery(deliveries: list[dict[str, Any]], client_id: str) -> dict[str, Any]:
+def _client_delivery(
+    deliveries: list[dict[str, Any]],
+    client_id: str,
+) -> dict[str, Any]:
     """The authoritative delivery for one client: the last one posted."""
     bodies = [
         d["body"]
@@ -276,7 +279,11 @@ def _perfect_deliveries(seed: int, anchor: str) -> list[dict[str, Any]]:
                     for f in expected.get(cid, [])
                 ],
                 "doc_markdown": "x" * 500,
-                "draft_email": {"to": "am@agency.example", "subject": "s", "body": "y" * 300},
+                "draft_email": {
+                    "to": "am@agency.example",
+                    "subject": "s",
+                    "body": "y" * 300,
+                },
             }
         out.append({"received_at": "", "body": body})
     return out
@@ -305,7 +312,9 @@ def selftest(seed: int = DEFAULT_SEED, anchor: str | None = None) -> dict[str, A
     flagged_client = next(c for c in perfect if c["body"]["flagged"])
     missed = json.loads(json.dumps(perfect))
     target = next(
-        c for c in missed if c["body"]["client_id"] == flagged_client["body"]["client_id"]
+        c
+        for c in missed
+        if c["body"]["client_id"] == flagged_client["body"]["client_id"]
     )
     target["body"]["flagged"] = target["body"]["flagged"][1:]
     scored = score_run(missed, seed=seed, anchor=anchor)
@@ -331,7 +340,8 @@ def selftest(seed: int = DEFAULT_SEED, anchor: str | None = None) -> dict[str, A
     victim = next(
         c["body"]["client_id"]
         for c in perfect
-        if len(c["body"]["flagged"]) >= 2 and c["body"]["client_id"] != BROKEN_META_CLIENT
+        if len(c["body"]["flagged"]) >= 2
+        and c["body"]["client_id"] != BROKEN_META_CLIENT
     )
 
     def _blocked(reason: str) -> list[dict[str, Any]]:
@@ -358,7 +368,9 @@ def selftest(seed: int = DEFAULT_SEED, anchor: str | None = None) -> dict[str, A
     assert voided["clients_void"] == [victim], voided
     assert voided["flags_void_total"] == lost, voided
     assert voided["flags_missed_total"] == 0, voided
-    assert voided["flags_measurable_total"] == clean["flags_expected_total"] - lost, voided
+    assert (
+        voided["flags_measurable_total"] == clean["flags_expected_total"] - lost
+    ), voided
     assert voided["flags_matched_total"] == voided["flags_measurable_total"], voided
 
     # Without one: the system itself dropped the client, so it still counts.
@@ -373,7 +385,9 @@ def selftest(seed: int = DEFAULT_SEED, anchor: str | None = None) -> dict[str, A
     with_infra = score_run(perfect, seed=seed, anchor=anchor, infra_failures=3)
     assert with_infra["detection_status"] == "ok", with_infra
     assert with_infra["clients_void"] == [], with_infra
-    assert with_infra["flags_matched_total"] == clean["flags_expected_total"], with_infra
+    assert (
+        with_infra["flags_matched_total"] == clean["flags_expected_total"]
+    ), with_infra
     return {
         "anchor": anchor,
         "flags_expected_total": clean["flags_expected_total"],
@@ -386,7 +400,11 @@ def selftest(seed: int = DEFAULT_SEED, anchor: str | None = None) -> dict[str, A
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--selftest", action="store_true", help="score-path selftest")
-    parser.add_argument("--brief", action="store_true", help="print the extracted brief")
+    parser.add_argument(
+        "--brief",
+        action="store_true",
+        help="print the extracted brief",
+    )
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     parser.add_argument("--anchor", default=None)
     parser.add_argument("--usecases-tsx", default=None)

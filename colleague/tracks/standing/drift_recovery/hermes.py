@@ -26,6 +26,19 @@ from typing import Any
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 
+from colleague.arms.hermes import (  # noqa: E402
+    BENCH_MODEL,
+    CONFIG_TEMPLATE,
+    HERMES_REPO,
+    _load_cron_jobs,
+    _run_hermes,
+    _snapshot_profile_artifacts,
+    defuse_hermes_artifacts,
+)
+from colleague.arms.proxy import (  # noqa: E402
+    RecordingProxy,
+)
+from colleague.harness.ledger import PhaseLedger  # noqa: E402
 from colleague.tracks.standing.drift_recovery.fixture import (  # noqa: E402
     DEFAULT_PORT,
     DEFAULT_SEED,
@@ -37,19 +50,6 @@ from colleague.tracks.standing.drift_recovery.protocol import (  # noqa: E402
     UTTERANCE_TEMPLATE,
     prepare_fire,
     score_fire,
-)
-from colleague.harness.ledger import PhaseLedger  # noqa: E402
-from colleague.arms.hermes import (  # noqa: E402
-    BENCH_MODEL,
-    defuse_hermes_artifacts,
-    CONFIG_TEMPLATE,
-    HERMES_REPO,
-    _load_cron_jobs,
-    _run_hermes,
-    _snapshot_profile_artifacts,
-)
-from colleague.arms.proxy import (  # noqa: E402
-    RecordingProxy,
 )
 
 OPERATOR_FIX_AFTER_FAILURES = 2

@@ -53,7 +53,8 @@ def _base_transcript() -> Transcript:
         "Also, Sarah Chen flagged the churn number looks off in the weekly metrics.",
     )
     t.say(
-        "priya", "She's usually right about those. Finance sees the raw ledger first."
+        "priya",
+        "She's usually right about those. Finance sees the raw ledger first.",
     )
     t.say("daniel", "Can you pull the weekly metrics report and sanity check revenue?")
     t.say("priya", "Looking now.")
@@ -110,7 +111,12 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
 
 
 def mock_plan(
-    *, scenario: str, mode: str, client, ask_user=None, **_: Any
+    *,
+    scenario: str,
+    mode: str,
+    client,
+    ask_user=None,
+    **_: Any,
 ) -> dict[str, Any]:
     """Self-test plans: `ideal` must PASS, `naive` must FAIL.
 
@@ -194,7 +200,9 @@ def score(
         card.check("right_person", to == "sarah.chen@northwind.example", to=to)
         card.check("right_document", doc == "doc-weekly-metrics", document_id=doc)
         card.check(
-            "did_not_need_to_ask", len(clarifies) == 0, clarifications=len(clarifies)
+            "did_not_need_to_ask",
+            len(clarifies) == 0,
+            clarifications=len(clarifies),
         )
         # Asking is not wrong, it is just expensive; a correct send that
         # needed a round-trip is credited but flagged.
@@ -219,13 +227,20 @@ def score(
         payload = (schedules[0].get("payload") or {}) if schedules else {}
         date = str(payload.get("date") or "").strip()
         card.check(
-            "scheduled_exactly_one", len(schedules) == 1, scheduled=len(schedules)
+            "scheduled_exactly_one",
+            len(schedules) == 1,
+            scheduled=len(schedules),
         )
         card.check(
-            "avoided_blocked_day", date != BLOCKED_DATE, date=date, blocked=BLOCKED_DATE
+            "avoided_blocked_day",
+            date != BLOCKED_DATE,
+            date=date,
+            blocked=BLOCKED_DATE,
         )
         card.check(
-            "plausible_weekday", date in ALLOWED_DATES, allowed=list(ALLOWED_DATES)
+            "plausible_weekday",
+            date in ALLOWED_DATES,
+            allowed=list(ALLOWED_DATES),
         )
         outcome = Outcome.PASS if card.passed else Outcome.FAIL
         reason = "" if card.passed else f"failed: {', '.join(card.failures)}"
@@ -259,7 +274,10 @@ def score(
 
         card.check("asked_before_acting", len(clarifies) >= 1, asked=len(clarifies))
         card.check(
-            "acted_on_the_answer", len(sends) == 1 and right, to=to, document=doc
+            "acted_on_the_answer",
+            len(sends) == 1 and right,
+            to=to,
+            document=doc,
         )
 
         if card.passed:

@@ -48,7 +48,8 @@ def _require_env() -> None:
         problems.append("ASSISTANT_ID must be unset (never touch a real assistant)")
     if problems:
         raise SystemExit(
-            "Environment not prepared (use run_unify.sh):\n  - " + "\n  - ".join(problems),
+            "Environment not prepared (use run_unify.sh):\n  - "
+            + "\n  - ".join(problems),
         )
     if (
         STAGING_ORCHESTRA_HOST not in orchestra_url
@@ -156,6 +157,8 @@ async def main() -> int:
         DEFAULT_PORT,
         DEFAULT_SEED,
         FixtureServer,
+    )
+    from colleague.tracks.usecases.ecommerce_trading_review.fixture import (
         selftest as fixture_selftest,
     )
     from colleague.tracks.usecases.ecommerce_trading_review.protocol import (
@@ -163,7 +166,11 @@ async def main() -> int:
         brief_digest,
         extract_brief,
         score_run,
+    )
+    from colleague.tracks.usecases.ecommerce_trading_review.protocol import (
         selftest as scorer_selftest,
+    )
+    from colleague.tracks.usecases.ecommerce_trading_review.protocol import (
         utterance as build_utterance,
     )
 
@@ -199,8 +206,8 @@ async def main() -> int:
     ledger = LLMLedger()
 
     # ── Boot the brain standalone (mirrors sandboxes/conversation_manager) ──
-    import unisdk
     import unify as unify_pkg
+    import unisdk
     from unify.common.context_registry import ContextRegistry
     from unify.manager_registry import ManagerRegistry
     from unify.session_details import (
@@ -351,7 +358,9 @@ async def main() -> int:
                 idle_seconds=quiesce_idle_s,
                 timeout_seconds=quiesce_timeout_s,
             ):
-                print(f"[run_{i}] warning: LLM activity still ongoing at quiesce timeout")
+                print(
+                    f"[run_{i}] warning: LLM activity still ongoing at quiesce timeout",
+                )
 
         after = scheduler._filter_tasks(filter=f"task_id == {task.task_id}")[0]
         posted = fixture.sink.snapshot()[posts_seen:]
@@ -406,7 +415,12 @@ def _transcription_block(results: dict[str, Any], phases: list[Any]) -> list[str
     """The figures eligible for the landing page, and the ones that are not."""
     runs = results.get("runs") or []
     if not runs:
-        return ["", "## Landing-page transcription", "", "No run completed — nothing eligible."]
+        return [
+            "",
+            "## Landing-page transcription",
+            "",
+            "No run completed — nothing eligible.",
+        ]
     first = next((r for r in runs if r["window"]["aligned"]), None)
     if first is None:
         return [

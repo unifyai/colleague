@@ -131,7 +131,9 @@ class Interlocutor:
         deadline = time.monotonic() + turn.timeout
         while time.monotonic() < deadline and not self._stop.is_set():
             if self.fixture.waypoints.wait_for(
-                turn.waypoint, timeout=0.5, nth=turn.nth
+                turn.waypoint,
+                timeout=0.5,
+                nth=turn.nth,
             ):
                 return True
         return False

@@ -24,6 +24,19 @@ from typing import Any
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 
+from colleague.arms.hermes import (  # noqa: E402
+    BENCH_MODEL,
+    CONFIG_TEMPLATE,
+    HERMES_REPO,
+    _load_cron_jobs,
+    _run_hermes,
+    _snapshot_profile_artifacts,
+    defuse_hermes_artifacts,
+)
+from colleague.arms.proxy import (  # noqa: E402
+    RecordingProxy,
+)
+from colleague.harness.ledger import PhaseLedger  # noqa: E402
 from colleague.tracks.standing.policy_propagation.fixture import (  # noqa: E402
     DEFAULT_PORT,
     DEFAULT_SEED,
@@ -40,19 +53,6 @@ from colleague.tracks.standing.policy_propagation.protocol import (  # noqa: E40
     prepare_fire,
     release_round,
     score_fire,
-)
-from colleague.harness.ledger import PhaseLedger  # noqa: E402
-from colleague.arms.hermes import (  # noqa: E402
-    BENCH_MODEL,
-    CONFIG_TEMPLATE,
-    HERMES_REPO,
-    _load_cron_jobs,
-    _run_hermes,
-    _snapshot_profile_artifacts,
-    defuse_hermes_artifacts,
-)
-from colleague.arms.proxy import (  # noqa: E402
-    RecordingProxy,
 )
 
 

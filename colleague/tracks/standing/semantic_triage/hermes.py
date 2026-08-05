@@ -25,18 +25,6 @@ from typing import Any
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 
-from colleague.tracks.standing.semantic_triage.fixture import (  # noqa: E402
-    DEFAULT_PORT,
-    DEFAULT_SEED,
-    TriageFixtureServer,
-)
-from colleague.tracks.standing.semantic_triage.protocol import (  # noqa: E402
-    N_FIRES,
-    UTTERANCE_TEMPLATE,
-    prepare_fire,
-    score_fire,
-)
-from colleague.harness.ledger import PhaseLedger  # noqa: E402
 from colleague.arms.hermes import (  # noqa: E402
     BENCH_MODEL,
     CONFIG_TEMPLATE,
@@ -48,6 +36,18 @@ from colleague.arms.hermes import (  # noqa: E402
 )
 from colleague.arms.proxy import (  # noqa: E402
     RecordingProxy,
+)
+from colleague.harness.ledger import PhaseLedger  # noqa: E402
+from colleague.tracks.standing.semantic_triage.fixture import (  # noqa: E402
+    DEFAULT_PORT,
+    DEFAULT_SEED,
+    TriageFixtureServer,
+)
+from colleague.tracks.standing.semantic_triage.protocol import (  # noqa: E402
+    N_FIRES,
+    UTTERANCE_TEMPLATE,
+    prepare_fire,
+    score_fire,
 )
 
 

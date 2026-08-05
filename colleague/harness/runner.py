@@ -326,7 +326,7 @@ def run_track(
 
     results["summary"] = summarize(outcomes)
     (results_dir / "results.json").write_text(
-        json.dumps(results, indent=2, default=str)
+        json.dumps(results, indent=2, default=str),
     )
     print(f"\n[{track}/{arm}] {results_dir / 'results.json'}")
     print(json.dumps(results["summary"]["by_outcome"], indent=2))

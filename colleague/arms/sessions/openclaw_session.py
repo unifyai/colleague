@@ -15,7 +15,6 @@ and "can be interrupted".
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 from colleague.arms.openclaw import (
@@ -58,7 +57,11 @@ class OpenClawSession(CliSession):
     profile = PROFILES["openclaw"]
 
     def __init__(
-        self, *, gateway_port: int = 0, session_id: str = "colleague", **kw: Any
+        self,
+        *,
+        gateway_port: int = 0,
+        session_id: str = "colleague",
+        **kw: Any,
     ) -> None:
         super().__init__(**kw)
         self.gateway_port = gateway_port or 8790

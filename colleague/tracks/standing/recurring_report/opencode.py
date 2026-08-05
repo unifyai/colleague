@@ -59,8 +59,6 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
-import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -68,21 +66,6 @@ from pathlib import Path
 from typing import Any
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
-
-from colleague.tracks.standing.recurring_report.fixture import (  # noqa: E402
-    DEFAULT_PORT,
-    DEFAULT_SEED,
-    FixtureServer,
-    expected_report,
-    score_report,
-)
-from colleague.tracks.standing.recurring_report.harness import (
-    UTTERANCE_TEMPLATE,
-)  # noqa: E402
-from colleague.harness.ledger import PhaseLedger  # noqa: E402
-from colleague.arms.proxy import (  # noqa: E402
-    RecordingProxy,
-)
 
 from colleague.arms.opencode import (  # noqa: E402
     BENCH_MODEL,
@@ -101,6 +84,20 @@ from colleague.arms.opencode import (  # noqa: E402
     snapshot_crontab,
     workspace_files,
     write_opencode_config,
+)
+from colleague.arms.proxy import (  # noqa: E402
+    RecordingProxy,
+)
+from colleague.harness.ledger import PhaseLedger  # noqa: E402
+from colleague.tracks.standing.recurring_report.fixture import (  # noqa: E402
+    DEFAULT_PORT,
+    DEFAULT_SEED,
+    FixtureServer,
+    expected_report,
+    score_report,
+)
+from colleague.tracks.standing.recurring_report.harness import (  # noqa: E402
+    UTTERANCE_TEMPLATE,
 )
 
 

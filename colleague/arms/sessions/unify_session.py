@@ -86,7 +86,11 @@ class UnifyRunHandle(RunHandle):
     """
 
     def __init__(
-        self, loop: _LoopThread, handle: Any, *, persist: bool = False
+        self,
+        loop: _LoopThread,
+        handle: Any,
+        *,
+        persist: bool = False,
     ) -> None:
         self._loop = loop
         self._handle = handle
@@ -158,7 +162,7 @@ class UnifySession(ArmSession):
         results_dir: Any = None,
     ) -> None:
         self.run_id = run_id or datetime.now(timezone.utc).strftime(
-            "%Y-%m-%dT%H-%M-%SZ"
+            "%Y-%m-%dT%H-%M-%SZ",
         )
         self.track = track
         self.project = project or os.environ.get("COLLEAGUE_PROJECT", "Benchmarks")
@@ -176,8 +180,8 @@ class UnifySession(ArmSession):
         require_env()
         self._loop = _LoopThread()
 
-        import unisdk
         import unify as unify_pkg
+        import unisdk
         from unify.common.context_registry import ContextRegistry
         from unify.manager_registry import ManagerRegistry
         from unify.session_details import (

@@ -146,7 +146,8 @@ def _perfect_post(seed: int, anchor: str) -> list[dict[str, Any]]:
                 "text": "New customer revenue moved; returning held. " + "x" * 400,
                 "dashboard_url": "https://example.invalid/dash",
                 "flagged": [
-                    {"metric": m, "reason": "planted"} for m in expected_flags(seed, anchor)
+                    {"metric": m, "reason": "planted"}
+                    for m in expected_flags(seed, anchor)
                 ],
                 "moved": "new",
             },

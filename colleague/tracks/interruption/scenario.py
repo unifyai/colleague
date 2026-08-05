@@ -107,7 +107,12 @@ def turns(name: str) -> list[ScriptedTurn]:
 
 
 def mock_plan(
-    *, scenario: str, mode: str, client, corrections, **_: Any
+    *,
+    scenario: str,
+    mode: str,
+    client,
+    corrections,
+    **_: Any,
 ) -> dict[str, Any]:
     import time
 
@@ -193,7 +198,9 @@ def score(
         )
     elif name == "scope_reduction":
         card.check(
-            "only_eu_vendors", recipients <= EU_WORK, extra=sorted(recipients - EU_WORK)
+            "only_eu_vendors",
+            recipients <= EU_WORK,
+            extra=sorted(recipients - EU_WORK),
         )
         card.check(
             "reached_every_eu_vendor",
@@ -223,5 +230,8 @@ def score(
             "ended correct, but the correction landed after the first send",
         )
     return ScenarioResult(
-        name, Outcome.FAIL, card.as_dict(), f"failed: {', '.join(card.failures)}"
+        name,
+        Outcome.FAIL,
+        card.as_dict(),
+        f"failed: {', '.join(card.failures)}",
     )

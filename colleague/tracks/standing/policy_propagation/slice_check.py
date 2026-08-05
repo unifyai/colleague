@@ -24,8 +24,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from colleague.tracks.standing.policy_propagation.unify import (
-    _BenchmarkTaskExecutionDelegate,
     _await_handle,
+    _BenchmarkTaskExecutionDelegate,
     _require_env,
 )
 
@@ -54,8 +54,8 @@ async def main() -> int:
     print(f"[fixture] {fixture.base_url}")
     ledger = LLMLedger(capture_requests_path=results_dir / "requests.jsonl")
 
-    import unisdk
     import unify as unify_pkg
+    import unisdk
     from unify.common.context_registry import ContextRegistry
     from unify.manager_registry import ManagerRegistry
     from unify.session_details import (

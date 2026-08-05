@@ -126,7 +126,10 @@ def score(name: str, fixture: FixtureServer, **_: Any) -> ScenarioResult:
 
     card = Scorecard(name)
     card.check(
-        "exact_recipients", got == expected, got=sorted(got), expected=sorted(expected)
+        "exact_recipients",
+        got == expected,
+        got=sorted(got),
+        expected=sorted(expected),
     )
     card.check(
         "used_the_account_manager_route",

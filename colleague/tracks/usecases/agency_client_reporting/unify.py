@@ -218,6 +218,8 @@ async def main() -> int:
         DEFAULT_PORT,
         DEFAULT_SEED,
         FixtureServer,
+    )
+    from colleague.tracks.usecases.agency_client_reporting.fixture import (
         selftest as fixture_selftest,
     )
     from colleague.tracks.usecases.agency_client_reporting.protocol import (
@@ -225,7 +227,11 @@ async def main() -> int:
         brief_digest,
         extract_brief,
         score_run,
+    )
+    from colleague.tracks.usecases.agency_client_reporting.protocol import (
         selftest as scorer_selftest,
+    )
+    from colleague.tracks.usecases.agency_client_reporting.protocol import (
         utterance as build_utterance,
     )
 
@@ -266,8 +272,8 @@ async def main() -> int:
     ledger = LLMLedger()
 
     # ── Boot the brain standalone (mirrors sandboxes/conversation_manager) ──
-    import unisdk
     import unify as unify_pkg
+    import unisdk
     from unify.common.context_registry import ContextRegistry
     from unify.manager_registry import ManagerRegistry
     from unify.session_details import (
@@ -489,7 +495,7 @@ async def main() -> int:
                 timeout_seconds=quiesce_timeout_s,
             ):
                 print(
-                    f"[run_{i}] warning: LLM activity still ongoing at quiesce timeout"
+                    f"[run_{i}] warning: LLM activity still ongoing at quiesce timeout",
                 )
 
         after = scheduler._filter_tasks(filter=f"task_id == {task.task_id}")[0]

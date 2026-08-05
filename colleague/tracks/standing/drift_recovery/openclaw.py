@@ -26,6 +26,22 @@ from typing import Any
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 
+from colleague.arms.openclaw import (  # noqa: E402
+    BENCH_MODEL,
+    OPENCLAW_REPO,
+    GatewayProcess,
+    cron_fire,
+    cron_jobs,
+    defuse_openclaw_artifacts,
+    extract_json,
+    run_openclaw,
+    snapshot_artifacts,
+    write_openclaw_config,
+)
+from colleague.arms.proxy import (  # noqa: E402
+    RecordingProxy,
+)
+from colleague.harness.ledger import PhaseLedger  # noqa: E402
 from colleague.tracks.standing.drift_recovery.fixture import (  # noqa: E402
     DEFAULT_PORT,
     DEFAULT_SEED,
@@ -37,22 +53,6 @@ from colleague.tracks.standing.drift_recovery.protocol import (  # noqa: E402
     UTTERANCE_TEMPLATE,
     prepare_fire,
     score_fire,
-)
-from colleague.harness.ledger import PhaseLedger  # noqa: E402
-from colleague.arms.openclaw import (  # noqa: E402
-    BENCH_MODEL,
-    GatewayProcess,
-    OPENCLAW_REPO,
-    cron_fire,
-    cron_jobs,
-    defuse_openclaw_artifacts,
-    extract_json,
-    run_openclaw,
-    snapshot_artifacts,
-    write_openclaw_config,
-)
-from colleague.arms.proxy import (  # noqa: E402
-    RecordingProxy,
 )
 
 OPERATOR_FIX_AFTER_FAILURES = 2
