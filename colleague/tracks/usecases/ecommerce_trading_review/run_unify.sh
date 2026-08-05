@@ -84,4 +84,11 @@ if [[ "$code" != "200" ]]; then
 fi
 echo "[run_unify.sh] auth OK against $ORCHESTRA_URL"
 
+# Refuse to spend on a sick provider path. Three cycles were destroyed on
+# 2026-08-05 by whitespace bodies and 600s hangs, each discovered only after
+# setup was paid for. Costs about a cent. ETR_SKIP_PREFLIGHT=true to bypass.
+if [[ "${ETR_SKIP_PREFLIGHT:-}" != "true" ]]; then
+  .venv/bin/python -m colleague.tracks.usecases.preflight || exit 1
+fi
+
 exec .venv/bin/python -m colleague.tracks.usecases.ecommerce_trading_review.unify "$@"
