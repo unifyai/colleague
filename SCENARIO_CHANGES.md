@@ -17,6 +17,28 @@ rule is that a change is `[wrong]` only if it would have mismeasured a
 
 ## 2026-08-05
 
+**`[wrong]` all conversational fixtures — mutating routes were
+200-everything sinks.** The first faithful-arm sweep showed three failures
+that were fixture artifacts, not arm behavior: an empty schema probe to
+`/send` "succeeded"; a send addressed by a `contact_id` the fixture's own
+`/contacts` had issued "succeeded" invisibly; a correct refusal POSTed to
+`/reply` under `recipient`/`message` keys "succeeded" and scored as no
+reply. A real API rejects malformed requests, and the same agent visibly
+self-corrects on 400s (the concurrency fixture already validated and the
+agent adapted). Every mutating route now validates its documented required
+fields, records rejected attempts as `rejected_<kind>` evidence, and
+returns 400. This would have mismeasured a competent arm of any
+architecture. Scenario text unchanged; self-test unchanged and green.
+
+**Adapter note — unify-cm delivery bridge.** The CM arm's product delivers
+through its own channel: sending to contact Bob is replying to Bob. The
+first sweep scored three custody replies with textbook judgement as
+`replied: False` because they never touched the fixture. Sessions may now
+declare `bind_delivery`; the runner passes the fixture's base URL and POST
+routes, and the CM adapter re-posts persona-addressed Sent messages to the
+fixture's `/reply` — so the fixture remains the only witness scoring
+reads. Forwarded messages are recorded in the run artifacts.
+
 **`[wrong]` conversational tracks — v0 adapters measured adapter debt as
 product limits.** The hermes arm was driven through `hermes chat -q`
 (one-shot, fresh session, clarifications auto-answered with a canned

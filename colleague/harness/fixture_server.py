@@ -34,6 +34,28 @@ from typing import Any, Callable
 from urllib.parse import parse_qs, urlparse
 
 
+def missing_fields(body: Any, *fields: str) -> list[str]:
+    """Required string fields absent or blank in a POST body.
+
+    Every mutating route validates with this before recording. The first
+    live CM sweep showed why a 200-everything sink is a `[wrong]`-class
+    fixture bug: an empty schema probe "succeeded", a send addressed by a
+    `contact_id` the fixture itself had issued "succeeded", and a correct
+    refusal posted under `recipient`/`message` keys "succeeded" — all
+    invisible to scorers reading the documented keys. A real API rejects
+    malformed requests, and the same agent visibly self-corrects on 400s.
+    """
+    if not isinstance(body, dict):
+        return list(fields)
+    return [f for f in fields if not str(body.get(f) or "").strip()]
+
+
+def reject(server: Any, kind: str, body: Any, missing: list[str]) -> tuple[int, Any]:
+    """Record the rejected attempt as evidence, then 400 like a real API."""
+    server.recorder.record(f"rejected_{kind}", {"body": body, "missing": missing})
+    return 400, {"error": f"required fields: {', '.join(missing)}"}
+
+
 def stable_hash(seed: int, *parts: Any) -> int:
     """Deterministic 64-bit hash, so fixtures are reproducible across runs."""
     payload = ":".join([str(seed), *map(str, parts)]).encode()
@@ -279,6 +301,11 @@ class FixtureServer:
     @property
     def base_url(self) -> str:
         return f"http://127.0.0.1:{self.port}"
+
+    @property
+    def post_paths(self) -> list[str]:
+        """POST routes this fixture exposes — how a delivery bridge finds /reply."""
+        return [r.path for r in self._routes if r.method == "POST"]
 
     def start(self) -> "FixtureServer":
         self._thread.start()

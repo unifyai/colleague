@@ -15,7 +15,12 @@ from __future__ import annotations
 from typing import Any
 
 from colleague.harness.conversation import Participant
-from colleague.harness.fixture_server import FixtureServer, Request
+from colleague.harness.fixture_server import (
+    FixtureServer,
+    Request,
+    missing_fields,
+    reject,
+)
 from colleague.harness.persona import Persona, PersonaPool
 
 DEFAULT_SEED = 20260801
@@ -147,11 +152,17 @@ def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServe
         return 404, {"error": f"no document {doc_id}"}
 
     def send(r: Request) -> tuple[int, Any]:
+        missing = missing_fields(r.body, "to", "document_id")
+        if missing:
+            return reject(r.server, "send", r.body, missing)
         r.server.waypoints.reach("send")
         r.server.recorder.record("send", r.body)
         return 200, {"status": "sent"}
 
     def schedule(r: Request) -> tuple[int, Any]:
+        missing = missing_fields(r.body, "title", "date")
+        if missing:
+            return reject(r.server, "schedule", r.body, missing)
         r.server.waypoints.reach("schedule")
         r.server.recorder.record("schedule", r.body)
         return 200, {"status": "scheduled"}

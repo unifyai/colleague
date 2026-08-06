@@ -26,9 +26,11 @@ from __future__ import annotations
 
 import asyncio
 import contextvars
+import json
 import os
 import re
 import threading
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -230,6 +232,55 @@ class UnifyCMSession(ArmSession):
         self._responder = None
         self._clarifications: list[dict[str, Any]] = []
         self._turns = 0
+        self._delivery_url: str | None = None
+        self._bridged: list[dict[str, Any]] = []
+
+    # ---------------------------------------------------------------- bridge
+
+    def bind_delivery(self, base_url: str, post_paths: list[str]) -> None:
+        """Bridge CM-channel messages to the fixture's reply endpoint.
+
+        For this arm, sending to contact Bob IS replying to Bob — the CM's
+        channel is its delivery mechanism, exactly as the in-memory outbound
+        transport is its wire. The fixture stays the only witness: messages
+        the brain sends to a persona are re-posted to the fixture's /reply,
+        so scoring never has to trust adapter instrumentation. First live
+        sweep motivation: custody replies with textbook judgement scored
+        `replied: False` because they never touched the fixture.
+        """
+        self._delivery_url = (
+            base_url.rstrip("/") + "/reply" if "/reply" in post_paths else None
+        )
+        self._bridged = []
+
+    def _bridge_delivery(self, contact_id: Any, text: str) -> None:
+        if not self._delivery_url or not text.strip():
+            return
+        sender_key = next(
+            (
+                key
+                for key, c in self._correspondents.items()
+                if c.get("contact_id") == contact_id and key != "__boss__"
+            ),
+            None,
+        )
+        if sender_key is None:
+            return
+        try:
+            body = json.dumps({"to": sender_key, "text": text}).encode()
+            req = urllib.request.Request(
+                self._delivery_url,
+                data=body,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                status = resp.status
+        except Exception as exc:  # noqa: BLE001 - bridge is evidence, not control flow
+            status = f"error: {exc}"
+        self._bridged.append(
+            {"to": sender_key, "text": text[:200], "status": status},
+        )
 
     # ------------------------------------------------------------------ boot
 
@@ -650,6 +701,8 @@ class UnifyCMSession(ArmSession):
                 "text": text,
             },
         )
+        if name in _MESSAGE_SENT_TYPES:
+            self._bridge_delivery(contact.get("contact_id"), text)
 
     # -------------------------------------------------------------- draining
 
@@ -927,6 +980,11 @@ class UnifyCMSession(ArmSession):
             "project": self.project,
             "turns": list(self._turn_records),
         }
+        if self._delivery_url:
+            out["delivery_bridge"] = {
+                "url": self._delivery_url,
+                "forwarded": list(self._bridged),
+            }
         if self.ledger is not None:
             try:
                 out["llm_segments"] = [s.to_json() for s in self.ledger.segments()]

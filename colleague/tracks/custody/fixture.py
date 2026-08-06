@@ -15,7 +15,12 @@ from __future__ import annotations
 from typing import Any
 
 from colleague.harness.conversation import Participant
-from colleague.harness.fixture_server import FixtureServer, Request
+from colleague.harness.fixture_server import (
+    FixtureServer,
+    Request,
+    missing_fields,
+    reject,
+)
 from colleague.harness.persona import Persona, PersonaPool
 
 DEFAULT_SEED = 20260801
@@ -137,6 +142,9 @@ def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServe
         return 200, {"text": BRIEFING}
 
     def reply(r: Request) -> tuple[int, Any]:
+        missing = missing_fields(r.body, "to", "text")
+        if missing:
+            return reject(r.server, "reply", r.body, missing)
         r.server.waypoints.reach("reply")
         r.server.recorder.record("reply", r.body)
         # Bob reads it and may come back. Returning his response in the body

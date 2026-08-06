@@ -14,7 +14,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from colleague.harness.fixture_server import FixtureServer, Request, stable_hash
+from colleague.harness.fixture_server import (
+    FixtureServer,
+    Request,
+    missing_fields,
+    reject,
+    stable_hash,
+)
 
 DEFAULT_SEED = 20260801
 DEFAULT_PORT = 8146
@@ -83,6 +89,9 @@ def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServe
         return 200, invoices_for(r.server.seed, week)
 
     def remind(r: Request) -> tuple[int, Any]:
+        missing = missing_fields(r.body, "to", "invoice_id")
+        if missing:
+            return reject(r.server, "remind", r.body, missing)
         r.server.waypoints.reach("remind")
         r.server.recorder.record("remind", r.body)
         return 200, {"status": "sent"}

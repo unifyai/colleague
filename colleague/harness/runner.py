@@ -192,6 +192,14 @@ def run_track(
                 if shared_session is None or own_session:
                     session.setup()
 
+                # An arm whose product delivers through its own channel (the
+                # CM arm sends to contact Bob rather than calling the
+                # fixture's API) declares a delivery bridge: messages to a
+                # persona are re-posted to the fixture's reply endpoint, so
+                # the fixture remains the only witness scoring reads.
+                if hasattr(session, "bind_delivery"):
+                    session.bind_delivery(fixture.base_url, fixture.post_paths)
+
                 # The arm asks through its own channel; the fixture provides
                 # none. Whoever the track has cast answers.
                 pool = fixture.state.get("personas")
