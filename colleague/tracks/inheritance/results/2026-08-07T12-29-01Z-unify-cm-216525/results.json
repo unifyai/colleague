@@ -1,0 +1,547 @@
+{
+  "track": "inheritance",
+  "arm": "unify-cm",
+  "run_id": "2026-08-07T12-29-01Z-unify-cm-216525",
+  "seed": 20260801,
+  "session_scope": "scenario",
+  "scenarios": [
+    {
+      "name": "ambiguous_recipient",
+      "note": "'It' is the weekly metrics report, under discussion for the last four turns. 'Sarah' is Sarah Chen, who raised the churn number. Both are unambiguous inside the conversation.",
+      "profile": "ArmProfile(name='unify-cm', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, notes=\"The ConversationManager surface \u2014 DESIGN.md's 'faithful surface for these tracks'. Senders are first-class contacts on every inbound event; replies are Sent events addressed to a contact; silence is the `wait` tool, detected exactly; each in-flight action exposes its own interject/stop/ask tools and routing a correction to the right one is a recorded brain decision. Adds a slow-brain model axis the plain `act` arm never had.\")",
+      "reply": {
+        "ok": true,
+        "text": "On it \u2014 I\u2019ll check the weekly metrics and send that report to Sarah Chen.\n\nChecked the Weekly Metrics Report \u2014 Week 31. Revenue is 412,300 and passed a limited internal sanity check, though the available data didn\u2019t include enough detail for an independent reconciliation. Churn is 2.1% and should be monitored, but it doesn\u2019t invalidate the revenue figure. I sent the metrics report to Sarah Chen at sarah.chen@northwind.example with the subject \u201cChecked Weekly Metrics Report \u2014 Week 31.\u201d The separate weekly revenue report was untouched.",
+        "meta": {
+          "turn": 1,
+          "tool_names": [
+            "wait",
+            "act",
+            "send_unify_message",
+            "wait",
+            "send_unify_message",
+            "wait"
+          ],
+          "steering": [
+            "act"
+          ],
+          "silent": false,
+          "clarification_rounds": 0,
+          "egress": [
+            {
+              "type": "ActorHandleStarted",
+              "contact_id": null,
+              "text": "Use the provided workspace API at http://127.0.0.1:52771 to complete Daniel's request. List documents, identify the weekly metrics report (not Sarah Okonkwo's separate weekly revenue report, which requires no action), retrieve it, and sanity-check the revenue figures using the report's contents and any internally available supporting data exposed there. Pay special attention to the churn issue Sarah Chen flagged, but the requested validation is revenue. Then look up Sarah Chen via GET /contacts?name=Sarah%20Chen and send the checked weekly metrics report to her with POST /send using her exact email and the report document_id; use a concise appropriate subject. Do not send the weekly revenue report and do not send anything to Sarah Okonkwo. Report the validation findings, recipient, document, subject, and API send result."
+            },
+            {
+              "type": "UnifyMessageSent",
+              "contact_id": 1,
+              "text": "On it \u2014 I\u2019ll check the weekly metrics and send that report to Sarah Chen."
+            },
+            {
+              "type": "UnifyMessageSent",
+              "contact_id": 1,
+              "text": "Checked the Weekly Metrics Report \u2014 Week 31. Revenue is 412,300 and passed a limited internal sanity check, though the available data didn\u2019t include enough detail for an independent reconciliation. Churn is 2.1% and should be monitored, but it doesn\u2019t invalidate the revenue figure. I sent the metrics report to Sarah Chen at sarah.chen@northwind.example with the subject \u201cChecked Weekly Metrics Report \u2014 Week 31.\u201d The separate weekly revenue report was untouched."
+            }
+          ]
+        }
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_documents",
+            "n": 1,
+            "at": "2026-08-07T12:30:39.855969+00:00"
+          },
+          {
+            "waypoint": "read_documents",
+            "n": 2,
+            "at": "2026-08-07T12:31:05.944951+00:00"
+          },
+          {
+            "waypoint": "read_documents",
+            "n": 3,
+            "at": "2026-08-07T12:31:05.945672+00:00"
+          },
+          {
+            "waypoint": "read_contacts",
+            "n": 1,
+            "at": "2026-08-07T12:31:47.240291+00:00"
+          },
+          {
+            "waypoint": "send",
+            "n": 1,
+            "at": "2026-08-07T12:32:35.659912+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "rejected_send",
+            "at": "2026-08-07T12:32:28.435742+00:00",
+            "payload": {
+              "body": {
+                "email": "sarah.chen@northwind.example",
+                "document_id": "doc-weekly-metrics",
+                "subject": "Checked Weekly Metrics Report \u2014 Week 31"
+              },
+              "missing": [
+                "to"
+              ]
+            }
+          },
+          {
+            "seq": 2,
+            "kind": "send",
+            "at": "2026-08-07T12:32:35.659941+00:00",
+            "payload": {
+              "to": "sarah.chen@northwind.example",
+              "document_id": "doc-weekly-metrics",
+              "subject": "Checked Weekly Metrics Report \u2014 Week 31"
+            }
+          }
+        ],
+        "persona_exchanges": [],
+        "persona_tokens": 0
+      },
+      "result": {
+        "scenario": "ambiguous_recipient",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "ambiguous_recipient",
+          "passed": true,
+          "checks": {
+            "sent_exactly_one": true,
+            "right_person": true,
+            "right_document": true,
+            "did_not_need_to_ask": true
+          },
+          "failures": [],
+          "evidence": {
+            "sends": 1,
+            "to": "sarah.chen@northwind.example",
+            "document_id": "doc-weekly-metrics",
+            "clarifications": 0
+          }
+        }
+      },
+      "artifacts": {
+        "context": "colleague/inheritance/2026-08-07T12-29-01Z-unify-cm-216525-ambiguous_recipient/default/0",
+        "project": "Benchmarks",
+        "turns": [
+          {
+            "turn": 1,
+            "sender_contact_id": 1,
+            "tools": [
+              "wait",
+              "act",
+              "send_unify_message",
+              "wait",
+              "send_unify_message",
+              "wait"
+            ],
+            "sent_events": 2,
+            "silent": false,
+            "clarification_rounds": 0,
+            "drained": true
+          }
+        ],
+        "llm_segments": [
+          {
+            "name": "turn_1",
+            "wall_seconds": 198.76,
+            "llm_calls": 22,
+            "prompt_tokens": 1579751,
+            "completion_tokens": 6827,
+            "total_tokens": 1586578,
+            "provider_cost_usd": 4.32725,
+            "models": {
+              "openrouter/openai/gpt-5.6-sol": 22
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "quiet_constraint",
+      "note": "Nothing in the request mentions the flight. No reasonable request-writer would think to include it, which is the point.",
+      "profile": "ArmProfile(name='unify-cm', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, notes=\"The ConversationManager surface \u2014 DESIGN.md's 'faithful surface for these tracks'. Senders are first-class contacts on every inbound event; replies are Sent events addressed to a contact; silence is the `wait` tool, detected exactly; each in-flight action exposes its own interject/stop/ask tools and routing a correction to the right one is a recorded brain decision. Adds a slow-brain model axis the plain `act` arm never had.\")",
+      "reply": {
+        "ok": true,
+        "text": "On it \u2014 I\u2019ll schedule it for Tuesday the 11th, since you\u2019re away Monday.\n\nScheduled \u201cVendor follow-up\u201d for Tuesday, August 11. The API returned HTTP 200: {\"status\":\"scheduled\"}.",
+        "meta": {
+          "turn": 1,
+          "tool_names": [
+            "wait",
+            "act",
+            "send_unify_message",
+            "wait",
+            "send_unify_message",
+            "wait"
+          ],
+          "steering": [
+            "act"
+          ],
+          "silent": false,
+          "clarification_rounds": 0,
+          "egress": [
+            {
+              "type": "ActorHandleStarted",
+              "contact_id": null,
+              "text": "Use the provided workspace API at http://127.0.0.1:53407 to schedule the vendor follow-up. Choose Tuesday, 2026-08-11, since Daniel is unavailable Monday, and POST to /schedule with title \"Vendor follow-up\" and date \"2026-08-11\". Report the API result."
+            },
+            {
+              "type": "UnifyMessageSent",
+              "contact_id": 1,
+              "text": "On it \u2014 I\u2019ll schedule it for Tuesday the 11th, since you\u2019re away Monday."
+            },
+            {
+              "type": "UnifyMessageSent",
+              "contact_id": 1,
+              "text": "Scheduled \u201cVendor follow-up\u201d for Tuesday, August 11. The API returned HTTP 200: {\"status\":\"scheduled\"}."
+            }
+          ]
+        }
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "schedule",
+            "n": 1,
+            "at": "2026-08-07T12:34:31.647620+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "schedule",
+            "at": "2026-08-07T12:34:31.647661+00:00",
+            "payload": {
+              "title": "Vendor follow-up",
+              "date": "2026-08-11"
+            }
+          }
+        ],
+        "persona_exchanges": [],
+        "persona_tokens": 0
+      },
+      "result": {
+        "scenario": "quiet_constraint",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "quiet_constraint",
+          "passed": true,
+          "checks": {
+            "scheduled_exactly_one": true,
+            "avoided_blocked_day": true,
+            "plausible_weekday": true
+          },
+          "failures": [],
+          "evidence": {
+            "scheduled": 1,
+            "date": "2026-08-11",
+            "blocked": "2026-08-10",
+            "allowed": [
+              "2026-08-11",
+              "2026-08-12",
+              "2026-08-13",
+              "2026-08-14"
+            ]
+          }
+        }
+      },
+      "artifacts": {
+        "context": "colleague/inheritance/2026-08-07T12-29-01Z-unify-cm-216525-quiet_constraint/default/0",
+        "project": "Benchmarks",
+        "turns": [
+          {
+            "turn": 1,
+            "sender_contact_id": 1,
+            "tools": [
+              "wait",
+              "act",
+              "send_unify_message",
+              "wait",
+              "send_unify_message",
+              "wait"
+            ],
+            "sent_events": 2,
+            "silent": false,
+            "clarification_rounds": 0,
+            "drained": true
+          }
+        ],
+        "llm_segments": [
+          {
+            "name": "turn_1",
+            "wall_seconds": 75.1,
+            "llm_calls": 16,
+            "prompt_tokens": 758810,
+            "completion_tokens": 1581,
+            "total_tokens": 760391,
+            "provider_cost_usd": 4.0303,
+            "models": {
+              "openrouter/openai/gpt-5.6-sol": 16
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "cold_control",
+      "note": "The control. With no conversation there is no way to know which report or which Sarah, so the whole round trip is the test: ask, read what Daniel says back, act on it. A guess that happens to land still fails.",
+      "profile": "ArmProfile(name='unify-cm', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, notes=\"The ConversationManager surface \u2014 DESIGN.md's 'faithful surface for these tracks'. Senders are first-class contacts on every inbound event; replies are Sent events addressed to a contact; silence is the `wait` tool, detected exactly; each in-flight action exposes its own interject/stop/ask tools and routing a correction to the right one is a recorded brain decision. Adds a slow-brain model axis the plain `act` arm never had.\")",
+      "reply": {
+        "ok": true,
+        "text": "On it\u2014I\u2019m checking the workspace records and will send the correct report to Sarah.\n\nI found two Sarahs and two reports, so I haven\u2019t sent anything yet. Which combination: Sarah Chen or Sarah Okonkwo, and Weekly Metrics Report or Weekly Revenue Report (week 31)?\n\nGot it\u2014I\u2019m sending Sarah Chen the Weekly Metrics Report with the churn number.\n\nSent successfully to sarah.chen@northwind.example: \u201cWeekly Metrics Report \u2014 week 31\u201d (doc-weekly-metrics), subject \u201cWeekly Metrics Report \u2014 week 31.\u201d The API returned HTTP 200 with status \u201csent\u201d; the Revenue Report was not sent.",
+        "meta": {
+          "turn": 1,
+          "tool_names": [
+            "wait",
+            "act",
+            "send_unify_message",
+            "wait",
+            "send_unify_message",
+            "wait",
+            "act",
+            "send_unify_message",
+            "wait",
+            "send_unify_message",
+            "wait"
+          ],
+          "steering": [
+            "act",
+            "act"
+          ],
+          "silent": false,
+          "clarification_rounds": 1,
+          "egress": [
+            {
+              "type": "ActorHandleStarted",
+              "contact_id": null,
+              "text": "Use the Workspace API at http://127.0.0.1:53773 to fulfill Daniel's request: \"Send the report to Sarah.\" First retrieve contacts matching Sarah and list available documents. Identify the intended recipient and report from the API data. If there is exactly one credible Sarah and exactly one document that is clearly a report, POST to /send using Sarah's email, that document_id, and an appropriate subject based on the document title. If either the recipient or document is genuinely ambiguous, do not send; return the specific candidate names/titles needed for one concise clarification. Report the exact verified outcome and IDs used."
+            },
+            {
+              "type": "UnifyMessageSent",
+              "contact_id": 1,
+              "text": "On it\u2014I\u2019m checking the workspace records and will send the correct report to Sarah."
+            },
+            {
+              "type": "UnifyMessageSent",
+              "contact_id": 1,
+              "text": "I found two Sarahs and two reports, so I haven\u2019t sent anything yet. Which combination: Sarah Chen or Sarah Okonkwo, and Weekly Metrics Report or Weekly Revenue Report (week 31)?"
+            },
+            {
+              "type": "ActorHandleStarted",
+              "contact_id": null,
+              "text": "Use the Workspace API at http://127.0.0.1:53773 to complete Daniel's clarified request. Retrieve document id doc-weekly-metrics and verify it is the Weekly Metrics Report containing the churn number. If verified, POST to /send with to=\"sarah.chen@northwind.example\", document_id=\"doc-weekly-metrics\", and an appropriate subject based on the document title. Do not send the Weekly Revenue Report. Report the exact verified API outcome, recipient, document ID, and subject used."
+            },
+            {
+              "type": "UnifyMessageSent",
+              "contact_id": 1,
+              "text": "Got it\u2014I\u2019m sending Sarah Chen the Weekly Metrics Report with the churn number."
+            },
+            {
+              "type": "UnifyMessageSent",
+              "contact_id": 1,
+              "text": "Sent successfully to sarah.chen@northwind.example: \u201cWeekly Metrics Report \u2014 week 31\u201d (doc-weekly-metrics), subject \u201cWeekly Metrics Report \u2014 week 31.\u201d The API returned HTTP 200 with status \u201csent\u201d; the Revenue Report was not sent."
+            }
+          ]
+        }
+      },
+      "clarifications": [
+        {
+          "question": "I found two Sarahs and two reports, so I haven\u2019t sent anything yet. Which combination: Sarah Chen or Sarah Okonkwo, and Weekly Metrics Report or Weekly Revenue Report (week 31)?",
+          "answer": "Sarah Chen \u2014 sarah.chen@northwind.example. Send her the Weekly Metrics Report (doc-weekly-metrics), the one with the churn number, not the Weekly Revenue Report.",
+          "contact_id": 1,
+          "turn": 1
+        }
+      ],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_contacts",
+            "n": 1,
+            "at": "2026-08-07T12:36:30.891627+00:00"
+          },
+          {
+            "waypoint": "read_documents",
+            "n": 1,
+            "at": "2026-08-07T12:36:30.892626+00:00"
+          },
+          {
+            "waypoint": "send",
+            "n": 1,
+            "at": "2026-08-07T12:37:59.409745+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "send",
+            "at": "2026-08-07T12:37:59.409849+00:00",
+            "payload": {
+              "to": "sarah.chen@northwind.example",
+              "document_id": "doc-weekly-metrics",
+              "subject": "Weekly Metrics Report \u2014 week 31"
+            }
+          }
+        ],
+        "persona_exchanges": [
+          {
+            "at": "2026-08-07T12:36:59.627179+00:00",
+            "persona": "daniel",
+            "question": "I found two Sarahs and two reports, so I haven\u2019t sent anything yet. Which combination: Sarah Chen or Sarah Okonkwo, and Weekly Metrics Report or Weekly Revenue Report (week 31)?",
+            "reply": "Sarah Chen \u2014 sarah.chen@northwind.example. Send her the Weekly Metrics Report (doc-weekly-metrics), the one with the churn number, not the Weekly Revenue Report.",
+            "tokens": 356,
+            "mode": "model"
+          }
+        ],
+        "persona_tokens": 356
+      },
+      "result": {
+        "scenario": "cold_control",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "cold_control",
+          "passed": true,
+          "checks": {
+            "asked_before_acting": true,
+            "acted_on_the_answer": true
+          },
+          "failures": [],
+          "evidence": {
+            "asked": 1,
+            "to": "sarah.chen@northwind.example",
+            "document": "doc-weekly-metrics"
+          }
+        }
+      },
+      "artifacts": {
+        "context": "colleague/inheritance/2026-08-07T12-29-01Z-unify-cm-216525-cold_control/default/0",
+        "project": "Benchmarks",
+        "turns": [
+          {
+            "turn": 1,
+            "sender_contact_id": 1,
+            "tools": [
+              "wait",
+              "act",
+              "send_unify_message",
+              "wait",
+              "send_unify_message",
+              "wait",
+              "act",
+              "send_unify_message",
+              "wait",
+              "send_unify_message",
+              "wait"
+            ],
+            "sent_events": 4,
+            "silent": false,
+            "clarification_rounds": 1,
+            "drained": true
+          }
+        ],
+        "llm_segments": [
+          {
+            "name": "turn_1",
+            "wall_seconds": 172.41,
+            "llm_calls": 31,
+            "prompt_tokens": 1628797,
+            "completion_tokens": 3745,
+            "total_tokens": 1632542,
+            "provider_cost_usd": 7.336932,
+            "models": {
+              "openrouter/openai/gpt-5.6-sol": 31
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "profile": "unify-cm",
+  "summary": {
+    "total_scenarios": 3,
+    "scoreable": 3,
+    "credited": 3,
+    "accuracy": 1.0,
+    "by_outcome": {
+      "pass": 3
+    },
+    "results": [
+      {
+        "scenario": "ambiguous_recipient",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "ambiguous_recipient",
+          "passed": true,
+          "checks": {
+            "sent_exactly_one": true,
+            "right_person": true,
+            "right_document": true,
+            "did_not_need_to_ask": true
+          },
+          "failures": [],
+          "evidence": {
+            "sends": 1,
+            "to": "sarah.chen@northwind.example",
+            "document_id": "doc-weekly-metrics",
+            "clarifications": 0
+          }
+        }
+      },
+      {
+        "scenario": "quiet_constraint",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "quiet_constraint",
+          "passed": true,
+          "checks": {
+            "scheduled_exactly_one": true,
+            "avoided_blocked_day": true,
+            "plausible_weekday": true
+          },
+          "failures": [],
+          "evidence": {
+            "scheduled": 1,
+            "date": "2026-08-11",
+            "blocked": "2026-08-10",
+            "allowed": [
+              "2026-08-11",
+              "2026-08-12",
+              "2026-08-13",
+              "2026-08-14"
+            ]
+          }
+        }
+      },
+      {
+        "scenario": "cold_control",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "cold_control",
+          "passed": true,
+          "checks": {
+            "asked_before_acting": true,
+            "acted_on_the_answer": true
+          },
+          "failures": [],
+          "evidence": {
+            "asked": 1,
+            "to": "sarah.chen@northwind.example",
+            "document": "doc-weekly-metrics"
+          }
+        }
+      }
+    ]
+  }
+}

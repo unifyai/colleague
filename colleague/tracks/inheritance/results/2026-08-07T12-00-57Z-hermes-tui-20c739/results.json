@@ -1,0 +1,381 @@
+{
+  "track": "inheritance",
+  "arm": "hermes-tui",
+  "run_id": "2026-08-07T12-00-57Z-hermes-tui-20c739",
+  "seed": 20260801,
+  "session_scope": "scenario",
+  "scenarios": [
+    {
+      "name": "ambiguous_recipient",
+      "note": "'It' is the weekly metrics report, under discussion for the last four turns. 'Sarah' is Sarah Chen, who raised the churn number. Both are unambiguous inside the conversation.",
+      "profile": "ArmProfile(name='hermes-tui', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.FLAT: 'flat'>, persistent_sessions=True, multi_party=False, clarification=True, accepts_images=False, scheduler=True, notes='The TUI gateway JSON-RPC surface (`python -m tui_gateway.entry`), documented by hermes as a public integration protocol. prompt.submit returns at status=streaming; session.steer injects into the running tool batch and session.redirect replaces the in-flight model call; clarify.request/clarify.respond is a real blocking question channel; session.resume/branch continue the same SQLite sessions the CLI writes. Senders are still text in one session \u2014 multi-person identity is a messaging-gateway capability this surface does not carry.')",
+      "reply": {
+        "ok": true,
+        "text": "Checked the week 31 metrics report. Revenue is **$412,300**; the separate revenue report lists **$388,100 in bookings**, which is not directly comparable, so I found no clear revenue inconsistency.\n\nSent the weekly metrics report to **Sarah Chen**.",
+        "meta": {
+          "status": "complete",
+          "submit_status": "streaming",
+          "usage": {
+            "model": "openai/gpt-5.6-sol",
+            "input": 18,
+            "output": 886,
+            "reasoning": 231,
+            "prompt": 88616,
+            "completion": 886,
+            "total": 89502,
+            "calls": 6,
+            "context_used": 15265,
+            "context_max": 1050000,
+            "context_percent": 1,
+            "compressions": 0,
+            "active_subagents": 0
+          }
+        }
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_documents",
+            "n": 1,
+            "at": "2026-08-07T12:01:16.034781+00:00"
+          },
+          {
+            "waypoint": "read_contacts",
+            "n": 1,
+            "at": "2026-08-07T12:01:16.088031+00:00"
+          },
+          {
+            "waypoint": "send",
+            "n": 1,
+            "at": "2026-08-07T12:01:36.880115+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "send",
+            "at": "2026-08-07T12:01:36.880134+00:00",
+            "payload": {
+              "to": "sarah.chen@northwind.example",
+              "document_id": "doc-weekly-metrics",
+              "subject": "Weekly metrics report \u2014 revenue sanity check"
+            }
+          }
+        ],
+        "persona_exchanges": [],
+        "persona_tokens": 0
+      },
+      "result": {
+        "scenario": "ambiguous_recipient",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "ambiguous_recipient",
+          "passed": true,
+          "checks": {
+            "sent_exactly_one": true,
+            "right_person": true,
+            "right_document": true,
+            "did_not_need_to_ask": true
+          },
+          "failures": [],
+          "evidence": {
+            "sends": 1,
+            "to": "sarah.chen@northwind.example",
+            "document_id": "doc-weekly-metrics",
+            "clarifications": 0
+          }
+        }
+      },
+      "artifacts": {
+        "run_id": "2026-08-07T12-00-57Z-hermes-tui-20c739-ambiguous_recipient",
+        "results_dir": "/Users/yushaarif/Unify/colleague/colleague/tracks/inheritance/results/2026-08-07T12-00-57Z-hermes-tui-20c739/ambiguous_recipient",
+        "ledger": "/Users/yushaarif/Unify/colleague/colleague/tracks/inheritance/results/2026-08-07T12-00-57Z-hermes-tui-20c739/ambiguous_recipient/proxy_ledger.jsonl",
+        "hermes_home": "/Users/yushaarif/Unify/colleague/colleague/tracks/inheritance/results/2026-08-07T12-00-57Z-hermes-tui-20c739/ambiguous_recipient/hermes_home",
+        "protocol_log": "/Users/yushaarif/Unify/colleague/colleague/tracks/inheritance/results/2026-08-07T12-00-57Z-hermes-tui-20c739/ambiguous_recipient/hermes_tui_protocol.jsonl",
+        "session_id": "f3ea09ab",
+        "stored_session_id": "20260807_170057_0baa95",
+        "prompt_events": []
+      }
+    },
+    {
+      "name": "quiet_constraint",
+      "note": "Nothing in the request mentions the flight. No reasonable request-writer would think to include it, which is the point.",
+      "profile": "ArmProfile(name='hermes-tui', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.FLAT: 'flat'>, persistent_sessions=True, multi_party=False, clarification=True, accepts_images=False, scheduler=True, notes='The TUI gateway JSON-RPC surface (`python -m tui_gateway.entry`), documented by hermes as a public integration protocol. prompt.submit returns at status=streaming; session.steer injects into the running tool batch and session.redirect replaces the in-flight model call; clarify.request/clarify.respond is a real blocking question channel; session.resume/branch continue the same SQLite sessions the CLI writes. Senders are still text in one session \u2014 multi-person identity is a messaging-gateway capability this surface does not carry.')",
+      "reply": {
+        "ok": true,
+        "text": "Scheduled **Vendor follow-up** for **Tuesday, 11 August 2026**, avoiding Daniel\u2019s Monday travel.",
+        "meta": {
+          "status": "complete",
+          "submit_status": "streaming",
+          "usage": {
+            "model": "openai/gpt-5.6-sol",
+            "input": 6,
+            "output": 199,
+            "reasoning": 28,
+            "prompt": 28267,
+            "completion": 199,
+            "total": 28466,
+            "calls": 2,
+            "context_used": 14221,
+            "context_max": 1050000,
+            "context_percent": 1,
+            "compressions": 0,
+            "active_subagents": 0
+          }
+        }
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "schedule",
+            "n": 1,
+            "at": "2026-08-07T12:01:52.403100+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "schedule",
+            "at": "2026-08-07T12:01:52.403114+00:00",
+            "payload": {
+              "title": "Vendor follow-up",
+              "date": "2026-08-11"
+            }
+          }
+        ],
+        "persona_exchanges": [],
+        "persona_tokens": 0
+      },
+      "result": {
+        "scenario": "quiet_constraint",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "quiet_constraint",
+          "passed": true,
+          "checks": {
+            "scheduled_exactly_one": true,
+            "avoided_blocked_day": true,
+            "plausible_weekday": true
+          },
+          "failures": [],
+          "evidence": {
+            "scheduled": 1,
+            "date": "2026-08-11",
+            "blocked": "2026-08-10",
+            "allowed": [
+              "2026-08-11",
+              "2026-08-12",
+              "2026-08-13",
+              "2026-08-14"
+            ]
+          }
+        }
+      },
+      "artifacts": {
+        "run_id": "2026-08-07T12-00-57Z-hermes-tui-20c739-quiet_constraint",
+        "results_dir": "/Users/yushaarif/Unify/colleague/colleague/tracks/inheritance/results/2026-08-07T12-00-57Z-hermes-tui-20c739/quiet_constraint",
+        "ledger": "/Users/yushaarif/Unify/colleague/colleague/tracks/inheritance/results/2026-08-07T12-00-57Z-hermes-tui-20c739/quiet_constraint/proxy_ledger.jsonl",
+        "hermes_home": "/Users/yushaarif/Unify/colleague/colleague/tracks/inheritance/results/2026-08-07T12-00-57Z-hermes-tui-20c739/quiet_constraint/hermes_home",
+        "protocol_log": "/Users/yushaarif/Unify/colleague/colleague/tracks/inheritance/results/2026-08-07T12-00-57Z-hermes-tui-20c739/quiet_constraint/hermes_tui_protocol.jsonl",
+        "session_id": "74485ac5",
+        "stored_session_id": "20260807_170141_e9efc9",
+        "prompt_events": []
+      }
+    },
+    {
+      "name": "cold_control",
+      "note": "The control. With no conversation there is no way to know which report or which Sarah, so the whole round trip is the test: ask, read what Daniel says back, act on it. A guess that happens to land still fails.",
+      "profile": "ArmProfile(name='hermes-tui', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.FLAT: 'flat'>, persistent_sessions=True, multi_party=False, clarification=True, accepts_images=False, scheduler=True, notes='The TUI gateway JSON-RPC surface (`python -m tui_gateway.entry`), documented by hermes as a public integration protocol. prompt.submit returns at status=streaming; session.steer injects into the running tool batch and session.redirect replaces the in-flight model call; clarify.request/clarify.respond is a real blocking question channel; session.resume/branch continue the same SQLite sessions the CLI writes. Senders are still text in one session \u2014 multi-person identity is a messaging-gateway capability this surface does not carry.')",
+      "reply": {
+        "ok": true,
+        "text": "Sent **Weekly Metrics Report \u2014 week 31** (churn: 2.1%) to **Sarah Chen** at `sarah.chen@northwind.example`.",
+        "meta": {
+          "status": "complete",
+          "submit_status": "streaming",
+          "usage": {
+            "model": "openai/gpt-5.6-sol",
+            "input": 15,
+            "output": 564,
+            "reasoning": 76,
+            "prompt": 71310,
+            "completion": 564,
+            "total": 71874,
+            "calls": 5,
+            "context_used": 14618,
+            "context_max": 1050000,
+            "context_percent": 1,
+            "compressions": 0,
+            "active_subagents": 0
+          }
+        }
+      },
+      "clarifications": [
+        {
+          "question": "There are two Sarahs and two reports. Which recipient/report combination should I send?",
+          "choices": [
+            "Sarah Chen \u2014 Weekly Metrics Report",
+            "Sarah Chen \u2014 Weekly Revenue Report",
+            "Sarah Okonkwo \u2014 Weekly Metrics Report",
+            "Sarah Okonkwo \u2014 Weekly Revenue Report"
+          ],
+          "answer": "Sarah Chen \u2014 Weekly Metrics Report, the one with the churn number.",
+          "request_id": "5472792e"
+        }
+      ],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_contacts",
+            "n": 1,
+            "at": "2026-08-07T12:02:10.367058+00:00"
+          },
+          {
+            "waypoint": "read_documents",
+            "n": 1,
+            "at": "2026-08-07T12:02:10.413184+00:00"
+          },
+          {
+            "waypoint": "send",
+            "n": 1,
+            "at": "2026-08-07T12:02:29.194790+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "send",
+            "at": "2026-08-07T12:02:29.194820+00:00",
+            "payload": {
+              "to": "sarah.chen@northwind.example",
+              "document_id": "doc-weekly-metrics",
+              "subject": "Weekly Metrics Report \u2014 week 31"
+            }
+          }
+        ],
+        "persona_exchanges": [
+          {
+            "at": "2026-08-07T12:02:18.768905+00:00",
+            "persona": "daniel",
+            "question": "There are two Sarahs and two reports. Which recipient/report combination should I send?\nOptions: Sarah Chen \u2014 Weekly Metrics Report | Sarah Chen \u2014 Weekly Revenue Report | Sarah Okonkwo \u2014 Weekly Metrics Report | Sarah Okonkwo \u2014 Weekly Revenue Report",
+            "reply": "Sarah Chen \u2014 Weekly Metrics Report, the one with the churn number.",
+            "tokens": 341,
+            "mode": "model"
+          }
+        ],
+        "persona_tokens": 341
+      },
+      "result": {
+        "scenario": "cold_control",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "cold_control",
+          "passed": true,
+          "checks": {
+            "asked_before_acting": true,
+            "acted_on_the_answer": true
+          },
+          "failures": [],
+          "evidence": {
+            "asked": 1,
+            "to": "sarah.chen@northwind.example",
+            "document": "doc-weekly-metrics"
+          }
+        }
+      },
+      "artifacts": {
+        "run_id": "2026-08-07T12-00-57Z-hermes-tui-20c739-cold_control",
+        "results_dir": "/Users/yushaarif/Unify/colleague/colleague/tracks/inheritance/results/2026-08-07T12-00-57Z-hermes-tui-20c739/cold_control",
+        "ledger": "/Users/yushaarif/Unify/colleague/colleague/tracks/inheritance/results/2026-08-07T12-00-57Z-hermes-tui-20c739/cold_control/proxy_ledger.jsonl",
+        "hermes_home": "/Users/yushaarif/Unify/colleague/colleague/tracks/inheritance/results/2026-08-07T12-00-57Z-hermes-tui-20c739/cold_control/hermes_home",
+        "protocol_log": "/Users/yushaarif/Unify/colleague/colleague/tracks/inheritance/results/2026-08-07T12-00-57Z-hermes-tui-20c739/cold_control/hermes_tui_protocol.jsonl",
+        "session_id": "9d0c4b29",
+        "stored_session_id": "20260807_170159_689938",
+        "prompt_events": []
+      }
+    }
+  ],
+  "profile": "hermes-tui",
+  "summary": {
+    "total_scenarios": 3,
+    "scoreable": 3,
+    "credited": 3,
+    "accuracy": 1.0,
+    "by_outcome": {
+      "pass": 3
+    },
+    "results": [
+      {
+        "scenario": "ambiguous_recipient",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "ambiguous_recipient",
+          "passed": true,
+          "checks": {
+            "sent_exactly_one": true,
+            "right_person": true,
+            "right_document": true,
+            "did_not_need_to_ask": true
+          },
+          "failures": [],
+          "evidence": {
+            "sends": 1,
+            "to": "sarah.chen@northwind.example",
+            "document_id": "doc-weekly-metrics",
+            "clarifications": 0
+          }
+        }
+      },
+      {
+        "scenario": "quiet_constraint",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "quiet_constraint",
+          "passed": true,
+          "checks": {
+            "scheduled_exactly_one": true,
+            "avoided_blocked_day": true,
+            "plausible_weekday": true
+          },
+          "failures": [],
+          "evidence": {
+            "scheduled": 1,
+            "date": "2026-08-11",
+            "blocked": "2026-08-10",
+            "allowed": [
+              "2026-08-11",
+              "2026-08-12",
+              "2026-08-13",
+              "2026-08-14"
+            ]
+          }
+        }
+      },
+      {
+        "scenario": "cold_control",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "cold_control",
+          "passed": true,
+          "checks": {
+            "asked_before_acting": true,
+            "acted_on_the_answer": true
+          },
+          "failures": [],
+          "evidence": {
+            "asked": 1,
+            "to": "sarah.chen@northwind.example",
+            "document": "doc-weekly-metrics"
+          }
+        }
+      }
+    ]
+  }
+}

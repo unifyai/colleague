@@ -1,0 +1,5 @@
+model:
+  default: "openai/gpt-5.6-sol"
+  provider: "openrouter"
+approvals:
+  mode: "off"

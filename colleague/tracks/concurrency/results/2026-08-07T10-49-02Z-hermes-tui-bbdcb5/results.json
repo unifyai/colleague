@@ -1,0 +1,258 @@
+{
+  "track": "concurrency",
+  "arm": "hermes-tui",
+  "run_id": "2026-08-07T10-49-02Z-hermes-tui-bbdcb5",
+  "seed": 20260801,
+  "session_scope": "scenario",
+  "scenarios": [
+    {
+      "name": "route_corrections",
+      "note": "Corrections arrive after the first and second creations, naming digests the way a person would rather than by id.",
+      "profile": "ArmProfile(name='hermes-tui', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.FLAT: 'flat'>, persistent_sessions=True, multi_party=False, clarification=True, accepts_images=False, scheduler=True, notes='The TUI gateway JSON-RPC surface (`python -m tui_gateway.entry`), documented by hermes as a public integration protocol. prompt.submit returns at status=streaming; session.steer injects into the running tool batch and session.redirect replaces the in-flight model call; clarify.request/clarify.respond is a real blocking question channel; session.resume/branch continue the same SQLite sessions the CLI writes. Senders are still text in one session \u2014 multi-person identity is a messaging-gateway capability this surface does not carry.')",
+      "interlocutor": [
+        {
+          "label": "fix_support",
+          "sender": "daniel",
+          "text": "Actually make the support one daily, not weekly.",
+          "waypoint": "digest_created",
+          "nth": 1,
+          "delivered": true,
+          "mode": "live_interject",
+          "recorder_seq": 1,
+          "at": "2026-08-07T10:49:46.495691+00:00",
+          "detail": {
+            "text": "[daniel] Actually make the support one daily, not weekly.",
+            "steer": "queued",
+            "method": "session.steer"
+          }
+        },
+        {
+          "label": "fix_finance",
+          "sender": "daniel",
+          "text": "And finance should go to the board, not the cfo.",
+          "waypoint": "digest_created",
+          "nth": 2,
+          "delivered": true,
+          "mode": "live_interject",
+          "recorder_seq": 2,
+          "at": "2026-08-07T10:49:47.128788+00:00",
+          "detail": {
+            "text": "[daniel] And finance should go to the board, not the cfo.",
+            "steer": "queued",
+            "method": "session.steer"
+          }
+        }
+      ],
+      "reply": {
+        "ok": true,
+        "text": "Created and verified all three digests:\n\n- **sales** \u2014 weekly \u2192 `daniel`\n- **support** \u2014 daily \u2192 `daniel`\n- **finance** \u2014 monthly \u2192 `the board`",
+        "meta": {
+          "status": "complete",
+          "submit_status": "streaming",
+          "usage": {
+            "model": "openai/gpt-5.6-sol",
+            "input": 15,
+            "output": 997,
+            "reasoning": 56,
+            "prompt": 75103,
+            "completion": 997,
+            "total": 76100,
+            "calls": 5,
+            "context_used": 15860,
+            "context_max": 1050000,
+            "context_percent": 2,
+            "compressions": 0,
+            "active_subagents": 0
+          }
+        }
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "digest_created",
+            "n": 1,
+            "at": "2026-08-07T10:49:46.495303+00:00",
+            "digest": "sales"
+          },
+          {
+            "waypoint": "digest_created",
+            "n": 2,
+            "at": "2026-08-07T10:49:47.128284+00:00",
+            "digest": "support"
+          },
+          {
+            "waypoint": "digest_created",
+            "n": 3,
+            "at": "2026-08-07T10:49:47.736097+00:00",
+            "digest": "finance"
+          },
+          {
+            "waypoint": "digest_updated",
+            "n": 1,
+            "at": "2026-08-07T10:49:56.150644+00:00",
+            "digest": "support"
+          },
+          {
+            "waypoint": "digest_updated",
+            "n": 2,
+            "at": "2026-08-07T10:49:56.201665+00:00",
+            "digest": "finance"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "create",
+            "at": "2026-08-07T10:49:46.495326+00:00",
+            "payload": {
+              "name": "sales",
+              "frequency": "weekly",
+              "recipient": "daniel"
+            },
+            "n": 1
+          },
+          {
+            "seq": 2,
+            "kind": "create",
+            "at": "2026-08-07T10:49:47.128306+00:00",
+            "payload": {
+              "name": "support",
+              "frequency": "daily",
+              "recipient": "daniel"
+            },
+            "n": 2
+          },
+          {
+            "seq": 3,
+            "kind": "create",
+            "at": "2026-08-07T10:49:47.736116+00:00",
+            "payload": {
+              "name": "finance",
+              "frequency": "monthly",
+              "recipient": "the board"
+            },
+            "n": 3
+          },
+          {
+            "seq": 4,
+            "kind": "update",
+            "at": "2026-08-07T10:49:56.150667+00:00",
+            "payload": {
+              "name": "support",
+              "frequency": "daily"
+            }
+          },
+          {
+            "seq": 5,
+            "kind": "update",
+            "at": "2026-08-07T10:49:56.201677+00:00",
+            "payload": {
+              "name": "finance",
+              "recipient": "the board"
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "route_corrections",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "route_corrections",
+          "passed": true,
+          "checks": {
+            "created_all_three": true,
+            "support_now_daily": true,
+            "finance_now_to_board": true,
+            "sales_untouched": true,
+            "finance_frequency_unchanged": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "finance",
+              "sales",
+              "support"
+            ],
+            "support": {
+              "name": "support",
+              "frequency": "daily",
+              "recipient": "daniel"
+            },
+            "finance": {
+              "name": "finance",
+              "frequency": "monthly",
+              "recipient": "the board"
+            },
+            "sales": {
+              "name": "sales",
+              "frequency": "weekly",
+              "recipient": "daniel"
+            }
+          }
+        }
+      },
+      "artifacts": {
+        "run_id": "2026-08-07T10-49-02Z-hermes-tui-bbdcb5-route_corrections",
+        "results_dir": "/Users/yushaarif/Unify/colleague/colleague/tracks/concurrency/results/2026-08-07T10-49-02Z-hermes-tui-bbdcb5/route_corrections",
+        "ledger": "/Users/yushaarif/Unify/colleague/colleague/tracks/concurrency/results/2026-08-07T10-49-02Z-hermes-tui-bbdcb5/route_corrections/proxy_ledger.jsonl",
+        "hermes_home": "/Users/yushaarif/Unify/colleague/colleague/tracks/concurrency/results/2026-08-07T10-49-02Z-hermes-tui-bbdcb5/route_corrections/hermes_home",
+        "protocol_log": "/Users/yushaarif/Unify/colleague/colleague/tracks/concurrency/results/2026-08-07T10-49-02Z-hermes-tui-bbdcb5/route_corrections/hermes_tui_protocol.jsonl",
+        "session_id": "630fa8e3",
+        "stored_session_id": "20260807_154903_9f0b3a",
+        "prompt_events": []
+      }
+    }
+  ],
+  "summary": {
+    "total_scenarios": 1,
+    "scoreable": 1,
+    "credited": 1,
+    "accuracy": 1.0,
+    "by_outcome": {
+      "pass": 1
+    },
+    "results": [
+      {
+        "scenario": "route_corrections",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "route_corrections",
+          "passed": true,
+          "checks": {
+            "created_all_three": true,
+            "support_now_daily": true,
+            "finance_now_to_board": true,
+            "sales_untouched": true,
+            "finance_frequency_unchanged": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "finance",
+              "sales",
+              "support"
+            ],
+            "support": {
+              "name": "support",
+              "frequency": "daily",
+              "recipient": "daniel"
+            },
+            "finance": {
+              "name": "finance",
+              "frequency": "monthly",
+              "recipient": "the board"
+            },
+            "sales": {
+              "name": "sales",
+              "frequency": "weekly",
+              "recipient": "daniel"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

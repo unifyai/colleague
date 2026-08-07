@@ -1,0 +1,367 @@
+{
+  "track": "continuity",
+  "arm": "unify-cm",
+  "run_id": "2026-08-07T12-11-41Z-unify-cm-b1a987",
+  "seed": 20260801,
+  "session_scope": "track",
+  "scenarios": [
+    {
+      "name": "january",
+      "note": "The expensive first pass. Everything after this is the measurement.",
+      "profile": "ArmProfile(name='unify-cm', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, notes=\"The ConversationManager surface \u2014 DESIGN.md's 'faithful surface for these tracks'. Senders are first-class contacts on every inbound event; replies are Sent events addressed to a contact; silence is the `wait` tool, detected exactly; each in-flight action exposes its own interject/stop/ask tools and routing a correction to the right one is a recorded brain decision. Adds a slow-brain model axis the plain `act` arm never had.\")",
+      "reply": {
+        "ok": true,
+        "text": "On it \u2014 I\u2019ll keep the session open for your follow-up.\n\nDone. January\u2019s top three vendors were:\n1. Kestrel Tooling \u2014 23,569\n2. Ostrava Metals \u2014 14,058\n3. Trellis Packaging \u2014 13,297\n\nI submitted them to `/report`; it returned HTTP 200 with `{\"status\":\"received\"}`. The session remains open for your follow-up.",
+        "meta": {
+          "turn": 1,
+          "tool_names": [
+            "act",
+            "send_unify_message",
+            "wait",
+            "wait",
+            "send_unify_message",
+            "wait"
+          ],
+          "steering": [
+            "act"
+          ],
+          "silent": false,
+          "clarification_rounds": 0,
+          "egress": [
+            {
+              "type": "ActorHandleStarted",
+              "contact_id": null,
+              "text": "Use the Ledger API at http://127.0.0.1:50187. POST to /auth and obtain the token (the response may be slow). Then GET /ledger?month=january&token=<token>. Aggregate total spend by vendor if vendors have multiple ledger entries, determine the three vendors with the highest total spend in descending order, and POST to /report with JSON body {\"month\":\"january\",\"top_vendors\":[\"<vendor1>\",\"<vendor2>\",\"<vendor3>\"]}. Verify and report the POST response. Keep this persistent session open afterwards for Daniel's follow-up instructions."
+            },
+            {
+              "type": "UnifyMessageSent",
+              "contact_id": 1,
+              "text": "On it \u2014 I\u2019ll keep the session open for your follow-up."
+            },
+            {
+              "type": "UnifyMessageSent",
+              "contact_id": 1,
+              "text": "Done. January\u2019s top three vendors were:\n1. Kestrel Tooling \u2014 23,569\n2. Ostrava Metals \u2014 14,058\n3. Trellis Packaging \u2014 13,297\n\nI submitted them to `/report`; it returned HTTP 200 with `{\"status\":\"received\"}`. The session remains open for your follow-up."
+            }
+          ]
+        }
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "auth",
+            "n": 1,
+            "at": "2026-08-07T12:13:23.844841+00:00"
+          },
+          {
+            "waypoint": "ledger_january",
+            "n": 1,
+            "at": "2026-08-07T12:13:25.348680+00:00"
+          },
+          {
+            "waypoint": "report",
+            "n": 1,
+            "at": "2026-08-07T12:13:25.351037+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "auth",
+            "at": "2026-08-07T12:13:23.844852+00:00",
+            "payload": {
+              "attempt": 1
+            }
+          },
+          {
+            "seq": 2,
+            "kind": "ledger",
+            "at": "2026-08-07T12:13:25.348721+00:00",
+            "payload": {
+              "month": "january"
+            }
+          },
+          {
+            "seq": 3,
+            "kind": "report",
+            "at": "2026-08-07T12:13:25.351058+00:00",
+            "payload": {
+              "month": "january",
+              "top_vendors": [
+                "Kestrel Tooling",
+                "Ostrava Metals",
+                "Trellis Packaging"
+              ]
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "january",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "january",
+          "passed": true,
+          "checks": {
+            "reported_once": true,
+            "right_month": true,
+            "right_vendors": true
+          },
+          "failures": [],
+          "evidence": {
+            "reports": 1,
+            "got": [
+              "Kestrel Tooling",
+              "Ostrava Metals",
+              "Trellis Packaging"
+            ],
+            "expected": [
+              "Kestrel Tooling",
+              "Ostrava Metals",
+              "Trellis Packaging"
+            ],
+            "auth_calls": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "february_followup",
+      "note": "Deliberately terse, the way a follow-up actually arrives. Nothing here restates the API, the task, or the credentials.",
+      "profile": "ArmProfile(name='unify-cm', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, notes=\"The ConversationManager surface \u2014 DESIGN.md's 'faithful surface for these tracks'. Senders are first-class contacts on every inbound event; replies are Sent events addressed to a contact; silence is the `wait` tool, detected exactly; each in-flight action exposes its own interject/stop/ask tools and routing a correction to the right one is a recorded brain decision. Adds a slow-brain model axis the plain `act` arm never had.\")",
+      "reply": {
+        "ok": true,
+        "text": "Working on February now.\n\nDone. February\u2019s top three vendors were:\n1. Trellis Packaging \u2014 22,256\n2. Bergen Chemical \u2014 19,089\n3. Halden Freight \u2014 14,849\n\nI submitted them to `/report`; it returned HTTP 200 with `{\"status\":\"received\"}`. The session remains open.",
+        "meta": {
+          "turn": 2,
+          "tool_names": [
+            "interject_use_the_ledger_api__0",
+            "send_unify_message",
+            "wait",
+            "send_unify_message",
+            "wait"
+          ],
+          "steering": [
+            "interject_use_the_ledger_api__0"
+          ],
+          "silent": false,
+          "clarification_rounds": 0,
+          "egress": [
+            {
+              "type": "UnifyMessageSent",
+              "contact_id": 1,
+              "text": "Working on February now."
+            },
+            {
+              "type": "UnifyMessageSent",
+              "contact_id": 1,
+              "text": "Done. February\u2019s top three vendors were:\n1. Trellis Packaging \u2014 22,256\n2. Bergen Chemical \u2014 19,089\n3. Halden Freight \u2014 14,849\n\nI submitted them to `/report`; it returned HTTP 200 with `{\"status\":\"received\"}`. The session remains open."
+            }
+          ]
+        }
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "ledger_february",
+            "n": 1,
+            "at": "2026-08-07T12:14:36.953457+00:00"
+          },
+          {
+            "waypoint": "report",
+            "n": 1,
+            "at": "2026-08-07T12:14:36.954480+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "ledger",
+            "at": "2026-08-07T12:14:36.953486+00:00",
+            "payload": {
+              "month": "february"
+            }
+          },
+          {
+            "seq": 2,
+            "kind": "report",
+            "at": "2026-08-07T12:14:36.954489+00:00",
+            "payload": {
+              "month": "february",
+              "top_vendors": [
+                "Trellis Packaging",
+                "Bergen Chemical",
+                "Halden Freight"
+              ]
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "february_followup",
+        "outcome": "pass",
+        "reason": "reused the open session",
+        "detail": {
+          "name": "february_followup",
+          "passed": true,
+          "checks": {
+            "reported_once": true,
+            "right_month": true,
+            "right_vendors": true
+          },
+          "failures": [],
+          "evidence": {
+            "reports": 1,
+            "got": [
+              "Trellis Packaging",
+              "Bergen Chemical",
+              "Halden Freight"
+            ],
+            "expected": [
+              "Trellis Packaging",
+              "Bergen Chemical",
+              "Halden Freight"
+            ],
+            "auth_calls": 0
+          }
+        }
+      }
+    }
+  ],
+  "profile": "unify-cm",
+  "artifacts": {
+    "context": "colleague/continuity/2026-08-07T12-11-41Z-unify-cm-b1a987/default/0",
+    "project": "Benchmarks",
+    "turns": [
+      {
+        "turn": 1,
+        "sender_contact_id": 1,
+        "tools": [
+          "act",
+          "send_unify_message",
+          "wait",
+          "wait",
+          "send_unify_message",
+          "wait"
+        ],
+        "sent_events": 2,
+        "silent": false,
+        "clarification_rounds": 0,
+        "drained": true
+      },
+      {
+        "turn": 2,
+        "sender_contact_id": 1,
+        "tools": [
+          "interject_use_the_ledger_api__0",
+          "send_unify_message",
+          "wait",
+          "send_unify_message",
+          "wait"
+        ],
+        "sent_events": 2,
+        "silent": false,
+        "clarification_rounds": 0,
+        "drained": true
+      }
+    ],
+    "llm_segments": [
+      {
+        "name": "turn_1",
+        "wall_seconds": 88.13,
+        "llm_calls": 13,
+        "prompt_tokens": 652040,
+        "completion_tokens": 1787,
+        "total_tokens": 653827,
+        "provider_cost_usd": 2.680624,
+        "models": {
+          "openrouter/openai/gpt-5.6-sol": 13
+        }
+      },
+      {
+        "name": "turn_2",
+        "wall_seconds": 73.32,
+        "llm_calls": 7,
+        "prompt_tokens": 391721,
+        "completion_tokens": 1247,
+        "total_tokens": 392968,
+        "provider_cost_usd": 0.55753,
+        "models": {
+          "openrouter/openai/gpt-5.6-sol": 7
+        }
+      }
+    ]
+  },
+  "summary": {
+    "total_scenarios": 2,
+    "scoreable": 2,
+    "credited": 2,
+    "accuracy": 1.0,
+    "by_outcome": {
+      "pass": 2
+    },
+    "results": [
+      {
+        "scenario": "january",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "january",
+          "passed": true,
+          "checks": {
+            "reported_once": true,
+            "right_month": true,
+            "right_vendors": true
+          },
+          "failures": [],
+          "evidence": {
+            "reports": 1,
+            "got": [
+              "Kestrel Tooling",
+              "Ostrava Metals",
+              "Trellis Packaging"
+            ],
+            "expected": [
+              "Kestrel Tooling",
+              "Ostrava Metals",
+              "Trellis Packaging"
+            ],
+            "auth_calls": 1
+          }
+        }
+      },
+      {
+        "scenario": "february_followup",
+        "outcome": "pass",
+        "reason": "reused the open session",
+        "detail": {
+          "name": "february_followup",
+          "passed": true,
+          "checks": {
+            "reported_once": true,
+            "right_month": true,
+            "right_vendors": true
+          },
+          "failures": [],
+          "evidence": {
+            "reports": 1,
+            "got": [
+              "Trellis Packaging",
+              "Bergen Chemical",
+              "Halden Freight"
+            ],
+            "expected": [
+              "Trellis Packaging",
+              "Bergen Chemical",
+              "Halden Freight"
+            ],
+            "auth_calls": 0
+          }
+        }
+      }
+    ]
+  }
+}

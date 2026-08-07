@@ -1,0 +1,313 @@
+{
+  "track": "concurrency",
+  "arm": "unify-cm",
+  "run_id": "2026-08-07T10-59-22Z-unify-cm-39ce8f",
+  "seed": 20260801,
+  "session_scope": "scenario",
+  "scenarios": [
+    {
+      "name": "route_corrections",
+      "note": "Corrections arrive after the first and second creations, naming digests the way a person would rather than by id.",
+      "profile": "ArmProfile(name='unify-cm', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, notes=\"The ConversationManager surface \u2014 DESIGN.md's 'faithful surface for these tracks'. Senders are first-class contacts on every inbound event; replies are Sent events addressed to a contact; silence is the `wait` tool, detected exactly; each in-flight action exposes its own interject/stop/ask tools and routing a correction to the right one is a recorded brain decision. Adds a slow-brain model axis the plain `act` arm never had.\")",
+      "interlocutor": [
+        {
+          "label": "fix_support",
+          "sender": "daniel",
+          "text": "Actually make the support one daily, not weekly.",
+          "waypoint": "digest_created",
+          "nth": 1,
+          "delivered": true,
+          "mode": "live_interject",
+          "recorder_seq": 1,
+          "at": "2026-08-07T11:01:13.811880+00:00"
+        },
+        {
+          "label": "fix_finance",
+          "sender": "daniel",
+          "text": "And finance should go to the board, not the cfo.",
+          "waypoint": "digest_created",
+          "nth": 2,
+          "delivered": true,
+          "mode": "live_interject",
+          "recorder_seq": 3,
+          "at": "2026-08-07T11:01:14.223439+00:00"
+        }
+      ],
+      "reply": {
+        "ok": true,
+        "text": "On it \u2014 creating and verifying all three now.\n\nGot it \u2014 changing support to daily and verifying the updated setup.\n\nUnderstood \u2014 switching finance to the board and verifying the final setup.",
+        "meta": {
+          "turn": 1,
+          "tool_names": [
+            "wait",
+            "act",
+            "send_unify_message",
+            "wait",
+            "interject_create_exactly_these_thre__0",
+            "send_unify_message",
+            "act",
+            "wait",
+            "interject_using_the_local_digest__1",
+            "send_unify_message",
+            "wait",
+            "wait"
+          ],
+          "steering": [
+            "act",
+            "interject_create_exactly_these_thre__0",
+            "act",
+            "interject_using_the_local_digest__1"
+          ],
+          "silent": false,
+          "clarification_rounds": 0,
+          "egress": [
+            {
+              "type": "ActorHandleStarted",
+              "contact_id": null,
+              "text": "Create exactly these three digests using the local Digest API at http://127.0.0.1:53418. POST to /digests once for each body: {\"name\":\"sales\",\"frequency\":\"weekly\",\"recipient\":\"daniel\"}, {\"name\":\"support\",\"frequency\":\"weekly\",\"recipient\":\"daniel\"}, and {\"name\":\"finance\",\"frequency\":\"monthly\",\"recipient\":\"the cfo\"}. Recipients are literal labels; do not look up or substitute email addresses. Then GET /digests and verify all three have the requested configuration. Report the HTTP results and verified final state."
+            },
+            {
+              "type": "UnifyMessageSent",
+              "contact_id": 1,
+              "text": "On it \u2014 creating and verifying all three now."
+            },
+            {
+              "type": "UnifyMessageSent",
+              "contact_id": 1,
+              "text": "Got it \u2014 changing support to daily and verifying the updated setup."
+            },
+            {
+              "type": "ActorHandleStarted",
+              "contact_id": null,
+              "text": "Using the local Digest API at http://127.0.0.1:53418, update the existing support digest by POSTing to /digests/update with exactly {\"name\":\"support\",\"frequency\":\"daily\"}. Then GET /digests and verify the final configurations are: sales weekly recipient daniel; support daily recipient daniel; finance monthly recipient the cfo. Do not create any additional digests. Report the update HTTP result and the verified final state."
+            },
+            {
+              "type": "UnifyMessageSent",
+              "contact_id": 1,
+              "text": "Understood \u2014 switching finance to the board and verifying the final setup."
+            }
+          ]
+        }
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "digest_created",
+            "n": 1,
+            "at": "2026-08-07T11:01:04.745277+00:00",
+            "digest": "sales"
+          },
+          {
+            "waypoint": "digest_created",
+            "n": 2,
+            "at": "2026-08-07T11:01:05.148755+00:00",
+            "digest": "support"
+          },
+          {
+            "waypoint": "digest_created",
+            "n": 3,
+            "at": "2026-08-07T11:01:05.556090+00:00",
+            "digest": "finance"
+          },
+          {
+            "waypoint": "digest_updated",
+            "n": 1,
+            "at": "2026-08-07T11:03:01.002049+00:00",
+            "digest": "support"
+          },
+          {
+            "waypoint": "digest_updated",
+            "n": 2,
+            "at": "2026-08-07T11:03:01.002811+00:00",
+            "digest": "finance"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "create",
+            "at": "2026-08-07T11:01:04.745287+00:00",
+            "payload": {
+              "name": "sales",
+              "frequency": "weekly",
+              "recipient": "daniel"
+            },
+            "n": 1
+          },
+          {
+            "seq": 2,
+            "kind": "create",
+            "at": "2026-08-07T11:01:05.148805+00:00",
+            "payload": {
+              "name": "support",
+              "frequency": "daily",
+              "recipient": "daniel"
+            },
+            "n": 2
+          },
+          {
+            "seq": 3,
+            "kind": "create",
+            "at": "2026-08-07T11:01:05.556130+00:00",
+            "payload": {
+              "name": "finance",
+              "frequency": "monthly",
+              "recipient": "the board"
+            },
+            "n": 3
+          },
+          {
+            "seq": 4,
+            "kind": "update",
+            "at": "2026-08-07T11:03:01.002062+00:00",
+            "payload": {
+              "name": "support",
+              "frequency": "daily"
+            }
+          },
+          {
+            "seq": 5,
+            "kind": "update",
+            "at": "2026-08-07T11:03:01.002819+00:00",
+            "payload": {
+              "name": "finance",
+              "recipient": "the board"
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "route_corrections",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "route_corrections",
+          "passed": true,
+          "checks": {
+            "created_all_three": true,
+            "support_now_daily": true,
+            "finance_now_to_board": true,
+            "sales_untouched": true,
+            "finance_frequency_unchanged": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "finance",
+              "sales",
+              "support"
+            ],
+            "support": {
+              "name": "support",
+              "frequency": "daily",
+              "recipient": "daniel"
+            },
+            "finance": {
+              "name": "finance",
+              "frequency": "monthly",
+              "recipient": "the board"
+            },
+            "sales": {
+              "name": "sales",
+              "frequency": "weekly",
+              "recipient": "daniel"
+            }
+          }
+        }
+      },
+      "artifacts": {
+        "context": "colleague/concurrency/2026-08-07T10-59-22Z-unify-cm-39ce8f-route_corrections/default/0",
+        "project": "Benchmarks",
+        "turns": [
+          {
+            "turn": 1,
+            "sender_contact_id": 1,
+            "tools": [
+              "wait",
+              "act",
+              "send_unify_message",
+              "wait",
+              "interject_create_exactly_these_thre__0",
+              "send_unify_message",
+              "act",
+              "wait",
+              "interject_using_the_local_digest__1",
+              "send_unify_message",
+              "wait",
+              "wait"
+            ],
+            "sent_events": 3,
+            "silent": false,
+            "clarification_rounds": 0,
+            "drained": true
+          }
+        ],
+        "llm_segments": [
+          {
+            "name": "turn_1",
+            "wall_seconds": 205.11,
+            "llm_calls": 33,
+            "prompt_tokens": 1854248,
+            "completion_tokens": 6757,
+            "total_tokens": 1861005,
+            "provider_cost_usd": 6.748718,
+            "models": {
+              "openrouter/openai/gpt-5.6-sol": 33
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "total_scenarios": 1,
+    "scoreable": 1,
+    "credited": 1,
+    "accuracy": 1.0,
+    "by_outcome": {
+      "pass": 1
+    },
+    "results": [
+      {
+        "scenario": "route_corrections",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "route_corrections",
+          "passed": true,
+          "checks": {
+            "created_all_three": true,
+            "support_now_daily": true,
+            "finance_now_to_board": true,
+            "sales_untouched": true,
+            "finance_frequency_unchanged": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "finance",
+              "sales",
+              "support"
+            ],
+            "support": {
+              "name": "support",
+              "frequency": "daily",
+              "recipient": "daniel"
+            },
+            "finance": {
+              "name": "finance",
+              "frequency": "monthly",
+              "recipient": "the board"
+            },
+            "sales": {
+              "name": "sales",
+              "frequency": "weekly",
+              "recipient": "daniel"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

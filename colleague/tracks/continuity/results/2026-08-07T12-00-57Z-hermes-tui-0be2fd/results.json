@@ -1,0 +1,306 @@
+{
+  "track": "continuity",
+  "arm": "hermes-tui",
+  "run_id": "2026-08-07T12-00-57Z-hermes-tui-0be2fd",
+  "seed": 20260801,
+  "session_scope": "track",
+  "scenarios": [
+    {
+      "name": "january",
+      "note": "The expensive first pass. Everything after this is the measurement.",
+      "profile": "ArmProfile(name='hermes-tui', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.FLAT: 'flat'>, persistent_sessions=True, multi_party=False, clarification=True, accepts_images=False, scheduler=True, notes='The TUI gateway JSON-RPC surface (`python -m tui_gateway.entry`), documented by hermes as a public integration protocol. prompt.submit returns at status=streaming; session.steer injects into the running tool batch and session.redirect replaces the in-flight model call; clarify.request/clarify.respond is a real blocking question channel; session.resume/branch continue the same SQLite sessions the CLI writes. Senders are still text in one session \u2014 multi-person identity is a messaging-gateway capability this surface does not carry.')",
+      "reply": {
+        "ok": true,
+        "text": "Report submitted successfully for **January**.\n\nTop three vendors:\n1. Kestrel Tooling \u2014 23,569\n2. Ostrava Metals \u2014 14,058\n3. Trellis Packaging \u2014 13,297\n\nAPI response: `{\"status\":\"received\"}`\n\nSession remains open for your follow-up.",
+        "meta": {
+          "status": "complete",
+          "submit_status": "streaming",
+          "usage": {
+            "model": "openai/gpt-5.6-sol",
+            "input": 6,
+            "output": 509,
+            "reasoning": 70,
+            "prompt": 28006,
+            "completion": 509,
+            "total": 28515,
+            "calls": 2,
+            "context_used": 14291,
+            "context_max": 1050000,
+            "context_percent": 1,
+            "compressions": 0,
+            "active_subagents": 0
+          }
+        }
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "auth",
+            "n": 1,
+            "at": "2026-08-07T12:01:13.422315+00:00"
+          },
+          {
+            "waypoint": "ledger_january",
+            "n": 1,
+            "at": "2026-08-07T12:01:14.928216+00:00"
+          },
+          {
+            "waypoint": "report",
+            "n": 1,
+            "at": "2026-08-07T12:01:14.928789+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "auth",
+            "at": "2026-08-07T12:01:13.422339+00:00",
+            "payload": {
+              "attempt": 1
+            }
+          },
+          {
+            "seq": 2,
+            "kind": "ledger",
+            "at": "2026-08-07T12:01:14.928228+00:00",
+            "payload": {
+              "month": "january"
+            }
+          },
+          {
+            "seq": 3,
+            "kind": "report",
+            "at": "2026-08-07T12:01:14.928799+00:00",
+            "payload": {
+              "month": "january",
+              "top_vendors": [
+                "Kestrel Tooling",
+                "Ostrava Metals",
+                "Trellis Packaging"
+              ]
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "january",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "january",
+          "passed": true,
+          "checks": {
+            "reported_once": true,
+            "right_month": true,
+            "right_vendors": true
+          },
+          "failures": [],
+          "evidence": {
+            "reports": 1,
+            "got": [
+              "Kestrel Tooling",
+              "Ostrava Metals",
+              "Trellis Packaging"
+            ],
+            "expected": [
+              "Kestrel Tooling",
+              "Ostrava Metals",
+              "Trellis Packaging"
+            ],
+            "auth_calls": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "february_followup",
+      "note": "Deliberately terse, the way a follow-up actually arrives. Nothing here restates the API, the task, or the credentials.",
+      "profile": "ArmProfile(name='hermes-tui', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.FLAT: 'flat'>, persistent_sessions=True, multi_party=False, clarification=True, accepts_images=False, scheduler=True, notes='The TUI gateway JSON-RPC surface (`python -m tui_gateway.entry`), documented by hermes as a public integration protocol. prompt.submit returns at status=streaming; session.steer injects into the running tool batch and session.redirect replaces the in-flight model call; clarify.request/clarify.respond is a real blocking question channel; session.resume/branch continue the same SQLite sessions the CLI writes. Senders are still text in one session \u2014 multi-person identity is a messaging-gateway capability this surface does not carry.')",
+      "reply": {
+        "ok": true,
+        "text": "February report submitted successfully.\n\nTop three vendors:\n1. Trellis Packaging \u2014 22,256\n2. Bergen Chemical \u2014 19,089\n3. Halden Freight \u2014 14,849\n\nAPI response: `{\"status\":\"received\"}`",
+        "meta": {
+          "status": "complete",
+          "submit_status": "streaming",
+          "usage": {
+            "model": "openai/gpt-5.6-sol",
+            "input": 12,
+            "output": 963,
+            "reasoning": 89,
+            "prompt": 57335,
+            "completion": 963,
+            "total": 58298,
+            "calls": 4,
+            "context_used": 14955,
+            "context_max": 1050000,
+            "context_percent": 1,
+            "compressions": 0,
+            "active_subagents": 0
+          }
+        }
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "auth",
+            "n": 1,
+            "at": "2026-08-07T12:01:26.185983+00:00"
+          },
+          {
+            "waypoint": "ledger_february",
+            "n": 1,
+            "at": "2026-08-07T12:01:27.690233+00:00"
+          },
+          {
+            "waypoint": "report",
+            "n": 1,
+            "at": "2026-08-07T12:01:27.691454+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "auth",
+            "at": "2026-08-07T12:01:26.185996+00:00",
+            "payload": {
+              "attempt": 1
+            }
+          },
+          {
+            "seq": 2,
+            "kind": "ledger",
+            "at": "2026-08-07T12:01:27.690263+00:00",
+            "payload": {
+              "month": "february"
+            }
+          },
+          {
+            "seq": 3,
+            "kind": "report",
+            "at": "2026-08-07T12:01:27.691485+00:00",
+            "payload": {
+              "month": "february",
+              "top_vendors": [
+                "Trellis Packaging",
+                "Bergen Chemical",
+                "Halden Freight"
+              ]
+            }
+          }
+        ]
+      },
+      "result": {
+        "scenario": "february_followup",
+        "outcome": "degraded",
+        "reason": "correct, but re-authenticated 1x \u2014 the first pass was thrown away",
+        "detail": {
+          "name": "february_followup",
+          "passed": true,
+          "checks": {
+            "reported_once": true,
+            "right_month": true,
+            "right_vendors": true
+          },
+          "failures": [],
+          "evidence": {
+            "reports": 1,
+            "got": [
+              "Trellis Packaging",
+              "Bergen Chemical",
+              "Halden Freight"
+            ],
+            "expected": [
+              "Trellis Packaging",
+              "Bergen Chemical",
+              "Halden Freight"
+            ],
+            "auth_calls": 1
+          }
+        }
+      }
+    }
+  ],
+  "profile": "hermes-tui",
+  "artifacts": {
+    "run_id": "2026-08-07T12-00-57Z-hermes-tui-0be2fd",
+    "results_dir": "/Users/yushaarif/Unify/colleague/colleague/tracks/continuity/results/2026-08-07T12-00-57Z-hermes-tui-0be2fd",
+    "ledger": "/Users/yushaarif/Unify/colleague/colleague/tracks/continuity/results/2026-08-07T12-00-57Z-hermes-tui-0be2fd/proxy_ledger.jsonl",
+    "hermes_home": "/Users/yushaarif/Unify/colleague/colleague/tracks/continuity/results/2026-08-07T12-00-57Z-hermes-tui-0be2fd/hermes_home",
+    "protocol_log": "/Users/yushaarif/Unify/colleague/colleague/tracks/continuity/results/2026-08-07T12-00-57Z-hermes-tui-0be2fd/hermes_tui_protocol.jsonl",
+    "session_id": "602b533d",
+    "stored_session_id": "20260807_170057_b07f9e",
+    "prompt_events": []
+  },
+  "summary": {
+    "total_scenarios": 2,
+    "scoreable": 2,
+    "credited": 2,
+    "accuracy": 1.0,
+    "by_outcome": {
+      "pass": 1,
+      "degraded": 1
+    },
+    "results": [
+      {
+        "scenario": "january",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "january",
+          "passed": true,
+          "checks": {
+            "reported_once": true,
+            "right_month": true,
+            "right_vendors": true
+          },
+          "failures": [],
+          "evidence": {
+            "reports": 1,
+            "got": [
+              "Kestrel Tooling",
+              "Ostrava Metals",
+              "Trellis Packaging"
+            ],
+            "expected": [
+              "Kestrel Tooling",
+              "Ostrava Metals",
+              "Trellis Packaging"
+            ],
+            "auth_calls": 1
+          }
+        }
+      },
+      {
+        "scenario": "february_followup",
+        "outcome": "degraded",
+        "reason": "correct, but re-authenticated 1x \u2014 the first pass was thrown away",
+        "detail": {
+          "name": "february_followup",
+          "passed": true,
+          "checks": {
+            "reported_once": true,
+            "right_month": true,
+            "right_vendors": true
+          },
+          "failures": [],
+          "evidence": {
+            "reports": 1,
+            "got": [
+              "Trellis Packaging",
+              "Bergen Chemical",
+              "Halden Freight"
+            ],
+            "expected": [
+              "Trellis Packaging",
+              "Bergen Chemical",
+              "Halden Freight"
+            ],
+            "auth_calls": 1
+          }
+        }
+      }
+    ]
+  }
+}
