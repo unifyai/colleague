@@ -42,7 +42,10 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
                 "  - sales, weekly, to daniel\n"
                 "  - support, weekly, to daniel\n"
                 "  - finance, monthly, to the cfo\n"
-                "Create all three."
+                "Recipients are plain labels the digest service resolves on "
+                "its own side — pass them as given, they are not email "
+                "addresses for you to look up. You have everything you need; "
+                "create all three now."
             ),
             "note": (
                 "Corrections arrive after the first and second creations, "

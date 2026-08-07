@@ -15,6 +15,29 @@ admission, and a reader is entitled to discount the result accordingly. The
 rule is that a change is `[wrong]` only if it would have mismeasured a
 *competent arm of any architecture* — not merely if unify failed it.
 
+## 2026-08-07
+
+**`[wrong]` concurrency/route_corrections — the request posed an
+unanswerable clarification.** "finance, monthly, to the cfo" names a
+recipient with no address, and the fixture accepts any string
+(`"recipient": "<str>"` — the mock posts `cfo` verbatim). An arm whose
+policy is never to invent a recipient identifier reads that as a missing
+fact: the unify-cm trajectory shows the brain excluding finance at
+dispatch ("do not guess it"), asking Daniel "What email or recipient
+value should I use for the CFO on finance?" — a legitimate question this
+track alone gives no persona to answer — then holding the exclusion
+through both corrections and reporting it honestly. Final state 2/3
+digests, scored FAIL, previously misread as "mid-batch interjections drop
+remaining batch work". The request now states that recipients are plain
+labels the digest service resolves ("pass them as given"), which is what
+the fixture always meant. Ask-first arms of any architecture were
+mismeasurable; the corrections-routing behavior the track exists to
+measure is untouched. Discount consideration, stated plainly: the change
+was motivated by a unify-cm failure, but the alternative reading —
+wiring a persona to answer the question — would have changed the track's
+shape more (a scored clarification loop) rather than removing an
+ambiguity the fixture never intended to pose.
+
 ## 2026-08-05
 
 **`[wrong]` all conversational fixtures — mutating routes were
