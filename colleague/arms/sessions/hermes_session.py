@@ -29,7 +29,6 @@ from colleague.arms.sessions.cli_base import CliSession
 from colleague.harness.capability import PROFILES
 from colleague.harness.session import Reply, RunHandle, ThreadedRunHandle, compose
 
-
 #: The CLI announces the durable session key two ways: quiet mode prints
 #: `session_id: <id>` and interactive exit prints `--resume <id>`. Both land
 #: in the combined log because stderr is folded into it.

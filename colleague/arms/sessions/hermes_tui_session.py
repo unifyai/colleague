@@ -316,12 +316,8 @@ class HermesTuiSession(CliSession):
                     "session.resume",
                     {"session_id": target, "cols": 120},
                 )
-                self._session_id = str(
-                    resumed.get("session_id") or self._session_id
-                )
-                self._stored_session_id = str(
-                    resumed.get("session_key") or target
-                )
+                self._session_id = str(resumed.get("session_id") or self._session_id)
+                self._stored_session_id = str(resumed.get("session_key") or target)
             except GatewayError as exc:
                 # A failed resume falls through to a turn on the live session
                 # — the protocol log shows the attempt and the failure.
@@ -505,9 +501,7 @@ class HermesTuiSession(CliSession):
         self._alive = False
         with self._pending_lock:
             for pending in self._pending.values():
-                pending.response = {
-                    "error": {"code": -1, "message": "gateway exited"}
-                }
+                pending.response = {"error": {"code": -1, "message": "gateway exited"}}
                 pending.event.set()
             self._pending.clear()
         with self._turn_lock:
@@ -556,8 +550,10 @@ class HermesTuiSession(CliSession):
         question = str(payload.get("question") or "")
         choices = [str(c) for c in (payload.get("choices") or [])]
         request_id = str(payload.get("request_id") or "")
-        asked = question if not choices else (
-            question + "\nOptions: " + " | ".join(choices)
+        asked = (
+            question
+            if not choices
+            else (question + "\nOptions: " + " | ".join(choices))
         )
         responder = self._responder
         answer = responder(asked) if responder is not None else "No answer available."
@@ -613,9 +609,7 @@ class HermesTuiSession(CliSession):
     def _log(self, direction: str, frame: dict[str, Any]) -> None:
         entry = {"ts": time.time(), "dir": direction, "frame": frame}
         try:
-            with self._log_lock, open(
-                self.protocol_log, "a", encoding="utf-8"
-            ) as fh:
+            with self._log_lock, open(self.protocol_log, "a", encoding="utf-8") as fh:
                 fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
         except Exception:  # noqa: BLE001 - logging must never break a turn
             pass

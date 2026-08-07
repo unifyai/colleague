@@ -335,8 +335,8 @@ class UnifyCMSession(ArmSession):
         _prime_environment()
         self._loop = _LoopThread()
 
-        import unisdk
         import unify as unify_pkg
+        import unisdk
         from unify.common.context_registry import ContextRegistry
         from unify.manager_registry import ManagerRegistry
         from unify.session_details import (
@@ -385,11 +385,11 @@ class UnifyCMSession(ArmSession):
             start_async,
             stop_async,
         )
+        from unify.conversation_manager.domains import managers_utils
         from unify.conversation_manager.event_broker import (
             get_event_broker,
             reset_event_broker,
         )
-        from unify.conversation_manager.domains import managers_utils
 
         # A previous session in this process may not have closed cleanly.
         if get_conversation_manager() is not None:
@@ -467,10 +467,9 @@ class UnifyCMSession(ArmSession):
         # Not cosmetic: a custody run refused an entitled disclosure citing
         # "authorization from <operator>" before this was pinned.
         boss = self._contact_dict(SESSION_DETAILS.boss_contact_id)
-        if (
-            (boss.get("first_name") or "").strip() != _BOSS_FIRST_NAME
-            or (boss.get("email_address") or "").strip() != _BOSS_EMAIL
-        ):
+        if (boss.get("first_name") or "").strip() != _BOSS_FIRST_NAME or (
+            boss.get("email_address") or ""
+        ).strip() != _BOSS_EMAIL:
             cm.contact_manager.update_contact(
                 contact_id=SESSION_DETAILS.boss_contact_id,
                 first_name=_BOSS_FIRST_NAME,
@@ -835,14 +834,9 @@ class UnifyCMSession(ArmSession):
                 cm = self._cm
                 deb = cm.debouncer
                 debouncer_idle = all(
-                    t is None or t.done()
-                    for t in (deb.pending_task, deb.running_task)
+                    t is None or t.done() for t in (deb.pending_task, deb.running_task)
                 )
-                if (
-                    cm._pending_llm_requests
-                    and debouncer_idle
-                    and not self._llm_active
-                ):
+                if cm._pending_llm_requests and debouncer_idle and not self._llm_active:
                     pending_stall += 1
                     if pending_stall >= 4:  # ~1s of pure stall
                         pending_stall = 0
@@ -922,9 +916,7 @@ class UnifyCMSession(ArmSession):
         ]
         tools = self._tool_log[item.tools_start :]
         steering = [
-            t
-            for t in tools
-            if t == "act" or t.split("_", 1)[0] in _STEERING_PREFIXES
+            t for t in tools if t == "act" or t.split("_", 1)[0] in _STEERING_PREFIXES
         ]
         silent = ("wait" in tools) and not sent_to_trigger
         meta = {
