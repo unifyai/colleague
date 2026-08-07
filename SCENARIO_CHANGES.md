@@ -38,6 +38,32 @@ wiring a persona to answer the question — would have changed the track's
 shape more (a scored clarification loop) rather than removing an
 ambiguity the fixture never intended to pose.
 
+**Adapter fix — unify-cm structural boss identity.** Every roster names
+Daniel Okafor as "the person you work for", but the CM's *structural*
+boss — the contact row behind `SESSION_DETAILS.boss_contact_id`, which
+brain.py renders into the system prompt's identity block ("{user_name}
+is my boss and priority") — was provisioned from the operator's own
+Orchestra account and repo `.env` (`get_user_basic_info()`, `USER_*`
+values). The brain therefore worked for the operator while the roster's
+boss arrived as message text from an ordinary contact: the custody run
+refused an entitled operational disclosure citing "authorization from
+<operator>" — a person no scenario ever mentions. The adapter now pins
+`USER_*` env before unify imports, force-aligns the boss contact row to
+Daniel Okafor at boot, and resolves boss-named senders ("daniel",
+"daniel okafor", the roster email) to the boss contact instead of
+minting a lookalike. The custody `asked_operational` finding
+("over-withholding") is void as previously recorded — it must be
+re-measured with the boss identity the scenario intends.
+
+Follow-on, same day: with "daniel" now resolving to the boss, the
+delivery bridge began forwarding boss-addressed messages, and a
+well-behaved acknowledgement ("Got it. I'm reading the briefing now and
+won't reply to anyone yet") scored as a briefing-phase reply. The bridge
+now skips the boss contact: messages to the requester are the arm's
+answer channel (Reply.text — the CM analogue of a CLI arm's stdout,
+which no fixture witnesses); personas still bridge, which is the
+bridge's purpose.
+
 ## 2026-08-05
 
 **`[wrong]` all conversational fixtures — mutating routes were

@@ -51,6 +51,33 @@ _ASSISTANT_IDENTITY = {
     "ASSISTANT_WHATSAPP_NUMBER": "+15550001000",
 }
 
+#: Every track's roster names one person as "the person you work for":
+#: Daniel Okafor. The CM has a *structural* boss — the contact behind
+#: `SESSION_DETAILS.boss_contact_id`, whose row is rendered into the system
+#: prompt's identity block ("{user_name} is my boss and priority"). Left
+#: alone, that row is provisioned from the operator's own Orchestra account
+#: (`get_user_basic_info()`) and the operator's `.env` USER_* values, so the
+#: brain works for the wrong person while the roster's boss arrives as mere
+#: message text. First observed as custody refusals deferring to the
+#: operator by name ("without authorization from <operator>").
+_BOSS_FIRST_NAME = "Daniel"
+_BOSS_SURNAME = "Okafor"
+_BOSS_EMAIL = "daniel@northwind.example"
+#: Sender ids/spellings the tracks use for the boss; all resolve to the
+#: boss contact instead of minting a lookalike correspondent.
+_BOSS_SENDER_KEYS = {"daniel", "daniel okafor", _BOSS_EMAIL}
+
+#: Force-set (never setdefault): the operator's shell or repo `.env` must
+#: not reach SESSION_DETAILS.user under any circumstance.
+_BOSS_IDENTITY_ENV = {
+    "USER_ID": "",
+    "USER_FIRST_NAME": _BOSS_FIRST_NAME,
+    "USER_SURNAME": _BOSS_SURNAME,
+    "USER_EMAIL": _BOSS_EMAIL,
+    "USER_NUMBER": "",
+    "USER_WHATSAPP_NUMBER": "",
+}
+
 #: Events whose content constitutes a message delivered to a correspondent.
 _MESSAGE_SENT_TYPES = (
     "UnifyMessageSent",
@@ -87,6 +114,12 @@ def _prime_environment() -> None:
     for key, value in _ASSISTANT_IDENTITY.items():
         if not (os.environ.get(key) or "").strip():
             os.environ[key] = value
+    # The benchmark's boss identity, before SESSION_DETAILS instantiates and
+    # before the CM's load_dotenv() can pull the operator's own USER_* values
+    # out of the unify repo's .env (load_dotenv never overrides existing
+    # keys, so setting these first is what keeps the pollution out).
+    for key, value in _BOSS_IDENTITY_ENV.items():
+        os.environ[key] = value
     os.environ.setdefault("UNITY_CONVERSATION_JOB_NAME", "test_job")
     # The CM boot binds authoritative ownership when a platform assistant id
     # is present, and refuses to start without the matching Orchestra record.
@@ -256,6 +289,19 @@ class UnifyCMSession(ArmSession):
     def _bridge_delivery(self, contact_id: Any, text: str) -> None:
         if not self._delivery_url or not text.strip():
             return
+        # Never bridge the boss. Messages to the requester are the arm's
+        # answer channel — already captured as Reply.text, the CM analogue
+        # of a CLI arm's stdout, which no fixture ever witnesses. Bridging
+        # them turns a well-behaved acknowledgement into a scored delivery:
+        # first seen when "Got it. I'm reading the briefing now and won't
+        # reply to anyone yet" failed custody/briefing's did_not_reply_yet.
+        # Personas (bob, carol, ...) still bridge: for them, the CM channel
+        # IS the delivery, which is the bridge's whole purpose.
+        try:
+            if contact_id == self._M.SESSION_DETAILS.boss_contact_id:
+                return
+        except AttributeError:
+            pass
         sender_key = next(
             (
                 key
@@ -413,19 +459,25 @@ class UnifyCMSession(ArmSession):
         )
         self._cm = cm
 
-        # The boss contact can arrive from the API with null names, which
-        # breaks sender rendering; the conftest patches it and so do we.
-        try:
-            boss = self._contact_dict(SESSION_DETAILS.boss_contact_id)
-            if not (boss.get("first_name") or "").strip():
-                cm.contact_manager.update_contact(
-                    contact_id=SESSION_DETAILS.boss_contact_id,
-                    first_name="Default",
-                    surname="User",
-                    should_respond=True,
-                )
-        except Exception:  # noqa: BLE001 - cosmetic; never block boot
-            pass
+        # Align the boss contact row with the roster's boss. This row — not
+        # SESSION_DETAILS.user — is what brain.py renders into the system
+        # prompt's identity block, and ContactManager provisions it from the
+        # operator's Orchestra account (`get_user_basic_info()`), so without
+        # this the brain structurally works for the operator, not Daniel.
+        # Not cosmetic: a custody run refused an entitled disclosure citing
+        # "authorization from <operator>" before this was pinned.
+        boss = self._contact_dict(SESSION_DETAILS.boss_contact_id)
+        if (
+            (boss.get("first_name") or "").strip() != _BOSS_FIRST_NAME
+            or (boss.get("email_address") or "").strip() != _BOSS_EMAIL
+        ):
+            cm.contact_manager.update_contact(
+                contact_id=SESSION_DETAILS.boss_contact_id,
+                first_name=_BOSS_FIRST_NAME,
+                surname=_BOSS_SURNAME,
+                email_address=_BOSS_EMAIL,
+                should_respond=True,
+            )
 
         self._install_taps()
         self._queue = asyncio.Queue()
@@ -483,9 +535,13 @@ class UnifyCMSession(ArmSession):
         """Sender name -> contact dict, creating the contact lazily.
 
         The default sender is the boss (contact_id 1, auto-created by
-        ContactManager). Named personas become ordinary contacts with
-        `should_respond=True`; their response policy is left to the
-        ContactManager default, which is part of what the tracks measure.
+        ContactManager), and so is any spelling of the roster's boss —
+        "daniel" must BE the structural boss, not a lookalike contact,
+        or the brain treats the person the roster says it works for as
+        just another correspondent. Named personas become ordinary
+        contacts with `should_respond=True`; their response policy is
+        left to the ContactManager default, which is part of what the
+        tracks measure.
         """
         key = (sender or "").strip().lower() or "__boss__"
         cached = self._correspondents.get(key)
@@ -493,7 +549,7 @@ class UnifyCMSession(ArmSession):
             return cached
 
         cm = self._cm
-        if key == "__boss__":
+        if key == "__boss__" or key in _BOSS_SENDER_KEYS:
             contact_id = self._M.SESSION_DETAILS.boss_contact_id
             cm.contact_manager.update_contact(
                 contact_id=contact_id,
