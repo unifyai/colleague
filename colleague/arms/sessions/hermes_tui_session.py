@@ -196,7 +196,7 @@ class HermesTuiSession(CliSession):
             self.close()
             raise GatewayError(
                 f"gateway.ready never arrived within {_READY_TIMEOUT_S}s "
-                f"(see {self.log_path})"
+                f"(see {self.log_path})",
             )
         created = self._rpc(
             "session.create",
@@ -453,7 +453,7 @@ class HermesTuiSession(CliSession):
         if resp.get("error"):
             err = resp["error"]
             raise GatewayError(
-                f"{rpc_method} failed: code {err.get('code')} {err.get('message')}"
+                f"{rpc_method} failed: code {err.get('code')} {err.get('message')}",
             )
         result = resp.get("result")
         return result if isinstance(result, dict) else {}

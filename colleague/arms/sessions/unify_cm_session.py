@@ -244,7 +244,7 @@ class UnifyCMSession(ArmSession):
         results_dir: Any = None,
     ) -> None:
         self.run_id = run_id or datetime.now(timezone.utc).strftime(
-            "%Y-%m-%dT%H-%M-%SZ"
+            "%Y-%m-%dT%H-%M-%SZ",
         )
         self.track = track
         self.project = project or os.environ.get("COLLEAGUE_PROJECT", "Benchmarks")
