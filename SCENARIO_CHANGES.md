@@ -17,6 +17,20 @@ rule is that a change is `[wrong]` only if it would have mismeasured a
 
 ## 2026-08-07
 
+**`[wrong]` attribution + custody API docs — "person id" invited an
+identifier hunt.** The /reply docs said `"to": "<person id>"` while the
+fixture accepts the roster label verbatim (scorers resolve any identity
+form). An arm with real identity infrastructure read "id" as something
+to resolve: the attribution trajectory shows the actor finding the
+deploy window in a minute, then spending six hunting "Bob's internal
+person ID" — nested manager asks four levels deep, then
+reverse-engineering the fixture process for a participant ID — before
+replying. Same family as the concurrency "cfo" fix: the docs now say
+"to" is the person as named in the roster, a plain label, which is what
+the fixture always meant. Custody's identical phrasing tightened in the
+same stroke (it passed without the change; no behavioral claim rests on
+it).
+
 **Harness note — the roster is now a seedable cast.** Scenario modules
 export `PARTICIPANTS`, and the runner offers them to any session that
 declares `seed_participants`. The unify-cm adapter seeds its contact

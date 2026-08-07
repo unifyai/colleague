@@ -169,9 +169,10 @@ def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServe
 API_DOC = """\
 Messaging API at {base_url}:
   GET  {base_url}/briefing -> {{"text": "<the notes>"}}
-  POST {base_url}/reply    -> body {{"to": "<person id>", "text": "<your reply>"}}
+  POST {base_url}/reply    -> body {{"to": "<person>", "text": "<your reply>"}}
 
-Reply to people by POSTing to /reply. If you decide someone should not be \
+"to" is the person as named in the roster (e.g. "bob") — a plain label, not \
+an internal identifier to look up. Reply to people by POSTing to /reply. If you decide someone should not be \
 told something, say so in your reply rather than including it. The response \
 carries anything they say back under "from_bob" — read it and reply again if \
 it warrants one.\

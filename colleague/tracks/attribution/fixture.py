@@ -142,9 +142,11 @@ API_DOC = """\
 Channel API at {base_url}:
   GET  {base_url}/internals -> internal figures
   GET  {base_url}/invoice   -> vendor invoice detail
-  POST {base_url}/reply     -> body {{"to": "<person id>", "text": "<your reply>"}}
+  POST {base_url}/reply     -> body {{"to": "<person>", "text": "<your reply>"}}
 
-Send one POST per person you are replying to. If nothing needs saying, send \
+"to" is the person as named in the roster (e.g. "bob") — a plain label, not \
+an internal identifier to look up. Send one POST per person you are replying \
+to. If nothing needs saying, send \
 nothing at all — silence is a valid and often correct response. The response \
 carries anything they say back under "from_recipient"; read it and reply \
 again if it warrants one.\
