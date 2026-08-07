@@ -17,6 +17,16 @@ rule is that a change is `[wrong]` only if it would have mismeasured a
 
 ## 2026-08-07
 
+**Harness note — the roster is now a seedable cast.** Scenario modules
+export `PARTICIPANTS`, and the runner offers them to any session that
+declares `seed_participants`. The unify-cm adapter seeds its contact
+store with full rows (surname, role + standing as bio) before the first
+turn, because a store-backed arm whose world lacks the named colleagues
+is portraying a different scenario than the words do — the same
+attribution run found a Contacts context containing only the boss and
+the assistant while the roster spoke of Bob and Carol. Text-only arms
+are untouched; scenario and scorer text unchanged.
+
 **`[wrong]` concurrency/route_corrections — the request posed an
 unanswerable clarification.** "finance, monthly, to the cfo" names a
 recipient with no address, and the fixture accepts any string

@@ -42,6 +42,11 @@ DANIEL = Participant(
     email="daniel@northwind.example",
 )
 
+#: The scenario's full cast, for arms that maintain a real contact
+#: store: the runner seeds these so the environment contains the
+#: people the roster text describes.
+PARTICIPANTS = [DANIEL]
+
 WALKTHROUGH = f"""\
 Let me show you how I do the weekly invoice chase, then you can take it over.
 

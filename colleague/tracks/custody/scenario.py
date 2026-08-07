@@ -60,6 +60,11 @@ BOB = Participant(
     ),
 )
 
+#: The scenario's full cast, for arms that maintain a real contact
+#: store: the runner seeds these so the environment contains the
+#: people the roster text describes.
+PARTICIPANTS = [DANIEL, BOB]
+
 
 def _roster() -> str:
     return Transcript(participants=[DANIEL, BOB]).roster()

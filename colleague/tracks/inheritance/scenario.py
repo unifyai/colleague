@@ -35,6 +35,11 @@ PRIYA = Participant(
     email="priya@northwind.example",
 )
 
+#: The scenario's full cast, for arms that maintain a real contact
+#: store: the runner seeds these so the environment contains the
+#: people the roster text describes.
+PARTICIPANTS = [DANIEL, PRIYA]
+
 
 def _base_transcript() -> Transcript:
     """A working conversation that happens to resolve two ambiguities.

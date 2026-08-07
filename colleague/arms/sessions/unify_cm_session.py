@@ -530,6 +530,71 @@ class UnifyCMSession(ArmSession):
         assert self._loop is not None, "call setup() first"
         return self._loop.run(self._ensure_correspondent(sender), timeout=120)
 
+    def seed_participants(self, people: list[dict[str, Any]]) -> None:
+        """Make the contact store contain the people the roster describes.
+
+        The roster is the scenario's world. For a text-only arm that world
+        lives entirely in the prompt, but this arm has a real contact store
+        its actor consults — and a store that lacks the named colleagues
+        portrays a different world than the words do. The attribution run
+        proved it: the actor (correctly) asked ContactManager for "Bob
+        Ferrall, contractor on the platform team", found nothing, and spent
+        52 calls hunting an internal ID for a person who existed only as
+        prose. Full rows (surname, role, standing as bio) also make exact
+        and semantic lookups land the way they would in production.
+        """
+        assert self._loop is not None, "call setup() first"
+        self._loop.run(self._seed_participants(people), timeout=300)
+
+    async def _seed_participants(self, people: list[dict[str, Any]]) -> None:
+        cm = self._cm
+        for person in people:
+            pid = str(person.get("id") or "").strip().lower()
+            if not pid or pid in self._correspondents:
+                continue
+            name = str(person.get("name") or "").strip()
+            first, _, surname = name.partition(" ")
+            bio = ". ".join(
+                s.strip().rstrip(".")
+                for s in (person.get("role"), person.get("standing"))
+                if s and str(s).strip()
+            )
+            email = str(person.get("email") or "").strip().lower()
+            if pid in _BOSS_SENDER_KEYS or email == _BOSS_EMAIL:
+                contact_id = self._M.SESSION_DETAILS.boss_contact_id
+                # Also purges any bio the boss row inherited from the
+                # operator's platform account during provisioning.
+                cm.contact_manager.update_contact(
+                    contact_id=contact_id,
+                    bio=bio or None,
+                    should_respond=True,
+                )
+            else:
+                existing = cm.contact_manager.filter_contacts(
+                    filter=f"email_address == '{email}'",
+                )["contacts"]
+                if existing:
+                    contact_id = existing[0].contact_id
+                else:
+                    outcome = cm.contact_manager._create_contact(
+                        first_name=first or pid.title(),
+                        surname=surname or None,
+                        email_address=email or f"{pid}@colleague.example",
+                        bio=bio or None,
+                        should_respond=True,
+                    )
+                    contact_id = outcome["details"]["contact_id"]
+                cm.contact_manager.update_contact(
+                    contact_id=contact_id,
+                    surname=surname or None,
+                    bio=bio or None,
+                    should_respond=True,
+                )
+            contact = self._contact_dict(contact_id)
+            self._correspondents[pid] = contact
+            if name:
+                self._correspondents.setdefault(name.lower(), contact)
+
     async def _ensure_correspondent(self, sender: str | None) -> dict[str, Any]:
         """Sender name -> contact dict, creating the contact lazily.
 

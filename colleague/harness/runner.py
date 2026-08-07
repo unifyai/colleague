@@ -200,6 +200,27 @@ def run_track(
                 if hasattr(session, "bind_delivery"):
                     session.bind_delivery(fixture.base_url, fixture.post_paths)
 
+                # An arm with a real contact store gets an environment that
+                # contains the people the roster text describes. Text-only
+                # arms are unaffected; without this, a store-backed arm's
+                # (correct) lookup of a named colleague finds nothing — one
+                # burned 52 calls hunting an ID for a Bob that existed only
+                # as prose.
+                cast = getattr(scenario_module, "PARTICIPANTS", None)
+                if cast and hasattr(session, "seed_participants"):
+                    session.seed_participants(
+                        [
+                            {
+                                "id": p.id,
+                                "name": p.name,
+                                "role": p.role,
+                                "email": p.email,
+                                "standing": p.standing,
+                            }
+                            for p in cast
+                        ],
+                    )
+
                 # The arm asks through its own channel; the fixture provides
                 # none. Whoever the track has cast answers.
                 pool = fixture.state.get("personas")

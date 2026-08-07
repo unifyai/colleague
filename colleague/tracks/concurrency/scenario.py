@@ -28,6 +28,11 @@ DANIEL = Participant(
     email="daniel@northwind.example",
 )
 
+#: The scenario's full cast, for arms that maintain a real contact
+#: store: the runner seeds these so the environment contains the
+#: people the roster text describes.
+PARTICIPANTS = [DANIEL]
+
 
 def scenarios(base_url: str) -> list[dict[str, Any]]:
     api = API_DOC.format(base_url=base_url)
