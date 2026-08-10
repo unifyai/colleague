@@ -129,6 +129,14 @@ def _prime_environment() -> None:
     # demand a record that does not exist. Pin it empty unless the operator
     # explicitly exported one.
     os.environ.setdefault("ASSISTANT_ID", "")
+    # The sanctioned way to run the CM under a pre-bound context root:
+    # SETTINGS.TEST makes resolve_runtime_context_root() honor the active
+    # context this arm binds in setup(). Without it, bind_runtime_context_root
+    # treats the unassigned-identity root "default/0" as authoritative and
+    # routes lazily-resolved storage to the PROJECT root — cross-run contact
+    # pollution, duplicate boss rows, and doubled default/0 path segments.
+    # The CM conftest pins this too (tests/conversation_manager/conftest.py).
+    os.environ.setdefault("TEST", "true")
     # No orchestrator respawns this process; never let the CM shut itself
     # down between scenario turns.
     os.environ.setdefault("UNITY_INACTIVITY_TIMEOUT_SECONDS", "0")
