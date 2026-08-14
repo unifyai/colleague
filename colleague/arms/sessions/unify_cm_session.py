@@ -377,7 +377,11 @@ class UnifyCMSession(ArmSession):
         if self.ledger is None:
             from colleague.harness.llm_ledger import LLMLedger
 
-            self.ledger = LLMLedger()
+            capture = None
+            if os.environ.get("COLLEAGUE_CAPTURE_REQUESTS") and self.results_dir:
+                self.results_dir.mkdir(parents=True, exist_ok=True)
+                capture = self.results_dir / "requests.jsonl"
+            self.ledger = LLMLedger(capture_requests_path=capture)
         self.ledger.install()
 
     async def _boot(self) -> None:

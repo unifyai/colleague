@@ -334,7 +334,12 @@ class LLMLedger:
                     ) as f:
                         f.write(
                             json.dumps(
-                                {"ts": record.ts, "request": event.request},
+                                {
+                                    "ts": record.ts,
+                                    "origin": record.origin,
+                                    "request": event.request,
+                                    "response": getattr(event, "response", None),
+                                },
                                 default=str,
                             )
                             + "\n",
