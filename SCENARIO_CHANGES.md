@@ -73,6 +73,16 @@ when the arm has no live channel, and every line records how it got there.
 shows repeats as a spread. `meeting` is the first track on it. No existing
 scenario is affected.
 
+**`teaching` — a rule that arrives as a correction.** Invoices now carry
+`payment_plan` (one vendor, stable, always over the threshold with this seed);
+`week_33_corrected` injects "skip anyone on a payment plan" after the first
+reminder and `week_34_replay_after_correction` measures it unprompted. Every
+`/remind` is held 3 s so the second cannot begin before the correction is in
+hand; weeks 31/32 run a few seconds longer and score exactly as before (their
+expected sets do not apply the rule, because the rule has not been given
+yet). The runner now drives a steerable continuation through `begin` on arms
+with a live channel, so a mid-run correction can reach a track-scoped turn.
+
 **Profiles.** `openclaw`'s notes now state that the profile describes the
 CLI surface the arm drives and that OpenClaw at HEAD documents a blocking
 `ask_user`, `steer` as default and multi-user session ownership on its

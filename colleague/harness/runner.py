@@ -28,7 +28,7 @@ from pathlib import Path
 from typing import Any
 
 from colleague.arms.sessions import build as build_session
-from colleague.harness.capability import Outcome, ScenarioResult, summarize
+from colleague.harness.capability import Outcome, ScenarioResult, Steering, summarize
 from colleague.harness.interlocutor import Interlocutor
 from colleague.harness.roleplay import RolePlayDirector
 from colleague.harness.scoring import infra_failure
@@ -246,7 +246,23 @@ def run_track(
                 # it has one. Arms without persistent sessions fall back to a
                 # cold turn, which is exactly the cost `continuity` measures —
                 # so this is not a special case, it is the measurement.
-                if live.get("continue") and hasattr(session, "resume"):
+                #
+                # A continuation that has to be *steerable* — scripted turns
+                # or a scene arrive while it runs — needs a live handle. An
+                # arm whose begin() is a turn on its standing session and whose
+                # steering is live gets one; any other arm keeps the blocking
+                # resume, whose handle refuses interjections, and the scenario
+                # resolves UNSUPPORTED — which is the truthful outcome.
+                steerable = bool(turns) or hasattr(scenario_module, "scene")
+                live_channel = (
+                    session.profile.steering == Steering.LIVE_INTERJECT
+                    and session.profile.persistent_sessions
+                )
+                if (
+                    live.get("continue")
+                    and hasattr(session, "resume")
+                    and not (steerable and live_channel)
+                ):
                     handle = _Resumed(session, live["request"], live.get("sender"))
                 else:
                     handle = session.begin(

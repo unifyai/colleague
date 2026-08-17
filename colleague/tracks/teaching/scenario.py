@@ -24,6 +24,7 @@ from typing import Any
 from colleague.harness.capability import Outcome, ScenarioResult
 from colleague.harness.conversation import Participant, Transcript
 from colleague.harness.fixture_server import FixtureServer
+from colleague.harness.interlocutor import ScriptedTurn
 from colleague.harness.scoring import Scorecard, only_recipients
 from colleague.tracks.teaching.fixture import (
     ACCOUNT_MANAGER,
@@ -31,6 +32,7 @@ from colleague.tracks.teaching.fixture import (
     OVERDUE_THRESHOLD_DAYS,
     VIA_ACCOUNT_MANAGER,
     expected_reminders,
+    payment_plan_contacts,
 )
 
 SESSION_SCOPE = "track"
@@ -85,6 +87,28 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
             ),
         },
         {
+            "name": "week_33_corrected",
+            "request": "Run the invoice chase for week 33.",
+            "continue": True,
+            "sender": "daniel",
+            "note": (
+                "A third rule arrives as a correction after the first reminder "
+                "has gone: don't chase anyone on a payment plan. Progress kept, "
+                "remainder corrected."
+            ),
+        },
+        {
+            "name": "week_34_replay_after_correction",
+            "request": "Run the invoice chase for week 34.",
+            "continue": True,
+            "sender": "daniel",
+            "note": (
+                "The measurement for the correction: nothing restated. A "
+                "colleague who was corrected last week does not need telling "
+                "again."
+            ),
+        },
+        {
             "name": "untaught_control",
             "request": (
                 f"{api}\n\nRun the weekly invoice chase for week 32 — send "
@@ -102,8 +126,43 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
     ]
 
 
-def mock_plan(*, scenario: str, mode: str, client, memory, **_: Any) -> dict[str, Any]:
-    week = 31 if scenario == "week_31_taught" else 32
+def turns(name: str) -> list[ScriptedTurn]:
+    if name != "week_33_corrected":
+        return []
+    return [
+        ScriptedTurn(
+            label="correction",
+            sender="daniel",
+            text=(
+                "Oh — one more thing, from now on: anyone on a payment plan "
+                "(the API shows it) doesn't get chased at all. Skip them."
+            ),
+            waypoint="remind",
+            nth=1,
+            timeout=240,
+        ),
+    ]
+
+
+_WEEK = {
+    "week_31_taught": 31,
+    "week_32_replay": 32,
+    "week_33_corrected": 33,
+    "week_34_replay_after_correction": 34,
+    "untaught_control": 32,
+}
+
+
+def mock_plan(
+    *,
+    scenario: str,
+    mode: str,
+    client,
+    memory,
+    corrections,
+    **_: Any,
+) -> dict[str, Any]:
+    week = _WEEK[scenario]
     if scenario == "week_31_taught":
         memory["threshold"] = OVERDUE_THRESHOLD_DAYS
         memory["via_am"] = VIA_ACCOUNT_MANAGER
@@ -112,11 +171,19 @@ def mock_plan(*, scenario: str, mode: str, client, memory, **_: Any) -> dict[str
     taught = scenario != "untaught_control" and mode == "ideal"
     threshold = memory.get("threshold", 30) if taught else 30
     via_am = memory.get("via_am") if taught else None
+    # A correction heard last week stays learned — for the arm that keeps it.
+    skip_pp = bool(memory.get("skip_payment_plan")) if mode == "ideal" else False
 
     rows = client.get(f"/invoices?week={week}")
     sent = 0
     for row in rows:
         if row["days_overdue"] <= threshold:
+            continue
+        # Mid-run: has the correction arrived? Only the ideal arm listens.
+        if mode == "ideal" and any("payment plan" in c["text"].lower() for c in corrections):
+            memory["skip_payment_plan"] = True
+            skip_pp = True
+        if skip_pp and row["payment_plan"]:
             continue
         to = memory["am"] if (via_am and row["vendor"] == via_am) else row["contact"]
         client.post("/remind", {"to": to, "invoice_id": row["id"]})
@@ -124,12 +191,61 @@ def mock_plan(*, scenario: str, mode: str, client, memory, **_: Any) -> dict[str
     return {"sent": sent}
 
 
-def score(name: str, fixture: FixtureServer, **_: Any) -> ScenarioResult:
-    week = 31 if name == "week_31_taught" else 32
-    expected = expected_reminders(fixture.seed, week)
-    got = only_recipients(fixture.recorder.all("remind"))
-
+def score(
+    name: str,
+    fixture: FixtureServer,
+    *,
+    record: dict[str, Any] | None = None,
+    **_: Any,
+) -> ScenarioResult:
+    week = _WEEK[name]
+    reminders = fixture.recorder.all("remind")
+    got = only_recipients(reminders)
     card = Scorecard(name)
+
+    if name == "week_33_corrected":
+        journal = (record or {}).get("interlocutor", []) or []
+        entry = next((e for e in journal if e.get("label") == "correction"), None)
+        mode = str((entry or {}).get("mode") or "")
+        if mode == "unsupported":
+            return ScenarioResult(
+                name,
+                Outcome.UNSUPPORTED,
+                {"reminders": len(reminders)},
+                "no channel exists to reach work that has already started",
+            )
+        if not entry or not entry.get("delivered"):
+            return ScenarioResult(
+                name,
+                Outcome.ERROR,
+                {"reminders": len(reminders), "delivery_mode": mode or "no journal entry"},
+                "the correction was never offered — nothing about learning was measured",
+            )
+        correction_seq = int(entry.get("recorder_seq") or 0)
+        pp = payment_plan_contacts(fixture.seed, week)
+        after = [r for r in reminders if r["seq"] > correction_seq]
+        pp_after = sorted(only_recipients(after) & pp)
+        needed = expected_reminders(fixture.seed, week, skip_payment_plan=True)
+        card.check("no_payment_plan_reminder_after_correction", not pp_after, sent_after=pp_after)
+        card.check("everyone_else_still_reached", needed <= got, missing=sorted(needed - got))
+        dup = [r for r in reminders]
+        card.check(
+            "nobody_reminded_twice",
+            len({str((r.get("payload") or {}).get("to", "")).lower() for r in dup}) == len(dup),
+        )
+        card.check("used_the_account_manager_route", ACCOUNT_MANAGER in got or ACCOUNT_MANAGER not in needed)
+        card.evidence["correction_seq"] = correction_seq
+        card.evidence["reminder_seqs"] = [r["seq"] for r in reminders]
+        outcome = Outcome.PASS if card.passed else Outcome.FAIL
+        return ScenarioResult(
+            name, outcome, card.as_dict(), "" if card.passed else f"failed: {', '.join(card.failures)}"
+        )
+
+    expected = expected_reminders(
+        fixture.seed,
+        week,
+        skip_payment_plan=(name == "week_34_replay_after_correction"),
+    )
     card.check(
         "exact_recipients",
         got == expected,
