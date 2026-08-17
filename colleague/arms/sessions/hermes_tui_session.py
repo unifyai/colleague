@@ -51,7 +51,7 @@ from colleague.arms.hermes import (
 from colleague.arms.sessions import register
 from colleague.arms.sessions.cli_base import CliSession
 from colleague.harness.capability import PROFILES
-from colleague.harness.session import Reply, RunHandle, compose
+from colleague.harness.session import Reply, RunHandle, Unsupported, compose
 
 #: Cold gateway start pays Python + hermes imports before ``gateway.ready``.
 _READY_TIMEOUT_S = 120.0
@@ -257,10 +257,15 @@ class HermesTuiSession(CliSession):
         persist: bool = False,
         context: str | None = None,
         sender: str | None = None,
+        images: list[str] | None = None,
     ) -> RunHandle:
         # The gateway persists every session to SQLite regardless of
         # `persist`; `resume()` continues the same stored session.
         del persist
+        if images:
+            raise Unsupported(
+                "this arm's driver has no way to attach an image to a turn",
+            )
         prompt = compose(context, text if sender is None else f"[{sender}] {text}")
         return self._submit(prompt)
 

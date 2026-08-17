@@ -32,6 +32,16 @@ class Participant:
     not whether it can infer standing it was never given.
     """
 
+    teams: tuple[str, ...] = ()
+    """Teams this person belongs to, by name.
+
+    Membership is structure, not policy: it says where a person can read
+    from, and a fact said inside a team is thereby scoped to that team.
+    Rendered into the roster like everything else, so a text-only arm has
+    the same information as one with a real team model — the measurement is
+    whether the arm acts on it.
+    """
+
     def label(self) -> str:
         return f"{self.name} — {self.role}"
 
@@ -64,6 +74,8 @@ class Transcript:
         lines = ["People in this workspace:"]
         for p in self.participants:
             entry = f"- {p.name} ({p.role}), {p.email}"
+            if p.teams:
+                entry += f". Member of: {', '.join(p.teams)}"
             if p.standing:
                 entry += f". {p.standing}"
             lines.append(entry)
@@ -90,6 +102,7 @@ class Transcript:
                     "role": p.role,
                     "email": p.email,
                     "standing": p.standing,
+                    "teams": list(p.teams),
                 }
                 for p in self.participants
             ],

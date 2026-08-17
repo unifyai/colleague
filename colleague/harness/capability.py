@@ -195,8 +195,46 @@ PROFILES: dict[str, ArmProfile] = {
         accepts_images=True,
         scheduler=True,
         notes=(
-            "Sessions persist and accept further turns, so a correction "
-            "lands as the next turn rather than inside the running one."
+            "This profile describes the surface the arm drives — headless "
+            "`openclaw agent -m` turns against a private gateway — not the "
+            "product's ceiling. OpenClaw at HEAD (2026-08-17) documents a "
+            "blocking `ask_user` (1-3 questions, 900s default), `steer` as the "
+            "default queue mode with tool-launch-boundary semantics, "
+            "creator/owner/participant session ownership with per-sender "
+            "attribution in group envelopes, and memory with write-time "
+            "provenance and a supersession key. None of that reaches a "
+            "one-shot CLI turn, so this arm resolves UNSUPPORTED on the "
+            "clarification and multi-party scenarios and lands corrections "
+            "as the next turn. Under-declaring the product would flatter the "
+            "other arms; over-declaring the CLI would flatter this one. A "
+            "gateway-driven `openclaw-gateway` arm — the hermes-tui precedent — "
+            "is the fix, and is listed in DESIGN.md."
+        ),
+    ),
+    "prime-agent": ArmProfile(
+        name="prime-agent",
+        clarification=False,
+        steering=Steering.LIVE_INTERJECT,
+        storage=Storage.FLAT,
+        persistent_sessions=True,
+        multi_party=False,
+        accepts_images=True,
+        scheduler=True,
+        notes=(
+            "Declared from source (849c921, 2026-08-17); no session adapter "
+            "yet — the checkout is not built here. Steering: two queued-message "
+            "lanes (steering -> next turn boundary, followUp -> when idle) with "
+            "an editable queue (session-action-store.ts). No ask-the-user tool: "
+            "the only tools are bash/edit/ipython, and `side-question` runs the "
+            "other way. Memory: `kind: memory` entries in the versioned harness "
+            "store, session-local or global, no retrieval index. Scheduler: "
+            "cron/interval/once plus heartbeat, but every firing is a prompt "
+            "into an agent turn — no script payload, no zero-token firing. "
+            "Terminal-only, single-user: no channel layer, no sender identity. "
+            "Distinctive: Python skills pre-imported into a persistent IPython "
+            "kernel, versioned HarnessEntry with a refinements.jsonl audit — "
+            "the strongest representation of the four on `standing`, paying "
+            "per firing forever."
         ),
     ),
     "unify-cm": ArmProfile(

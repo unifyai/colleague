@@ -137,6 +137,7 @@ class ArmSession(ABC):
         persist: bool = False,
         context: str | None = None,
         sender: str | None = None,
+        images: list[str] | None = None,
     ) -> RunHandle:
         """Start a turn and return before it finishes.
 
@@ -147,6 +148,12 @@ class ArmSession(ABC):
         ``persist`` asks the arm to keep the session's working state alive
         after the turn completes. Arms without persistent sessions ignore it,
         which is exactly the cost the `continuity` track measures.
+
+        ``images`` are file paths of frames the sender is showing — a shared
+        screen — that must reach the arm through whatever visual input path
+        it has. An arm with none raises `Unsupported`; a scenario that needs
+        them then resolves to UNSUPPORTED rather than to a text-only guess
+        scored as a failure to look.
         """
 
     def send(
@@ -156,6 +163,7 @@ class ArmSession(ABC):
         persist: bool = False,
         context: str | None = None,
         sender: str | None = None,
+        images: list[str] | None = None,
         timeout: float = 900.0,
     ) -> Reply:
         return self.begin(
@@ -163,6 +171,7 @@ class ArmSession(ABC):
             persist=persist,
             context=context,
             sender=sender,
+            images=images,
         ).wait(timeout=timeout)
 
     def close(self) -> None:
@@ -175,16 +184,24 @@ class ArmSession(ABC):
     def on_clarification(self, responder) -> None:
         """Route the arm's native clarification channel to ``responder``.
 
-        ``responder(question) -> str``. Arms without a blocking clarification
-        mechanism ignore this, and scenarios that need one resolve to
-        UNSUPPORTED for them rather than scoring them as having declined to
-        ask. Whether the arm has the channel is a property of the harness and
-        is declared in its profile.
+        ``responder(question, who=None) -> str``. ``who`` is the participant
+        the arm addressed, when its channel carries an addressee; the
+        responder answers as that person, and as the scenario's default
+        persona when the arm's channel has no notion of one. Arms without a
+        blocking clarification mechanism ignore this, and scenarios that
+        need one resolve to UNSUPPORTED for them rather than scoring them as
+        having declined to ask. Whether the arm has the channel is a property
+        of the harness and is declared in its profile.
         """
         return None
 
     def clarifications(self) -> list[dict[str, Any]]:
-        """Questions the arm raised through its own channel, with answers."""
+        """Questions the arm raised through its own channel, with answers.
+
+        Each entry carries ``question`` and ``answer``; arms whose channel
+        names an addressee also record ``who``, so a scenario can score
+        *whom* the arm asked and not only whether it asked.
+        """
         return []
 
 

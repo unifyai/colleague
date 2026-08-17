@@ -29,7 +29,13 @@ from colleague.arms.openclaw import (
 from colleague.arms.sessions import register
 from colleague.arms.sessions.cli_base import CliSession
 from colleague.harness.capability import PROFILES
-from colleague.harness.session import Reply, RunHandle, ThreadedRunHandle, compose
+from colleague.harness.session import (
+    Reply,
+    RunHandle,
+    ThreadedRunHandle,
+    Unsupported,
+    compose,
+)
 
 
 class _OpenClawRun(ThreadedRunHandle):
@@ -145,8 +151,13 @@ class OpenClawSession(CliSession):
         persist: bool = False,
         context: str | None = None,
         sender: str | None = None,
+        images: list[str] | None = None,
     ) -> RunHandle:
         del persist  # OpenClaw sessions persist by default
+        if images:
+            raise Unsupported(
+                "this arm's driver has no way to attach an image to a turn",
+            )
         prompt = compose(context, text if sender is None else f"[{sender}] {text}")
         return _OpenClawRun(self, self._turn, prompt)
 

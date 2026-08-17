@@ -91,6 +91,8 @@ class MockSession(ArmSession):
         self.corrections: list[dict[str, Any]] = []
         self._responder = None
         self._clarifications: list[dict[str, Any]] = []
+        self.images: list[str] = []
+        """Frames handed to the current turn, for plans that 'look'."""
         self.memory: dict[str, Any] = {}
         """Survives across scenarios, standing in for a live session.
 
@@ -110,10 +112,17 @@ class MockSession(ArmSession):
     def clarifications(self) -> list[dict[str, Any]]:
         return list(self._clarifications)
 
-    def ask_user(self, question: str) -> str:
-        """What a plan calls instead of POSTing a question somewhere."""
-        answer = self._responder(question) if self._responder else "No answer."
-        self._clarifications.append({"question": question, "answer": answer})
+    def ask_user(self, question: str, who: str | None = None) -> str:
+        """What a plan calls instead of POSTing a question somewhere.
+
+        ``who`` names the person the plan chose to ask, so a scenario can
+        score the choice of addressee and not only the act of asking.
+        """
+        answer = self._responder(question, who) if self._responder else "No answer."
+        entry: dict[str, Any] = {"question": question, "answer": answer}
+        if who:
+            entry["who"] = who
+        self._clarifications.append(entry)
         return answer
 
     def bind(self, *, fixture: Any, scenario: str, plan: Callable) -> None:
@@ -131,6 +140,7 @@ class MockSession(ArmSession):
             fixture=self._fixture,
             memory=self.memory,
             ask_user=self.ask_user,
+            images=self.images,
         )
         return Reply(text=json.dumps(out, default=str), ok=True)
 
@@ -145,8 +155,10 @@ class MockSession(ArmSession):
         persist: bool = False,
         context: str | None = None,
         sender: str | None = None,
+        images: list[str] | None = None,
     ) -> RunHandle:
         del persist, context, sender
+        self.images = list(images or [])
         return MockRun(self, self._turn, text)
 
 

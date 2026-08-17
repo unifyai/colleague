@@ -566,9 +566,14 @@ class UnifyCMSession(ArmSession):
                 continue
             name = str(person.get("name") or "").strip()
             first, _, surname = name.partition(" ")
+            teams = [str(t) for t in (person.get("teams") or []) if str(t).strip()]
             bio = ". ".join(
                 s.strip().rstrip(".")
-                for s in (person.get("role"), person.get("standing"))
+                for s in (
+                    person.get("role"),
+                    f"Member of: {', '.join(teams)}" if teams else "",
+                    person.get("standing"),
+                )
                 if s and str(s).strip()
             )
             email = str(person.get("email") or "").strip().lower()
@@ -673,6 +678,7 @@ class UnifyCMSession(ArmSession):
         persist: bool = False,
         context: str | None = None,
         sender: str | None = None,
+        images: list[str] | None = None,
     ) -> RunHandle:
         """Enqueue an inbound message and return before the turn finishes.
 
@@ -681,16 +687,50 @@ class UnifyCMSession(ArmSession):
         of this surface. The roster/context preamble is composed into the
         message text -- the track design keeps that channel identical across
         arms.
+
+        `images` are frames of the sender's shared screen. They enter through
+        the CM's own screenshot buffer -- the path a shared screen takes from
+        the fast brain -- attributed to the sender and paired with the
+        message, so the slow brain sees them the way it sees any share.
         """
         assert self._loop is not None and self._cm is not None, "call setup() first"
         self._turns += 1
         if self.ledger is not None:
             self.ledger.boundary(f"turn_{self._turns}")
+        if images:
+            self._buffer_frames(images, text, sender)
         item = self._loop.run(
             self._enqueue("begin", compose(context, text), sender, self._turns),
             timeout=120,
         )
         return UnifyCMRunHandle(self, item)
+
+    def _buffer_frames(self, images: list[str], text: str, sender: str | None) -> None:
+        """Hand shared-screen frames to the CM as user screenshots.
+
+        Each frame is paired with the utterance it accompanies, so the buffer
+        keeps all of them (unpaired frames of one source collapse to the
+        newest, which would drop every step of a demonstration but the last).
+        """
+        import base64
+        from datetime import datetime, timezone
+
+        who = (sender or "").strip() or _BOSS_FIRST_NAME
+        total = len(images)
+        for k, path in enumerate(images, start=1):
+            b64 = base64.b64encode(Path(path).read_bytes()).decode()
+            self._cm._buffer_screenshot(
+                json.dumps(
+                    {
+                        "b64": b64,
+                        "utterance": f"[frame {k} of {total}] {text}",
+                        "source": "user",
+                        "filepath": str(path),
+                        "attribution": who,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    },
+                ),
+            )
 
     def resume(self, text: str, *, sender: str | None = None) -> Reply:
         """Continue the standing session; the CM never stopped being one."""
@@ -870,16 +910,34 @@ class UnifyCMSession(ArmSession):
             return True
         return False
 
-    def _pending_question(self, item: _Inbound) -> tuple[int, str] | None:
-        """The newest unanswered question sent to the triggering contact."""
+    def _sender_key_for(self, contact_id: int) -> str | None:
+        """The roster id behind a contact — the person a message was for."""
+        for key, c in self._correspondents.items():
+            if (
+                c.get("contact_id") == contact_id
+                and key != "__boss__"
+                and " " not in key
+            ):
+                return key
+        return None
+
+    def _pending_question(self, item: _Inbound) -> tuple[int, str, int] | None:
+        """The newest unanswered question sent to anyone in the cast.
+
+        Not only the triggering contact: an assistant that needs a fact the
+        requester does not have will ask the person who does, and that is
+        the behaviour a scenario may be scoring. Whoever was asked answers,
+        as themselves, through the scenario's persona pool.
+        """
+        known = {c.get("contact_id") for c in self._correspondents.values()}
         for idx in range(len(self._egress_log) - 1, item.clar_seen - 1, -1):
             entry = self._egress_log[idx]
             if (
                 entry["type"] in _MESSAGE_SENT_TYPES
-                and entry["contact_id"] == item.contact_id
+                and entry["contact_id"] in known
                 and "?" in entry["text"]
             ):
-                return idx, entry["text"]
+                return idx, entry["text"], int(entry["contact_id"])
         return None
 
     async def _drain(self, item: _Inbound, timeout: float) -> bool:
@@ -933,24 +991,26 @@ class UnifyCMSession(ArmSession):
                 and self._responder is not None
                 and item.clar_rounds < self.MAX_CLARIFICATION_ROUNDS
             ):
-                idx, q_text = question
+                idx, q_text, asked_id = question
                 item.clar_rounds += 1
                 item.clar_seen = idx + 1
-                answer = await asyncio.to_thread(self._responder, q_text)
+                who = self._sender_key_for(asked_id)
+                answer = await asyncio.to_thread(self._responder, q_text, who)
                 self._clarifications.append(
                     {
                         "question": q_text,
                         "answer": str(answer),
-                        "contact_id": item.contact_id,
+                        "who": who,
+                        "contact_id": asked_id,
                         "turn": item.turn,
                     },
                 )
-                sender_contact = self._contact_from_id(item.contact_id)
+                sender_contact = self._contact_from_id(asked_id)
                 event = self._M.ev.UnifyMessageReceived(
                     contact=sender_contact,
                     content=str(answer),
                 )
-                clar_item = _Inbound("clar_answer", item.turn, event, item.contact_id)
+                clar_item = _Inbound("clar_answer", item.turn, event, asked_id)
                 clar_item.egress_start = len(self._egress_log)
                 clar_item.clar_seen = clar_item.egress_start
                 clar_item.tools_start = len(self._tool_log)

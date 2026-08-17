@@ -216,18 +216,23 @@ def run_track(
                                 "role": p.role,
                                 "email": p.email,
                                 "standing": p.standing,
+                                "teams": list(p.teams),
                             }
                             for p in cast
                         ],
                     )
 
                 # The arm asks through its own channel; the fixture provides
-                # none. Whoever the track has cast answers.
+                # none. Whoever the arm addressed answers, when its channel
+                # names someone; otherwise whoever the scenario has cast.
                 pool = fixture.state.get("personas")
                 if pool is not None:
-                    who = str(live.get("clarify_persona") or "daniel")
+                    default_who = str(live.get("clarify_persona") or "daniel")
                     session.on_clarification(
-                        lambda q, _w=who, _p=pool: _p.answer(_w, q),
+                        lambda q, who=None, _w=default_who, _p=pool: _p.answer(
+                            who or _w,
+                            q,
+                        ),
                     )
                     results.setdefault("profile", session.profile.name)
 
@@ -247,6 +252,7 @@ def run_track(
                         persist=bool(live.get("persist")),
                         context=live.get("context"),
                         sender=live.get("sender"),
+                        images=live.get("images"),
                     )
 
                 inter: Interlocutor | None = None

@@ -25,7 +25,7 @@ from typing import Any
 
 from colleague.arms.sessions import register
 from colleague.harness.capability import PROFILES
-from colleague.harness.session import ArmSession, Reply, RunHandle, compose
+from colleague.harness.session import ArmSession, Reply, RunHandle, Unsupported, compose
 
 REQUIRED_ENV = ("ORCHESTRA_URL", "UNIFY_KEY")
 
@@ -261,8 +261,17 @@ class UnifySession(ArmSession):
         persist: bool = False,
         context: str | None = None,
         sender: str | None = None,
+        images: list[str] | None = None,
     ) -> RunHandle:
         assert self._loop is not None and self._actor is not None, "call setup() first"
+        if images:
+            # `act` takes image parts, but the conversation layer is where a
+            # shared screen arrives in the product; the `unify-cm` arm carries
+            # frames through the CM's screenshot buffer. This v0 surface stays
+            # text-only rather than inventing a second image path.
+            raise Unsupported(
+                "the act surface here is text-only; use unify-cm for frames",
+            )
         self._turns += 1
         if self.ledger is not None:
             self.ledger.boundary(f"turn_{self._turns}")
