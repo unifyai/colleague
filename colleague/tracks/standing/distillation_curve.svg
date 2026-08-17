@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="754" viewBox="0 0 960 754" font-family="Inter, Helvetica, Arial, sans-serif">
+<rect width="960" height="754" fill="#fcfcfb"/>
+<text x="90" y="34" font-size="18" font-weight="600" fill="#1a1a19">The distillation curve — LLM tokens per fire, by purpose, per arm</text>
+<text x="90" y="56" font-size="12" fill="#6f6e6a">Newest run of each arm per experiment. Shades split unify's spend into planning / verification / repair; proxy-metered arms report every token as planning.</text>
+<rect x="90" y="70" width="12" height="12" fill="#2a78d6"/>
+<text x="106" y="80" font-size="11" fill="#1a1a19">unify</text>
+<rect x="166" y="70" width="12" height="12" fill="#eb6834"/>
+<text x="182" y="80" font-size="11" fill="#1a1a19">hermes</text>
+<rect x="250" y="70" width="12" height="12" fill="#009E73"/>
+<text x="266" y="80" font-size="11" fill="#1a1a19">openclaw</text>
+<rect x="350" y="70" width="12" height="12" fill="#7B52AB"/>
+<text x="366" y="80" font-size="11" fill="#1a1a19">opencode</text>
+<rect x="474" y="70" width="12" height="12" fill="#2a78d6"/>
+<text x="490" y="80" font-size="11" fill="#1a1a19">unify: planning</text>
+<rect x="630" y="70" width="12" height="12" fill="#89b4e8"/>
+<text x="646" y="80" font-size="11" fill="#1a1a19">unify: verification</text>
+<rect x="818" y="70" width="12" height="12" fill="#c9ddf4"/>
+<text x="834" y="80" font-size="11" fill="#1a1a19">unify: repair</text>
+<text x="90" y="86" font-size="13" font-weight="600" fill="#1a1a19">recurring_report — weekly report</text>
+<line x1="90" y1="246.0" x2="930" y2="246.0" stroke="#e8e7e4"/>
+<text x="82" y="250.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="90" y1="171.0" x2="930" y2="171.0" stroke="#e8e7e4"/>
+<text x="82" y="175.0" font-size="10" text-anchor="end" fill="#6f6e6a">402,464</text>
+<line x1="90" y1="96.0" x2="930" y2="96.0" stroke="#e8e7e4"/>
+<text x="82" y="100.0" font-size="10" text-anchor="end" fill="#6f6e6a">804,928</text>
+<text x="195.0" y="260" font-size="10" text-anchor="middle" fill="#6f6e6a">1</text>
+<rect x="94.0" y="96.0" width="49.5" height="150.0" fill="#2a78d6"><title>unify fire 1 planning: 804,928</title></rect>
+<text x="119.2" y="244" font-size="9" text-anchor="middle" fill="#2a78d6">×</text>
+<text x="169.8" y="244" font-size="9" text-anchor="middle" fill="#eb6834">×</text>
+<rect x="195.0" y="242.9" width="49.5" height="3.1" fill="#009e73"><title>openclaw fire 1 planning: 16,729</title></rect>
+<text x="270.8" y="244" font-size="9" text-anchor="middle" fill="#7B52AB">×</text>
+<text x="405.0" y="260" font-size="10" text-anchor="middle" fill="#6f6e6a">2</text>
+<text x="379.8" y="244" font-size="9" text-anchor="middle" fill="#eb6834">×</text>
+<rect x="405.0" y="242.9" width="49.5" height="3.1" fill="#009e73"><title>openclaw fire 2 planning: 16,784</title></rect>
+<text x="480.8" y="244" font-size="9" text-anchor="middle" fill="#7B52AB">×</text>
+<text x="615.0" y="260" font-size="10" text-anchor="middle" fill="#6f6e6a">3</text>
+<text x="589.8" y="244" font-size="9" text-anchor="middle" fill="#eb6834">×</text>
+<rect x="615.0" y="242.9" width="49.5" height="3.1" fill="#009e73"><title>openclaw fire 3 planning: 16,869</title></rect>
+<text x="690.8" y="244" font-size="9" text-anchor="middle" fill="#7B52AB">×</text>
+<text x="825.0" y="260" font-size="10" text-anchor="middle" fill="#6f6e6a">4</text>
+<text x="799.8" y="244" font-size="9" text-anchor="middle" fill="#eb6834">×</text>
+<rect x="825.0" y="242.9" width="49.5" height="3.1" fill="#009e73"><title>openclaw fire 4 planning: 16,691</title></rect>
+<text x="900.8" y="244" font-size="9" text-anchor="middle" fill="#7B52AB">×</text>
+<text x="90" y="282" font-size="13" font-weight="600" fill="#1a1a19">drift_recovery — field renamed before fire 5</text>
+<line x1="90" y1="442.0" x2="930" y2="442.0" stroke="#e8e7e4"/>
+<text x="82" y="446.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="90" y1="367.0" x2="930" y2="367.0" stroke="#e8e7e4"/>
+<text x="82" y="371.0" font-size="10" text-anchor="end" fill="#6f6e6a">411,652</text>
+<line x1="90" y1="292.0" x2="930" y2="292.0" stroke="#e8e7e4"/>
+<text x="82" y="296.0" font-size="10" text-anchor="end" fill="#6f6e6a">823,304</text>
+<text x="132.0" y="456" font-size="10" text-anchor="middle" fill="#6f6e6a">1</text>
+<rect x="94.0" y="292.0" width="18.0" height="150.0" fill="#2a78d6"><title>unify fire 1 planning: 823,304</title></rect>
+<rect x="132.0" y="439.1" width="18.0" height="2.9" fill="#009e73"><title>openclaw fire 1 planning: 15,838</title></rect>
+<text x="216.0" y="456" font-size="10" text-anchor="middle" fill="#6f6e6a">2</text>
+<rect x="216.0" y="434.6" width="18.0" height="7.4" fill="#009e73"><title>openclaw fire 2 planning: 40,732</title></rect>
+<text x="300.0" y="456" font-size="10" text-anchor="middle" fill="#6f6e6a">3</text>
+<rect x="300.0" y="439.1" width="18.0" height="2.9" fill="#009e73"><title>openclaw fire 3 planning: 16,138</title></rect>
+<text x="384.0" y="456" font-size="10" text-anchor="middle" fill="#6f6e6a">4</text>
+<rect x="384.0" y="439.1" width="18.0" height="2.9" fill="#009e73"><title>openclaw fire 4 planning: 16,041</title></rect>
+<text x="468.0" y="456" font-size="10" text-anchor="middle" fill="#6f6e6a">5</text>
+<rect x="430.0" y="436.2" width="18.0" height="5.8" fill="#2a78d6"><title>unify fire 5 planning: 31,927</title></rect>
+<text x="458.5" y="440" font-size="9" text-anchor="middle" fill="#eb6834">×</text>
+<rect x="468.0" y="439.0" width="18.0" height="3.0" fill="#009e73"><title>openclaw fire 5 planning: 16,461</title></rect>
+<text x="477.5" y="440" font-size="9" text-anchor="middle" fill="#009E73">×</text>
+<text x="496.5" y="440" font-size="9" text-anchor="middle" fill="#7B52AB">×</text>
+<text x="552.0" y="456" font-size="10" text-anchor="middle" fill="#6f6e6a">6</text>
+<text x="542.5" y="440" font-size="9" text-anchor="middle" fill="#eb6834">×</text>
+<rect x="552.0" y="433.4" width="18.0" height="8.6" fill="#009e73"><title>openclaw fire 6 planning: 47,362</title></rect>
+<text x="580.5" y="440" font-size="9" text-anchor="middle" fill="#7B52AB">×</text>
+<text x="636.0" y="456" font-size="10" text-anchor="middle" fill="#6f6e6a">7</text>
+<rect x="636.0" y="435.7" width="18.0" height="6.3" fill="#009e73"><title>openclaw fire 7 planning: 34,831</title></rect>
+<text x="720.0" y="456" font-size="10" text-anchor="middle" fill="#6f6e6a">8</text>
+<rect x="720.0" y="435.0" width="18.0" height="7.0" fill="#009e73"><title>openclaw fire 8 planning: 38,191</title></rect>
+<text x="804.0" y="456" font-size="10" text-anchor="middle" fill="#6f6e6a">9</text>
+<rect x="804.0" y="434.2" width="18.0" height="7.8" fill="#009e73"><title>openclaw fire 9 planning: 42,619</title></rect>
+<text x="888.0" y="456" font-size="10" text-anchor="middle" fill="#6f6e6a">10</text>
+<rect x="888.0" y="435.6" width="18.0" height="6.4" fill="#009e73"><title>openclaw fire 10 planning: 35,228</title></rect>
+<text x="90" y="478" font-size="13" font-weight="600" fill="#1a1a19">semantic_triage — judgement substep</text>
+<line x1="90" y1="638.0" x2="930" y2="638.0" stroke="#e8e7e4"/>
+<text x="82" y="642.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="90" y1="563.0" x2="930" y2="563.0" stroke="#e8e7e4"/>
+<text x="82" y="567.0" font-size="10" text-anchor="end" fill="#6f6e6a">410,742</text>
+<line x1="90" y1="488.0" x2="930" y2="488.0" stroke="#e8e7e4"/>
+<text x="82" y="492.0" font-size="10" text-anchor="end" fill="#6f6e6a">821,485</text>
+<text x="142.5" y="652" font-size="10" text-anchor="middle" fill="#6f6e6a">1</text>
+<rect x="94.0" y="488.0" width="23.2" height="150.0" fill="#2a78d6"><title>unify fire 1 planning: 821,485</title></rect>
+<rect x="118.2" y="634.0" width="23.2" height="4.0" fill="#eb6834"><title>hermes fire 1 planning: 21,797</title></rect>
+<rect x="142.5" y="632.4" width="23.2" height="5.6" fill="#009e73"><title>openclaw fire 1 planning: 30,552</title></rect>
+<rect x="166.8" y="634.6" width="23.2" height="3.4" fill="#7b52ab"><title>opencode fire 1 planning: 18,878</title></rect>
+<text x="247.5" y="652" font-size="10" text-anchor="middle" fill="#6f6e6a">2</text>
+<rect x="199.0" y="637.9" width="23.2" height="0.1" fill="#2a78d6"><title>unify fire 2 planning: 644</title></rect>
+<rect x="223.2" y="634.1" width="23.2" height="3.9" fill="#eb6834"><title>hermes fire 2 planning: 21,360</title></rect>
+<rect x="247.5" y="632.3" width="23.2" height="5.7" fill="#009e73"><title>openclaw fire 2 planning: 30,974</title></rect>
+<rect x="271.8" y="634.5" width="23.2" height="3.5" fill="#7b52ab"><title>opencode fire 2 planning: 18,946</title></rect>
+<text x="352.5" y="652" font-size="10" text-anchor="middle" fill="#6f6e6a">3</text>
+<rect x="304.0" y="637.9" width="23.2" height="0.1" fill="#2a78d6"><title>unify fire 3 planning: 664</title></rect>
+<rect x="328.2" y="634.1" width="23.2" height="3.9" fill="#eb6834"><title>hermes fire 3 planning: 21,259</title></rect>
+<rect x="352.5" y="632.4" width="23.2" height="5.6" fill="#009e73"><title>openclaw fire 3 planning: 30,917</title></rect>
+<rect x="376.8" y="634.5" width="23.2" height="3.5" fill="#7b52ab"><title>opencode fire 3 planning: 18,952</title></rect>
+<text x="457.5" y="652" font-size="10" text-anchor="middle" fill="#6f6e6a">4</text>
+<rect x="409.0" y="637.9" width="23.2" height="0.1" fill="#2a78d6"><title>unify fire 4 planning: 653</title></rect>
+<rect x="433.2" y="633.9" width="23.2" height="4.1" fill="#eb6834"><title>hermes fire 4 planning: 22,662</title></rect>
+<rect x="457.5" y="633.6" width="23.2" height="4.4" fill="#009e73"><title>openclaw fire 4 planning: 24,029</title></rect>
+<rect x="481.8" y="634.5" width="23.2" height="3.5" fill="#7b52ab"><title>opencode fire 4 planning: 18,914</title></rect>
+<text x="562.5" y="652" font-size="10" text-anchor="middle" fill="#6f6e6a">5</text>
+<rect x="514.0" y="637.9" width="23.2" height="0.1" fill="#2a78d6"><title>unify fire 5 planning: 649</title></rect>
+<rect x="538.2" y="634.1" width="23.2" height="3.9" fill="#eb6834"><title>hermes fire 5 planning: 21,276</title></rect>
+<rect x="562.5" y="632.4" width="23.2" height="5.6" fill="#009e73"><title>openclaw fire 5 planning: 30,614</title></rect>
+<rect x="586.8" y="634.5" width="23.2" height="3.5" fill="#7b52ab"><title>opencode fire 5 planning: 18,994</title></rect>
+<text x="667.5" y="652" font-size="10" text-anchor="middle" fill="#6f6e6a">6</text>
+<rect x="619.0" y="637.9" width="23.2" height="0.1" fill="#2a78d6"><title>unify fire 6 planning: 637</title></rect>
+<rect x="643.2" y="633.9" width="23.2" height="4.1" fill="#eb6834"><title>hermes fire 6 planning: 22,550</title></rect>
+<rect x="667.5" y="632.4" width="23.2" height="5.6" fill="#009e73"><title>openclaw fire 6 planning: 30,774</title></rect>
+<rect x="691.8" y="634.6" width="23.2" height="3.4" fill="#7b52ab"><title>opencode fire 6 planning: 18,844</title></rect>
+<text x="772.5" y="652" font-size="10" text-anchor="middle" fill="#6f6e6a">7</text>
+<rect x="724.0" y="637.9" width="23.2" height="0.1" fill="#2a78d6"><title>unify fire 7 planning: 647</title></rect>
+<rect x="748.2" y="633.8" width="23.2" height="4.2" fill="#eb6834"><title>hermes fire 7 planning: 22,833</title></rect>
+<rect x="772.5" y="632.4" width="23.2" height="5.6" fill="#009e73"><title>openclaw fire 7 planning: 30,889</title></rect>
+<rect x="796.8" y="634.6" width="23.2" height="3.4" fill="#7b52ab"><title>opencode fire 7 planning: 18,862</title></rect>
+<text x="877.5" y="652" font-size="10" text-anchor="middle" fill="#6f6e6a">8</text>
+<rect x="829.0" y="637.9" width="23.2" height="0.1" fill="#2a78d6"><title>unify fire 8 planning: 623</title></rect>
+<rect x="853.2" y="634.1" width="23.2" height="3.9" fill="#eb6834"><title>hermes fire 8 planning: 21,413</title></rect>
+<rect x="877.5" y="632.4" width="23.2" height="5.6" fill="#009e73"><title>openclaw fire 8 planning: 30,711</title></rect>
+<rect x="901.8" y="634.6" width="23.2" height="3.4" fill="#7b52ab"><title>opencode fire 8 planning: 18,856</title></rect>
+<text x="90" y="724" font-size="10" fill="#6f6e6a">× a fire the arm got wrong; ◐ a fire it held with a reason. Bars are the newest committed run per arm; an experiment with no runs yet is not drawn.</text>
+</svg>

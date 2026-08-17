@@ -56,14 +56,14 @@ chained unillm hook. Both produce the same per-phase ledger.
 
 | Track | Question | Status |
 |---|---|---|
-| [`standing`](colleague/tracks/standing/) | What does firing N cost, and does the automation survive drift? | **run** — 4 experiments, 4 arms |
+| [`standing`](colleague/tracks/standing/) | What does firing N cost, and does the automation survive drift — loud, silent, or at the edges? | **run** — 4 experiments, 4 arms; 4 more built and self-testing |
 | [`inheritance`](colleague/tracks/inheritance/) | Does the worker act on the right referent without a round-trip? | built |
 | [`interruption`](colleague/tracks/interruption/) | Does a mid-task correction land before the wrong thing happens? | built |
 | [`continuity`](colleague/tracks/continuity/) | Is a follow-up a warm turn or a cold restart? | built |
 | [`attribution`](colleague/tracks/attribution/) | Many people, one assistant: right person, nothing leaked, silence when correct | built |
 | [`custody`](colleague/tracks/custody/) | Where a fact is filed decides who can get it back out | built |
 | [`concurrency`](colleague/tracks/concurrency/) | Several tasks, several people — does each correction land in the right one? | built |
-| [`teaching`](colleague/tracks/teaching/) | Does a walked-through workflow become a reusable artifact? | built |
+| [`teaching`](colleague/tracks/teaching/) | Does a walked-through procedure become a reusable artifact — and survive six weeks and one amendment? | built |
 | [`membership`](colleague/tracks/membership/) | Two teams, one assistant: does where a fact was said decide who gets it back? | built |
 | [`recall`](colleague/tracks/recall/) | A week of messages, three facts replaced: is the newest value the one recalled? | built |
 | [`screenshare`](colleague/tracks/screenshare/) | Frames of a shared screen: can it do the same on its own instance? | built |
@@ -106,6 +106,33 @@ per-run detail and raw ledgers in each experiment's `results/`:
 The suite reports losses as prominently as wins — unify's first drift run
 failed outright at 4/10 and exposed four production defects, which is in the
 committed results.
+
+**The lifecycle the second half of `standing` tests: distil → verify → bind
+→ repair.** Work said once is distilled into something that runs without a
+model; what was distilled is verified against what it claims to do before it
+is trusted; once trusted it is bound to its schedule and runs for nothing;
+when the world moves under it, the model comes back only to the piece that
+broke and either repairs it or holds the run and says why. Four experiments
+were built for that and have not been run yet — `silent_drift` (the API keeps
+its field names and changes their meaning), `edge_week` (an ordinary
+automation meets an empty week, a duplicated row, a foreign currency, a
+contact with no email), `repair_locality` (three inputs, one drifts, how much
+of the automation moves) and `change_without_regression` (one column added,
+every old column byte-identical) — plus a six-week extension of `teaching`
+with one rule amended mid-way. All of them score a run that stops and tells
+its owner why (*held*) below one that is right and above one that is
+plausibly wrong; the rule is `DESIGN.md` §Non-negotiable rules, 8. The
+honest expectation for the pre-verification unify build was a loss on the
+first two; that result, the fix, and the new result are what the
+`results/` directories will carry, in that order.
+
+![distillation curve](colleague/tracks/standing/distillation_curve.svg)
+
+*Tokens per fire, by purpose, per arm, newest run of each experiment.
+Shades split unify's spend into planning / verification / repair, read from
+its own client tags; proxy-metered arms report every token as planning.
+Regenerate with `python -m colleague.tracks.standing.plot_distillation_curve`;
+experiments with no runs yet are not drawn.*
 
 ## The other people are people
 
@@ -185,6 +212,7 @@ tree (`colleague/<experiment>/<run-id>/...`), never a real assistant.
 
 ```bash
 bash colleague/tracks/standing/recurring_report/run.sh   # standing track
+SD_VARIANT=units bash colleague/tracks/standing/silent_drift/run_unify.sh
 python -m colleague.run inheritance --arm unify          # everything else
 python -m colleague.run meeting --arm unify-cm --repeat 5  # role-played scenes: read the spread
 python -m colleague.run --list                           # tracks and scenarios
@@ -261,10 +289,12 @@ python -m colleague.selftest
 
 Runs every track against a scripted arm under two plans — `ideal`, what a
 competent assistant would do, and `naive`, the plausible wrong thing — and
-asserts that ideal is credited and naive scores differently. It makes no LLM
-calls. A scenario whose ideal plan cannot pass is unwinnable; a scorer that
-returns the same verdict for both is measuring nothing. Both classes of bug
-were caught this way during the build.
+asserts that ideal is credited and naive scores differently. The `standing`
+fire-series experiments get a third plan, `held`, and the check that it
+reaches the rubric's middle rung. It makes no LLM calls. A scenario whose
+ideal plan cannot pass is unwinnable; a scorer that returns the same verdict
+for both is measuring nothing. Both classes of bug were caught this way
+during the build.
 
 ## License
 

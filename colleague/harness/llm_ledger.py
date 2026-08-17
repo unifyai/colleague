@@ -40,8 +40,17 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterator
 
+from unify.common.llm_client import purpose_from_origin
 from unillm import add_llm_event_listener
 from unillm.llm_events import LLMEvent
+
+#: What an LLM call was for. unify tags every actor client with a purpose in
+#: its ``origin`` — the CodeAct loop and its librarian are ``planning``, the
+#: verifier passes ``verification``, the repair loops ``repair`` — and the
+#: ledger reads the tag back so a fire's tokens split into "deciding what to
+#: do", "checking it" and "fixing it". An untagged origin is planning; a
+#: harness with no such distinction reports everything as planning.
+PURPOSES = ("planning", "verification", "repair")
 
 
 @dataclass
@@ -54,6 +63,7 @@ class LLMCallRecord:
     provider_cost: float | None
     origin: str | None
     usage_raw: dict[str, Any] | None
+    purpose: str = "planning"
     # Set only on a call that never completed. A failure carries no usage and
     # no cost, so it lives in the same list purely to share the index space the
     # phase windows are cut from — see `_on_litellm_failure`.
@@ -74,6 +84,7 @@ class LLMCallRecord:
             "total_tokens": self.total_tokens,
             "provider_cost": self.provider_cost,
             "origin": self.origin,
+            "purpose": self.purpose,
             "usage_raw": self.usage_raw,
             "error": self.error,
             "status_code": self.status_code,
@@ -93,6 +104,12 @@ class PhaseStats:
     models: dict[str, int] = field(default_factory=dict)
     failed_calls: int = 0
     errors: dict[str, int] = field(default_factory=dict)
+    by_purpose: dict[str, dict[str, Any]] = field(
+        default_factory=lambda: {
+            p: {"llm_calls": 0, "prompt_tokens": 0, "completion_tokens": 0}
+            for p in PURPOSES
+        },
+    )
 
     def add(self, record: LLMCallRecord) -> None:
         if record.failed:
@@ -110,6 +127,10 @@ class PhaseStats:
         self.total_tokens += record.total_tokens
         self.provider_cost += record.provider_cost or 0.0
         self.models[record.model] = self.models.get(record.model, 0) + 1
+        bucket = self.by_purpose[record.purpose]
+        bucket["llm_calls"] += 1
+        bucket["prompt_tokens"] += record.prompt_tokens
+        bucket["completion_tokens"] += record.completion_tokens
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -123,6 +144,7 @@ class PhaseStats:
             "models": self.models,
             "failed_calls": self.failed_calls,
             "errors": self.errors,
+            "by_purpose": {p: dict(v) for p, v in self.by_purpose.items()},
         }
 
 
@@ -322,6 +344,7 @@ class LLMLedger:
             provider_cost=event.provider_cost,
             origin=event.origin,
             usage_raw=usage,
+            purpose=purpose_from_origin(event.origin) or "planning",
         )
         with self._lock:
             self._records.append(record)

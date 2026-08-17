@@ -188,6 +188,10 @@ def run_track(
                 "note": live.get("note", ""),
                 "profile": session.profile,
             }
+            # A track-scoped session accumulates clarifications across
+            # scenarios; a scorer asking "did the arm ask during *this* one"
+            # must see only the ones raised from here on.
+            clarifications_before = len(session.clarifications())
             print(f"[{track}/{arm}] scenario {name} — fixture {fixture.base_url}")
 
             try:
@@ -366,7 +370,9 @@ def run_track(
                     # arm with no steering mechanism resolves to UNSUPPORTED
                     # rather than being marked wrong for a capability it never
                     # had.
-                    record["clarifications"] = session.clarifications()
+                    record["clarifications"] = session.clarifications()[
+                        clarifications_before:
+                    ]
                     result = scenario_module.score(name, fixture, record=record)
             except Unsupported as exc:
                 result = ScenarioResult(
@@ -387,7 +393,7 @@ def run_track(
                 )
 
             record["evidence"] = fixture.evidence()
-            record["clarifications"] = session.clarifications()
+            record["clarifications"] = session.clarifications()[clarifications_before:]
             record["result"] = result.as_dict()
             results["scenarios"].append(record)
             outcomes.append(result)

@@ -1,10 +1,32 @@
-"""Per-phase token/cost accounting shared by every proxy-metered arm."""
+"""Per-phase token/cost accounting shared by every proxy-metered arm.
+
+A proxy sees requests, not intentions, so it cannot tell a call that planned
+from one that verified or repaired. Every phase here therefore reports its
+whole spend under ``planning`` in ``by_purpose`` — the same shape the unify
+arm's in-process ledger fills from unify's purpose tags — so a plot can lay
+the arms side by side without special-casing who was metered how.
+"""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
 from typing import Any
+
+PURPOSES = ("planning", "verification", "repair")
+
+
+def _purpose_split(stats: dict[str, Any]) -> dict[str, dict[str, int]]:
+    split = {
+        p: {"llm_calls": 0, "prompt_tokens": 0, "completion_tokens": 0}
+        for p in PURPOSES
+    }
+    split["planning"] = {
+        "llm_calls": int(stats["llm_calls"]),
+        "prompt_tokens": int(stats["prompt_tokens"]),
+        "completion_tokens": int(stats["completion_tokens"]),
+    }
+    return split
 
 
 class PhaseLedger:
@@ -62,6 +84,7 @@ class PhaseLedger:
                     stats["usage_missing_calls"] += 1
                 model = row.get("response_model") or row.get("request_model") or "?"
                 stats["models"][model] = stats["models"].get(model, 0) + 1
+            stats["by_purpose"] = _purpose_split(stats)
             phases.append(stats)
         background = {
             "name": "background",
@@ -87,5 +110,6 @@ class PhaseLedger:
             background["completion_tokens"] += int(row.get("completion_tokens") or 0)
             background["total_tokens"] += int(row.get("total_tokens") or 0)
         if background["llm_calls"] or background.get("other_http_calls"):
+            background["by_purpose"] = _purpose_split(background)
             phases.append(background)
         return phases

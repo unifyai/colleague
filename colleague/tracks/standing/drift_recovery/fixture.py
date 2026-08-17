@@ -3,7 +3,7 @@
 A deterministic, seeded stream of orders keyed by an integer ``seq``. The
 harness "releases" new orders before each fire, the system under test
 processes the next unprocessed range and POSTs a batch summary, and the sink
-itself is the cursor (``/batches/last``) — so the workflow is stateless and
+itself is the cursor (``/batches/last``) — so the automation is stateless and
 fire-timing-independent by construction.
 
 Mid-series the harness flips ``drifted``: ``/orders`` renames
@@ -18,18 +18,18 @@ Endpoints:
     GET  /batches/last                -> {"last_seq": highest processed seq (0 if none)}
     POST /batches                     -> stores the JSON body
     GET  /batches                     -> all stored batches (with receipt metadata)
+    POST /owner/notify                -> {"message": ...} (not advertised in this
+                                         experiment's utterance; see protocol.py)
 """
 
 from __future__ import annotations
 
-import hashlib
-import json
-import threading
-from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta, timezone
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from datetime import date, timedelta
 from typing import Any
-from urllib.parse import parse_qs, urlparse
+
+from colleague.harness.fixture_server import FixtureServer, Request, utcnow
+from colleague.tracks.standing.series.spec import install_owner_channel
+from colleague.tracks.standing.series.streams import SeqStream, hash_for
 
 REGIONS = ("north", "south", "east", "west")
 BASE_PRICE_CENTS = {"north": 1999, "south": 1499, "east": 2499, "west": 999}
@@ -43,8 +43,7 @@ DEFAULT_PORT = 8125
 
 def order_for_seq(seed: int, seq: int) -> dict[str, Any]:
     """The unique order at position ``seq`` (1-based), deterministic in (seed, seq)."""
-    payload = f"{seed}:order:{seq}".encode()
-    h = int.from_bytes(hashlib.sha256(payload).digest()[:8], "big")
+    h = hash_for(seed, "order", seq)
     day = STREAM_START_DATE + timedelta(days=(seq - 1) // ORDERS_PER_DAY)
     region = REGIONS[h % len(REGIONS)]
     return {
@@ -96,142 +95,64 @@ def score_batch(actual: Any, expected: dict[str, Any]) -> dict[str, Any]:
     return {"correct": all(checks.values()), "checks": checks, "extra_keys": extra_keys}
 
 
-@dataclass
-class OrderStream:
-    """Mutable fixture state shared between the HTTP handler and the harness."""
-
-    seed: int = DEFAULT_SEED
-    released_seq: int = 0
-    drifted: bool = False
-    batches: list[dict[str, Any]] = field(default_factory=list)
-    _lock: threading.Lock = field(default_factory=threading.Lock)
-
-    def release(self, count: int) -> int:
-        with self._lock:
-            self.released_seq += count
-            return self.released_seq
-
-    def set_drift(self, drifted: bool) -> None:
-        with self._lock:
-            self.drifted = drifted
-
-    def orders_after(self, after: int) -> list[dict[str, Any]]:
-        with self._lock:
-            released = self.released_seq
-            drifted = self.drifted
-        start = max(after, 0) + 1
-        end = min(released, start + PAGE_LIMIT - 1)
-        rows = [order_for_seq(self.seed, seq) for seq in range(start, end + 1)]
-        if drifted:
-            rows = [
-                {
-                    ("unit_price_minor" if k == "unit_price_cents" else k): v
-                    for k, v in row.items()
-                }
-                for row in rows
-            ]
-        return rows
-
-    def add_batch(self, body: Any) -> None:
-        with self._lock:
-            self.batches.append(
-                {
-                    "received_at": datetime.now(timezone.utc).isoformat(),
-                    "body": body,
-                },
-            )
-
-    def last_processed_seq(self) -> int:
-        with self._lock:
-            last = 0
-            for entry in self.batches:
-                body = entry.get("body")
-                if isinstance(body, dict):
-                    try:
-                        last = max(last, int(body.get("batch_end_seq") or 0))
-                    except (TypeError, ValueError):
-                        continue
-            return last
-
-    def snapshot_batches(self) -> list[dict[str, Any]]:
-        with self._lock:
-            return list(self.batches)
+def _rename_unit_price(row: dict[str, Any]) -> dict[str, Any]:
+    return {
+        ("unit_price_minor" if k == "unit_price_cents" else k): v
+        for k, v in row.items()
+    }
 
 
-class _Handler(BaseHTTPRequestHandler):
-    stream: OrderStream
-
-    def _send_json(self, status: int, payload: Any) -> None:
-        data = json.dumps(payload).encode()
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
-
-    def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API
-        parsed = urlparse(self.path)
-        if parsed.path == "/health":
-            self._send_json(200, {"status": "ok"})
-            return
-        if parsed.path == "/orders":
-            params = parse_qs(parsed.query)
-            try:
-                after = int(params.get("after", ["0"])[0])
-            except ValueError:
-                self._send_json(400, {"error": "after must be an integer"})
-                return
-            self._send_json(200, self.stream.orders_after(after))
-            return
-        if parsed.path == "/batches/last":
-            self._send_json(200, {"last_seq": self.stream.last_processed_seq()})
-            return
-        if parsed.path == "/batches":
-            self._send_json(200, self.stream.snapshot_batches())
-            return
-        self._send_json(404, {"error": f"unknown path {parsed.path}"})
-
-    def do_POST(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API
-        parsed = urlparse(self.path)
-        if parsed.path != "/batches":
-            self._send_json(404, {"error": f"unknown path {parsed.path}"})
-            return
-        length = int(self.headers.get("Content-Length") or 0)
-        raw = self.rfile.read(length) if length else b""
-        try:
-            body = json.loads(raw.decode() or "null")
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            self._send_json(400, {"error": "body must be valid JSON"})
-            return
-        self.stream.add_batch(body)
-        self._send_json(200, {"status": "received"})
-
-    def log_message(self, format: str, *args: Any) -> None:  # noqa: A002
-        pass
-
-
-class DriftFixtureServer:
+class DriftFixtureServer(FixtureServer):
     """In-process fixture server bound to 127.0.0.1."""
 
     def __init__(self, *, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> None:
-        self.stream = OrderStream(seed=seed)
-        handler = type("BoundHandler", (_Handler,), {"stream": self.stream})
-        self._server = ThreadingHTTPServer(("127.0.0.1", port), handler)
-        self.port = self._server.server_address[1]
-        self._thread = threading.Thread(
-            target=self._server.serve_forever,
-            name="drift-fixture-server",
-            daemon=True,
+        super().__init__(seed=seed, port=port)
+        self.stream = SeqStream(
+            seed=seed,
+            name="orders",
+            generate=order_for_seq,
+            page_limit=PAGE_LIMIT,
         )
+        self.owner = install_owner_channel(self)
+        self.route("GET", "/orders", self._orders)
+        self.route(
+            "GET",
+            "/batches/last",
+            lambda _r: (200, {"last_seq": self.last_seq()}),
+        )
+        self.route("GET", "/batches", lambda _r: (200, self.batches_with_receipts()))
+        self.route("POST", "/batches", self._post_batch)
 
-    @property
-    def base_url(self) -> str:
-        return f"http://127.0.0.1:{self.port}"
+    def set_drift(self, drifted: bool) -> None:
+        self.stream.set_transform(_rename_unit_price if drifted else None)
 
-    def start(self) -> "DriftFixtureServer":
-        self._thread.start()
-        return self
+    def _orders(self, r: Request) -> tuple[int, Any]:
+        try:
+            after = int(r.q("after") or "0")
+        except ValueError:
+            return 400, {"error": "after must be an integer"}
+        r.server.waypoints.reach("read_orders", after=after)
+        return 200, self.stream.rows_after(after)
 
-    def stop(self) -> None:
-        self._server.shutdown()
-        self._server.server_close()
+    def _post_batch(self, r: Request) -> tuple[int, Any]:
+        r.server.recorder.record("batch", r.body, received_at=utcnow())
+        return 200, {"status": "received"}
+
+    def batches(self) -> list[Any]:
+        return [e["payload"] for e in self.recorder.all("batch")]
+
+    def batches_with_receipts(self) -> list[dict[str, Any]]:
+        return [
+            {"received_at": e.get("received_at"), "body": e["payload"]}
+            for e in self.recorder.all("batch")
+        ]
+
+    def last_seq(self) -> int:
+        last = 0
+        for body in self.batches():
+            if isinstance(body, dict):
+                try:
+                    last = max(last, int(body.get("batch_end_seq") or 0))
+                except (TypeError, ValueError):
+                    continue
+        return last

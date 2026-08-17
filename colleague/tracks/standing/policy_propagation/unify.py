@@ -22,6 +22,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from colleague.arms.unify_runtime import BenchmarkTaskExecutionDelegate
+
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 
 STAGING_ORCHESTRA_HOST = "api.staging.internal.saas.unify.ai"
@@ -50,42 +52,6 @@ def _require_env() -> None:
         and os.environ.get("RWR_ALLOW_NON_STAGING") != "true"
     ):
         raise SystemExit(f"ORCHESTRA_URL={orchestra_url} is not staging.")
-
-
-class _BenchmarkTaskExecutionDelegate:
-    """Mirror of the ConversationManager due-task delegate (see exp 1)."""
-
-    def __init__(self, actor: Any) -> None:
-        self._actor = actor
-
-    async def start_task_run(
-        self,
-        *,
-        task_description: str,
-        entrypoint: int | None,
-        parent_chat_context: list[dict] | None,
-        clarification_up_q: asyncio.Queue[str] | None,
-        clarification_down_q: asyncio.Queue[str] | None,
-        images: Any | None = None,
-        **kwargs: Any,
-    ) -> Any:
-        _ = images
-        return await self._actor.act(
-            task_description,
-            guidelines=kwargs.pop("guidelines", None),
-            entrypoint=entrypoint,
-            entrypoint_kwargs=kwargs.pop("entrypoint_kwargs", None),
-            entrypoint_repair_attempts=int(
-                kwargs.pop("entrypoint_repair_attempts", 0) or 0,
-            ),
-            entrypoint_repair_context=kwargs.pop("entrypoint_repair_context", None),
-            destination=kwargs.pop("destination", None),
-            _parent_chat_context=parent_chat_context,
-            _clarification_up_q=clarification_up_q,
-            _clarification_down_q=clarification_down_q,
-            persist=False,
-            _reuse_actor_slot=entrypoint is not None,
-        )
 
 
 async def _await_handle(handle: Any, timeout_s: float) -> tuple[str, str]:
@@ -251,7 +217,7 @@ async def main() -> int:
         print(f"[setup_{automation}] task_id={new_ids[0]}")
     results["task_ids"] = task_ids
 
-    delegate = _BenchmarkTaskExecutionDelegate(actor)
+    delegate = BenchmarkTaskExecutionDelegate(actor)
 
     async def fire(automation: str, round_no: int, threshold: int) -> None:
         cursor_before, released_now, batches_before = prepare_fire(

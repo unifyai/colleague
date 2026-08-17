@@ -19,6 +19,13 @@ Deliberate exemptions are declared here rather than hidden in a scorer, so
 a reader can see exactly which scenarios are calibration points rather than
 tests.
 
+The `standing` fire-series experiments are checked the same way through
+their own scripted arm, under three plans instead of two — `ideal`, `naive`
+and `held` — because their rubric has three rungs: every fire of the ideal
+plan must score *correct*, the naive plan must produce at least one *wrong*
+fire and never outscore ideal, and the held plan must reach the middle rung
+at least once. A rubric whose middle rung no plan can reach is decoration.
+
     python -m colleague.selftest
 """
 
@@ -34,6 +41,8 @@ from tempfile import TemporaryDirectory
 from colleague.harness.capability import Outcome
 from colleague.harness.runner import run_track
 from colleague.run import TRACKS
+from colleague.tracks.standing.series import mock_arm
+from colleague.tracks.standing.series.spec import CORRECT, HELD, WRONG, Experiment
 
 #: Scenarios where ideal and naive are *supposed* to agree, with the reason.
 #: Exempting a scenario is a claim about the benchmark's design, so each one
@@ -107,6 +116,60 @@ EXEMPT = {
 }
 
 
+def series_experiments() -> list[Experiment]:
+    """Every fire-series experiment and variant, as the drivers would build it."""
+    from colleague.tracks.standing.change_without_regression.protocol import (
+        ChangeWithoutRegression,
+    )
+    from colleague.tracks.standing.drift_recovery.protocol import DriftRecovery
+    from colleague.tracks.standing.edge_week.fixture import VARIANTS as EDGES
+    from colleague.tracks.standing.edge_week.protocol import EdgeWeek
+    from colleague.tracks.standing.repair_locality.protocol import RepairLocality
+    from colleague.tracks.standing.silent_drift.fixture import VARIANTS as DRIFTS
+    from colleague.tracks.standing.silent_drift.protocol import SilentDrift
+
+    return [
+        DriftRecovery(),
+        *[SilentDrift(v) for v in DRIFTS],
+        *[EdgeWeek(v) for v in EDGES],
+        RepairLocality(),
+        ChangeWithoutRegression(),
+    ]
+
+
+def _check_series(experiment: Experiment) -> list[str]:
+    scores = {
+        mode: [int(r["score"]) for r in mock_arm.run(experiment, mode=mode)["fires"]]
+        for mode in mock_arm.MODES
+    }
+    label = f"standing/{experiment.name}" + (
+        f"[{experiment.variant()}]" if experiment.variant() else ""
+    )
+    failures: list[str] = []
+    if any(s != CORRECT for s in scores["ideal"]):
+        failures.append(
+            f"{label}: ideal plan scored {scores['ideal']} — a fire is unwinnable",
+        )
+    if WRONG not in scores["naive"]:
+        failures.append(
+            f"{label}: naive plan never scored wrong {scores['naive']} — scorer does not discriminate",
+        )
+    if any(n > i for n, i in zip(scores["naive"], scores["ideal"])):
+        failures.append(f"{label}: naive outscored ideal on a fire {scores['naive']}")
+    if HELD not in scores["held"]:
+        failures.append(
+            f"{label}: held plan never scored held {scores['held']} — the middle rung is unreachable",
+        )
+    if len({tuple(v) for v in scores.values()}) != 3:
+        failures.append(f"{label}: two plans scored identically {scores}")
+    n = len(scores["ideal"])
+    print(
+        f"{label:44s} {n} fires: "
+        + ", ".join(f"{m} {sum(v)}/{CORRECT * n}" for m, v in scores.items()),
+    )
+    return failures
+
+
 def _run(track: str, mode: str, tmp: Path) -> dict[str, str]:
     fixture = importlib.import_module(f"colleague.tracks.{track}.fixture")
     scenario = importlib.import_module(f"colleague.tracks.{track}.scenario")
@@ -154,12 +217,19 @@ def main() -> int:
             suffix = f", {exempt} calibration" if exempt else ""
             print(f"{track:14s} {scored} scenarios{suffix}")
 
+    print()
+    for experiment in series_experiments():
+        failures.extend(_check_series(experiment))
+
     if failures:
         print("\nSELF-TEST FAILURES:")
         for f in failures:
             print(f"  {f}")
         return 1
-    print("\nall tracks: every scenario winnable, every scorer discriminating")
+    print(
+        "\nall tracks: every scenario winnable, every scorer discriminating; "
+        "every fire series: ideal correct, naive wrong, held reachable",
+    )
     return 0
 
 

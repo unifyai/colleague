@@ -30,6 +30,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from colleague.arms.unify_runtime import BenchmarkTaskExecutionDelegate
+
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 
 STAGING_ORCHESTRA_HOST = "api.staging.internal.saas.unify.ai"
@@ -64,47 +66,6 @@ def _require_env() -> None:
         raise SystemExit(
             f"ORCHESTRA_URL={orchestra_url} is not staging. "
             f"Set ACR_ALLOW_NON_STAGING=true to override.",
-        )
-
-
-class _MeasuredTaskExecutionDelegate:
-    """Route task runs through this run's actor.
-
-    Mirrors _ConversationTaskExecutionDelegate in
-    unify/conversation_manager/domains/task_execution.py, which is how the
-    production ConversationManager executes due tasks.
-    """
-
-    def __init__(self, actor: Any) -> None:
-        self._actor = actor
-
-    async def start_task_run(
-        self,
-        *,
-        task_description: str,
-        entrypoint: int | None,
-        parent_chat_context: list[dict] | None,
-        clarification_up_q: asyncio.Queue[str] | None,
-        clarification_down_q: asyncio.Queue[str] | None,
-        images: Any | None = None,
-        **kwargs: Any,
-    ) -> Any:
-        _ = images
-        return await self._actor.act(
-            task_description,
-            guidelines=kwargs.pop("guidelines", None),
-            entrypoint=entrypoint,
-            entrypoint_kwargs=kwargs.pop("entrypoint_kwargs", None),
-            entrypoint_repair_attempts=int(
-                kwargs.pop("entrypoint_repair_attempts", 0) or 0,
-            ),
-            entrypoint_repair_context=kwargs.pop("entrypoint_repair_context", None),
-            destination=kwargs.pop("destination", None),
-            _parent_chat_context=parent_chat_context,
-            _clarification_up_q=clarification_up_q,
-            _clarification_down_q=clarification_down_q,
-            persist=False,
-            _reuse_actor_slot=entrypoint is not None,
         )
 
 
@@ -419,7 +380,7 @@ async def main() -> int:
         )
 
     # ── Phases: monthly wakes ───────────────────────────────────────────────
-    delegate = _MeasuredTaskExecutionDelegate(actor)
+    delegate = BenchmarkTaskExecutionDelegate(actor)
     for i in range(1, n_runs + 1):
         before = scheduler._filter_tasks(filter=f"task_id == {task.task_id}")[0]
         regime = "entrypoint" if before.entrypoint is not None else "description"

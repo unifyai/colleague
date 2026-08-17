@@ -20,7 +20,21 @@ measurable consequence of one of them:
 
 Property 1 is the `standing` track, which is complete. Properties 2 and 3 are
 the tracks that follow, and are the reason this repo exists separately from
-a blog appendix. A fourth property joined later, once the comparison
+a blog appendix.
+
+Property 1 has a thesis behind it, and the second half of `standing` tests
+the thesis rather than the property: **distil → verify → bind → repair.**
+Work said once is distilled into something that runs without a model
+(distil); what was distilled is checked against what it claims to do, on
+real inputs, before it is trusted (verify); once trusted it is bound to the
+schedule and runs for nothing (bind); and when the world moves under it,
+the model returns only to the piece that broke, and either fixes it or stops
+and says so (repair). Each verb is a place an architecture can be measured:
+what distillation costs, whether trust is earned or assumed, what a run
+costs once bound, and how much of the automation a repair touches. The
+`silent_drift`, `edge_week`, `repair_locality` and
+`change_without_regression` experiments, and the six-week `teaching`
+extension, are that measurement. A fourth property joined later, once the comparison
 harnesses caught up on the mechanics of the first three:
 
 4. **It has to see and hear.** A colleague is on the call, watches the
@@ -139,6 +153,21 @@ problem to be stated, not worked around silently.
 scripted interlocutor and task progress must be deterministic, so cached
 (millisecond) and live (multi-second) runs order identically.
 
+**8. Held scores below correct, and above wrong.** Where an automation can
+stop and tell its owner why, the rubric has three rungs, not two: correct
+(2), held with a reason (1), anything else (0). An automation that delivers
+plausible wrong numbers is worth nothing; one that silently delivers nothing
+is indistinguishable from it and is worth the same; one that stops and says
+so is worth something, and never as much as one that got it right. Every
+fire-series experiment in `standing` uses this rubric
+(`colleague/tracks/standing/series/spec.py`), and the self-test proves the
+middle rung is reachable — a scripted arm that holds must score 1 — so no
+scorer can quietly collapse it into pass/fail. A hold is observed as an
+owner message: on the fixture's `/owner/notify` with the hold marker, or,
+for an arm whose runtime holds a run natively and tells the owner through
+its own channel, that message read from the arm — the same outcome by
+either route, so no arm is asked to fake the other's mechanism.
+
 ## Tracks
 
 ### `standing` — work that outlives the conversation
@@ -152,6 +181,17 @@ scripted interlocutor and task progress must be deterministic, so cached
 | `drift_recovery` | An API field is renamed mid-series: cost and reliability of recovery, with and without a human |
 | `semantic_triage` | Recurring work with a judgment substep: steady-state cost at equal accuracy |
 | `policy_propagation` | One rule across three automations, one change request: propagation completeness and cost |
+| `silent_drift` | The API keeps its field names and changes their meaning (`amount` minor → major units; a page cap under "returns every pending order"): correct, held with reason, or plausibly wrong — and what each costs |
+| `edge_week` | Four ordinary weeks, then a week that breaks a stated invariant (empty, duplicated row, unexpected currency, contact with no email): the exact right answer, the safe stop, or the wrong digest; tokens for the edge week against the ordinary ones |
+| `repair_locality` | Three independent inputs to one report; only refunds drift: recovery, repair tokens, and whether the untouched sections keep exactly their shape |
+| `change_without_regression` | A working automation is asked for one more column: the new column right, and every old column byte-identical over the next three fires |
+
+The four later experiments share one engine
+(`colleague/tracks/standing/series/`) and one rubric (rule 8). Every fire's
+tokens are reported by purpose — planning, verification, repair — read from
+unify's client tags by the in-process ledger; the proxy-metered arms report
+every token as planning. `plot_distillation_curve.py` draws them side by
+side across the track.
 
 The finding that shapes the rest of the suite: the arms sort into two pairs.
 Script steady states (hermes, OpenCode) are free per firing and cannot
@@ -226,13 +266,24 @@ suppressed (against a labelled fixture); did anything deadlock or get dropped.
 
 ### `teaching` — does a walkthrough become an artifact
 
-A workflow is walked through in text, carrying two rules that are absent from
-the API: a threshold that is not the obvious one, and a vendor chased through
-their account manager. A later week is requested with nothing restated.
+A procedure is walked through in text, carrying two rules that are absent
+from the API: a threshold that is not the obvious one, and a vendor chased
+through their account manager. Later weeks are requested with nothing
+restated. In week 33 a third rule arrives as a correction mid-run (skip
+anyone on a payment plan) and week 34 measures it unprompted; before week 35
+one of the original rules is amended in a single sentence — the vendor's
+account manager changes — while the threshold is not mentioned; week 36 is
+unattended with all three rules in force.
 
-*Scoring:* the exact set of reminder recipients, recomputed. An untaught
-control establishes what the API alone yields, so the taught week's score can
-be read as retention rather than inference.
+*Scoring:* the exact set of reminder recipients per week, recomputed; week
+33 scores that nothing on a payment plan was chased *after* the correction
+and everyone else still was; weeks 35–36 score the amendment applied and the
+untouched threshold kept, in the same scorecard. The walkthrough asks for a
+preview of the first send and nothing after: week 31 must raise one through
+the arm's own channel naming a recipient, and the unattended weeks must
+raise nothing (message-present outcomes, never prose). Tokens per week are
+reported, not scored. An untaught control establishes what the API alone
+yields, so the taught weeks can be read as retention rather than inference.
 
 ### `custody` — where knowledge is kept decides who can reach it
 
@@ -388,7 +439,8 @@ colleague/
   arms/            per-harness toolkits (hermes, openclaw, opencode, proxy)
   harness/         shared infrastructure (ledger; interlocutor to come)
   tracks/
-    standing/      four complete experiments, each with results/
+    standing/      eight experiments, each with results/; series/ is the
+                   shared fire-series engine; plot_distillation_curve.py
     <eleven others>/  built, self-testing; see Status
     callflow/      designed, not built
 ```
@@ -404,14 +456,14 @@ transport. Every published number in this repo is still `standing` only.
 
 | Track | Scenarios | Notes |
 |---|---|---|
-| `standing` | 4 experiments | Complete, four arms, published |
+| `standing` | 8 experiments | Four complete and published; four built on the shared fire-series engine, self-testing, awaiting runs |
 | `inheritance` | 4 | `ask_the_owner` scores *whom* the arm asked |
 | `interruption` | 4 | `resume_after_correction` scores progress kept |
 | `continuity` | 1 + 1 control | |
 | `attribution` | 4 | |
 | `custody` | 5 + 3 controls + 4 setup | Immediate half, late half, standing rule, authority pair |
 | `concurrency` | 2 | `three_senders` routes corrections by sender |
-| `teaching` | 4 + 1 control | Walkthrough, replay, then a correction mid-run honoured next week |
+| `teaching` | 6 + 1 control | Walkthrough with a preview once, replay, a correction mid-run honoured next week, an amendment before week 35, two more weeks unattended |
 | `membership` | 3 + 4 controls + 1 setup | Team-scoped facts, structure vs structure |
 | `recall` | 3 + 4 controls + 8 setup | Supersession after a week of messages |
 | `screenshare` | 1 + 1 control | Frames in; final state of the arm's own instance out |

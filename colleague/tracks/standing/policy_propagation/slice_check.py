@@ -23,9 +23,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from colleague.arms.unify_runtime import BenchmarkTaskExecutionDelegate
 from colleague.tracks.standing.policy_propagation.unify import (
     _await_handle,
-    _BenchmarkTaskExecutionDelegate,
     _require_env,
 )
 
@@ -113,7 +113,7 @@ async def main() -> int:
 
     release_round(fixture)
     cursor_before, released_now, batches_before = prepare_fire(fixture, "triage")
-    delegate = _BenchmarkTaskExecutionDelegate(actor)
+    delegate = BenchmarkTaskExecutionDelegate(actor)
     print("[fire] running first fire + review ...")
     with ledger.phase("fire_1"):
         token = current_task_execution_delegate.set(delegate)

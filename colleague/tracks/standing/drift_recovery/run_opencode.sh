@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# Launcher for the OpenClaw comparison arm.
+# Launcher for the drift recovery benchmark, OpenCode arm.
 #
-# Requires a built OpenClaw checkout (default ~/opencode; override with
-# OC_REPO) — run `pnpm install && pnpm build` there once. Uses
-# OPENROUTER_API_KEY from unify/.env unless already exported.
+# Requires an OpenCode checkout (default ~/opencode; override with
+# OCODE_REPO). Uses OPENROUTER_API_KEY from .env unless already exported.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

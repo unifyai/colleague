@@ -21,7 +21,9 @@ import threading
 import pytest
 
 unillm = pytest.importorskip("unillm")
+pytest.importorskip("unify.common.llm_client")
 
+from unify.common.llm_client import tag_origin_with_purpose  # noqa: E402
 from unillm.llm_events import LLMEvent, _emit_llm_event  # noqa: E402
 
 from colleague.harness.llm_ledger import LLMLedger  # noqa: E402
@@ -34,7 +36,11 @@ def clean_listeners():
     unillm.clear_llm_event_listeners()
 
 
-def _completion(model: str = "openai/gpt-5.6-terra@openrouter", cost: float = 0.25):
+def _completion(
+    model: str = "openai/gpt-5.6-terra@openrouter",
+    cost: float = 0.25,
+    origin: str | None = None,
+):
     """An event shaped like the ones the client emits after a completion."""
     return LLMEvent(
         request={"model": model},
@@ -46,6 +52,7 @@ def _completion(model: str = "openai/gpt-5.6-terra@openrouter", cost: float = 0.
             },
         },
         provider_cost=cost,
+        origin=origin,
     )
 
 
@@ -102,6 +109,41 @@ class TestRecordingThroughRealCallPaths:
         assert by_name["setup"].provider_cost == pytest.approx(1.0)
         assert by_name["run_1"].llm_calls == 2
         assert by_name["run_1"].provider_cost == pytest.approx(5.0)
+
+    def test_splits_a_phase_by_the_purpose_unify_tagged_on_the_origin(self, ledger):
+        """A fire's spend reads as planning / verification / repair from the
+        client tag; an untagged call is planning, which is also what every
+        proxy-metered arm reports."""
+        with ledger.phase("fire_5"):
+            _emit_llm_event(_completion(origin="CodeActActor.act"))
+            _emit_llm_event(
+                _completion(
+                    origin=tag_origin_with_purpose("Verifier.args", "verification"),
+                ),
+            )
+            _emit_llm_event(
+                _completion(
+                    origin=tag_origin_with_purpose("Verifier.post", "verification"),
+                ),
+            )
+            _emit_llm_event(
+                _completion(origin=tag_origin_with_purpose("Repair", "repair")),
+            )
+
+        fire = {s.name: s for s in ledger.summarize()}["fire_5"].to_json()
+        assert fire["llm_calls"] == 4
+        assert fire["by_purpose"]["planning"] == {
+            "llm_calls": 1,
+            "prompt_tokens": 100,
+            "completion_tokens": 20,
+        }
+        assert fire["by_purpose"]["verification"]["llm_calls"] == 2
+        assert fire["by_purpose"]["repair"]["prompt_tokens"] == 100
+        total = sum(
+            b["prompt_tokens"] + b["completion_tokens"]
+            for b in fire["by_purpose"].values()
+        )
+        assert total == fire["total_tokens"]
 
 
 class TestCoexistenceWithTheRuntimesOwnListener:

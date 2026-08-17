@@ -45,6 +45,52 @@ as evidence. Would have mismeasured a competent arm of any architecture.
 
 ## 2026-08-17
 
+**Harness — the run record's `clarifications` are per scenario.** In a
+track-scoped session (`continuity`, `custody`, `teaching`, `membership`,
+`recall`) `record["clarifications"]` used to be the session's whole list,
+so a scorer asking "did the arm ask during *this* scenario" saw every
+earlier ask too. It is now the slice raised since the scenario began. No
+scorer's verdict changes: `inheritance` runs one session per scenario, and
+`custody/assertion` reads the list as evidence (`verified_with`), which
+becomes the asks made during that scenario rather than since the briefing.
+`teaching` is the first track to score on it (preview once, then never).
+
+**`[wrong]` teaching — weeks 35–36, one amendment, and the preview.** On
+top of the correction weeks (33–34, below), the track now amends one of the
+original rules in one sentence before week 35 (Bergen Chemical's account
+manager changes; the threshold and the payment-plan rule are not mentioned)
+and scores weeks 35–36 on the amendment applied *and* the untouched rules
+kept — the seed puts invoices at 33/38 and 34/35 days in those weeks, inside
+the band the taught threshold excludes, and the vendor on a plan over it.
+The walkthrough also asks for a preview of the first send and nothing after;
+week 31 must raise a clarification naming a recipient, the unattended weeks
+must raise none. Daniel joined the persona pool to answer the preview.
+`week_31_taught`, `week_32_replay`, `week_33_corrected`,
+`week_34_replay_after_correction` and `untaught_control` keep their requests
+and their ground truth; the track could not see whether an amendment reached
+the right rule without disturbing the others, nor whether an arm asked once
+and then ran unattended.
+
+**Harness — the `standing` fire-series engine, and `drift_recovery` on it.**
+Every per-arm driver of `drift_recovery` is now a thin module over
+`colleague/tracks/standing/series/` (one loop per arm, an `Experiment`
+per experiment). The utterance, fire schedule, fixture data (verified
+against the previous generator for the published seed) and `correct` are
+byte-for-byte what they were; each fire additionally carries the shared
+`outcome` (correct 2 / held 1 / wrong 0). Because that utterance offers no
+owner channel, a hold in this experiment is observable only where an arm's
+runtime holds natively — stated in the README. The unify arm's due-task
+delegate lost `entrypoint_repair_attempts`, which the runtime no longer
+accepts; the published unify runs were made with the one-attempt loop and
+say so.
+
+**Harness — tokens by purpose.** The unify arm's in-process ledger reads
+unify's client purpose tag from each call's `origin` and reports every
+phase's spend split into planning / verification / repair; the proxy
+ledger reports the same shape with everything under planning. Fire-series
+records carry `fires[i].tokens` in that shape and
+`plot_distillation_curve.py` draws it across the track.
+
 **`[wrong]` custody/briefing — an acknowledgement to the requester scored as
 a reply.** The scenario says "do not reply to anyone yet" and the check was
 `replies == 0`. The CM arm's "Got it, reading now" to Daniel was already

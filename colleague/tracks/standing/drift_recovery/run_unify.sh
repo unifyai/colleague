@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Launcher for the drift-recovery benchmark, Unify arm (staging Orchestra).
+# Launcher for the drift recovery benchmark, Unify arm (staging Orchestra).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

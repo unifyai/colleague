@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# Launcher for the drift-recovery benchmark, hermes-agent arm.
+# Launcher for the drift recovery benchmark, hermes-agent arm.
+#
+# Requires a hermes-agent checkout (default ~/hermes-agent; override with
+# RWR_HERMES_REPO) with `uv sync` run once. Uses OPENROUTER_API_KEY from .env
+# unless already exported.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

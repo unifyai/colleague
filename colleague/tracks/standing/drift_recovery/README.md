@@ -6,15 +6,18 @@ rename, the smallest realistic schema change. What happens to **cost** and
 **reliability**?
 
 **The architectural asymmetry under test.** Unify's steady state executes a
-stored `FunctionManager` entrypoint with a bounded repair loop wired in
-(`entrypoint_repair_attempts=1`): on failure, an LLM sees the exception plus
-the function source, rewrites the function in place (persisted with
-`overwrite=True`), and the same run retries — self-healing, paid only when
-something actually breaks. hermes-agent's steady state (`no_agent` cron +
-standalone script, as its agent converged to in experiment 1) has **no model
-in the loop at all**: nothing observes the failure, so the automation stays
-broken until a human notices and asks the agent to fix it. This experiment
-prices both sides of that asymmetry with real inference.
+stored `FunctionManager` entrypoint under the runtime's own verification: a
+failed or unverifiable leaf is repaired in place (the function is rewritten
+and persisted, and loses its trust until it re-earns it), the same run
+retries, and a run that cannot be made to verify is held with a reason to
+the owner rather than delivered — self-healing, paid only when something
+actually breaks. hermes-agent's steady state (`no_agent` cron + standalone
+script, as its agent converged to in experiment 1) has **no model in the
+loop at all**: nothing observes the failure, so the automation stays broken
+until a human notices and asks the agent to fix it. This experiment prices
+both sides of that asymmetry with real inference. (The published runs below
+predate the verification runtime and were made with a one-attempt repair
+loop, `entrypoint_repair_attempts=1`, which no longer exists.)
 
 ## Workflow
 
@@ -42,7 +45,11 @@ identical utterance both arms receive is `UTTERANCE_TEMPLATE` in
 - Scoring per fire: exactly one batch delivered, exactly-correct totals,
   correctly chained to the previous batch. Metering as in experiment 1
   (chained unillm ledger for unify; recording proxy for hermes; same pinned
-  model `openai/gpt-5.6-sol@openrouter`).
+  model `openai/gpt-5.6-sol@openrouter`). Since the fire-series engine
+  landed every fire also carries the shared `outcome` (correct 2 / held 1 /
+  wrong 0); `correct` is unchanged, and because this experiment's utterance
+  — kept byte-identical to the published runs — offers no owner channel, a
+  hold is observable here only where an arm's runtime holds natively.
 
 ## Outputs
 
