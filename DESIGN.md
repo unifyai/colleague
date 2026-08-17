@@ -301,13 +301,19 @@ harness at HEAD, and all of them can drive their own desktop. The interesting
 cell is whether the arm that has both halves joins them; unify's own prompt
 rules push against it, and a loss belongs in the results.
 
-### `meeting` — designed, not built
+### `meeting` — built on a text room; voice is the next transport
 
-Multi-party voice: speak when addressed, stay quiet when two humans are
-talking, answer before the moment passes, turn a request made on the call
-into work that fires later. Outcome-scored from utterance text and transport
-timestamps; never barge-in latency or disfluency. The transport is the
-missing piece and it is substantial. See `colleague/tracks/meeting/`.
+Several people in a room, one assistant among them: speak when addressed,
+stay quiet when two humans are talking to each other, answer before the
+moment passes, turn a request made in passing into work. Four scenes,
+outcome-scored from the fixture's `/say` and `/schedule` records and from
+recorder sequence; never barge-in latency or disfluency.
+
+The people are **role-players** (below), which is what makes the track
+buildable at all: nobody can script every branch of what a model will say
+to three people. v0 runs on a text room; the scenes and scorer are
+medium-agnostic and the call transport slots in without redesign. See
+`colleague/tracks/meeting/`.
 
 ### `callflow` — designed, not built
 
@@ -338,8 +344,23 @@ are built deliberately rather than rediscovered:
 
 ## Infrastructure this needs
 
-**The scripted interlocutor** is the main new component and gates tracks
-`interruption`, `attribution` and `concurrency`. It injects messages from
+**Role-players** (`harness/roleplay.py`) are how a scene with several people
+is run. Scripted turns at waypoints are right for a correction that must
+mean exactly one thing; they are wrong for a room, where the system under
+test is a model that will take the conversation somewhere no script
+anticipated. So each person is a persona with a brief, and a scene is a list
+of beats — what gets said, by whom, in order, aimed at the assistant or not.
+The order is the deterministic flow; the wording and the reactions are the
+model's, in character, bounded by turn budgets. Without a model the roles
+speak their beats verbatim and never react — the controlled version of the
+same scene, which is what the self-test runs. Ground truth never lives in a
+role's head at run time; the fixture holds it and the scorer reads only what
+the fixture witnessed. Anything a live role touches is a distribution:
+`--repeat` and the aggregate's spread column are the measurement, not a
+single verdict.
+
+**The scripted interlocutor** is the older component and still gates
+`interruption` and `concurrency`. It injects messages from
 named participants at points defined *relative to task progress*, not
 wall-clock — the same discipline as unify's `tests/async_helpers.py`. Build
 it before writing scenarios for those tracks, because it determines what is
@@ -366,8 +387,7 @@ colleague/
   harness/         shared infrastructure (ledger; interlocutor to come)
   tracks/
     standing/      four complete experiments, each with results/
-    <ten others>/  built, self-testing; see Status
-    meeting/       designed, not built
+    <eleven others>/  built, self-testing; see Status
     callflow/      designed, not built
 ```
 
@@ -377,7 +397,7 @@ OpenCode toolkits living inside `recurring_report`; that is fixed.
 
 ## Status
 
-Ten tracks are built and self-testing; two are designed and waiting on a
+Eleven tracks are built and self-testing; one is designed and waiting on a
 transport. Every published number in this repo is still `standing` only.
 
 | Track | Scenarios | Notes |
@@ -393,7 +413,7 @@ transport. Every published number in this repo is still `standing` only.
 | `membership` | 3 + 4 controls + 1 setup | Team-scoped facts, structure vs structure |
 | `recall` | 3 + 4 controls + 8 setup | Supersession after a week of messages |
 | `screenshare` | 1 + 1 control | Frames in; final state of the arm's own instance out |
-| `meeting` | designed | Needs a voice transport in the harness |
+| `meeting` | 4 | Text room, role-played; the call transport is next |
 | `callflow` | designed | Needs a callee the arm can dial |
 
 ## Next
@@ -414,8 +434,8 @@ transport. Every published number in this repo is still `standing` only.
 6. `recall` needs the CM adapter to pin its context tree across sessions
    before the restart variant is added
 7. The voice transport: a room, persona voices, timing capture — once,
-   medium-agnostically. `meeting` and `callflow` follow, and `attribution` and
-   `interruption` gain voice variants
+   medium-agnostically. `meeting`'s scenes move onto it unchanged, `callflow`
+   follows, and `attribution` and `interruption` gain voice variants
 8. Genuinely independent lifetimes in `concurrency`: a runner holding several
    handles, corrections against each while a fourth thing runs
 

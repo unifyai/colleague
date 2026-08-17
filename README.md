@@ -64,7 +64,7 @@ chained unillm hook. Both produce the same per-phase ledger.
 | [`membership`](colleague/tracks/membership/) | Two teams, one assistant: does where a fact was said decide who gets it back? | built |
 | [`recall`](colleague/tracks/recall/) | A week of messages, three facts replaced: is the newest value the one recalled? | built |
 | [`screenshare`](colleague/tracks/screenshare/) | Frames of a shared screen: can it do the same on its own instance? | built |
-| [`meeting`](colleague/tracks/meeting/) | Several people on a call: speak when addressed, quiet when not, work commanded on the call fires later | designed |
+| [`meeting`](colleague/tracks/meeting/) | Several people in a room: speak when addressed, quiet when not, work commanded in passing gets done | built — text room; voice next |
 | [`callflow`](colleague/tracks/callflow/) | A decision tree and a phone call: which leaf did it reach? | designed |
 | [`usecases`](colleague/tracks/usecases/) | Are the figures on our own use-case pages real? | built — 2 of 19 pages |
 
@@ -134,6 +134,16 @@ Persona tokens are metered separately and never charged to the arm. Folding
 them in would make an arm that asks look more expensive than one that
 guesses, which is exactly backwards.
 
+**Rooms are role-played, not scripted.** Where several people carry a
+scene — `meeting` today, calls next — each is a persona with a brief and the
+scene is a list of beats: what gets said, by whom, in order. The order is
+deterministic; the wording and the reactions are the model's, in character.
+Nobody can script every branch of what the system under test will say to
+three people, so nobody tries: ground truth stays in the fixture, scoring
+reads only what the fixture witnessed, and anything a live role touches is
+run repeatedly and reported as a spread. Without a model the roles speak
+their beats verbatim, which is the controlled version of the same scene.
+
 **A persona is a second model, so it is a second way to fail.** If a persona
 never supplies the fact the arm needed, the arm could not have succeeded, and
 scoring it would record an environment fault as a statement about the system
@@ -173,6 +183,7 @@ tree (`colleague/<experiment>/<run-id>/...`), never a real assistant.
 ```bash
 bash colleague/tracks/standing/recurring_report/run.sh   # standing track
 python -m colleague.run inheritance --arm unify          # everything else
+python -m colleague.run meeting --arm unify-cm --repeat 5  # role-played scenes: read the spread
 python -m colleague.run --list                           # tracks and scenarios
 ```
 
@@ -200,9 +211,9 @@ about it.
 
 | Sweep | Shards |
 |---|---|
-| all tracks, unify | 21 |
-| all tracks, all arms | 126 |
-| all tracks, all arms, repeat 5 | 630 |
+| all tracks, unify | 25 |
+| all tracks, all arms | 150 |
+| all tracks, all arms, repeat 5 | 750 |
 
 Anything over 40 shards needs `--confirm`, enforced again inside the
 workflow. Repeats that disagree are shown as a spread rather than a majority

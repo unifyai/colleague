@@ -30,6 +30,7 @@ TRACKS = (
     "membership",
     "recall",
     "screenshare",
+    "meeting",
 )
 
 ROOT = Path(__file__).resolve().parent
@@ -49,6 +50,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--port", type=int, default=0, help="0 picks a free port")
     parser.add_argument("--timeout", type=float, default=900.0)
+    parser.add_argument(
+        "--repeat",
+        type=int,
+        default=1,
+        help=(
+            "run the track this many times; anything a live role-player "
+            "touches is a distribution, and repeats are how it is measured"
+        ),
+    )
     parser.add_argument("--list", action="store_true", help="list tracks and scenarios")
     args = parser.parse_args(argv)
 
@@ -66,18 +76,24 @@ def main(argv: list[str] | None = None) -> int:
 
     fixture = importlib.import_module(f"colleague.tracks.{args.track}.fixture")
     scenario = importlib.import_module(f"colleague.tracks.{args.track}.scenario")
-    return run_track(
-        track=args.track,
-        arm=args.arm,
-        fixture_module=fixture,
-        scenario_module=scenario,
-        results_root=ROOT / "tracks" / args.track / "results",
-        seed=args.seed,
-        port=args.port,
-        timeout_s=args.timeout,
-        only=args.only,
-        mode=args.mode,
-    )
+    worst = 0
+    for _ in range(max(1, args.repeat)):
+        worst = max(
+            worst,
+            run_track(
+                track=args.track,
+                arm=args.arm,
+                fixture_module=fixture,
+                scenario_module=scenario,
+                results_root=ROOT / "tracks" / args.track / "results",
+                seed=args.seed,
+                port=args.port,
+                timeout_s=args.timeout,
+                only=args.only,
+                mode=args.mode,
+            ),
+        )
+    return worst
 
 
 if __name__ == "__main__":

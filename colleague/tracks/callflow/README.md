@@ -3,6 +3,16 @@
 Hand the assistant a decision tree, ask it to call someone and follow it,
 and score which leaf it reached.
 
+## The callee is a role-player
+
+Same principle as `meeting`: the person on the other end of the line is a
+persona with a brief that fixes the path through the tree — which surname
+they will find him under, which slot they offer first, what reference they
+give — and answers in their own words to whatever the assistant actually
+says. Nobody scripts the assistant's side. Ground truth is the brief's path,
+scoring is the leaf reached and the facts carried back, and a call is a
+distribution: run it repeatedly. See `colleague/harness/roleplay.py`.
+
 ## The shape
 
 The tree is a document: "Call the clinic. If they answer: ask for the

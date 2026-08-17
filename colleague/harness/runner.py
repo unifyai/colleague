@@ -7,10 +7,11 @@ A track supplies three things and gets a driver for free:
     scenario.score(name, fixture)   -> ScenarioResult
 
 Optionally it also supplies ``scenario.turns(name, ...)`` returning scripted
-interlocutor turns, and ``SESSION_SCOPE`` to say whether the arm session is
-rebuilt per scenario (the default) or held across the whole track — which
-`continuity` needs, since a session surviving between requests is the thing
-under test.
+interlocutor turns, ``scenario.scene(name)`` returning a role-played scene
+(people who carry the conversation themselves, see `harness/roleplay.py`),
+and ``SESSION_SCOPE`` to say whether the arm session is rebuilt per scenario
+(the default) or held across the whole track — which `continuity` needs,
+since a session surviving between requests is the thing under test.
 
 Each scenario gets a fresh fixture, so the recorder contains only that
 scenario's side effects and scoring never has to filter by time.
@@ -29,6 +30,7 @@ from typing import Any
 from colleague.arms.sessions import build as build_session
 from colleague.harness.capability import Outcome, ScenarioResult, summarize
 from colleague.harness.interlocutor import Interlocutor
+from colleague.harness.roleplay import RolePlayDirector
 from colleague.harness.scoring import infra_failure
 from colleague.harness.session import ArmSession, Reply, RunHandle, Unsupported
 
@@ -275,7 +277,35 @@ def run_track(
                         deliver=deliver,
                     ).start()
 
+                # A scene: role-played people who speak in order, react to
+                # what the assistant says, and stop when the scene is done.
+                director: RolePlayDirector | None = None
+                scene = (
+                    scenario_module.scene(name)
+                    if hasattr(scenario_module, "scene")
+                    else None
+                )
+                if scene is not None:
+
+                    def deliver_line(sender, text, _h=handle):
+                        return _h.interject(text, sender=sender)
+
+                    director = RolePlayDirector(
+                        fixture=fixture,
+                        scene=scene,
+                        deliver=deliver_line,
+                    ).start()
+
                 reply = handle.wait(timeout=timeout_s)
+                if director is not None:
+                    reply = _finish_scene(
+                        director,
+                        session=session,
+                        handle=handle,
+                        reply=reply,
+                        timeout_s=timeout_s,
+                    )
+                    record["roleplay"] = director.journal()
                 if inter is not None:
                     inter.stop()
                     record["interlocutor"] = inter.journal()
@@ -369,6 +399,45 @@ def run_track(
     credited = results["summary"]["credited"]
     scoreable = results["summary"]["scoreable"]
     return 0 if scoreable and credited == scoreable else 1
+
+
+def _finish_scene(
+    director: RolePlayDirector,
+    *,
+    session: ArmSession,
+    handle: RunHandle,
+    reply: Reply,
+    timeout_s: float,
+) -> Reply:
+    """Let a scene play out against whatever channel the arm has.
+
+    Live-interject arms received every line while the first turn ran and
+    keep processing on their own loop; the arm is drained again once the
+    roles are done so late answers are in the record. Arms with no way in
+    left lines *pending*; those are fed as continuation turns through the
+    arm's resume path — a queued delivery, recorded as one — or recorded as
+    not delivered when there is no such path either.
+    """
+    director.wait(timeout=timeout_s)
+    latest = reply
+    while True:
+        said = director.pop_pending()
+        if said is None:
+            break
+        if hasattr(session, "resume"):
+            latest = session.resume(said.text, sender=said.who)
+            director.note_delivered(said, "resumed_turn")
+        else:
+            director.note_delivered(said, "not_delivered")
+    director.stop()
+    # A second drain for arms that took lines live after the first wait.
+    try:
+        drained = handle.wait(timeout=timeout_s)
+        if drained.ok or not latest.ok:
+            latest = drained
+    except Exception:  # noqa: BLE001 - the first reply stands
+        pass
+    return latest
 
 
 def env_int(name: str, default: int) -> int:

@@ -64,6 +64,15 @@ Sarahs; `cold_control`'s ground truth and scorer are untouched.
 and its scorer is unchanged. Store-backed arms are now seeded with all
 three for both scenarios, which is harmless for the first.
 
+**Harness — role-players.** `harness/roleplay.py`: a scene is an ordered
+list of beats spoken by persona-backed roles; live roles reword in character
+and may react to the assistant, controlled roles speak verbatim and never
+react. Lines reach the arm through `interject`, or as continuation turns
+when the arm has no live channel, and every line records how it got there.
+`colleague.run --repeat N` runs a track N times; the aggregate already
+shows repeats as a spread. `meeting` is the first track on it. No existing
+scenario is affected.
+
 **Profiles.** `openclaw`'s notes now state that the profile describes the
 CLI surface the arm drives and that OpenClaw at HEAD documents a blocking
 `ask_user`, `steer` as default and multi-user session ownership on its
