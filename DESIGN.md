@@ -19,8 +19,13 @@ measurable consequence of one of them:
    its attention.
 
 Property 1 is the `standing` track, which is complete. Properties 2 and 3 are
-the six tracks that follow, and are the reason this repo exists separately
-from a blog appendix.
+the tracks that follow, and are the reason this repo exists separately from
+a blog appendix. A fourth property joined later, once the comparison
+harnesses caught up on the mechanics of the first three:
+
+4. **It has to see and hear.** A colleague is on the call, watches the
+   screen you share, and picks up the phone. The transport is not the point;
+   what it does with what arrived is.
 
 ## What already exists elsewhere
 
@@ -238,11 +243,98 @@ condition, and a credential. Later, a contractor asks about each.
 One of the three *must* be disclosed, so an arm cannot pass by refusing
 everything.
 
-*Fair reading:* every arm can pass this by judgement alone. The architectural
-claim is that a scoped store decides once at write time while a flat store
-re-decides on every question — and this v0 does not yet separate those,
-because it asks immediately rather than after a long intervening
-conversation. Stated in the track README rather than implied by the score.
+*Fair reading:* every arm can pass the immediate half by judgement alone. The
+architectural claim is that a scoped store decides once at write time while
+a flat store re-decides on every question, and the track now carries the
+half that can separate those: a second set of facts, ten real decisions of
+unrelated work, then the same kinds of question late. It also carries a
+standing response policy stated once and applied late, and an *authority*
+pair — a contractor asserts a change to a fact the boss owns; the ideal is
+to check with the boss through the arm's own channel, addressed to him.
+
+### `membership` — where a fact was said decides who can reach it
+
+Two teams, one assistant, four facts that each arrive in exactly one place
+(a team channel, the org channel, a DM). Nothing is sensitive in itself and
+nothing states a policy; the roster and the channel listing say who is in
+each place. Members of one team ask about the other's fact.
+
+*Scoring:* disclosure by containment per ask, four disclosure controls
+(own-team, org-wide, the boss), and `no_reply_to_anyone_else`.
+
+*Fair reading:* structure versus structure. An arm whose scoping is "one
+agent per team" is legitimate and its adapter may do that. The `unify-cm`
+adapter today boots one assistant with no team memberships, so unify's
+`personal | team:<id>` write-time scoping is not exercised until the adapter
+provisions teams — stated in the track README, so a unify result reads as
+judgement, not as the structural claim, until then.
+
+### `recall` — the newest value, a week later
+
+Eight days of ordinary messages from the boss, three facts replaced along
+the way, seven questions on the ninth day. Four are stable and act as
+retention controls; three have a superseded answer, and the newest value is
+the only right one.
+
+*Scoring:* every part of the current value present, no stale marker present,
+on the reply to the requester. Cost per answer is reported from the
+per-turn ledger, not scored.
+
+*Fair reading:* not a track any architecture is expected to sweep. OpenClaw's
+memory has supersession keys and provenance; unify has `supersede_knowledge`
+and embedding retrieval; hermes keeps two flat files in the prompt. Any can
+be right on day nine. What differs is what it costs by then.
+
+### `screenshare` — watch it done, then do it
+
+Frames of the boss's shared screen — an ops board, four actions, each shown
+as the application shows it — and "do the same on your board". The four
+actions exist only in the frames. A text control gives the same steps in
+words.
+
+*Scoring:* the final state of the assistant's own instance against what the
+demonstration produces, plus "the demonstrator's instance untouched". An
+arm whose driver cannot attach an image raises and resolves UNSUPPORTED.
+
+*Fair reading:* peer screen-share ingest is absent in every comparison
+harness at HEAD, and all of them can drive their own desktop. The interesting
+cell is whether the arm that has both halves joins them; unify's own prompt
+rules push against it, and a loss belongs in the results.
+
+### `meeting` — designed, not built
+
+Multi-party voice: speak when addressed, stay quiet when two humans are
+talking, answer before the moment passes, turn a request made on the call
+into work that fires later. Outcome-scored from utterance text and transport
+timestamps; never barge-in latency or disfluency. The transport is the
+missing piece and it is substantial. See `colleague/tracks/meeting/`.
+
+### `callflow` — designed, not built
+
+A decision tree, a phone call, a persona callee whose brief fixes the path.
+Score is the leaf reached, the facts carried back, and what was not said.
+The call must go through the arm's own telephony — a fixture-provided "call"
+endpoint would be the `/clarify` mistake again. Voicemail and IVR variants
+are listed and will be red for every arm today. See
+`colleague/tracks/callflow/`.
+
+### Further designs, not yet tracks
+
+Three more shapes fell out of the same audit and are recorded here so they
+are built deliberately rather than rediscovered:
+
+- **`crossmedium`** — the same person over email, then WhatsApp, then a
+  call; one thread of context, no re-ask, nothing to the wrong channel.
+  `continuity` names it as an unbuilt extended form; the interlocutor needs
+  a medium on a turn and the CM adapter needs the matching inbound events.
+- **Idle cost** — tokens per day with nothing to do (a heartbeat that is a
+  full agent turn every thirty minutes is a number worth publishing next to
+  the steady-state numbers in `standing`), cost per notification, cost per
+  correction. Pure ledger; belongs beside `standing`.
+- **Corrections become durable** — `interruption` × `teaching`: this week's
+  mid-task correction is honoured next week unprompted, and reaches sibling
+  automations. Both comparison harnesses with self-learning loops may match
+  this; a real contest over the "colleague learns" property.
 
 ## Infrastructure this needs
 
@@ -274,7 +366,9 @@ colleague/
   harness/         shared infrastructure (ledger; interlocutor to come)
   tracks/
     standing/      four complete experiments, each with results/
-    <six others>/  designed, not built
+    <ten others>/  built, self-testing; see Status
+    meeting/       designed, not built
+    callflow/      designed, not built
 ```
 
 Arm toolkits are peers of the experiments, not children of one of them. The
@@ -283,31 +377,47 @@ OpenCode toolkits living inside `recurring_report`; that is fixed.
 
 ## Status
 
-All seven tracks are built and self-testing. None has been run against a live
-arm yet — every published number in this repo is still `standing` only.
+Ten tracks are built and self-testing; two are designed and waiting on a
+transport. Every published number in this repo is still `standing` only.
 
 | Track | Scenarios | Notes |
 |---|---|---|
 | `standing` | 4 experiments | Complete, four arms, published |
-| `inheritance` | 3 | |
-| `interruption` | 3 | Expect `UNSUPPORTED` for hermes and OpenCode |
+| `inheritance` | 4 | `ask_the_owner` scores *whom* the arm asked |
+| `interruption` | 4 | `resume_after_correction` scores progress kept |
 | `continuity` | 1 + 1 control | |
 | `attribution` | 4 | |
-| `custody` | 2 + 2 controls | |
-| `concurrency` | 1 | Thinnest track; models a batch, not true concurrent dispatch |
-| `teaching` | 2 + 1 control | Text walkthrough; the image variant is not built |
+| `custody` | 5 + 3 controls + 4 setup | Immediate half, late half, standing rule, authority pair |
+| `concurrency` | 2 | `three_senders` routes corrections by sender |
+| `teaching` | 2 + 1 control | Text walkthrough; frames now live in `screenshare` |
+| `membership` | 3 + 4 controls + 1 setup | Team-scoped facts, structure vs structure |
+| `recall` | 3 + 4 controls + 8 setup | Supersession after a week of messages |
+| `screenshare` | 1 + 1 control | Frames in; final state of the arm's own instance out |
+| `meeting` | designed | Needs a voice transport in the harness |
+| `callflow` | designed | Needs a callee the arm can dial |
 
 ## Next
 
-1. Run all seven against all four arms and publish the results
-2. `concurrency` needs a runner that holds several handles at once, so
-   corrections arrive against genuinely independent in-flight tasks
-3. `custody` needs the long-intervening-conversation variant, which is the
-   version that would actually separate scoped storage from careful judgement
-4. `teaching` needs the screenshot-carrying variant
-5. Drive the unify arm through ConversationManager rather than `CodeActActor.act`
-   — the conversation layer is the faithful surface for these tracks, and
-   `act` is a v0 convenience inherited from `standing`
+1. Run every built track against every arm and publish the results
+2. Re-drive OpenClaw through its gateway (`ask_user`, `steer`, group
+   sessions) as an `openclaw-gateway` arm — the `hermes-tui` precedent. The
+   CLI profile is stated honestly but under-represents the product, and an
+   under-declared competitor flatters every other arm
+3. Build the prime-agent adapter (print-mode or JSONL RPC) so its profile is
+   backed by runs; on `standing` it should win representation and lose
+   per-firing cost, which is the honest result
+4. `membership` needs the `unify-cm` adapter to provision two teams and the
+   assistant's memberships, so unify's write-time scoping is exercised rather
+   than its judgement
+5. `screenshare` needs one live `unify-cm` run to confirm frames reach the
+   slow brain's screenshot context; the CLI arms need attachment paths
+6. `recall` needs the CM adapter to pin its context tree across sessions
+   before the restart variant is added
+7. The voice transport: a room, persona voices, timing capture — once,
+   medium-agnostically. `meeting` and `callflow` follow, and `attribution` and
+   `interruption` gain voice variants
+8. Genuinely independent lifetimes in `concurrency`: a runner holding several
+   handles, corrections against each while a fourth thing runs
 
 ## Open questions
 
@@ -321,8 +431,13 @@ arm yet — every published number in this repo is still `standing` only.
   express several tracks. The honest treatment is to report the architectural
   limit explicitly rather than record a zero, as the `standing` track already
   does for OpenCode's policy propagation.
-- **Voice** is a later transport, not a track. Every track above is written
-  medium-agnostically so voice slots in without redesign — but the
-  purpose-built voice rigs listed above are better at what they measure, and
-  the only defensible voice contribution here would be voice *commanding
-  durable work*, which is a variant of `standing` rather than a new axis.
+- **Voice** was going to be a later transport rather than a track, on the
+  view that the purpose-built rigs would win on anything voice-shaped and
+  the only defensible contribution was voice commanding durable work. Half
+  of that stands: do not measure barge-in latency or disfluency here. The
+  other half was revised once the comparison harnesses were read at source.
+  Multi-party "should I speak now" and following a decision tree on a phone
+  call are unmeasured anywhere, are exactly where every comparison harness
+  is weakest, and are outcome-scorable — spoke when addressed, silent when
+  not, reached the right leaf. They are tracks (`meeting`, `callflow`), and
+  they wait on the transport, not on the argument.

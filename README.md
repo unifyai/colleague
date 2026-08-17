@@ -35,6 +35,15 @@ outlives the conversation, and several people sharing one assistant.
 | `hermes` | hermes-agent — skills, `no_agent` cron | first-class |
 | `openclaw` | OpenClaw — gateway + cron whose payload is an agent turn | first-class |
 | `opencode` | OpenCode — no scheduler; improvises scripts and host crontab | none |
+| `prime-agent` | Prime Intellect's prime-agent — Python skills in a persistent kernel; every firing is a prompt | first-class (agent turn) |
+
+`prime-agent` is profiled from source (`colleague/harness/capability.py`) and
+has no session adapter yet; the checkout is not built here. The `openclaw`
+profile describes the headless CLI surface the arm drives, and says so —
+OpenClaw at HEAD documents a blocking `ask_user`, `steer` as the default
+queue mode and multi-user session ownership on its gateway, none of which a
+one-shot CLI turn carries. Re-driving it through the gateway is the first
+item under Next in `DESIGN.md`.
 
 Non-unify arms are metered by a local recording proxy in front of OpenRouter
 (`colleague/arms/proxy.py`); the unify arm is metered in-process through a
@@ -52,11 +61,18 @@ chained unillm hook. Both produce the same per-phase ledger.
 | [`custody`](colleague/tracks/custody/) | Where a fact is filed decides who can get it back out | built |
 | [`concurrency`](colleague/tracks/concurrency/) | Several tasks, several people — does each correction land in the right one? | built |
 | [`teaching`](colleague/tracks/teaching/) | Does a walked-through workflow become a reusable artifact? | built |
-| [`usecases`](colleague/tracks/usecases/) | Are the figures on our own use-case pages real? | built — 1 of 19 pages |
+| [`membership`](colleague/tracks/membership/) | Two teams, one assistant: does where a fact was said decide who gets it back? | built |
+| [`recall`](colleague/tracks/recall/) | A week of messages, three facts replaced: is the newest value the one recalled? | built |
+| [`screenshare`](colleague/tracks/screenshare/) | Frames of a shared screen: can it do the same on its own instance? | built |
+| [`meeting`](colleague/tracks/meeting/) | Several people on a call: speak when addressed, quiet when not, work commanded on the call fires later | designed |
+| [`callflow`](colleague/tracks/callflow/) | A decision tree and a phone call: which leaf did it reach? | designed |
+| [`usecases`](colleague/tracks/usecases/) | Are the figures on our own use-case pages real? | built — 2 of 19 pages |
 
-"Built" means the fixture, scenarios and scorers exist and self-test. Every
-number below is from `standing`, the only track with completed live runs;
-`usecases` has run once and is not yet reporting figures.
+"Built" means the fixture, scenarios and scorers exist and self-test;
+"designed" means the track README states fixture, scorer and disclosure
+controls and names the transport it waits on. Every number below is from
+`standing`, the only track with completed live runs; `usecases` has run once
+and is not yet reporting figures.
 
 Full scope, scoring rules and the fairness constraints are in
 [`DESIGN.md`](DESIGN.md).
@@ -184,9 +200,9 @@ about it.
 
 | Sweep | Shards |
 |---|---|
-| all tracks, unify | 14 |
-| all tracks, all arms | 56 |
-| all tracks, all arms, repeat 5 | 280 |
+| all tracks, unify | 21 |
+| all tracks, all arms | 126 |
+| all tracks, all arms, repeat 5 | 630 |
 
 Anything over 40 shards needs `--confirm`, enforced again inside the
 workflow. Repeats that disagree are shown as a spread rather than a majority

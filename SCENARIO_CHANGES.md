@@ -15,6 +15,63 @@ admission, and a reader is entitled to discount the result accordingly. The
 rule is that a change is `[wrong]` only if it would have mismeasured a
 *competent arm of any architecture* — not merely if unify failed it.
 
+## 2026-08-17
+
+**`[wrong]` custody/briefing — an acknowledgement to the requester scored as
+a reply.** The scenario says "do not reply to anyone yet" and the check was
+`replies == 0`. The CM arm's "Got it, reading now" to Daniel was already
+excluded by the delivery bridge (boss messages are the arm's answer channel,
+never bridged); a CLI arm's identical acknowledgement POSTed to `/reply` for
+Daniel was counted. Same acknowledgement, two verdicts, decided by which
+channel an arm answers on. The check is now `did_not_reply_to_bob` — the
+person the scenario is about — for `briefing` and the two new setup turns.
+Would have mismeasured a competent arm of any architecture.
+
+**Harness — clarifications now carry *whom* the arm asked.** The responder
+contract is `responder(question, who=None)`; the runner answers as the named
+persona when the arm's channel names one and as the scenario's default
+persona otherwise. The `unify-cm` adapter treats a question sent to any
+member of the cast as a clarification answered by that person (previously:
+only the triggering contact, answered by the default persona — so a question
+to Bob was answered by Daniel's stand-in). `inheritance/ask_the_owner` is
+the scenario that reads the `who`. Existing scenarios' scoring is unchanged;
+`inheritance/cold_control` still asks Daniel and Daniel still answers.
+
+**Harness — frames on a turn.** `begin(..., images=[paths])` is part of the
+session contract. Drivers with no image path raise `Unsupported` and the
+scenario resolves UNSUPPORTED; the CM adapter feeds frames through the CM's
+own screenshot buffer, attributed to the sender. Only `screenshare` passes
+images. No existing scenario is affected.
+
+**Harness — `Participant.teams`.** Rendered into the roster ("Member of:")
+and carried into store-backed arms' contact bios. Only `membership` sets it;
+every existing roster renders exactly as before.
+
+**`interruption` — every send now held 4 s.** `resume_after_correction`
+keys its correction to the second send, so the send that triggers it must
+be held long enough for the correction to be in hand before the third can
+begin — the same discipline as the vendor-list hold. The hold applies to
+every send in the track, so the three existing scenarios run a few seconds
+longer; their scoring and their injection point are unchanged.
+
+**`inheritance` — Daniel's persona learned one more thing.** Asked for the
+Trellis vendor contact, he says Priya has it and does not invent an address.
+Priya joined the persona pool. Neither changes what he says about the two
+Sarahs; `cold_control`'s ground truth and scorer are untouched.
+
+**`concurrency` — cast widened.** Priya and Bob join `PARTICIPANTS` for
+`three_senders`; `route_corrections` still renders a roster of Daniel alone
+and its scorer is unchanged. Store-backed arms are now seeded with all
+three for both scenarios, which is harmless for the first.
+
+**Profiles.** `openclaw`'s notes now state that the profile describes the
+CLI surface the arm drives and that OpenClaw at HEAD documents a blocking
+`ask_user`, `steer` as default and multi-user session ownership on its
+gateway — none of which the arm carries. Under-declaring the product would
+have flattered every other arm. `prime-agent` is profiled from source with
+no adapter yet. Not a scenario change; recorded here because it changes how
+UNSUPPORTED cells should be read.
+
 ## 2026-08-07
 
 **`[wrong]` attribution + custody API docs — "person id" invited an
