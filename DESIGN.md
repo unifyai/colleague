@@ -337,10 +337,12 @@ are built deliberately rather than rediscovered:
   full agent turn every thirty minutes is a number worth publishing next to
   the steady-state numbers in `standing`), cost per notification, cost per
   correction. Pure ledger; belongs beside `standing`.
-- **Corrections become durable** — `interruption` × `teaching`: this week's
-  mid-task correction is honoured next week unprompted, and reaches sibling
-  automations. Both comparison harnesses with self-learning loops may match
-  this; a real contest over the "colleague learns" property.
+- **Corrections reach sibling automations** — `teaching/week_33_corrected`
+  and `week_34_replay_after_correction` now cover a correction honoured next
+  week in the same task; the propagation to *other* automations that share
+  the rule is the `policy_propagation` shape and is not yet built as a
+  conversational scenario. Both comparison harnesses with self-learning loops
+  may match this; a real contest over the "colleague learns" property.
 
 ## Infrastructure this needs
 
@@ -409,7 +411,7 @@ transport. Every published number in this repo is still `standing` only.
 | `attribution` | 4 | |
 | `custody` | 5 + 3 controls + 4 setup | Immediate half, late half, standing rule, authority pair |
 | `concurrency` | 2 | `three_senders` routes corrections by sender |
-| `teaching` | 2 + 1 control | Text walkthrough; frames now live in `screenshare` |
+| `teaching` | 4 + 1 control | Walkthrough, replay, then a correction mid-run honoured next week |
 | `membership` | 3 + 4 controls + 1 setup | Team-scoped facts, structure vs structure |
 | `recall` | 3 + 4 controls + 8 setup | Supersession after a week of messages |
 | `screenshare` | 1 + 1 control | Frames in; final state of the arm's own instance out |
