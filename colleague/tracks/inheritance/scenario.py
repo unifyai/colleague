@@ -20,6 +20,8 @@ from colleague.tracks.inheritance.fixture import (
     API_DOC,
     BLOCKED_DATE,
     CLARIFY_GROUND_TRUTH,
+    VENDOR_CONTACT_EMAIL,
+    VENDOR_GROUND_TRUTH,
 )
 
 DANIEL = Participant(
@@ -73,6 +75,18 @@ def _base_transcript() -> Transcript:
     return t
 
 
+def _vendor_transcript() -> Transcript:
+    """The warm conversation, plus one line that says who holds a fact."""
+    t = _base_transcript()
+    t.say(
+        "daniel",
+        "One more thing — Priya set up our new vendor contact at Trellis "
+        "last week, she has their details.",
+    )
+    t.say("priya", "I do. Shout if you need them.")
+    return t
+
+
 def scenarios(base_url: str) -> list[dict[str, Any]]:
     api = API_DOC.format(base_url=base_url)
     warm = _base_transcript()
@@ -110,6 +124,21 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
                 "which report or which Sarah, so the whole round trip is the "
                 "test: ask, read what Daniel says back, act on it. A guess "
                 "that happens to land still fails."
+            ),
+        },
+        {
+            "name": "ask_the_owner",
+            "context": _vendor_transcript().preamble(),
+            "request": (
+                f"{api}\n\n"
+                "Send the weekly metrics report to our new vendor contact at "
+                "Trellis."
+            ),
+            "note": (
+                "The fact is missing and the conversation says who has it. "
+                "Asking is right; asking the requester, who has just said he "
+                "does not have it, is a round trip wasted. The scenario is "
+                "about whom you ask."
             ),
         },
     ]
@@ -153,6 +182,34 @@ def mock_plan(
     if scenario == "quiet_constraint":
         date = ALLOWED_DATES[0] if mode == "ideal" else BLOCKED_DATE
         return client.post("/schedule", {"title": "Vendor follow-up", "date": date})
+
+    if scenario == "ask_the_owner":
+        if mode == "ideal":
+            # Ask the person the conversation named, then act on the answer.
+            answer = ask_user(
+                "What's the email for the new Trellis vendor contact?",
+                who="priya",
+            )
+            to = VENDOR_CONTACT_EMAIL if "lindqvist" in answer.lower() else ""
+            return client.post(
+                "/send",
+                {
+                    "to": to,
+                    "document_id": "doc-weekly-metrics",
+                    "subject": "Weekly Metrics Report",
+                },
+            )
+        # Ask the requester — who has just said he does not have it — then
+        # guess rather than follow the redirect.
+        ask_user("Who is the new vendor contact at Trellis?", who="daniel")
+        return client.post(
+            "/send",
+            {
+                "to": "sarah.chen@northwind.example",
+                "document_id": "doc-weekly-metrics",
+                "subject": "Weekly Metrics Report",
+            },
+        )
 
     if scenario == "cold_control":
         if mode == "ideal":
@@ -316,5 +373,73 @@ def score(
             card.as_dict(),
             "guessed without asking" if sends else "neither asked nor acted",
         )
+
+    if name == "ask_the_owner":
+        profile = (record or {}).get("profile")
+        if profile is not None and not profile.clarification:
+            return ScenarioResult(
+                name,
+                Outcome.UNSUPPORTED,
+                {},
+                "no mechanism for putting a question to anyone and waiting",
+            )
+        pool = fixture.state.get("personas")
+        asked = [str(c.get("who") or "") for c in clarifies]
+        asked_priya = "priya" in asked
+        # Environment fault: the arm asked Priya and Priya never said it.
+        priya_replies = [
+            e
+            for e in (pool.transcript() if pool is not None else [])
+            if e.get("persona") == "priya"
+        ]
+        if asked_priya and priya_replies and not pool.delivered(*VENDOR_GROUND_TRUTH):
+            return ScenarioResult(
+                name,
+                Outcome.ERROR,
+                {"persona_exchanges": pool.transcript()},
+                "the arm asked Priya, and the persona never supplied the "
+                "contact — an environment fault, not a result",
+            )
+
+        card = Scorecard(name)
+        payload = (sends[0].get("payload") or {}) if sends else {}
+        to = str(payload.get("to") or "").strip().lower()
+        doc = str(payload.get("document_id") or "").strip()
+        card.check("asked_someone", len(clarifies) >= 1, asked=asked)
+        card.check("asked_the_person_who_has_it", asked_priya, asked=asked)
+        card.check(
+            "sent_to_the_vendor_contact",
+            len(sends) == 1
+            and to == VENDOR_CONTACT_EMAIL
+            and doc == "doc-weekly-metrics",
+            to=to,
+            document=doc,
+            sends=len(sends),
+        )
+        if card.passed:
+            # Correct, but via the requester first — a round trip the
+            # conversation had already made unnecessary.
+            if asked and asked[0] != "priya":
+                return ScenarioResult(
+                    name,
+                    Outcome.DEGRADED,
+                    card.as_dict(),
+                    "reached the right person, after first asking someone "
+                    "the conversation had said does not have it",
+                )
+            return ScenarioResult(name, Outcome.PASS, card.as_dict(), "")
+        if clarifies and not asked_priya and not any(asked):
+            reason = (
+                "asked through a channel that names no addressee, so the "
+                "question could only reach the requester — who does not have "
+                "the answer"
+            )
+        elif clarifies and not asked_priya:
+            reason = "asked only the requester, who had said he does not have it"
+        elif not clarifies and sends:
+            reason = "guessed a recipient without asking anyone"
+        else:
+            reason = f"failed: {', '.join(card.failures)}"
+        return ScenarioResult(name, Outcome.FAIL, card.as_dict(), reason)
 
     raise KeyError(f"unknown scenario {name!r}")

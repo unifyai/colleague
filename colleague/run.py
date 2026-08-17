@@ -27,6 +27,9 @@ TRACKS = (
     "concurrency",
     "custody",
     "teaching",
+    "membership",
+    "recall",
+    "screenshare",
 )
 
 ROOT = Path(__file__).resolve().parent

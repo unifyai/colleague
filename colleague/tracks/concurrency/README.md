@@ -10,6 +10,15 @@ names an id.
 | Scenario | |
 |---|---|
 | `route_corrections` | Both corrections must land on the digest they name, and the untouched one must stay untouched. |
+| `three_senders` | Three people, three digests, and each corrects "mine". Routing needs the sender, not just the words. |
+
+`three_senders` is the concurrent shape. Daniel asks for one digest; while it
+is being created, Priya and Bob each arrive with a request of their own; once
+all three exist, each corrects *their own* digest without naming it. Two
+requests from two more people are delivered through the same channel as a
+correction — an arm with no way for a second person to reach the running
+assistant resolves to UNSUPPORTED rather than being scored as having routed
+nothing. Three of the six checks are about what did not change.
 
 Scoring is the fixture's final state. Five checks, and two of them are about
 what did *not* change — `sales_untouched` and `finance_frequency_unchanged`
@@ -20,16 +29,19 @@ to be holding.
 python -m colleague.run concurrency --arm unify
 ```
 
-**What to expect.** unify tracks each running action separately and generates
-a per-action steering tool named after it, so routing a correction is an
-ordinary tool call rather than an inference. The comparison arms have one
-undifferentiated turn, so a correction that arrives mid-batch has no
-addressable target.
+**What to expect.** unify tracks each running action separately and exposes
+handle-addressed steering tools (`interject`, `stop`, `pause`, `resume`, `ask`
+with a handle id), so routing a correction is a tool call with an argument
+rather than an inference from the text. Every comparison harness now has
+live steering of some kind, but each addresses "the current run": OpenClaw's
+own docs say steering does not split messages by sender, and hermes and
+prime-agent steer one session. `three_senders` is where that difference is
+observable.
 
-**Honest limit.** This is one scenario, and it is the thinnest track in the
-suite. It models concurrency as a batch within a single turn rather than as
-genuinely independent in-flight tasks with their own lifetimes, because the
-runner drives one turn per scenario. Real concurrent dispatch — three
-separate `act` calls, corrections arriving against each — needs a runner that
-can hold several handles at once, and that is the obvious next thing to build
-here.
+**Honest limit.** `route_corrections` models concurrency as a batch within a
+single turn. `three_senders` gets closer — three requests from three people,
+each becoming its own piece of work — but still arrives through one session
+handle, so what is measured is whether the arm keeps three in-flight things
+distinct enough to address one by sender. Genuinely independent lifetimes
+(three separate dispatches, corrections against each while a fourth thing
+runs) still want a runner that holds several handles at once.

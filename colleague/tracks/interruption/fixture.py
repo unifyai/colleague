@@ -33,6 +33,15 @@ DEFAULT_PORT = 8141
 #: with a correction it has, not about whether it received one in time.
 INJECTION_WINDOW_MS = 6000
 
+#: The same guarantee for a correction keyed to a *send*: the send that
+#: triggers it is held so the next one cannot begin before the correction is
+#: in hand. Applies to every send, so it also slows the other scenarios by a
+#: few seconds — a price worth paying for the ordering being deterministic.
+SEND_WINDOW_MS = 4000
+
+ORIGINAL_SUBJECT = "Q3 summary"
+REVISED_MARKER = "revised"
+
 VENDORS = [
     {
         "id": "v-1",
@@ -181,7 +190,7 @@ def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServe
     # correction_seq is when it was *dispatched*, not when it was *received*.
     # Those differ by an LLM round trip.
     fx.route("GET", "/vendors", vendors, hold_ms=INJECTION_WINDOW_MS)
-    fx.route("POST", "/send", send)
+    fx.route("POST", "/send", send, hold_ms=SEND_WINDOW_MS)
     fx.route("POST", "/ask", ask)
     return fx
 

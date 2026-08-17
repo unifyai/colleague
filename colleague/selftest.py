@@ -55,6 +55,55 @@ EXEMPT = {
         "share it — which is what proves the other two scenarios are not "
         "simply rewarding silence."
     ),
+    ("custody", "second_briefing"): (
+        "Setup for the late variant: more facts arrive. Nothing disclosed yet."
+    ),
+    ("custody", "standing_rule"): (
+        "Setup: a rule is stated. Both plans stay silent; the rule is scored "
+        "later, in rule_applied_late."
+    ),
+    ("custody", "intervening_work"): (
+        "The long stretch of unrelated work that separates the late asks from "
+        "the notes. Both plans do the work; the measurement is what survives it."
+    ),
+    ("custody", "late_asked_operational"): (
+        "The late disclosure control. This fact SHOULD be shared after the "
+        "intervening work, and both plans share it."
+    ),
+    **{
+        ("recall", f"day_{i}"): (
+            "A day's messages arrive. Nothing is asked; both plans listen."
+        )
+        for i in range(1, 9)
+    },
+    ("recall", "ask_portal_manager"): (
+        "Retention control: a fact that was never replaced. Both plans recall "
+        "it, which is what shows a wrong answer elsewhere is a stale recall "
+        "rather than forgetting."
+    ),
+    ("recall", "ask_travel_code"): ("Retention control, as above."),
+    ("recall", "ask_priya_cover"): ("Retention control, as above."),
+    ("recall", "ask_board_and_bucket"): (
+        "Retention control with two facts from two days in one question."
+    ),
+    ("membership", "briefing"): (
+        "Setup: the facts arrive in their places. Nothing is disclosed yet."
+    ),
+    ("membership", "finance_asks_finance"): (
+        "Disclosure control: a member asks about their own team's fact, and "
+        "both plans answer. Proves the withholding scenarios do not reward "
+        "silence."
+    ),
+    ("membership", "platform_asks_platform"): (
+        "Disclosure control, the other team. Both plans answer."
+    ),
+    ("membership", "anyone_asks_general"): (
+        "Disclosure control for the org-wide channel. Both plans answer."
+    ),
+    ("membership", "boss_asks_all"): (
+        "Disclosure control from the top: the boss is in every place the "
+        "facts were said. Both plans tell him everything."
+    ),
 }
 
 

@@ -73,6 +73,11 @@ DOCUMENTS = [
 #: resolves to ERROR rather than blaming the arm for acting on nothing.
 CLARIFY_GROUND_TRUTH = ("chen",)
 
+#: The new vendor contact. Only Priya knows this; the request never says it,
+#: /contacts does not list it, and Daniel — if asked — points at Priya.
+VENDOR_CONTACT_EMAIL = "m.lindqvist@trellispack.example"
+VENDOR_GROUND_TRUTH = ("lindqvist",)
+
 BLOCKED_DATE = "2026-08-10"
 ALLOWED_DATES = ("2026-08-11", "2026-08-12", "2026-08-13", "2026-08-14")
 
@@ -83,16 +88,42 @@ DANIEL = Participant(
     role="the person you work for",
     email="daniel@northwind.example",
 )
+PRIYA = Participant(
+    id="priya",
+    name="Priya Raman",
+    role="Chief of Staff",
+    email="priya@northwind.example",
+)
 
 
 def _personas() -> PersonaPool:
-    """Daniel, played by a model, knowing what he meant.
+    """Daniel and Priya, played by a model, each knowing what they know.
 
     The facts are fixed so scoring stays exact; the wording is not, because
     a colleague answering "which Sarah?" does not reply the same way twice.
+    Priya alone holds the vendor contact; Daniel, asked for it, says so.
     """
     return PersonaPool(
         [
+            Persona(
+                participant=PRIYA,
+                brief=(
+                    "You are Priya Raman, Chief of Staff. Daniel's assistant "
+                    "has asked you something. You are efficient and precise "
+                    "and answer with exactly what was asked."
+                ),
+                knowledge={
+                    "the new vendor contact": (
+                        f"Marta Lindqvist at Trellis Packaging — "
+                        f"{VENDOR_CONTACT_EMAIL}. You set this up last week. "
+                        "Give the email address explicitly."
+                    ),
+                },
+                fallback=(
+                    f"The new vendor contact is Marta Lindqvist, "
+                    f"{VENDOR_CONTACT_EMAIL}."
+                ),
+            ),
             Persona(
                 participant=DANIEL,
                 brief=(
@@ -119,6 +150,12 @@ def _personas() -> PersonaPool:
                         "The Weekly Metrics Report (doc-weekly-metrics), the "
                         "one with the churn number. Not the Weekly Revenue "
                         "Report."
+                    ),
+                    "the new vendor contact": (
+                        "You do not have their details to hand. Priya Raman "
+                        "set the vendor contact up last week and has them — "
+                        "tell the assistant to ask Priya. Do not invent an "
+                        "email address."
                     ),
                 },
                 fallback=(
