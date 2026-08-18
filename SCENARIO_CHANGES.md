@@ -87,8 +87,11 @@ with a live channel, so a mid-run correction can reach a track-scoped turn.
 CLI surface the arm drives and that OpenClaw at HEAD documents a blocking
 `ask_user`, `steer` as default and multi-user session ownership on its
 gateway — none of which the arm carries. Under-declaring the product would
-have flattered every other arm. `prime-agent` is profiled from source with
-no adapter yet. Not a scenario change; recorded here because it changes how
+have flattered every other arm. `prime-agent` is profiled from source, and
+now has a print-mode adapter (`arms/sessions/prime_agent_session.py`,
+verified: proxy-metered turn, `-c` continuity). Its profile describes that
+surface — restart-only steering, no clarification — not the product's RPC
+lanes. Not a scenario change; recorded here because it changes how
 UNSUPPORTED cells should be read.
 
 ## 2026-08-07

@@ -214,27 +214,30 @@ PROFILES: dict[str, ArmProfile] = {
     "prime-agent": ArmProfile(
         name="prime-agent",
         clarification=False,
-        steering=Steering.LIVE_INTERJECT,
+        steering=Steering.RESTART_ONLY,
         storage=Storage.FLAT,
         persistent_sessions=True,
         multi_party=False,
         accepts_images=True,
         scheduler=True,
         notes=(
-            "Declared from source (849c921, 2026-08-17); no session adapter "
-            "yet — the checkout is not built here. Steering: two queued-message "
-            "lanes (steering -> next turn boundary, followUp -> when idle) with "
-            "an editable queue (session-action-store.ts). No ask-the-user tool: "
-            "the only tools are bash/edit/ipython, and `side-question` runs the "
-            "other way. Memory: `kind: memory` entries in the versioned harness "
-            "store, session-local or global, no retrieval index. Scheduler: "
-            "cron/interval/once plus heartbeat, but every firing is a prompt "
-            "into an agent turn — no script payload, no zero-token firing. "
-            "Terminal-only, single-user: no channel layer, no sender identity. "
+            "Driven through print mode (`pi -p`, one process per turn) with a "
+            "custom provider in a throwaway agent dir pointed at the recording "
+            "proxy; sessions saved to a run-local dir and continued with `-c` "
+            "(verified: a second turn recalls the first). Nothing can reach a "
+            "running turn on this surface, so steering is restart-only here; "
+            "the product has steering and follow-up lanes with an editable "
+            "queue on its interactive and JSONL-RPC surfaces "
+            "(session-action-store.ts), and an RPC-driven arm is the faithful "
+            "one — the hermes-tui precedent. No ask-the-user tool anywhere: "
+            "the only tools are bash/edit/ipython and `side-question` runs the "
+            "other way. Memory: `kind: memory` entries in the versioned "
+            "harness store, no retrieval index. Scheduler: cron/interval/once "
+            "plus heartbeat, every firing a prompt into an agent turn — no "
+            "script payload, no zero-token firing. Terminal-only, single-user. "
             "Distinctive: Python skills pre-imported into a persistent IPython "
-            "kernel, versioned HarnessEntry with a refinements.jsonl audit — "
-            "the strongest representation of the four on `standing`, paying "
-            "per firing forever."
+            "kernel, versioned HarnessEntry with a refinements.jsonl audit. "
+            "The driver does not pass images; the product accepts them."
         ),
     ),
     "unify-cm": ArmProfile(

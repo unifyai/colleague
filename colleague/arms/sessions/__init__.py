@@ -32,6 +32,7 @@ def _load(name: str) -> None:
         "hermes-tui": "colleague.arms.sessions.hermes_tui_session",
         "openclaw": "colleague.arms.sessions.openclaw_session",
         "opencode": "colleague.arms.sessions.opencode_session",
+        "prime-agent": "colleague.arms.sessions.prime_agent_session",
         "mock": "colleague.arms.sessions.mock_session",
     }.get(name)
     if module:
@@ -41,4 +42,12 @@ def _load(name: str) -> None:
 #: `hermes-tui` and `unify-cm` are the faithful surfaces (product steering,
 #: clarification, identity); `hermes` and `unify` remain the v0 arms the
 #: published standing numbers used. Capability labels name a path.
-ARMS = ("unify", "unify-cm", "hermes", "hermes-tui", "openclaw", "opencode")
+ARMS = (
+    "unify",
+    "unify-cm",
+    "hermes",
+    "hermes-tui",
+    "openclaw",
+    "opencode",
+    "prime-agent",
+)

@@ -239,6 +239,26 @@ jobs:
         pnpm install --frozen-lockfile
         pnpm build
 
+    - name: Check out prime-agent
+      if: matrix.arm == 'prime-agent'
+      uses: actions/checkout@v4
+      continue-on-error: true
+      id: prime_checkout
+      with:
+        repository: ${{ vars.PRIME_AGENT_REPO || 'PrimeIntellect-ai/prime-agent' }}
+        path: .harness/prime-agent
+        token: ${{ secrets.HARNESS_TOKEN || github.token }}
+
+    - name: Build prime-agent
+      if: matrix.arm == 'prime-agent' && steps.prime_checkout.outcome == 'success'
+      id: prime_build
+      continue-on-error: true
+      run: |
+        set -euo pipefail
+        cd .harness/prime-agent
+        npm ci --no-audit --no-fund
+        npm run build
+
     - name: Check out OpenCode
       if: matrix.arm == 'opencode'
       uses: actions/checkout@v4
@@ -285,6 +305,7 @@ jobs:
           openclaw)         [[ "${{ steps.openclaw_build.outcome }}"  == "success" ]] && ready=true ;;
           opencode)         [[ "${{ steps.opencode_build.outcome }}"  == "success" ]] && ready=true ;;
           hermes|hermes-tui) [[ "${{ steps.hermes_install.outcome }}"  == "success" ]] && ready=true ;;
+          prime-agent)      [[ "${{ steps.prime_build.outcome }}"     == "success" ]] && ready=true ;;
         esac
         echo "ready=$ready" >> "$GITHUB_OUTPUT"
         echo "$ARM ready=$ready" >> "$GITHUB_STEP_SUMMARY"
@@ -303,6 +324,7 @@ jobs:
         HERMES_REPO: ${{ github.workspace }}/.harness/hermes
         OPENCLAW_REPO: ${{ github.workspace }}/.harness/openclaw
         OCODE_REPO: ${{ github.workspace }}/.harness/opencode
+        PRIME_AGENT_REPO: ${{ github.workspace }}/.harness/prime-agent
       run: |
         set -euo pipefail
         # The unify arm imports unify/unisdk/unillm, which live in the

@@ -37,9 +37,12 @@ outlives the conversation, and several people sharing one assistant.
 | `opencode` | OpenCode — no scheduler; improvises scripts and host crontab | none |
 | `prime-agent` | Prime Intellect's prime-agent — Python skills in a persistent kernel; every firing is a prompt | first-class (agent turn) |
 
-`prime-agent` is profiled from source (`colleague/harness/capability.py`) and
-has no session adapter yet; the checkout is not built here. The `openclaw`
-profile describes the headless CLI surface the arm drives, and says so —
+`prime-agent` is driven through its print mode (`pi -p`, sessions continued
+with `-c`), so its profile describes that surface: no way into a running
+turn, no ask-the-user tool. The product's steering and follow-up lanes live
+on its interactive and JSONL-RPC surfaces; an RPC-driven arm is the faithful
+one and is the next step for it. The `openclaw` profile likewise describes
+the headless CLI surface the arm drives, and says so —
 OpenClaw at HEAD documents a blocking `ask_user`, `steer` as the default
 queue mode and multi-user session ownership on its gateway, none of which a
 one-shot CLI turn carries. Re-driving it through the gateway is the first
@@ -212,8 +215,8 @@ about it.
 | Sweep | Shards |
 |---|---|
 | all tracks, unify | 25 |
-| all tracks, all arms | 150 |
-| all tracks, all arms, repeat 5 | 750 |
+| all tracks, all arms | 175 |
+| all tracks, all arms, repeat 5 | 875 |
 
 Anything over 40 shards needs `--confirm`, enforced again inside the
 workflow. Repeats that disagree are shown as a spread rather than a majority

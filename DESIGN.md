@@ -425,8 +425,9 @@ transport. Every published number in this repo is still `standing` only.
    sessions) as an `openclaw-gateway` arm — the `hermes-tui` precedent. The
    CLI profile is stated honestly but under-represents the product, and an
    under-declared competitor flatters every other arm
-3. Build the prime-agent adapter (print-mode or JSONL RPC) so its profile is
-   backed by runs; on `standing` it should win representation and lose
+3. Drive prime-agent through its JSONL-RPC surface (steering and follow-up
+   lanes) as the faithful arm; the print-mode adapter is in and verified
+   end-to-end, and on `standing` it should win representation and lose
    per-firing cost, which is the honest result
 4. `membership` needs the `unify-cm` adapter to provision two teams and the
    assistant's memberships, so unify's write-time scoping is exercised rather
