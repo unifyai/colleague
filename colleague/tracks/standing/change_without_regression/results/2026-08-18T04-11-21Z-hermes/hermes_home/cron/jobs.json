@@ -1,0 +1,49 @@
+{
+  "jobs": [
+    {
+      "id": "9913fde22101",
+      "name": "Process new local orders hourly",
+      "prompt": "Run the attached deterministic script once. It validates the local orders API responses, posts an exact aggregate batch only when fully valid, does nothing when there are no orders, and posts a HOLD notification instead of a batch on any mismatch or uncertainty. Do not process orders in the agent itself.",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "provider_snapshot": null,
+      "model_snapshot": null,
+      "base_url": null,
+      "script": "process_local_orders.py",
+      "no_agent": true,
+      "monitor_script": null,
+      "monitor_url": null,
+      "monitor_state": null,
+      "context_from": null,
+      "schedule": {
+        "kind": "interval",
+        "minutes": 60,
+        "display": "every 60m"
+      },
+      "schedule_display": "every 60m",
+      "repeat": {
+        "times": null,
+        "completed": 6
+      },
+      "enabled": false,
+      "state": "paused",
+      "paused_at": null,
+      "paused_reason": "benchmark artifact - defused post-run",
+      "created_at": "2026-08-18T01:27:30.881602-03:00",
+      "next_run_at": "2026-08-18T02:28:53.664586-03:00",
+      "last_run_at": "2026-08-18T01:28:53.664586-03:00",
+      "last_status": "ok",
+      "last_error": null,
+      "last_delivery_error": null,
+      "failure_streak": 0,
+      "deliver": "local",
+      "origin": null,
+      "enabled_toolsets": null,
+      "workdir": null,
+      "fire_claim": null
+    }
+  ],
+  "updated_at": "2026-08-18T01:28:53.664721-03:00"
+}

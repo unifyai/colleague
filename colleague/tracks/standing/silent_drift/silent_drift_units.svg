@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="432" viewBox="0 0 900 432" font-family="Inter, Helvetica, Arial, sans-serif">
+<rect width="900" height="432" fill="#fcfcfb"/>
+<text x="110" y="30" font-size="17" font-weight="600" fill="#1a1a19">Silent drift (units)</text>
+<text x="110" y="50" font-size="12" fill="#6f6e6a">amount switches from minor to major units before fire 5</text>
+<text x="100" y="85.0" font-size="12" text-anchor="end" fill="#eb6834" font-weight="600">hermes</text>
+<circle cx="147.5" cy="81.0" r="6" fill="#2e9e5b"/>
+<circle cx="222.5" cy="81.0" r="6" fill="#2e9e5b"/>
+<circle cx="297.5" cy="81.0" r="6" fill="#2e9e5b"/>
+<circle cx="372.5" cy="81.0" r="6" fill="#2e9e5b"/>
+<circle cx="447.5" cy="81.0" r="6" fill="#fcfcfb" stroke="#e0a100" stroke-width="2"/>
+<path d="M 447.5 75.0 A 6 6 0 0 1 447.5 87.0 Z" fill="#e0a100"/>
+<circle cx="522.5" cy="81.0" r="6" fill="#fcfcfb" stroke="#e0a100" stroke-width="2"/>
+<path d="M 522.5 75.0 A 6 6 0 0 1 522.5 87.0 Z" fill="#e0a100"/>
+<circle cx="597.5" cy="81.0" r="6" fill="#2e9e5b"/>
+<circle cx="672.5" cy="81.0" r="6" fill="#2e9e5b"/>
+<circle cx="747.5" cy="81.0" r="6" fill="#2e9e5b"/>
+<circle cx="822.5" cy="81.0" r="6" fill="#2e9e5b"/>
+<text x="110" y="110" font-size="11" fill="#6f6e6a">● correct (2)   ◐ held with reason (1)   ⊘ wrong or silent (0)</text>
+<line x1="110" y1="362.0" x2="860" y2="362.0" stroke="#e8e7e4"/>
+<text x="102" y="366.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="110" y1="307.0" x2="860" y2="307.0" stroke="#e8e7e4"/>
+<text x="102" y="311.0" font-size="10" text-anchor="end" fill="#6f6e6a">234,898</text>
+<line x1="110" y1="252.0" x2="860" y2="252.0" stroke="#e8e7e4"/>
+<text x="102" y="256.0" font-size="10" text-anchor="end" fill="#6f6e6a">469,796</text>
+<line x1="110" y1="197.0" x2="860" y2="197.0" stroke="#e8e7e4"/>
+<text x="102" y="201.0" font-size="10" text-anchor="end" fill="#6f6e6a">704,694</text>
+<line x1="110" y1="142.0" x2="860" y2="142.0" stroke="#e8e7e4"/>
+<text x="102" y="146.0" font-size="10" text-anchor="end" fill="#6f6e6a">939,593</text>
+<text x="20" y="130" font-size="11" fill="#6f6e6a">LLM tokens per fire</text>
+<text x="147.5" y="378" font-size="11" text-anchor="middle" fill="#1a1a19">1</text>
+<text x="222.5" y="378" font-size="11" text-anchor="middle" fill="#1a1a19">2</text>
+<text x="297.5" y="378" font-size="11" text-anchor="middle" fill="#1a1a19">3</text>
+<text x="372.5" y="378" font-size="11" text-anchor="middle" fill="#1a1a19">4</text>
+<text x="447.5" y="378" font-size="11" text-anchor="middle" fill="#1a1a19">5</text>
+<text x="522.5" y="378" font-size="11" text-anchor="middle" fill="#1a1a19">6</text>
+<text x="597.5" y="378" font-size="11" text-anchor="middle" fill="#1a1a19">7</text>
+<rect x="564.0" y="142.0" width="66.0" height="220.0" fill="#eb6834"><title>hermes fire 7 planning: 939,593</title></rect>
+<text x="672.5" y="378" font-size="11" text-anchor="middle" fill="#1a1a19">8</text>
+<text x="747.5" y="378" font-size="11" text-anchor="middle" fill="#1a1a19">9</text>
+<text x="822.5" y="378" font-size="11" text-anchor="middle" fill="#1a1a19">10</text>
+<line x1="410.0" y1="62" x2="410.0" y2="362" stroke="#6f6e6a" stroke-dasharray="4 3"/>
+<text x="414.0" y="58" font-size="10" fill="#6f6e6a">drift</text>
+<rect x="110" y="392" width="12" height="12" fill="#eb6834"/>
+<text x="126" y="402" font-size="11" fill="#1a1a19">hermes</text>
+<rect x="214" y="392" width="12" height="12" fill="#2a78d6"/>
+<text x="230" y="402" font-size="11" fill="#1a1a19">planning</text>
+<rect x="314" y="392" width="12" height="12" fill="#89b4e8"/>
+<text x="330" y="402" font-size="11" fill="#1a1a19">verification</text>
+<rect x="446" y="392" width="12" height="12" fill="#c9ddf4"/>
+<text x="462" y="402" font-size="11" fill="#1a1a19">repair</text>
+<text x="110" y="420" font-size="10" fill="#6f6e6a">Shades split unify tokens by purpose; proxy-metered arms report every token as planning.</text>
+</svg>

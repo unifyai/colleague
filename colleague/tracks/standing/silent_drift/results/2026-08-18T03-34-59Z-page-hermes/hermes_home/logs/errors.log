@@ -1,0 +1,34 @@
+2026-08-18 00:34:59,629 WARNING cli: Background MCP discovery previously exited with no connected servers; retrying discovery thread
+2026-08-18 00:35:00,074 WARNING tools.registry: check_fn check_bfl_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 00:35:00,074 WARNING tools.registry: check_fn check_browser_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 00:35:00,075 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-08-18 00:35:00,075 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-08-18 00:35:02,117 WARNING tools.registry: check_fn check_browser_vision_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 00:35:02,120 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 00:35:02,121 WARNING tools.registry: check_fn check_image_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 00:35:02,122 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-08-18 00:35:02,122 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-08-18 00:35:02,163 WARNING agent.auxiliary_client: Auxiliary client: PAID lane engaged for auxiliary task — OpenRouter fallback model 'google/gemini-3.6-flash' is not a :free SKU and may incur real spend. Set auxiliary.free_only: true to restrict auxiliary fallbacks to free models, or auxiliary.openrouter_model to a :free model.
+2026-08-18 00:35:02,167 WARNING tools.registry: check_fn check_web_api_key returned False; dependent tools will be unavailable this turn
+2026-08-18 00:36:16,083 WARNING [20260818_003459_b19d8a] agent.tool_executor: Tool cronjob returned error (0.00s): {"error": "Script path must be relative to ~/.hermes/scripts/. Got absolute or home-relative path: '/Users/djl11/colleague/colleague/tracks/standing/silent_drift/results/2026-08-18T03-34-59Z-page-herm
+2026-08-18 00:36:35,292 WARNING cli: Background MCP discovery previously exited with no connected servers; retrying discovery thread
+2026-08-18 00:36:35,498 WARNING tools.registry: check_fn check_bfl_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 00:36:35,499 WARNING tools.registry: check_fn check_browser_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 00:36:35,499 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-08-18 00:36:35,499 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-08-18 00:36:35,536 WARNING tools.registry: check_fn check_browser_vision_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 00:36:35,538 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 00:36:35,539 WARNING tools.registry: check_fn check_image_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 00:36:35,539 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-08-18 00:36:35,539 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-08-18 00:36:35,573 WARNING agent.auxiliary_client: Auxiliary client: PAID lane engaged for auxiliary task — OpenRouter fallback model 'google/gemini-3.6-flash' is not a :free SKU and may incur real spend. Set auxiliary.free_only: true to restrict auxiliary fallbacks to free models, or auxiliary.openrouter_model to a :free model.
+2026-08-18 00:36:35,577 WARNING tools.registry: check_fn check_web_api_key returned False; dependent tools will be unavailable this turn
+2026-08-18 00:37:28,988 WARNING [20260818_003635_eee72b] agent.tool_executor: Tool read_file returned error (0.06s): {"content": "", "total_lines": 0, "file_size": 0, "truncated": false, "is_binary": false, "is_image": false, "error": "File not found: /Users/djl11/colleague/colleague/tracks/standing/silent_drift/res
+2026-08-18 00:37:28,989 WARNING [20260818_003635_eee72b] agent.tool_executor: Tool read_file returned error (0.06s): {"content": "", "total_lines": 0, "file_size": 0, "truncated": false, "is_binary": false, "is_image": false, "error": "File not found: /Users/djl11/colleague/colleague/tracks/standing/silent_drift/res
+2026-08-18 00:37:33,340 WARNING [20260818_003635_eee72b] agent.tool_executor: Tool terminal returned error (0.00s): {"output": "", "exit_code": 1, "error": "Blocked: command or referenced script cannot restart or stop the gateway from inside the gateway process. The gateway would kill this command before it could c
+2026-08-18 00:37:41,200 WARNING hermes.security_audit: Security posture audit found 1 issue(s) — review your deployment:
+2026-08-18 00:37:41,200 WARNING hermes.security_audit:   [security 1/1] SSH password authentication is ENABLED (default — no explicit directive). Password auth is brute-forceable and dangerous on an internet-facing box. Set 'PasswordAuthentication no' in sshd_config and use key-based auth.
+2026-08-18 00:37:42,812 WARNING gateway.run: No env user allowlists configured. Messaging platforms default to pairing/allowlist policies and will deny unknown senders unless you configure platform allowlists (e.g., TELEGRAM_ALLOWED_USERS=your_id) or explicitly opt in with GATEWAY_ALLOW_ALL_USERS=true plus dm_policy/group_policy: open on the platform.
+2026-08-18 00:37:42,816 WARNING gateway.run: No messaging platforms enabled.
+2026-08-18 00:38:01,740 WARNING [20260818_003635_eee72b] agent.tool_executor: Tool terminal returned error (0.00s): {"output": "", "exit_code": -1, "error": "BLOCKED: Command flagged as dangerous (script execution via -e/-c flag) but single-query mode (-q) runs without a user present to approve it. Find an alternat
+2026-08-18 00:38:18,666 WARNING gateway.run: Shutdown context: signal=SIGTERM under_systemd=no parent_pid=31257 parent_name=? loadavg_1m=2.59 parent_cmdline='(unknown)'

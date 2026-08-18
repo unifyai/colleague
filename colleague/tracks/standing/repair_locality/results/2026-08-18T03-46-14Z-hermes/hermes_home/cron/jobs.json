@@ -1,0 +1,49 @@
+{
+  "jobs": [
+    {
+      "id": "c35b48933264",
+      "name": "Hourly operations report",
+      "prompt": "Run the attached script exactly once. The script is the complete deterministic operations-report job: it reads all cursor-based pages from the three local APIs, validates exact schemas and values, posts one exact report only when data exists, and posts a HOLD notification on any uncertainty. Do not make any additional HTTP requests, do not create your own report, and do not send user-facing output.",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "provider_snapshot": null,
+      "model_snapshot": null,
+      "base_url": null,
+      "script": "hourly_operations_report.py",
+      "no_agent": true,
+      "monitor_script": null,
+      "monitor_url": null,
+      "monitor_state": null,
+      "context_from": null,
+      "schedule": {
+        "kind": "interval",
+        "minutes": 60,
+        "display": "every 60m"
+      },
+      "schedule_display": "every 60m",
+      "repeat": {
+        "times": null,
+        "completed": 11
+      },
+      "enabled": false,
+      "state": "paused",
+      "paused_at": null,
+      "paused_reason": "benchmark artifact - defused post-run",
+      "created_at": "2026-08-18T01:03:14.461373-03:00",
+      "next_run_at": "2026-08-18T02:11:20.357025-03:00",
+      "last_run_at": "2026-08-18T01:11:20.357025-03:00",
+      "last_status": "ok",
+      "last_error": null,
+      "last_delivery_error": null,
+      "failure_streak": 0,
+      "deliver": "local",
+      "origin": null,
+      "enabled_toolsets": null,
+      "workdir": null,
+      "fire_claim": null
+    }
+  ],
+  "updated_at": "2026-08-18T01:11:20.357149-03:00"
+}

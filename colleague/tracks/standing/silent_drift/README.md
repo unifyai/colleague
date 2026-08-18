@@ -61,8 +61,22 @@ SD_VARIANT=units bash colleague/tracks/standing/silent_drift/run_hermes.sh     #
 .venv/bin/python -m colleague.tracks.standing.silent_drift.plot
 ```
 
-## Measured results
+## Measured results (2026-08-18, gpt-5.6-sol@openrouter)
 
-Not yet run. The honest expectation for the pre-verification unify build was
-a loss on both variants — the stored function keeps delivering — and that
-is the comparison the verified build is measured against.
+![silent drift, units](silent_drift_units.svg)
+![silent drift, page](silent_drift_page.svg)
+
+| variant | arm | score | fires | setup | recovery |
+|---|---|---|---|---|---|
+| `units` | hermes + human | **18/20** | ●●●●◐◐●●●● | 302k | the standalone script hermes wrote validates the contract and **held** fires 5–6 ("amount is not an integer") — the safe rung, unattended. After 2 held fires the operator asked it to fix itself (940k tokens, before fire 7); the fixed script converts and fires 7–10 are exact, including the catch-up over the held range |
+| `page` | hermes + human | **8/20** | ●●●●×××××× | 351k | one fetch per run: from fire 5 the batch covers 50 of the 80 pending orders and the cursor never catches up. Nothing errors, so nothing is held. The operator's fix (833k tokens, before fire 7) did not find the cap either: fires 7–10 stay wrong |
+| both | unify | not yet run | | | blocked on staging-tenant credits at run time (`/credits` was negative); see the run record once it exists |
+| both | openclaw, opencode | not run | | | no checkouts on the machine that ran this batch |
+
+The `units` row is the rubric doing its job: a script with a validation step
+scored 1 per fire while it was stopped, and the operator's cost is charged to
+the fire it preceded. The `page` row is the drift the description cannot
+protect against — the API answered with fewer rows and nobody, script or
+person, noticed. Committed evidence per run: `results.json`, `summary.md`,
+`proxy_ledger.jsonl`, `hermes_cli.log`, and `hermes_home/` pruned to what the
+agent authored (config, scripts, cron definitions and output, logs).

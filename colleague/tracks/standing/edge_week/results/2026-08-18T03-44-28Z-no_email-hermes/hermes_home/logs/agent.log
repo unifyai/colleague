@@ -1,0 +1,194 @@
+2026-08-18 00:44:28,628 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-08-18 00:44:28,629 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-08-18 00:44:28,630 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-08-18 00:44:28,689 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-08-18 00:44:28,690 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-08-18 00:44:28,690 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-08-18 00:44:28,690 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-08-18 00:44:28,690 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-08-18 00:44:28,691 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-08-18 00:44:28,691 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-08-18 00:44:28,691 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-08-18 00:44:28,692 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-08-18 00:44:28,693 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-08-18 00:44:28,693 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-08-18 00:44:28,694 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-08-18 00:44:28,694 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-08-18 00:44:28,694 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-08-18 00:44:28,695 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-08-18 00:44:28,696 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-08-18 00:44:28,696 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-08-18 00:44:28,696 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-08-18 00:44:28,697 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-08-18 00:44:28,703 INFO hermes_cli.plugins: Plugin discovery complete: 55 found, 48 enabled
+2026-08-18 00:44:28,756 INFO tools.tirith_security: tirith not found — downloading latest release for aarch64-apple-darwin...
+2026-08-18 00:44:28,760 WARNING cli: Background MCP discovery previously exited with no connected servers; retrying discovery thread
+2026-08-18 00:44:28,761 INFO run_agent: No .env file found. Using system environment variables.
+2026-08-18 00:44:29,129 INFO run_agent: OpenAI client created (agent_init, shared=True) thread=MainThread:8371839360 provider=openrouter base_url=http://127.0.0.1:8126/api/v1 model=openai/gpt-5.6-sol
+2026-08-18 00:44:29,132 WARNING tools.registry: check_fn check_bfl_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 00:44:29,132 WARNING tools.registry: check_fn check_browser_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 00:44:29,132 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-08-18 00:44:29,133 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-08-18 00:44:31,275 WARNING tools.registry: check_fn check_browser_vision_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 00:44:31,277 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 00:44:31,278 WARNING tools.registry: check_fn check_image_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 00:44:31,278 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-08-18 00:44:31,279 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-08-18 00:44:31,309 WARNING agent.auxiliary_client: Auxiliary client: PAID lane engaged for auxiliary task — OpenRouter fallback model 'google/gemini-3.6-flash' is not a :free SKU and may incur real spend. Set auxiliary.free_only: true to restrict auxiliary fallbacks to free models, or auxiliary.openrouter_model to a :free model.
+2026-08-18 00:44:31,310 INFO agent.auxiliary_client: Vision auto-detect: using main provider openrouter (openai/gpt-5.6-sol)
+2026-08-18 00:44:31,313 WARNING tools.registry: check_fn check_web_api_key returned False; dependent tools will be unavailable this turn
+2026-08-18 00:44:35,899 INFO tools.tirith_security: cosign not on PATH — installing tirith with SHA-256 verification only (install cosign for full supply chain verification)
+2026-08-18 00:44:35,992 INFO tools.tirith_security: tirith installed to /Users/djl11/colleague/colleague/tracks/standing/edge_week/results/2026-08-18T03-44-28Z-no_email-hermes/hermes_home/bin/tirith (SHA-256 only)
+2026-08-18 00:44:40,359 INFO agent.model_metadata: Cached context length openai/gpt-5.6-sol@http://127.0.0.1:8126/api/v1 -> 1,050,000 tokens
+2026-08-18 00:44:40,411 INFO [20260818_004428_8235ba] agent.turn_context: conversation turn: session=20260818_004428_8235ba model=openai/gpt-5.6-sol provider=openrouter platform=cli history=0 msg='Please set up a weekly recurring automation (every Monday at 09:00) that sends o...'
+2026-08-18 00:44:40,584 INFO agent.auxiliary_client: Auxiliary auto-detect: using main provider openrouter (openai/gpt-5.6-sol)
+2026-08-18 00:44:40,584 INFO agent.auxiliary_client: Auxiliary title_generation: using openrouter (openai/gpt-5.6-sol)
+2026-08-18 00:44:40,587 INFO run_agent: OpenAI client created (chat_completion_stream_request, shared=False) thread=Thread-6 (<lambda>):6179123200 provider=openrouter base_url=http://127.0.0.1:8126/api/v1 model=openai/gpt-5.6-sol
+2026-08-18 00:44:47,387 INFO [20260818_004428_8235ba] agent.conversation_loop: API call #1: model=openai/gpt-5.6-sol provider=openrouter in=37256 out=168 total=37424 latency=6.8s
+2026-08-18 00:44:47,413 INFO [20260818_004428_8235ba] agent.tool_executor: tool skill_view completed (0.02s, 14323 chars)
+2026-08-18 00:44:50,256 INFO [20260818_004428_8235ba] agent.conversation_loop: API call #2: model=openai/gpt-5.6-sol provider=openrouter in=40990 out=29 total=41019 latency=2.8s cache=37253/40990 (91%)
+2026-08-18 00:44:50,275 INFO [20260818_004428_8235ba] agent.tool_executor: tool skill_view completed (0.02s, 5501 chars)
+2026-08-18 00:45:26,972 INFO [20260818_004428_8235ba] agent.conversation_loop: API call #3: model=openai/gpt-5.6-sol provider=openrouter in=42529 out=2661 total=45190 latency=36.7s cache=40987/42529 (96%)
+2026-08-18 00:45:26,978 INFO tools.file_tools: Creating new local environment for task default...
+2026-08-18 00:45:27,014 INFO tools.environments.base: Session snapshot created (session=3a40df1dfa8b, cwd=/Users/djl11/hermes-agent)
+2026-08-18 00:45:27,014 INFO tools.file_tools: local environment ready for task default
+2026-08-18 00:45:27,076 INFO agent.lsp.install: [install] npm install --prefix /Users/djl11/colleague/colleague/tracks/standing/edge_week/results/2026-08-18T03-44-28Z-no_email-hermes/hermes_home/lsp pyright
+2026-08-18 00:45:30,012 INFO hermes.lint.lsp: lsp[pyright] active for /Users/djl11/colleague
+2026-08-18 00:45:30,446 INFO hermes.lint.lsp: lsp[pyright] 1 diags (/Users/djl11/colleague/colleague/tracks/standing/edge_week/results/2026-08-18T03-44-28Z-no_email-hermes/hermes_home/scripts/weekly_overdue_invoices.py)
+2026-08-18 00:45:30,467 INFO [20260818_004428_8235ba] agent.tool_executor: tool write_file completed (3.49s, 448 chars)
+2026-08-18 00:45:39,633 INFO [20260818_004428_8235ba] agent.conversation_loop: API call #4: model=openai/gpt-5.6-sol provider=openrouter in=44261 out=400 total=44661 latency=9.1s cache=42526/44261 (96%)
+2026-08-18 00:45:39,638 WARNING [20260818_004428_8235ba] agent.tool_executor: Tool cronjob returned error (0.00s): {"error": "Script path must be relative to ~/.hermes/scripts/. Got absolute or home-relative path: '/Users/djl11/colleague/colleague/tracks/standing/edge_week/results/2026-08-18T03-44-28Z-no_email-her
+2026-08-18 00:45:55,703 INFO [20260818_004428_8235ba] agent.conversation_loop: API call #5: model=openai/gpt-5.6-sol provider=openrouter in=44549 out=142 total=44691 latency=16.1s cache=44258/44549 (99%)
+2026-08-18 00:45:55,732 INFO [20260818_004428_8235ba] agent.tool_executor: tool cronjob completed (0.03s, 1042 chars)
+2026-08-18 00:45:59,825 INFO [20260818_004428_8235ba] agent.conversation_loop: API call #6: model=openai/gpt-5.6-sol provider=openrouter in=45030 out=73 total=45103 latency=4.1s cache=44546/45030 (99%)
+2026-08-18 00:45:59,848 INFO [20260818_004428_8235ba] agent.tool_executor: tool cronjob completed (0.02s, 795 chars)
+2026-08-18 00:46:11,766 INFO [20260818_004428_8235ba] agent.conversation_loop: API call #7: model=openai/gpt-5.6-sol provider=openrouter in=45345 out=443 total=45788 latency=11.9s cache=45027/45345 (99%)
+2026-08-18 00:46:11,770 INFO [20260818_004428_8235ba] agent.conversation_loop: Turn ended: reason=text_response(finish_reason=stop) model=openai/gpt-5.6-sol api_calls=7/500 budget=7/500 tool_turns=6 last_msg_role=assistant response_len=541 session=20260818_004428_8235ba
+2026-08-18 00:46:12,017 INFO tools.terminal_tool: Manually cleaned up environment for task: default
+2026-08-18 00:46:12,018 INFO tools.terminal_tool: Cleaned 1 environments
+2026-08-18 00:46:12,020 INFO cli: CLI cleanup calling memory shutdown for session 20260818_004428_8235ba with 14 message(s)
+2026-08-18 00:46:12,572 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-08-18 00:46:12,574 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-08-18 00:46:12,575 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-08-18 00:46:12,635 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-08-18 00:46:12,635 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-08-18 00:46:12,636 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-08-18 00:46:12,636 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-08-18 00:46:12,636 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-08-18 00:46:12,637 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-08-18 00:46:12,637 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-08-18 00:46:12,637 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-08-18 00:46:12,639 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-08-18 00:46:12,639 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-08-18 00:46:12,640 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-08-18 00:46:12,641 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-08-18 00:46:12,641 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-08-18 00:46:12,642 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-08-18 00:46:12,643 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-08-18 00:46:12,644 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-08-18 00:46:12,645 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-08-18 00:46:12,645 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-08-18 00:46:12,646 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-08-18 00:46:12,649 INFO hermes_cli.plugins: Plugin discovery complete: 55 found, 48 enabled
+2026-08-18 00:46:12,655 INFO cron.scheduler: Job '9b42e06a7b18' (no_agent): empty stdout — silent run
+2026-08-18 00:46:12,657 INFO cron.scheduler: Job '9b42e06a7b18': agent returned [SILENT] — skipping delivery
+2026-08-18 00:46:12,866 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-08-18 00:46:12,868 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-08-18 00:46:12,869 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-08-18 00:46:12,906 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-08-18 00:46:12,907 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-08-18 00:46:12,907 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-08-18 00:46:12,907 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-08-18 00:46:12,908 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-08-18 00:46:12,908 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-08-18 00:46:12,908 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-08-18 00:46:12,908 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-08-18 00:46:12,909 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-08-18 00:46:12,909 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-08-18 00:46:12,910 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-08-18 00:46:12,910 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-08-18 00:46:12,911 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-08-18 00:46:12,911 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-08-18 00:46:12,912 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-08-18 00:46:12,912 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-08-18 00:46:12,912 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-08-18 00:46:12,913 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-08-18 00:46:12,913 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-08-18 00:46:12,915 INFO hermes_cli.plugins: Plugin discovery complete: 55 found, 48 enabled
+2026-08-18 00:46:12,931 INFO cron.scheduler: Job '9b42e06a7b18' (no_agent): empty stdout — silent run
+2026-08-18 00:46:12,934 INFO cron.scheduler: Job '9b42e06a7b18': agent returned [SILENT] — skipping delivery
+2026-08-18 00:46:13,162 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-08-18 00:46:13,163 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-08-18 00:46:13,164 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-08-18 00:46:13,201 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-08-18 00:46:13,201 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-08-18 00:46:13,201 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-08-18 00:46:13,202 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-08-18 00:46:13,202 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-08-18 00:46:13,202 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-08-18 00:46:13,202 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-08-18 00:46:13,203 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-08-18 00:46:13,203 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-08-18 00:46:13,204 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-08-18 00:46:13,204 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-08-18 00:46:13,204 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-08-18 00:46:13,205 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-08-18 00:46:13,205 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-08-18 00:46:13,206 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-08-18 00:46:13,206 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-08-18 00:46:13,207 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-08-18 00:46:13,207 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-08-18 00:46:13,207 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-08-18 00:46:13,209 INFO hermes_cli.plugins: Plugin discovery complete: 55 found, 48 enabled
+2026-08-18 00:46:13,227 INFO cron.scheduler: Job '9b42e06a7b18' (no_agent): empty stdout — silent run
+2026-08-18 00:46:13,229 INFO cron.scheduler: Job '9b42e06a7b18': agent returned [SILENT] — skipping delivery
+2026-08-18 00:46:13,448 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-08-18 00:46:13,450 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-08-18 00:46:13,451 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-08-18 00:46:13,489 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-08-18 00:46:13,489 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-08-18 00:46:13,489 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-08-18 00:46:13,490 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-08-18 00:46:13,490 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-08-18 00:46:13,490 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-08-18 00:46:13,490 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-08-18 00:46:13,491 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-08-18 00:46:13,492 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-08-18 00:46:13,492 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-08-18 00:46:13,492 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-08-18 00:46:13,493 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-08-18 00:46:13,493 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-08-18 00:46:13,493 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-08-18 00:46:13,494 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-08-18 00:46:13,494 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-08-18 00:46:13,495 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-08-18 00:46:13,495 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-08-18 00:46:13,495 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-08-18 00:46:13,497 INFO hermes_cli.plugins: Plugin discovery complete: 55 found, 48 enabled
+2026-08-18 00:46:13,515 INFO cron.scheduler: Job '9b42e06a7b18' (no_agent): empty stdout — silent run
+2026-08-18 00:46:13,517 INFO cron.scheduler: Job '9b42e06a7b18': agent returned [SILENT] — skipping delivery
+2026-08-18 00:46:13,744 INFO hermes_cli.plugins: Plugin 'browser-browser-use' registered browser provider: browser-use
+2026-08-18 00:46:13,746 INFO hermes_cli.plugins: Plugin 'browser-browserbase' registered browser provider: browserbase
+2026-08-18 00:46:13,746 INFO hermes_cli.plugins: Plugin 'browser-firecrawl' registered browser provider: firecrawl
+2026-08-18 00:46:13,783 INFO hermes_cli.plugins: Plugin 'deepinfra' registered image_gen provider: deepinfra
+2026-08-18 00:46:13,783 INFO hermes_cli.plugins: Plugin 'fal' registered image_gen provider: fal
+2026-08-18 00:46:13,784 INFO hermes_cli.plugins: Plugin 'krea' registered image_gen provider: krea
+2026-08-18 00:46:13,784 INFO hermes_cli.plugins: Plugin 'openai' registered image_gen provider: openai
+2026-08-18 00:46:13,784 INFO hermes_cli.plugins: Plugin 'openai-codex' registered image_gen provider: openai-codex
+2026-08-18 00:46:13,785 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: openrouter
+2026-08-18 00:46:13,785 INFO hermes_cli.plugins: Plugin 'openrouter' registered image_gen provider: nous
+2026-08-18 00:46:13,785 INFO hermes_cli.plugins: Plugin 'xai' registered image_gen provider: xai
+2026-08-18 00:46:13,786 INFO hermes_cli.plugins: Plugin 'deepinfra' registered video_gen provider: deepinfra
+2026-08-18 00:46:13,786 INFO hermes_cli.plugins: Plugin 'fal' registered video_gen provider: fal
+2026-08-18 00:46:13,786 INFO hermes_cli.plugins: Plugin 'xai' registered video_gen provider: xai
+2026-08-18 00:46:13,787 INFO hermes_cli.plugins: Plugin 'web-brave-free' registered web provider: brave-free
+2026-08-18 00:46:13,787 INFO hermes_cli.plugins: Plugin 'web-ddgs' registered web provider: ddgs
+2026-08-18 00:46:13,787 INFO hermes_cli.plugins: Plugin 'web-exa' registered web provider: exa
+2026-08-18 00:46:13,788 INFO hermes_cli.plugins: Plugin 'web-firecrawl' registered web provider: firecrawl
+2026-08-18 00:46:13,788 INFO hermes_cli.plugins: Plugin 'web-parallel' registered web provider: parallel
+2026-08-18 00:46:13,789 INFO hermes_cli.plugins: Plugin 'web-searxng' registered web provider: searxng
+2026-08-18 00:46:13,789 INFO hermes_cli.plugins: Plugin 'web-tavily' registered web provider: tavily
+2026-08-18 00:46:13,789 INFO hermes_cli.plugins: Plugin 'web-xai' registered web provider: xai
+2026-08-18 00:46:13,791 INFO hermes_cli.plugins: Plugin discovery complete: 55 found, 48 enabled
+2026-08-18 00:46:13,806 INFO cron.scheduler: Job '9b42e06a7b18' (no_agent): empty stdout — silent run
+2026-08-18 00:46:13,808 INFO cron.scheduler: Job '9b42e06a7b18': agent returned [SILENT] — skipping delivery

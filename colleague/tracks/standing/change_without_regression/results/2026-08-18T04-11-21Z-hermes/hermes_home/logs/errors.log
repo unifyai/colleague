@@ -1,0 +1,28 @@
+2026-08-18 01:11:21,434 WARNING cli: Background MCP discovery previously exited with no connected servers; retrying discovery thread
+2026-08-18 01:11:21,823 WARNING tools.registry: check_fn check_bfl_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 01:11:21,823 WARNING tools.registry: check_fn check_browser_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 01:11:21,824 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-08-18 01:11:21,824 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-08-18 01:11:23,966 WARNING tools.registry: check_fn check_browser_vision_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 01:11:23,968 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 01:11:23,969 WARNING tools.registry: check_fn check_image_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 01:11:23,969 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-08-18 01:11:23,970 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-08-18 01:11:24,008 WARNING agent.auxiliary_client: Auxiliary client: PAID lane engaged for auxiliary task — OpenRouter fallback model 'google/gemini-3.6-flash' is not a :free SKU and may incur real spend. Set auxiliary.free_only: true to restrict auxiliary fallbacks to free models, or auxiliary.openrouter_model to a :free model.
+2026-08-18 01:11:24,014 WARNING tools.registry: check_fn check_web_api_key returned False; dependent tools will be unavailable this turn
+2026-08-18 01:26:42,791 WARNING [20260818_011121_8c9f9c] agent.chat_completion_helpers: Stream stale for 900s (threshold 900s) — no chunks received. model=openai/gpt-5.6-sol context=~46,895 tokens. Killing connection.
+2026-08-18 01:26:42,792 WARNING agent.stream_diag: Stream drop on attempt 2/3 — retrying. subagent_id=- depth=0 provider=openrouter base_url=http://127.0.0.1:8126/api/v1 error_type=RemoteProtocolError error=stream attempt 1 was superseded chain=RemoteProtocolError(stream attempt 1 was superseded) http_status=200 bytes=0 chunks=0 elapsed=900.01s ttfb=- upstream=[cf-ray=a2ce137f8d70238d-SJC server=BaseHTTP/0.6 Python/3.12.13, cloudflare]
+2026-08-18 01:26:53,640 WARNING [20260818_011121_8c9f9c] agent.tool_executor: Tool terminal returned error (0.06s): {"output": "", "exit_code": -1, "error": "BLOCKED: Command flagged as dangerous (script execution via -e/-c flag) but single-query mode (-q) runs without a user present to approve it. Find an alternat
+2026-08-18 01:27:43,902 WARNING cli: Background MCP discovery previously exited with no connected servers; retrying discovery thread
+2026-08-18 01:27:44,296 WARNING tools.registry: check_fn check_bfl_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 01:27:44,296 WARNING tools.registry: check_fn check_browser_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 01:27:44,296 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-08-18 01:27:44,297 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-08-18 01:27:44,338 WARNING tools.registry: check_fn check_browser_vision_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 01:27:44,341 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 01:27:44,342 WARNING tools.registry: check_fn check_image_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-08-18 01:27:44,343 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-08-18 01:27:44,343 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-08-18 01:27:44,403 WARNING agent.auxiliary_client: Auxiliary client: PAID lane engaged for auxiliary task — OpenRouter fallback model 'google/gemini-3.6-flash' is not a :free SKU and may incur real spend. Set auxiliary.free_only: true to restrict auxiliary fallbacks to free models, or auxiliary.openrouter_model to a :free model.
+2026-08-18 01:27:44,409 WARNING tools.registry: check_fn check_web_api_key returned False; dependent tools will be unavailable this turn
+2026-08-18 01:28:38,859 WARNING [20260818_012743_39aead] agent.tool_executor: Tool terminal returned error (0.01s): {"output": "", "exit_code": -1, "error": "BLOCKED: Command flagged as dangerous (script execution via -e/-c flag) but single-query mode (-q) runs without a user present to approve it. Find an alternat

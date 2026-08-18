@@ -170,6 +170,13 @@ class RepairLocality(Experiment):
                 )
                 for r in rows
             ),
+            # Arms a person fixes have no repair bucket; the fix is the
+            # operator turn folded into the fire it preceded.
+            "operator_fix_tokens": sum(
+                int((r.get("tokens") or {}).get("total") or 0)
+                for r in rows
+                if "operator_fix" in ((r.get("tokens") or {}).get("phases") or [])
+            ),
         }
         if pre and post:
             reference = pre[-1]["shapes"]

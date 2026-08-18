@@ -53,8 +53,24 @@ EW_VARIANT=no_email  bash colleague/tracks/standing/edge_week/run_unify.sh
 .venv/bin/python -m colleague.tracks.standing.edge_week.plot
 ```
 
-## Measured results
+## Measured results (2026-08-18, gpt-5.6-sol@openrouter)
 
-Not yet run. The honest expectation for the pre-verification unify build was
-a loss on at least the `currency` and `duplicate` edges — a distilled
-function that sums what it is given.
+![edge week, empty](edge_week_empty.svg)
+![edge week, duplicate](edge_week_duplicate.svg)
+![edge week, currency](edge_week_currency.svg)
+![edge week, no email](edge_week_no_email.svg)
+
+| edge | arm | score | weeks | setup | week 5 |
+|---|---|---|---|---|---|
+| `empty` | hermes | **10/10** | ●●●●● | 353k | the zero digest, as instructed |
+| `duplicate` | hermes | **9/10** | ●●●●◐ | 307k | **held** with a reason; no digest, no double reminder |
+| `currency` | hermes | **9/10** | ●●●●◐ | 459k | **held**; the GBP amount was never summed as EUR |
+| `no_email` | hermes | **9/10** | ●●●●◐ | 304k | **held**; nothing POSTed to a null address |
+| all | unify | not yet run | | | blocked on staging-tenant credits at run time |
+
+hermes's script stops on any invoice that breaks a stated invariant rather
+than applying the flag-and-continue rule, so its week 5 is the safe rung on
+three edges and the correct one on the fourth. Every week costs it nothing
+after setup (a `no_agent` script), which is also why it cannot climb to 2 on
+its own: nothing observed the hold. Committed evidence per run as in
+`silent_drift`.

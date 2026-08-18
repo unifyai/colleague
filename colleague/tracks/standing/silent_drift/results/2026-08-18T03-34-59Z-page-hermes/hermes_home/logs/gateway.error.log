@@ -1,0 +1,3 @@
+2026-08-18 00:37:42,812 WARNING gateway.run: No env user allowlists configured. Messaging platforms default to pairing/allowlist policies and will deny unknown senders unless you configure platform allowlists (e.g., TELEGRAM_ALLOWED_USERS=your_id) or explicitly opt in with GATEWAY_ALLOW_ALL_USERS=true plus dm_policy/group_policy: open on the platform.
+2026-08-18 00:37:42,816 WARNING gateway.run: No messaging platforms enabled.
+2026-08-18 00:38:18,666 WARNING gateway.run: Shutdown context: signal=SIGTERM under_systemd=no parent_pid=31257 parent_name=? loadavg_1m=2.59 parent_cmdline='(unknown)'

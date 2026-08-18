@@ -113,18 +113,25 @@ model; what was distilled is verified against what it claims to do before it
 is trusted; once trusted it is bound to its schedule and runs for nothing;
 when the world moves under it, the model comes back only to the piece that
 broke and either repairs it or holds the run and says why. Four experiments
-were built for that and have not been run yet — `silent_drift` (the API keeps
-its field names and changes their meaning), `edge_week` (an ordinary
-automation meets an empty week, a duplicated row, a foreign currency, a
-contact with no email), `repair_locality` (three inputs, one drifts, how much
-of the automation moves) and `change_without_regression` (one column added,
-every old column byte-identical) — plus a six-week extension of `teaching`
-with one rule amended mid-way. All of them score a run that stops and tells
-its owner why (*held*) below one that is right and above one that is
-plausibly wrong; the rule is `DESIGN.md` §Non-negotiable rules, 8. The
-honest expectation for the pre-verification unify build was a loss on the
-first two; that result, the fix, and the new result are what the
-`results/` directories will carry, in that order.
+were built for that — `silent_drift` (the API keeps its field names and
+changes their meaning), `edge_week` (an ordinary automation meets an empty
+week, a duplicated row, a foreign currency, a contact with no email),
+`repair_locality` (three inputs, one drifts, how much of the automation
+moves) and `change_without_regression` (one column added, every old column
+byte-identical) — plus a six-week extension of `teaching` with one rule
+amended mid-way. All of them score a run that stops and tells its owner why
+(*held*) below one that is right and above one that is plausibly wrong; the
+rule is `DESIGN.md` §Non-negotiable rules, 8.
+
+First results (2026-08-18, hermes arm; the unify arm's first attempt hit an
+unfunded staging tenant and is not a result — see each README): hermes
+**holds** on the unit change (fires 5–6) and on three of the four edge weeks,
+recovers after one operator turn on the units drift and the refunds rename,
+keeps the untouched report sections byte-identical, and adds a column
+without regressing — but it **cannot see** the page-cap drift at all: 4/10
+and every post-drift fire wrong even after the operator's fix. The
+verified-build unify runs, and the pre-verification loss they are meant to
+be read against, are the next commits to `results/`.
 
 ![distillation curve](colleague/tracks/standing/distillation_curve.svg)
 

@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="754" viewBox="0 0 960 754" font-family="Inter, Helvetica, Arial, sans-serif">
-<rect width="960" height="754" fill="#fcfcfb"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="2322" viewBox="0 0 960 2322" font-family="Inter, Helvetica, Arial, sans-serif">
+<rect width="960" height="2322" fill="#fcfcfb"/>
 <text x="90" y="34" font-size="18" font-weight="600" fill="#1a1a19">The distillation curve — LLM tokens per fire, by purpose, per arm</text>
 <text x="90" y="56" font-size="12" fill="#6f6e6a">Newest run of each arm per experiment. Shades split unify's spend into planning / verification / repair; proxy-metered arms report every token as planning.</text>
 <rect x="90" y="70" width="12" height="12" fill="#2a78d6"/>
@@ -124,5 +124,134 @@
 <rect x="853.2" y="634.1" width="23.2" height="3.9" fill="#eb6834"><title>hermes fire 8 planning: 21,413</title></rect>
 <rect x="877.5" y="632.4" width="23.2" height="5.6" fill="#009e73"><title>openclaw fire 8 planning: 30,711</title></rect>
 <rect x="901.8" y="634.6" width="23.2" height="3.4" fill="#7b52ab"><title>opencode fire 8 planning: 18,856</title></rect>
-<text x="90" y="724" font-size="10" fill="#6f6e6a">× a fire the arm got wrong; ◐ a fire it held with a reason. Bars are the newest committed run per arm; an experiment with no runs yet is not drawn.</text>
+<text x="90" y="674" font-size="13" font-weight="600" fill="#1a1a19">silent_drift[units] — amount changes units before fire 5</text>
+<line x1="90" y1="834.0" x2="930" y2="834.0" stroke="#e8e7e4"/>
+<text x="82" y="838.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="90" y1="759.0" x2="930" y2="759.0" stroke="#e8e7e4"/>
+<text x="82" y="763.0" font-size="10" text-anchor="end" fill="#6f6e6a">469,796</text>
+<line x1="90" y1="684.0" x2="930" y2="684.0" stroke="#e8e7e4"/>
+<text x="82" y="688.0" font-size="10" text-anchor="end" fill="#6f6e6a">939,593</text>
+<text x="132.0" y="848" font-size="10" text-anchor="middle" fill="#6f6e6a">1</text>
+<text x="216.0" y="848" font-size="10" text-anchor="middle" fill="#6f6e6a">2</text>
+<text x="300.0" y="848" font-size="10" text-anchor="middle" fill="#6f6e6a">3</text>
+<text x="384.0" y="848" font-size="10" text-anchor="middle" fill="#6f6e6a">4</text>
+<text x="468.0" y="848" font-size="10" text-anchor="middle" fill="#6f6e6a">5</text>
+<text x="468.0" y="832" font-size="9" text-anchor="middle" fill="#eb6834">◐</text>
+<text x="552.0" y="848" font-size="10" text-anchor="middle" fill="#6f6e6a">6</text>
+<text x="552.0" y="832" font-size="9" text-anchor="middle" fill="#eb6834">◐</text>
+<text x="636.0" y="848" font-size="10" text-anchor="middle" fill="#6f6e6a">7</text>
+<rect x="598.0" y="684.0" width="75.0" height="150.0" fill="#eb6834"><title>hermes fire 7 planning: 939,593</title></rect>
+<text x="720.0" y="848" font-size="10" text-anchor="middle" fill="#6f6e6a">8</text>
+<text x="804.0" y="848" font-size="10" text-anchor="middle" fill="#6f6e6a">9</text>
+<text x="888.0" y="848" font-size="10" text-anchor="middle" fill="#6f6e6a">10</text>
+<text x="90" y="870" font-size="13" font-weight="600" fill="#1a1a19">silent_drift[page] — page cap halves before fire 5</text>
+<line x1="90" y1="1030.0" x2="930" y2="1030.0" stroke="#e8e7e4"/>
+<text x="82" y="1034.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="90" y1="955.0" x2="930" y2="955.0" stroke="#e8e7e4"/>
+<text x="82" y="959.0" font-size="10" text-anchor="end" fill="#6f6e6a">416,632</text>
+<line x1="90" y1="880.0" x2="930" y2="880.0" stroke="#e8e7e4"/>
+<text x="82" y="884.0" font-size="10" text-anchor="end" fill="#6f6e6a">833,264</text>
+<text x="132.0" y="1044" font-size="10" text-anchor="middle" fill="#6f6e6a">1</text>
+<text x="216.0" y="1044" font-size="10" text-anchor="middle" fill="#6f6e6a">2</text>
+<text x="300.0" y="1044" font-size="10" text-anchor="middle" fill="#6f6e6a">3</text>
+<text x="384.0" y="1044" font-size="10" text-anchor="middle" fill="#6f6e6a">4</text>
+<text x="468.0" y="1044" font-size="10" text-anchor="middle" fill="#6f6e6a">5</text>
+<text x="468.0" y="1028" font-size="9" text-anchor="middle" fill="#eb6834">×</text>
+<text x="552.0" y="1044" font-size="10" text-anchor="middle" fill="#6f6e6a">6</text>
+<text x="552.0" y="1028" font-size="9" text-anchor="middle" fill="#eb6834">×</text>
+<text x="636.0" y="1044" font-size="10" text-anchor="middle" fill="#6f6e6a">7</text>
+<rect x="598.0" y="880.0" width="75.0" height="150.0" fill="#eb6834"><title>hermes fire 7 planning: 833,264</title></rect>
+<text x="636.0" y="1028" font-size="9" text-anchor="middle" fill="#eb6834">×</text>
+<text x="720.0" y="1044" font-size="10" text-anchor="middle" fill="#6f6e6a">8</text>
+<text x="720.0" y="1028" font-size="9" text-anchor="middle" fill="#eb6834">×</text>
+<text x="804.0" y="1044" font-size="10" text-anchor="middle" fill="#6f6e6a">9</text>
+<text x="804.0" y="1028" font-size="9" text-anchor="middle" fill="#eb6834">×</text>
+<text x="888.0" y="1044" font-size="10" text-anchor="middle" fill="#6f6e6a">10</text>
+<text x="888.0" y="1028" font-size="9" text-anchor="middle" fill="#eb6834">×</text>
+<text x="90" y="1066" font-size="13" font-weight="600" fill="#1a1a19">edge_week[empty] — week 5 has no invoices</text>
+<line x1="90" y1="1226.0" x2="930" y2="1226.0" stroke="#e8e7e4"/>
+<text x="82" y="1230.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="90" y1="1151.0" x2="930" y2="1151.0" stroke="#e8e7e4"/>
+<text x="82" y="1155.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="90" y1="1076.0" x2="930" y2="1076.0" stroke="#e8e7e4"/>
+<text x="82" y="1080.0" font-size="10" text-anchor="end" fill="#6f6e6a">1</text>
+<text x="174.0" y="1240" font-size="10" text-anchor="middle" fill="#6f6e6a">1</text>
+<text x="342.0" y="1240" font-size="10" text-anchor="middle" fill="#6f6e6a">2</text>
+<text x="510.0" y="1240" font-size="10" text-anchor="middle" fill="#6f6e6a">3</text>
+<text x="678.0" y="1240" font-size="10" text-anchor="middle" fill="#6f6e6a">4</text>
+<text x="846.0" y="1240" font-size="10" text-anchor="middle" fill="#6f6e6a">5</text>
+<text x="90" y="1262" font-size="13" font-weight="600" fill="#1a1a19">edge_week[duplicate] — week 5 serves one invoice twice</text>
+<line x1="90" y1="1422.0" x2="930" y2="1422.0" stroke="#e8e7e4"/>
+<text x="82" y="1426.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="90" y1="1347.0" x2="930" y2="1347.0" stroke="#e8e7e4"/>
+<text x="82" y="1351.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="90" y1="1272.0" x2="930" y2="1272.0" stroke="#e8e7e4"/>
+<text x="82" y="1276.0" font-size="10" text-anchor="end" fill="#6f6e6a">1</text>
+<text x="174.0" y="1436" font-size="10" text-anchor="middle" fill="#6f6e6a">1</text>
+<text x="342.0" y="1436" font-size="10" text-anchor="middle" fill="#6f6e6a">2</text>
+<text x="510.0" y="1436" font-size="10" text-anchor="middle" fill="#6f6e6a">3</text>
+<text x="678.0" y="1436" font-size="10" text-anchor="middle" fill="#6f6e6a">4</text>
+<text x="846.0" y="1436" font-size="10" text-anchor="middle" fill="#6f6e6a">5</text>
+<text x="846.0" y="1420" font-size="9" text-anchor="middle" fill="#eb6834">◐</text>
+<text x="90" y="1458" font-size="13" font-weight="600" fill="#1a1a19">edge_week[currency] — week 5 has a GBP invoice</text>
+<line x1="90" y1="1618.0" x2="930" y2="1618.0" stroke="#e8e7e4"/>
+<text x="82" y="1622.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="90" y1="1543.0" x2="930" y2="1543.0" stroke="#e8e7e4"/>
+<text x="82" y="1547.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="90" y1="1468.0" x2="930" y2="1468.0" stroke="#e8e7e4"/>
+<text x="82" y="1472.0" font-size="10" text-anchor="end" fill="#6f6e6a">1</text>
+<text x="174.0" y="1632" font-size="10" text-anchor="middle" fill="#6f6e6a">1</text>
+<text x="342.0" y="1632" font-size="10" text-anchor="middle" fill="#6f6e6a">2</text>
+<text x="510.0" y="1632" font-size="10" text-anchor="middle" fill="#6f6e6a">3</text>
+<text x="678.0" y="1632" font-size="10" text-anchor="middle" fill="#6f6e6a">4</text>
+<text x="846.0" y="1632" font-size="10" text-anchor="middle" fill="#6f6e6a">5</text>
+<text x="846.0" y="1616" font-size="9" text-anchor="middle" fill="#eb6834">◐</text>
+<text x="90" y="1654" font-size="13" font-weight="600" fill="#1a1a19">edge_week[no_email] — week 5 has an invoice with no contact</text>
+<line x1="90" y1="1814.0" x2="930" y2="1814.0" stroke="#e8e7e4"/>
+<text x="82" y="1818.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="90" y1="1739.0" x2="930" y2="1739.0" stroke="#e8e7e4"/>
+<text x="82" y="1743.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="90" y1="1664.0" x2="930" y2="1664.0" stroke="#e8e7e4"/>
+<text x="82" y="1668.0" font-size="10" text-anchor="end" fill="#6f6e6a">1</text>
+<text x="174.0" y="1828" font-size="10" text-anchor="middle" fill="#6f6e6a">1</text>
+<text x="342.0" y="1828" font-size="10" text-anchor="middle" fill="#6f6e6a">2</text>
+<text x="510.0" y="1828" font-size="10" text-anchor="middle" fill="#6f6e6a">3</text>
+<text x="678.0" y="1828" font-size="10" text-anchor="middle" fill="#6f6e6a">4</text>
+<text x="846.0" y="1828" font-size="10" text-anchor="middle" fill="#6f6e6a">5</text>
+<text x="846.0" y="1812" font-size="9" text-anchor="middle" fill="#eb6834">◐</text>
+<text x="90" y="1850" font-size="13" font-weight="600" fill="#1a1a19">repair_locality — refunds renamed before fire 5</text>
+<line x1="90" y1="2010.0" x2="930" y2="2010.0" stroke="#e8e7e4"/>
+<text x="82" y="2014.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="90" y1="1935.0" x2="930" y2="1935.0" stroke="#e8e7e4"/>
+<text x="82" y="1939.0" font-size="10" text-anchor="end" fill="#6f6e6a">319,766</text>
+<line x1="90" y1="1860.0" x2="930" y2="1860.0" stroke="#e8e7e4"/>
+<text x="82" y="1864.0" font-size="10" text-anchor="end" fill="#6f6e6a">639,533</text>
+<text x="132.0" y="2024" font-size="10" text-anchor="middle" fill="#6f6e6a">1</text>
+<text x="216.0" y="2024" font-size="10" text-anchor="middle" fill="#6f6e6a">2</text>
+<text x="300.0" y="2024" font-size="10" text-anchor="middle" fill="#6f6e6a">3</text>
+<text x="384.0" y="2024" font-size="10" text-anchor="middle" fill="#6f6e6a">4</text>
+<text x="468.0" y="2024" font-size="10" text-anchor="middle" fill="#6f6e6a">5</text>
+<text x="468.0" y="2008" font-size="9" text-anchor="middle" fill="#eb6834">◐</text>
+<text x="552.0" y="2024" font-size="10" text-anchor="middle" fill="#6f6e6a">6</text>
+<text x="552.0" y="2008" font-size="9" text-anchor="middle" fill="#eb6834">◐</text>
+<text x="636.0" y="2024" font-size="10" text-anchor="middle" fill="#6f6e6a">7</text>
+<rect x="598.0" y="1860.0" width="75.0" height="150.0" fill="#eb6834"><title>hermes fire 7 planning: 639,533</title></rect>
+<text x="720.0" y="2024" font-size="10" text-anchor="middle" fill="#6f6e6a">8</text>
+<text x="804.0" y="2024" font-size="10" text-anchor="middle" fill="#6f6e6a">9</text>
+<text x="888.0" y="2024" font-size="10" text-anchor="middle" fill="#6f6e6a">10</text>
+<text x="90" y="2046" font-size="13" font-weight="600" fill="#1a1a19">change_without_regression — a column added before fire 4</text>
+<line x1="90" y1="2206.0" x2="930" y2="2206.0" stroke="#e8e7e4"/>
+<text x="82" y="2210.0" font-size="10" text-anchor="end" fill="#6f6e6a">0</text>
+<line x1="90" y1="2131.0" x2="930" y2="2131.0" stroke="#e8e7e4"/>
+<text x="82" y="2135.0" font-size="10" text-anchor="end" fill="#6f6e6a">148,915</text>
+<line x1="90" y1="2056.0" x2="930" y2="2056.0" stroke="#e8e7e4"/>
+<text x="82" y="2060.0" font-size="10" text-anchor="end" fill="#6f6e6a">297,831</text>
+<text x="160.0" y="2220" font-size="10" text-anchor="middle" fill="#6f6e6a">1</text>
+<text x="300.0" y="2220" font-size="10" text-anchor="middle" fill="#6f6e6a">2</text>
+<text x="440.0" y="2220" font-size="10" text-anchor="middle" fill="#6f6e6a">3</text>
+<text x="580.0" y="2220" font-size="10" text-anchor="middle" fill="#6f6e6a">4</text>
+<rect x="514.0" y="2056.0" width="131.0" height="150.0" fill="#eb6834"><title>hermes fire 4 planning: 297,831</title></rect>
+<text x="720.0" y="2220" font-size="10" text-anchor="middle" fill="#6f6e6a">5</text>
+<text x="860.0" y="2220" font-size="10" text-anchor="middle" fill="#6f6e6a">6</text>
+<text x="90" y="2292" font-size="10" fill="#6f6e6a">× a fire the arm got wrong; ◐ a fire it held with a reason. Bars are the newest committed run per arm; an experiment with no runs yet is not drawn.</text>
 </svg>

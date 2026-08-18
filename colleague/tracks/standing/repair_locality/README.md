@@ -50,6 +50,17 @@ bash colleague/tracks/standing/repair_locality/run_hermes.sh      # also run_ope
 .venv/bin/python -m colleague.tracks.standing.repair_locality.plot
 ```
 
-## Measured results
+## Measured results (2026-08-18, gpt-5.6-sol@openrouter)
 
-Not yet run.
+![repair locality](repair_locality.svg)
+
+| arm | score | fires | setup | recovery | locality |
+|---|---|---|---|---|---|
+| hermes + human | **18/20** | ●●●●◐◐●●●● | 459k | **held** fires 5–6 (the refunds section could not be computed); operator fix 640k tokens before fire 7; fires 7–10 exact | `orders` and `tickets` sections keep exactly their pre-drift shape after the repair (`orders_shape_identical_after_repair`, `tickets_shape_identical_after_repair` both true) |
+| unify | not yet run | | | blocked on staging-tenant credits at run time | |
+
+The repair a person asked for stayed where the break was: the script's
+refunds reader changed, the report's other two sections did not move a key.
+The `repair_tokens` bucket is 0 for this arm because a human, not the arm,
+paid for the repair; `summary.md` carries that cost as the `operator_fix`
+phase and later runs record it as `operator_fix_tokens`.

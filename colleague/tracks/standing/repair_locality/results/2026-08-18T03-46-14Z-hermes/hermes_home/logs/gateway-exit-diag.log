@@ -1,0 +1,3 @@
+{"ts": "2026-08-18T04:11:04.897607+00:00", "tag": "gateway.start", "pid": 45443, "python": "3.11.15", "platform": "darwin", "replace": true, "argv": ["/Users/djl11/hermes-agent/hermes_cli/main.py", "gateway", "run", "--replace", "--external-supervisor"], "stdin_is_tty": false, "console_window_attached": null, "detached": false, "breakaway": null, "absorb_windows_console_controls": false}
+{"ts": "2026-08-18T04:11:20.641407+00:00", "tag": "asyncio.run.returned", "pid": 45443, "python": "3.11.15", "platform": "darwin", "success": false}
+{"ts": "2026-08-18T04:11:20.641990+00:00", "tag": "gateway.exit_nonzero", "pid": 45443, "python": "3.11.15", "platform": "darwin"}

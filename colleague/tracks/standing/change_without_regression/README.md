@@ -47,6 +47,15 @@ bash colleague/tracks/standing/change_without_regression/run_hermes.sh   # also 
 .venv/bin/python -m colleague.tracks.standing.change_without_regression.plot
 ```
 
-## Measured results
+## Measured results (2026-08-18, gpt-5.6-sol@openrouter)
 
-Not yet run.
+![change without regression](change_without_regression.svg)
+
+| arm | score | fires | setup | change request | after |
+|---|---|---|---|---|---|
+| hermes | **12/12** | ●●●●●● | 300k | 298k tokens (one chat turn before fire 4) | new column right and every old column byte-identical on fires 4–6 |
+| unify | not yet run | | | blocked on staging-tenant credits at run time | |
+
+The change cost hermes about as much as the original setup — a full agent
+turn that rewrote the script — and cost nothing after: fires 4–6 run the new
+script for free and regress nothing.
