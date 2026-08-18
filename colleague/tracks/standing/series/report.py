@@ -43,22 +43,52 @@ def _add_phase(tokens: dict[str, dict[str, int]], phase: dict[str, Any]) -> None
         tokens[purpose]["calls"] += int(bucket.get("llm_calls") or 0)
 
 
-def tokens_for_label(phases: list[dict[str, Any]], label: str) -> dict[str, Any]:
+def tokens_for_label(
+    phases: list[dict[str, Any]],
+    label: str,
+    *,
+    extra_phases: tuple[str, ...] = (),
+) -> dict[str, Any]:
+    """Tokens of the phase named ``label``, its ``_review``, and ``extra_phases``."""
     tokens = empty_tokens()
+    names = {label, f"{label}_review", *extra_phases}
+    folded = []
     for phase in phases:
-        if phase.get("name") in (label, f"{label}_review"):
+        if phase.get("name") in names:
             _add_phase(tokens, phase)
+            folded.append(str(phase.get("name")))
     total = sum(v["prompt"] + v["completion"] for v in tokens.values())
-    return {**tokens, "total": total}
+    return {**tokens, "total": total, "phases": folded}
 
 
 def attach_fire_tokens(
     rows: list[dict[str, Any]],
     phases: list[dict[str, Any]],
     experiment: Experiment,
+    *,
+    operator_fix_before: int | None = None,
 ) -> None:
+    """Give every fire the tokens spent for it.
+
+    A fire's cost is its own phase plus whatever the model was brought back
+    for *before* it: the owner's messages delivered ahead of that fire
+    (``message_<i>``…) and, for arms a person fixes, the operator-fix turn
+    played before it. Folding those in keeps the per-fire series honest — the
+    fire after a change request or a repair is the one that paid for it — and
+    each row lists the phases it absorbed.
+    """
     for row in rows:
-        row["tokens"] = tokens_for_label(phases, experiment.label(int(row["fire"])))
+        i = int(row["fire"])
+        extra = tuple(
+            name
+            for name in (str(p.get("name", "")) for p in phases)
+            if name == f"message_{i}" or name.startswith(f"message_{i}_")
+        )
+        if operator_fix_before == i:
+            extra += ("operator_fix",)
+        row["tokens"] = tokens_for_label(
+            phases, experiment.label(i), extra_phases=extra
+        )
 
 
 def _fmt(value: Any) -> str:
@@ -155,7 +185,17 @@ def finalize(
 ) -> str:
     """Attach phases and per-fire tokens, write both files, return the summary."""
     results["phases"] = phases
-    attach_fire_tokens(results.get("fires", []), phases, experiment)
+    fix = results.get("operator_fix")
+    attach_fire_tokens(
+        results.get("fires", []),
+        phases,
+        experiment,
+        operator_fix_before=(
+            int(fix["before_fire"])
+            if isinstance(fix, dict) and fix.get("before_fire")
+            else None
+        ),
+    )
     results["series"] = experiment.summarize(results.get("fires", []))
     results["finished_at"] = datetime.now(timezone.utc).isoformat()
     results_dir.mkdir(parents=True, exist_ok=True)

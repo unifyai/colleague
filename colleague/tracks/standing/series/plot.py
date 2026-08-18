@@ -19,7 +19,8 @@ import re
 from pathlib import Path
 from typing import Any
 
-from colleague.tracks.standing.series.report import PURPOSES, tokens_for_label
+from colleague.tracks.standing.series.report import PURPOSES, attach_fire_tokens
+from colleague.tracks.standing.series.spec import Experiment
 
 ARM_ORDER = ("unify", "hermes", "openclaw", "opencode")
 ARM_COLOR = {
@@ -80,26 +81,55 @@ def latest_runs(
     return out
 
 
+class _Labeller(Experiment):
+    """Just enough of an experiment to name a run's fire phases."""
+
+    def __init__(self, noun: str) -> None:
+        self.fire_noun = noun
+
+
 def fire_series(results: dict[str, Any]) -> list[dict[str, Any]]:
-    """``[{fire, outcome, tokens}]`` for a run, oldest record formats included."""
+    """``[{fire, outcome, tokens}]`` for a run, oldest record formats included.
+
+    Tokens are always re-derived from the phase table (with the owner-message
+    and operator-fix phases folded into the fire they preceded), so records
+    written before ``fires[i].tokens`` existed and records written since read
+    the same way.
+    """
     phases = results.get("phases") or []
-    rows = []
+    names = {str(p.get("name")) for p in phases}
     fires = results.get("fires") or results.get("runs") or []
+    rows = []
     for row in fires:
         i = int(row.get("fire") or row.get("run") or row.get("week") or 0)
         if not i:
             continue
-        label = None
-        for candidate in (f"fire_{i}", f"run_{i}", f"week_{i}"):
-            if any(p.get("name") == candidate for p in phases):
-                label = candidate
-                break
-        tokens = row.get("tokens") or tokens_for_label(phases, label or f"fire_{i}")
-        if "outcome" in row:
-            outcome = row["outcome"]
-        else:
-            outcome = "correct" if row.get("correct") else "wrong"
-        rows.append({"fire": i, "outcome": outcome, "tokens": tokens})
+        outcome = (
+            row["outcome"]
+            if "outcome" in row
+            else ("correct" if row.get("correct") else "wrong")
+        )
+        rows.append({"fire": i, "outcome": outcome, "tokens": row.get("tokens") or {}})
+    noun = next(
+        (
+            n
+            for n in ("fire", "run", "week")
+            if any(f"{n}_{r['fire']}" in names for r in rows)
+        ),
+        "fire",
+    )
+    fix = results.get("operator_fix")
+    if phases:
+        attach_fire_tokens(
+            rows,
+            phases,
+            _Labeller(noun),
+            operator_fix_before=(
+                int(fix["before_fire"])
+                if isinstance(fix, dict) and fix.get("before_fire")
+                else None
+            ),
+        )
     return sorted(rows, key=lambda r: r["fire"])
 
 
