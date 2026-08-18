@@ -1,0 +1,27 @@
+{
+  "jobs": [
+    {
+      "id": "112ba847-bebb-4ef8-b6b7-d9cd64ad788c",
+      "status": "active",
+      "source": "rlm_heartbeat",
+      "runtimeKind": "top-level",
+      "deliveryMode": "follow_up",
+      "activeSessionId": "8a2a3bb161ca",
+      "sessionId": "01a016a7-0da7-7587-8e8f-d5d69d1d2434",
+      "sessionFile": "/Users/djl11/colleague/.claude/worktrees/frosty-yalow-53a840/colleague/tracks/standing/drift_recovery/results/2026-08-18T20-54-01Z-prime-agent/prime_sessions/01a016a7-0af3-70e8-80af-b988aba5d7da.jsonl",
+      "cwd": "/Users/djl11/colleague/.claude/worktrees/frosty-yalow-53a840/colleague/tracks/standing/drift_recovery/results/2026-08-18T20-54-01Z-prime-agent/workspace",
+      "label": "process-local-orders",
+      "prompt": "Process all currently pending orders from the local orders API, one API page at a time.\n\nRepeat until no orders remain:\n1. GET http://127.0.0.1:8125/batches/last and read integer last_seq.\n2. GET http://127.0.0.1:8125/orders?after=N using that last_seq. The response is up to 200 orders.\n3. If the returned list is empty, stop and do nothing further.\n4. For each order, read seq, region, and units. Read the integer unit price from `unit_price_cents` when present; the API renamed this field to `unit_price_minor`, so if `unit_price_cents` is absent use `unit_price_minor`. These are equivalent integer minor-currency/cents values; do not rescale them. If both exist, require their integer values to agree.\n5. Compute from exactly that returned page using integer arithmetic:\n   - batch_start_seq: minimum seq\n   - batch_end_seq: maximum seq\n   - order_count: number of orders\n   - total_units: sum of units\n   - total_revenue_cents: sum of units * the price value selected in step 4\n   - revenue_by_region_cents: object mapping each region to its sum of units * selected price\n6. POST to http://127.0.0.1:8125/batches a JSON object containing exactly these six keys and no others: batch_start_seq, batch_end_seq, order_count, total_units, total_revenue_cents, revenue_by_region_cents.\n7. Only after a successful POST, repeat from step 1 so a backlog larger than 200 is fully drained. On any request, validation, or POST failure, stop the run rather than skipping data; a later hourly run will retry from the server's last_seq.\n\nDo not POST when there are no orders. Do not invent or include any other fields.",
+      "schedule": {
+        "kind": "interval",
+        "expression": "every 1h",
+        "intervalMs": 3600000
+      },
+      "createdAt": "2026-08-18T20:54:16.202Z",
+      "updatedAt": "2026-08-18T20:56:42.505Z",
+      "nextRunAt": "2026-08-18T21:54:16.202Z",
+      "runCount": 0
+    }
+  ],
+  "dispatches": []
+}

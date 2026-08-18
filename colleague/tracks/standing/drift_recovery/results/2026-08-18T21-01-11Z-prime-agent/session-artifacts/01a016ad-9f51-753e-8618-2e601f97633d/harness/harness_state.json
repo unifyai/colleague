@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "entries": {
+    "prompt": {},
+    "memory": {
+      "orders-api-drift-recovery-state": {
+        "id": "orders-api-drift-recovery-state",
+        "kind": "memory",
+        "title": "Orders automation schema drift recovery completed",
+        "content": "Hourly heartbeat b524bb5c-3a37-4161-92a8-7588ceb1ee61 (hourly-order-batch-processing) was repaired after the Orders API intentionally renamed unit_price_cents to unit_price_minor with identical minor-currency-unit/cents semantics. Its active runbook now accepts exactly one of those two fields per row, preserves strict validation, exact integer arithmetic, HOLD behavior, and at-most-once batch posting. A catch-up batch for seq 149-222 (74 orders) was delivered successfully; /batches/last then returned 222 and /orders?after=222 returned an empty array. Automation is active and caught up.",
+        "path": "automation/orders",
+        "scope": "local",
+        "reference": {},
+        "arguments": {},
+        "metadata": {
+          "scope": "local",
+          "status": "active_caught_up",
+          "heartbeat_id": "b524bb5c-3a37-4161-92a8-7588ceb1ee61",
+          "last_confirmed_seq": 222,
+          "schema": "unit_price_cents|unit_price_minor"
+        },
+        "source": "agent",
+        "created_at": "2026-08-18T21:05:21.736Z",
+        "updated_at": "2026-08-18T21:06:31.250350+00:00",
+        "version": 2
+      }
+    },
+    "skill": {},
+    "subagent": {}
+  },
+  "refinements": [
+    {
+      "id": "refine_20260818210509856",
+      "trigger": "Record the verified schema drift and unfinished recovery steps for the local orders automation.",
+      "changes": [
+        "create memory:orders-api-drift-recovery-state"
+      ],
+      "evidence": "The API inspection showed 74 pending orders beginning at seq 149 after last_seq 148, with unit_price_minor replacing unit_price_cents; the exact-key validator caused repeated HOLDs, and the heartbeat recovery was not yet completed.",
+      "outcome": "The next turn can update the existing heartbeat safely, catch up seq 149 onward, and avoid either repeated false holds or ambiguous duplicate batch submissions.",
+      "created_at": "2026-08-18T21:05:21.736Z"
+    }
+  ]
+}

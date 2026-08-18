@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "socketPath": "/var/folders/m3/td_dsp3938l0f0lh6tspzlqw0000gn/T/prime-agent-501-colleague/20d0a225.sock",
+  "defaultSessionConfig": {
+    "cwd": "/Users/djl11/colleague/.claude/worktrees/frosty-yalow-53a840/colleague/tracks/standing/drift_recovery/results/2026-08-18T21-01-11Z-prime-agent/workspace",
+    "agentDir": "/Users/djl11/colleague/.claude/worktrees/frosty-yalow-53a840/colleague/tracks/standing/drift_recovery/results/2026-08-18T21-01-11Z-prime-agent/prime_agent_dir",
+    "sessionDir": "/Users/djl11/colleague/.claude/worktrees/frosty-yalow-53a840/colleague/tracks/standing/drift_recovery/results/2026-08-18T21-01-11Z-prime-agent/prime_sessions",
+    "telemetryDisabled": true,
+    "serializedRefine": false
+  }
+}

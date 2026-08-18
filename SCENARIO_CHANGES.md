@@ -39,6 +39,19 @@ The fixture now 400s a cadence outside its enum with the fix in the message
 scorer reads the weekday from either `weekday` or `cadence`. Would have
 mismeasured any arm that folds the day into the cadence.
 
+**`[wrong]` drift_recovery — the utterance promised no way to hold.** The
+fire-series rubric scores a run that stops and tells the owner why (*held*,
+1) above one that is plausibly wrong (0), and `series/spec.py` states the
+owner channel is "described in the utterance". Every engine experiment
+interpolates `{owner_channel}` — except `drift_recovery`, whose migration
+from the legacy protocol dropped it. First live engine run (prime-agent,
+2026-08-18): at the field rename it stopped, refused to post wrong numbers
+and said why in its dying turn text — and scored `wrong`, because the
+channel the rubric requires was never offered to it. Any arm without a
+native hold channel would be mismeasured identically. The utterance now
+carries the owner channel like its four siblings; the run under the
+defective utterance stays committed beside the rerun.
+
 **`[wrong]` meeting/commanded_work — a fair question the environment could
 not answer.** unify-cm's first live run asked Priya which timezone "Monday at
 9" meant, and Priya's role, given no timezone, said she would confirm later —
@@ -186,6 +199,21 @@ verified: proxy-metered turn, `-c` continuity). Its profile describes that
 surface — restart-only steering, no clarification — not the product's RPC
 lanes. Not a scenario change; recorded here because it changes how
 UNSUPPORTED cells should be read.
+
+**Profiles, closed.** Both faithful arms exist and are verified live:
+`openclaw-gateway` drives the Gateway WebSocket protocol (`ask_user`
+answered through `question.resolve`; corrections as `chat.send` with
+`queueMode: steer`, the product's default) and `prime-agent-rpc` drives
+`--mode rpc` (corrections on the steering lane, `next_turn_boundary`).
+The cells the notes above said to read carefully now have measurements:
+openclaw's clarification cell resolves live (`inheritance/cold_control`
+pass; `ask_the_owner` still fails — the question surface names no
+addressee), its steering cells land as live interjections (interruption
+3/4), and prime-agent's steering cells go from restart-only to
+live_interject 4/4 with `concurrency` 2/2 where print mode was
+UNSUPPORTED. Per-scenario outcomes in `colleague/arms/sessions/NOTE.md`.
+Not a scenario change; the CLI arms and their profiles remain as the v0
+surfaces they honestly describe.
 
 ## 2026-08-07
 

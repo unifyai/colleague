@@ -82,6 +82,18 @@ bash colleague/tracks/standing/drift_recovery/run_opencode.sh
 | opencode alone | 4/10 → flat forever | 0.07M | none possible, same reason |
 | unify (fixed, pre-probe) | 6/10 | 1.74M | autonomous but blind: 4 fire-by-fire repair attempts — see `2026-07-31T11-54-41Z-unify/NOTE.md` |
 | unify (pre-fix baseline) | 4/10 | 2.89M | none — see `2026-07-31T11-08-13Z-unify/NOTE.md`; defects fixed in `5fb19164d` |
+| prime-agent + human | 8/10 + 2 held | 0.85M | resident RPC session, every fire a prompt: fires 5-6 **held** — stopped, delivered nothing, told the owner why through `/owner/notify` — one operator message (459k, the model rereads the API and catches up the cursor) restores fires 7-10; post-drift fires carry the fattened session, ~15k → ~60k prompt tokens |
+
+The prime-agent rows are engine runs (2026-08-18) and are the first
+under the fire-series rubric, which scores a held run (stopped, owner told
+why) between correct and wrong; the 2026-07-31/08-01 rows above were
+measured under the legacy protocol, which had no held outcome. Two
+prime-agent runs are committed: `2026-08-18T20-54-01Z` ran under the
+engine-migration utterance that omitted the owner channel — its fires 5-6
+held silently and scored `wrong` (16/20), the defect logged as `[wrong]`
+in `SCENARIO_CHANGES.md` — and `2026-08-18T21-01-11Z` is the same
+protocol under the corrected utterance (18/20). Read the second beside
+the legacy rows, with the rubric difference in mind.
 
 The benchmark's first unify run failed outright and yielded five production
 fixes (repair-prompt contract framing, `overwrite` swallowed from the

@@ -1,0 +1,15 @@
+{
+  "providers": {
+    "openrouter-metered": {
+      "baseUrl": "http://127.0.0.1:8181/api/v1",
+      "api": "openai-completions",
+      "apiKey": "<redacted: OPENROUTER_API_KEY>",
+      "models": [
+        {
+          "id": "openai/gpt-5.6-sol",
+          "reasoning": true
+        }
+      ]
+    }
+  }
+}

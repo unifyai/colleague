@@ -53,6 +53,8 @@ unit_price_cents), revenue_by_region_cents (object mapping each region to \
 its revenue sum), and POST that JSON object to {base_url}/batches with \
 exactly these keys.
 
+{owner_channel}
+
 Set up the recurring hourly automation now. Do not process anything right \
 now, and do not ask for confirmation.\
 """
@@ -84,7 +86,10 @@ class DriftRecovery(Experiment):
         }
 
     def utterance(self, base_url: str) -> str:
-        return UTTERANCE_TEMPLATE.format(base_url=base_url)
+        return UTTERANCE_TEMPLATE.format(
+            base_url=base_url,
+            owner_channel=self.owner_channel(base_url),
+        )
 
     def build_fixture(self, *, seed: int, port: int) -> DriftFixtureServer:
         return DriftFixtureServer(seed=seed, port=port)

@@ -1,0 +1,1238 @@
+{
+  "experiment": "drift_recovery",
+  "variant": null,
+  "system": "prime-agent",
+  "run_id": "2026-08-18T20-54-01Z-prime-agent",
+  "prime_agent_repo": "/Users/djl11/prime-agent",
+  "model": "openai/gpt-5.6-sol",
+  "wake_prompt": "Run the recurring automation you set up, now.",
+  "seed": 20260731,
+  "n_fires": 10,
+  "operator_fix_after_failures": 2,
+  "operator_fix_message": "The hourly order-processing automation you set up has been failing on its recent runs. Please investigate and fix it so it resumes working unattended, including catching up on anything it missed. Do not ask for confirmation.",
+  "utterance": "Please set up an hourly recurring automation that processes new orders from the local orders API at http://127.0.0.1:8125.\n\nHow it works: GET http://127.0.0.1:8125/batches/last returns {\"last_seq\": N} \u2014 the highest order seq already processed (0 if none yet). GET http://127.0.0.1:8125/orders?after=N returns the next orders with seq > N (up to 200), each with fields: seq (int), date (YYYY-MM-DD), region, units (int), unit_price_cents (int).\n\nOn each run: read last_seq, fetch the orders after it, and if there are none do nothing. Otherwise compute exactly: batch_start_seq, batch_end_seq, order_count, total_units, total_revenue_cents (sum of units * unit_price_cents), revenue_by_region_cents (object mapping each region to its revenue sum), and POST that JSON object to http://127.0.0.1:8125/batches with exactly these keys.\n\nSet up the recurring hourly automation now. Do not process anything right now, and do not ask for confirmation.",
+  "drift_after_fire": 4,
+  "orders_per_fire": 37,
+  "drift": "unit_price_cents -> unit_price_minor",
+  "messages": [],
+  "fires": [
+    {
+      "fire": 1,
+      "label": "fire_1",
+      "events": [],
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "error": "",
+      "agent_runs": 1,
+      "final_text": "Automation run completed successfully.\n\n- Orders processed: **37** (`seq` 1\u201337)\n- Total units: **375**\n- Total revenue: **674,325 cents**\n- Batch POST response: **200 \u2014 received**",
+      "drifted": false,
+      "pending_range": [
+        1,
+        37
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 1,
+          "batch_end_seq": 37,
+          "order_count": 37,
+          "total_units": 375,
+          "total_revenue_cents": 674325,
+          "revenue_by_region_cents": {
+            "east": 164938,
+            "south": 253550,
+            "west": 117600,
+            "north": 138237
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 1,
+        "batch_end_seq": 37,
+        "order_count": 37,
+        "total_units": 375,
+        "total_revenue_cents": 674325,
+        "revenue_by_region_cents": {
+          "east": 164938,
+          "south": 253550,
+          "west": 117600,
+          "north": 138237
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "tokens": {
+        "planning": {
+          "prompt": 18376,
+          "completion": 576,
+          "calls": 3
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 18952,
+        "phases": [
+          "fire_1"
+        ]
+      }
+    },
+    {
+      "fire": 2,
+      "label": "fire_2",
+      "events": [],
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "error": "",
+      "agent_runs": 1,
+      "final_text": "Automation run completed successfully.\n\n- Orders processed: **37** (`seq` 38\u201374)\n- Total units: **354**\n- Total revenue: **737,846 cents**\n- Batch POST response: **200 \u2014 received**",
+      "drifted": false,
+      "pending_range": [
+        38,
+        74
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 38,
+          "batch_end_seq": 74,
+          "order_count": 37,
+          "total_units": 354,
+          "total_revenue_cents": 737846,
+          "revenue_by_region_cents": {
+            "south": 213573,
+            "north": 195810,
+            "east": 296887,
+            "west": 31576
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 38,
+        "batch_end_seq": 74,
+        "order_count": 37,
+        "total_units": 354,
+        "total_revenue_cents": 737846,
+        "revenue_by_region_cents": {
+          "south": 213573,
+          "north": 195810,
+          "east": 296887,
+          "west": 31576
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "tokens": {
+        "planning": {
+          "prompt": 13547,
+          "completion": 460,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 14007,
+        "phases": [
+          "fire_2"
+        ]
+      }
+    },
+    {
+      "fire": 3,
+      "label": "fire_3",
+      "events": [],
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "error": "",
+      "agent_runs": 1,
+      "final_text": "Automation run completed successfully.\n\n- Orders processed: **37** (`seq` 75\u2013111)\n- Total units: **359**\n- Total revenue: **674,441 cents**\n- Batch POST response: **200 \u2014 received**",
+      "drifted": false,
+      "pending_range": [
+        75,
+        111
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 75,
+          "batch_end_seq": 111,
+          "order_count": 37,
+          "total_units": 359,
+          "total_revenue_cents": 674441,
+          "revenue_by_region_cents": {
+            "north": 138835,
+            "east": 243012,
+            "west": 124696,
+            "south": 167898
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 75,
+        "batch_end_seq": 111,
+        "order_count": 37,
+        "total_units": 359,
+        "total_revenue_cents": 674441,
+        "revenue_by_region_cents": {
+          "north": 138835,
+          "east": 243012,
+          "west": 124696,
+          "south": 167898
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "tokens": {
+        "planning": {
+          "prompt": 14703,
+          "completion": 452,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 15155,
+        "phases": [
+          "fire_3"
+        ]
+      }
+    },
+    {
+      "fire": 4,
+      "label": "fire_4",
+      "events": [],
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "error": "",
+      "agent_runs": 1,
+      "final_text": "Automation run completed successfully.\n\n- Orders processed: **37** (`seq` 112\u2013148)\n- Total units: **462**\n- Total revenue: **851,938 cents**\n- Batch POST response: **200 \u2014 received**",
+      "drifted": false,
+      "pending_range": [
+        112,
+        148
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 112,
+          "batch_end_seq": 148,
+          "order_count": 37,
+          "total_units": 462,
+          "total_revenue_cents": 851938,
+          "revenue_by_region_cents": {
+            "south": 216965,
+            "north": 291965,
+            "west": 114997,
+            "east": 228011
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 112,
+        "batch_end_seq": 148,
+        "order_count": 37,
+        "total_units": 462,
+        "total_revenue_cents": 851938,
+        "revenue_by_region_cents": {
+          "south": 216965,
+          "north": 291965,
+          "west": 114997,
+          "east": 228011
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "tokens": {
+        "planning": {
+          "prompt": 15885,
+          "completion": 478,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 16363,
+        "phases": [
+          "fire_4"
+        ]
+      }
+    },
+    {
+      "fire": 5,
+      "label": "fire_5",
+      "events": [
+        "drift:unit_price_cents->unit_price_minor"
+      ],
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "error": "",
+      "agent_runs": 1,
+      "final_text": "Automation run stopped safely without posting a batch. The API returned orders missing the required `unit_price_cents` field (it returned `unit_price_minor` instead), so the exact required calculations could not be performed. Last processed sequence remains **148**.",
+      "drifted": true,
+      "pending_range": [
+        149,
+        185
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 185,
+        "order_count": 37,
+        "total_units": 331,
+        "total_revenue_cents": 690469,
+        "revenue_by_region_cents": {
+          "east": 208024,
+          "north": 305262,
+          "west": 44259,
+          "south": 132924
+        }
+      },
+      "scores": [],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "tokens": {
+        "planning": {
+          "prompt": 27595,
+          "completion": 605,
+          "calls": 3
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 28200,
+        "phases": [
+          "fire_5"
+        ]
+      }
+    },
+    {
+      "fire": 6,
+      "label": "fire_6",
+      "events": [],
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "error": "",
+      "agent_runs": 1,
+      "final_text": "Automation run stopped safely without posting. The API returned **74 orders after sequence 148**, but they lack the required `unit_price_cents` field. Last processed sequence remains **148**.",
+      "drifted": true,
+      "pending_range": [
+        149,
+        222
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 149,
+        "batch_end_seq": 222,
+        "order_count": 74,
+        "total_units": 680,
+        "total_revenue_cents": 1417120,
+        "revenue_by_region_cents": {
+          "east": 484623,
+          "north": 600126,
+          "west": 129889,
+          "south": 202482
+        }
+      },
+      "scores": [],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "tokens": {
+        "planning": {
+          "prompt": 21689,
+          "completion": 578,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 22267,
+        "phases": [
+          "fire_6"
+        ]
+      }
+    },
+    {
+      "fire": 7,
+      "label": "fire_7",
+      "events": [],
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "error": "",
+      "agent_runs": 1,
+      "final_text": "Automation run completed successfully.\n\n- Orders processed: **37** (`seq` 223\u2013259)\n- Total units: **352**\n- Total revenue: **650,448 cents**\n- Batch POST response: **200 \u2014 received**\n- Remaining pending orders: **0**",
+      "drifted": true,
+      "pending_range": [
+        223,
+        259
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 223,
+          "batch_end_seq": 259,
+          "order_count": 37,
+          "total_units": 352,
+          "total_revenue_cents": 650448,
+          "revenue_by_region_cents": {
+            "north": 188414,
+            "south": 77653,
+            "east": 230916,
+            "west": 153465
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 223,
+        "batch_end_seq": 259,
+        "order_count": 37,
+        "total_units": 352,
+        "total_revenue_cents": 650448,
+        "revenue_by_region_cents": {
+          "north": 188414,
+          "south": 77653,
+          "east": 230916,
+          "west": 153465
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "tokens": {
+        "planning": {
+          "prompt": 126780,
+          "completion": 3172,
+          "calls": 10
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 129952,
+        "phases": [
+          "operator_fix",
+          "fire_7"
+        ]
+      }
+    },
+    {
+      "fire": 8,
+      "label": "fire_8",
+      "events": [],
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "error": "",
+      "agent_runs": 1,
+      "final_text": "Automation run completed successfully.\n\n- Orders processed: **37** (`seq` 260\u2013296)\n- Total units: **384**\n- Total revenue: **753,516 cents**\n- Batch POST response: **200 \u2014 received**\n- Remaining pending orders: **0**",
+      "drifted": true,
+      "pending_range": [
+        260,
+        296
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 260,
+          "batch_end_seq": 296,
+          "order_count": 37,
+          "total_units": 384,
+          "total_revenue_cents": 753516,
+          "revenue_by_region_cents": {
+            "north": 179516,
+            "west": 137387,
+            "east": 304985,
+            "south": 131628
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 260,
+        "batch_end_seq": 296,
+        "order_count": 37,
+        "total_units": 384,
+        "total_revenue_cents": 753516,
+        "revenue_by_region_cents": {
+          "north": 179516,
+          "west": 137387,
+          "east": 304985,
+          "south": 131628
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "tokens": {
+        "planning": {
+          "prompt": 30576,
+          "completion": 620,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 31196,
+        "phases": [
+          "fire_8"
+        ]
+      }
+    },
+    {
+      "fire": 9,
+      "label": "fire_9",
+      "events": [],
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "error": "",
+      "agent_runs": 1,
+      "final_text": "Automation run completed successfully.\n\n- Orders processed: **37** (`seq` 297\u2013333)\n- Total units: **344**\n- Total revenue: **717,456 cents**\n- Batch POST response: **200 \u2014 received**\n- Remaining pending orders: **0**",
+      "drifted": true,
+      "pending_range": [
+        297,
+        333
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 297,
+          "batch_end_seq": 333,
+          "order_count": 37,
+          "total_units": 344,
+          "total_revenue_cents": 717456,
+          "revenue_by_region_cents": {
+            "east": 291794,
+            "north": 235293,
+            "west": 70640,
+            "south": 119729
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 297,
+        "batch_end_seq": 333,
+        "order_count": 37,
+        "total_units": 344,
+        "total_revenue_cents": 717456,
+        "revenue_by_region_cents": {
+          "east": 291794,
+          "north": 235293,
+          "west": 70640,
+          "south": 119729
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "tokens": {
+        "planning": {
+          "prompt": 32102,
+          "completion": 620,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 32722,
+        "phases": [
+          "fire_9"
+        ]
+      }
+    },
+    {
+      "fire": 10,
+      "label": "fire_10",
+      "events": [],
+      "fire_mode": "wake_prompt",
+      "exit_code": 0,
+      "error": "",
+      "agent_runs": 1,
+      "final_text": "Automation run completed successfully.\n\n- Orders processed: **37** (`seq` 334\u2013370)\n- Total units: **404**\n- Total revenue: **753,196 cents**\n- Batch POST response: **200 \u2014 received**\n- Remaining pending orders: **0**",
+      "drifted": true,
+      "pending_range": [
+        334,
+        370
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 334,
+          "batch_end_seq": 370,
+          "order_count": 37,
+          "total_units": 404,
+          "total_revenue_cents": 753196,
+          "revenue_by_region_cents": {
+            "north": 283874,
+            "west": 170359,
+            "south": 134923,
+            "east": 164040
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 334,
+        "batch_end_seq": 370,
+        "order_count": 37,
+        "total_units": 404,
+        "total_revenue_cents": 753196,
+        "revenue_by_region_cents": {
+          "north": 283874,
+          "west": 170359,
+          "south": 134923,
+          "east": 164040
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_revenue_cents": true,
+            "revenue_by_region_cents": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "tokens": {
+        "planning": {
+          "prompt": 33639,
+          "completion": 631,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 34270,
+        "phases": [
+          "fire_10"
+        ]
+      }
+    }
+  ],
+  "setup": {
+    "exit_code": 0,
+    "error": "",
+    "agent_runs": 1,
+    "final_text": "Hourly automation is active.\n\n- **Label:** `process-local-orders`\n- **Interval:** Every hour\n- **First run:** 2026-08-18 21:54:16 UTC\n- **Automation ID:** `112ba847-bebb-4ef8-b6b7-d9cd64ad788c`\n- **Current run count:** 0 \u2014 no orders were processed during setup."
+  },
+  "profile_after_setup": {
+    "agent_dir_files": [
+      "auth.json",
+      "session-leases/d70b38daf9e51d3bd28cc98faba3d97d535124faf62c549f1f781ab3b0b63fef.lock/owner.json"
+    ],
+    "workspace_files": [],
+    "scripts": [],
+    "scheduled_jobs": []
+  },
+  "operator_fix": {
+    "exit_code": 0,
+    "error": "",
+    "agent_runs": 1,
+    "final_text": "Investigated and fixed the automation.\n\n- **Cause:** The API renamed `unit_price_cents` to `unit_price_minor`.\n- **Fix:** Updated the hourly automation to accept the renamed field without rescaling, while preserving the required POST schema.\n- **Reliability improvement:** It now processes successive pages until the full backlog is drained, stopping safely on errors.\n- **Catch-up completed:** Processed **74 missed orders**, sequences **149\u2013222**.\n- **Catch-up totals:** **680 units**, **1,417,120 cents** revenue.\n- **Verification:** Server now reports `last_seq: 222` with **0 pending orders**.\n- The hourly schedule remains active.",
+    "before_fire": 7
+  },
+  "profile_final": {
+    "agent_dir_files": [
+      "auth.json",
+      "session-leases/d70b38daf9e51d3bd28cc98faba3d97d535124faf62c549f1f781ab3b0b63fef.lock/owner.json"
+    ],
+    "workspace_files": [],
+    "scripts": [],
+    "scheduled_jobs": []
+  },
+  "defuse_actions": [
+    "closed rpc session and its daemon",
+    "redacted models.json apiKey",
+    "removed bin/",
+    "removed logs/"
+  ],
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 20.55,
+      "llm_calls": 3,
+      "prompt_tokens": 15041,
+      "completion_tokens": 619,
+      "total_tokens": 15660,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 3
+      },
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 3,
+          "prompt_tokens": 15041,
+          "completion_tokens": 619
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_1",
+      "wall_seconds": 17.74,
+      "llm_calls": 3,
+      "prompt_tokens": 18376,
+      "completion_tokens": 576,
+      "total_tokens": 18952,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 3
+      },
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 3,
+          "prompt_tokens": 18376,
+          "completion_tokens": 576
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_2",
+      "wall_seconds": 13.57,
+      "llm_calls": 2,
+      "prompt_tokens": 13547,
+      "completion_tokens": 460,
+      "total_tokens": 14007,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      },
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 13547,
+          "completion_tokens": 460
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_3",
+      "wall_seconds": 18.06,
+      "llm_calls": 2,
+      "prompt_tokens": 14703,
+      "completion_tokens": 452,
+      "total_tokens": 15155,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      },
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 14703,
+          "completion_tokens": 452
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_4",
+      "wall_seconds": 16.12,
+      "llm_calls": 2,
+      "prompt_tokens": 15885,
+      "completion_tokens": 478,
+      "total_tokens": 16363,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      },
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 15885,
+          "completion_tokens": 478
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_5",
+      "wall_seconds": 20.31,
+      "llm_calls": 3,
+      "prompt_tokens": 27595,
+      "completion_tokens": 605,
+      "total_tokens": 28200,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 3
+      },
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 3,
+          "prompt_tokens": 27595,
+          "completion_tokens": 605
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_6",
+      "wall_seconds": 14.98,
+      "llm_calls": 2,
+      "prompt_tokens": 21689,
+      "completion_tokens": 578,
+      "total_tokens": 22267,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      },
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 21689,
+          "completion_tokens": 578
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "operator_fix",
+      "wall_seconds": 54.82,
+      "llm_calls": 6,
+      "prompt_tokens": 75831,
+      "completion_tokens": 1844,
+      "total_tokens": 77675,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 6
+      },
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 6,
+          "prompt_tokens": 75831,
+          "completion_tokens": 1844
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_7",
+      "wall_seconds": 33.91,
+      "llm_calls": 4,
+      "prompt_tokens": 50949,
+      "completion_tokens": 1328,
+      "total_tokens": 52277,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 4
+      },
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 4,
+          "prompt_tokens": 50949,
+          "completion_tokens": 1328
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_8",
+      "wall_seconds": 16.76,
+      "llm_calls": 2,
+      "prompt_tokens": 30576,
+      "completion_tokens": 620,
+      "total_tokens": 31196,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      },
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 30576,
+          "completion_tokens": 620
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_9",
+      "wall_seconds": 14.45,
+      "llm_calls": 2,
+      "prompt_tokens": 32102,
+      "completion_tokens": 620,
+      "total_tokens": 32722,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      },
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 32102,
+          "completion_tokens": 620
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_10",
+      "wall_seconds": 19.55,
+      "llm_calls": 2,
+      "prompt_tokens": 33639,
+      "completion_tokens": 631,
+      "total_tokens": 34270,
+      "provider_cost_usd": null,
+      "usage_missing_calls": 0,
+      "other_http_calls": 0,
+      "models": {
+        "openai/gpt-5.6-sol": 2
+      },
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 33639,
+          "completion_tokens": 631
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    }
+  ],
+  "series": {},
+  "finished_at": "2026-08-18T20:58:23.143390+00:00"
+}
