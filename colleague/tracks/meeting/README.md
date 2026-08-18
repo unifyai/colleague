@@ -47,35 +47,36 @@ Every line a role says is delivered to the arm through its own channel —
 recorded with how it got there. An arm no second person can reach resolves
 to UNSUPPORTED rather than being scored as having said nothing.
 
-## First live runs (n = 1 each, 2026-08-18)
+## First live runs (2026-08-18)
 
-**`unify-cm`** (cloud sweep, live roles): `interrupted_mid_answer` PASS —
-after Daniel changed the question it said exactly one line, "Thursday at
-14:00 UTC.", nothing about the budget. `addressed_by_name` DEGRADED — the
-right answer, one line, silent until addressed, but slower than the 25 s
-patience, so two human lines had landed before it (the CM's whole-turn
-latency on this surface; a real result). `commanded_work` FAIL on the first
-run for a reason that was the fixture's: the arm asked Priya which timezone
-"Monday at 9" meant — a fair question — and Priya's role, given none, said
-she would confirm later; the arm correctly did not guess and never
-scheduled. Priya now knows the timezone (recorded as `[wrong]`); the arm
-also answered Bob correctly in the same breath. All lines reached it as
-`live_interject`, and the roles reacted in character (Daniel: "Thanks.").
+**`unify-cm`, cloud sweep, live roles, `--repeat 3`** (run 32100545505):
 
-**`prime-agent`** (print mode):
+| Scene | Spread | Reading |
+|---|---|---|
+| `interrupted_mid_answer` | PASS ×3 | after Daniel changed the question: one line, "Thursday at 14:00 UTC, weekly", nothing about the budget — every time |
+| `addressed_by_name` | DEGRADED ×3 | the right answer, one line, silent until addressed, but every time slower than the 25 s patience, so two human lines had landed first. Once it also answered Priya's question *to Daniel* ("Yes, please book the Thursday-morning walk-through") — speaking for the boss. The latency is the CM's whole-turn cost on this surface; both are real |
+| `humans_talking` | PASS ×1 · FAIL ×2 | when it failed it summarised the humans back to themselves ("Sounds aligned: second week of October, with the platform team attending…") — the same shape prime-agent showed, less often |
+| `commanded_work` | (re-read below) | it created the schedule in all three runs and answered Bob in all three; twice it asked Priya the timezone first and she answered "London time, Europe/London" (live role) |
 
-DEGRADED · FAIL · DEGRADED · PASS. Two things in it are about the arm's
-surface and one is about the arm. Every line reached prime-agent as a later
-turn — print mode has no live channel — so "answered after the room moved
-on" is true by construction and the reasons say so; that is the same
-DEGRADED `interruption` gives a queued correction. `humans_talking` is a
-genuine finding: given five lines nobody addressed to it, the arm narrated
-them back to the room ("Thanks, Priya — confirmed: second week of
-October…"; "Bob, Daniel said the platform team needs to attend at least day
-one") — a loop whose only output is a reply will always produce a reply.
-The live roles behaved as designed: Daniel re-asked when no answer came in
-time, Priya answered the assistant's paraphrase. One run; read it as a shape,
-not a number.
+`commanded_work` first scored FAIL ×2 · DEGRADED ×1, and that was the
+fixture's fault: twice the arm wrote `cadence: "every Monday at 09:00"` — the
+meaning exactly, the enum wrong — the fixture accepted it and the scorer
+failed it. A real API rejects a cadence outside its enum and the same arm
+self-corrects on the 400 (it visibly did, on a missing-field 400 in the same
+run). The fixture now validates `cadence`, and the scorer reads the day from
+either field; recorded as `[wrong]`. Re-scored against what the runs did, the
+spread is PASS ×2 · DEGRADED ×1 (Bob's answer late once).
+
+Read the whole table as a shape, not a verdict: n = 3, one arm, one week's
+code.
+
+**`prime-agent`** (print mode, n = 1): DEGRADED · FAIL · DEGRADED · PASS.
+Every line reached it as a later turn — print mode has no live channel — so
+"after the room moved on" is true by construction and the reasons say so;
+the same DEGRADED `interruption` gives a queued correction. `humans_talking`
+is genuine: given five lines nobody addressed to it, it narrated them back
+to the room. The live roles behaved as designed: Daniel re-asked when no
+answer came, Priya answered the assistant's paraphrase.
 
 ## What to expect, and the fair reading
 

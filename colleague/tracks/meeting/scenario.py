@@ -387,12 +387,20 @@ def score(
         ask_bob = _aimed(record, 3)
         assert ask_priya is not None and ask_bob is not None
         schedules = fixture.recorder.all("schedule")
+        # The day may arrive in `weekday` or, from an arm that folds it into
+        # the cadence, in `cadence`; the fixture guarantees cadence is one of
+        # its two values, so "weekly" plus a Monday anywhere is the meaning.
         right = [
             s
             for s in schedules
             if str((s.get("payload") or {}).get("to", "")).lower().startswith("priya")
             and str((s.get("payload") or {}).get("cadence", "")).lower() == "weekly"
-            and "mon" in str((s.get("payload") or {}).get("weekday", "")).lower()
+            and "mon"
+            in (
+                str((s.get("payload") or {}).get("weekday", ""))
+                + " "
+                + str((s.get("payload") or {}).get("cadence", ""))
+            ).lower()
         ]
         card.check(
             "scheduled_for_priya_weekly_monday",

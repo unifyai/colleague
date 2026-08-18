@@ -28,6 +28,17 @@ when the run actually happened. `user not found` (OpenRouter's wording for
 a revoked key, surfaced as text by the CLI arms) joins the marker list. That
 sweep is discarded; the secret was refreshed and the sweep re-run.
 
+**`[wrong]` meeting/commanded_work — the fixture accepted a cadence it then
+failed.** In the first `--repeat 3` unify-cm sweep the arm created the
+schedule every time; twice it wrote `cadence: "every Monday at 09:00"` — the
+meaning exactly, the documented enum (`daily|weekly`) wrong — `/schedule`
+accepted it (only presence was validated) and the scorer failed it for not
+saying `weekly`. A 200-everything sink for one field, the 2026-08-05 shape.
+The fixture now 400s a cadence outside its enum with the fix in the message
+(the same arm self-corrected on a missing-field 400 in the same run), and the
+scorer reads the weekday from either `weekday` or `cadence`. Would have
+mismeasured any arm that folds the day into the cadence.
+
 **`[wrong]` meeting/commanded_work — a fair question the environment could
 not answer.** unify-cm's first live run asked Priya which timezone "Monday at
 9" meant, and Priya's role, given no timezone, said she would confirm later —

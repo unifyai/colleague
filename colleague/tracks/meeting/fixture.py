@@ -148,6 +148,20 @@ def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServe
         missing = missing_fields(r.body, "to", "cadence", "text")
         if missing:
             return reject(r.server, "schedule", r.body, missing)
+        # A real API rejects a cadence outside its enum, and the same arm
+        # self-corrects on the 400. Accepting "every Monday at 09:00" here
+        # and failing it in the scorer was a 200-everything sink for one
+        # field — two live runs scored FAIL for a schedule that meant exactly
+        # what was asked.
+        cadence = str(r.body.get("cadence", "")).strip().lower()
+        if cadence not in ("daily", "weekly"):
+            r.server.recorder.record(
+                "rejected_schedule",
+                {"body": r.body, "error": "cadence must be 'daily' or 'weekly'"},
+            )
+            return 400, {
+                "error": "cadence must be 'daily' or 'weekly'; put the day in 'weekday' and the time in 'time'",
+            }
         r.server.recorder.record("schedule", r.body)
         r.server.waypoints.reach("schedule")
         return 200, {"status": "scheduled"}
