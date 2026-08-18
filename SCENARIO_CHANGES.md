@@ -28,6 +28,13 @@ when the run actually happened. `user not found` (OpenRouter's wording for
 a revoked key, surfaced as text by the CLI arms) joins the marker list. That
 sweep is discarded; the secret was refreshed and the sweep re-run.
 
+**`[wrong]` concurrency/route_corrections — an unreachable arm scored FAIL.**
+The scorer never read the delivery journal, so an arm with no way into a
+running turn (offered neither correction) failed `support_now_daily` as if
+it had routed wrongly. It now resolves UNSUPPORTED when no correction was
+delivered, as `three_senders` and `interruption` already did. Verified with
+prime-agent (print mode).
+
 **`[wrong]` recall — explaining a supersession scored as recalling it.**
 `no_stale_value` failed any reply containing a replaced value, so "Jonas
 Ekdahl — he took over after Marta Lindqvist left" (prime-agent, first live

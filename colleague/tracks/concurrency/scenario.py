@@ -225,9 +225,21 @@ def score(
 ) -> ScenarioResult:
     digests = fixture.state.get("digests", {})
     card = Scorecard(name)
+    journal = (record or {}).get("interlocutor", []) or []
+
+    if name == "route_corrections":
+        # An arm with no way into a running turn was never offered either
+        # correction; the digests it created are not a routing result.
+        offered = [e for e in journal if e.get("delivered")]
+        if journal and not offered:
+            return ScenarioResult(
+                name,
+                Outcome.UNSUPPORTED,
+                {"modes": sorted({str(e.get("mode")) for e in journal})},
+                "no channel exists to reach work that has already started",
+            )
 
     if name == "three_senders":
-        journal = (record or {}).get("interlocutor", []) or []
         undelivered = [e["label"] for e in journal if not e.get("delivered")]
         if any(l.endswith("_request") for l in undelivered):
             # A second person could not reach the assistant while it was
