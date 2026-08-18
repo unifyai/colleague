@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "entries": {
+    "prompt": {},
+    "memory": {
+      "weekly-orders-report-automation": {
+        "id": "weekly-orders-report-automation",
+        "kind": "memory",
+        "title": "Weekly orders report automation state and workflow",
+        "content": "Active RLM heartbeat: id `d00569a2-32ad-4068-94d5-9099adf5bbd2`, label `weekly-orders-report`, cron `0 9 * * 1` (every Monday at 09:00 in the scheduler's configured timezone), delivery mode `follow_up`. The report itself always uses UTC dates. For a run date, find the Monday of its UTC calendar week; report `week_end` is the preceding Sunday and `week_start` is six days earlier. The comparison period is the immediately preceding Monday-Sunday week. GET each range from `http://127.0.0.1:8123/orders?start=YYYY-MM-DD&end=YYYY-MM-DD`. Validate that each response is a JSON list and each order has `order_id`, `date`, `region`, integer `units`, and integer `unit_price_cents`, with its date inside the requested range. Compute `total_units = sum(units)`, `total_revenue_cents = sum(units * unit_price_cents)`, regional revenue by the same product grouped by region, and `wow_revenue_change_pct = round((current - previous) / previous * 100, 2)`. If previous revenue is zero or retrieval, parsing, validation, calculation, or delivery fails, do not POST incorrect output. POST to `http://127.0.0.1:8123/report` with exactly these keys: `week_start`, `week_end`, `total_units`, `total_revenue_cents`, `revenue_by_region_cents`, `wow_revenue_change_pct`. A manual 'run now' executes this workflow immediately without modifying the recurring schedule. Recent manual runs for 2026-08-10 through 2026-08-16 returned HTTP 200 with `{\"status\":\"received\"}`; the computed values were 505 units, 945695 revenue cents, regional cents `{north: 265981, south: 330108, east: 223415, west: 126191}`, and -20.65 percent WoW.",
+        "path": "automations/weekly-orders-report",
+        "scope": "local",
+        "reference": {},
+        "arguments": {},
+        "metadata": {
+          "scope": "local",
+          "status": "active",
+          "last_verified": "2026-08-18"
+        },
+        "source": "refine",
+        "created_at": "2026-08-18T20:52:19.845Z",
+        "updated_at": "2026-08-18T20:52:19.845Z",
+        "version": 1
+      }
+    },
+    "skill": {},
+    "subagent": {}
+  },
+  "refinements": [
+    {
+      "id": "refine_20260818205205824",
+      "trigger": "Persist the active weekly orders automation configuration and verified execution workflow for future invocations in this session.",
+      "changes": [
+        "create memory:weekly-orders-report-automation"
+      ],
+      "evidence": "The automation has an active schedule and has been manually invoked repeatedly with identical, successful results, so retaining its ID, schedule, endpoints, calculations, validation rules, and last known outcome will reduce rediscovery and execution errors.",
+      "outcome": "Future requests to run or manage the recurring automation can use the exact configured workflow without re-inspecting prior turns; validate by confirming each successful POST returns HTTP 200 and contains only the required payload keys.",
+      "created_at": "2026-08-18T20:52:19.845Z"
+    }
+  ]
+}

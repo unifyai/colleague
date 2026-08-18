@@ -1,0 +1,27 @@
+{
+  "jobs": [
+    {
+      "id": "4c2ecee6-abcd-4c3d-8699-3103851288d1",
+      "status": "active",
+      "source": "rlm_heartbeat",
+      "runtimeKind": "top-level",
+      "deliveryMode": "follow_up",
+      "activeSessionId": "7102ad77c141",
+      "sessionId": "01a0134e-547e-753f-9df5-0e521e821706",
+      "sessionFile": "/Users/djl11/colleague/.claude/worktrees/frosty-yalow-53a840/colleague/tracks/standing/semantic_triage/results/2026-08-18T05-18-14Z-prime-agent/prime_sessions/01a0134e-4f71-7722-a843-1009260842de.jsonl",
+      "cwd": "/Users/djl11/colleague/.claude/worktrees/frosty-yalow-53a840/colleague/tracks/standing/semantic_triage/results/2026-08-18T05-18-14Z-prime-agent/workspace",
+      "label": "hourly-support-triage",
+      "prompt": "Triage new customer inquiries from the local support API. Perform exactly this workflow on each scheduled run:\n1. GET http://127.0.0.1:8128/batches/last and read the integer last_seq from the JSON response.\n2. GET http://127.0.0.1:8128/inquiries?after=N, substituting that last_seq for N. This returns up to 200 inquiries, each with integer seq and string text.\n3. If the returned inquiries list is empty, do nothing: do not POST a batch.\n4. Otherwise, understand the meaning of each inquiry's request and assign it exactly one category (do not use keyword matching):\n   - refund: the customer wants money back for something they were charged\n   - bug: something in the product is broken or not working correctly\n   - sales: the customer wants to buy, upgrade, get a quote, or discuss pricing\n   - other: anything else\n5. POST to http://127.0.0.1:8128/batches a JSON object with exactly these top-level keys and no others:\n   - batch_start_seq: integer seq of the first/minimum fetched inquiry\n   - batch_end_seq: integer seq of the last/maximum fetched inquiry\n   - classifications: a list containing exactly one object for every fetched inquiry, with each object having exactly {\"seq\": <integer>, \"category\": <one of refund, bug, sales, other>}.\nCover every fetched inquiry exactly once and do not include inquiries that were not fetched. Do not perform any triage outside scheduled runs.",
+      "schedule": {
+        "kind": "interval",
+        "expression": "every 1h",
+        "intervalMs": 3600000
+      },
+      "createdAt": "2026-08-18T05:18:36.895Z",
+      "updatedAt": "2026-08-18T05:18:36.895Z",
+      "nextRunAt": "2026-08-18T06:18:36.895Z",
+      "runCount": 0
+    }
+  ],
+  "dispatches": []
+}

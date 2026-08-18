@@ -29,6 +29,21 @@ post-change scoring window contains at least one item whose priority flips.
 | steady state, whole family per round | **~2.2k tokens** | ~57k tokens | ~80k tokens |
 | payback of the change-cost gap | cheaper than hermes from the change itself | — | change wins outright; steady state repays unify's gap in ~11 rounds |
 
+The prime-agent arm (2026-08-18, `prime_agent.py` / `run_prime_agent.sh`,
+on the shared fire-series arm) scores **15/15, every fire exactly right,
+both epochs** — and propagates the change for **149k tokens** in one turn,
+in the same league as openclaw's cheap change and ~7× cheaper than
+unify's or hermes's. The reason is the same on both axes: all three
+automations live in one resident RPC session, so a single natural-language
+update reaches everything at once — and nothing is ever factored out of
+the session, so there is no artifact to edit, no propagation to verify
+(`artifacts_changed` is empty; the session is the artifact), and the
+steady state is the most expensive of any arm (~39k–72k prompt tokens
+per fire, growing with the session; ~170k+ per whole-family round by
+round 5). Its driver notes why the opencode abort-gate does not apply:
+with no scheduling tool on the RPC surface and fires as named prompts
+into the saved session, an empty workspace is not a missing automation.
+
 The openclaw arm (2026-07-31, added later the same day) splits the axes:
 its change session is ~7× cheaper than either other arm (its cron store is
 small and legible to its own agent, which rewrote all three payloads in

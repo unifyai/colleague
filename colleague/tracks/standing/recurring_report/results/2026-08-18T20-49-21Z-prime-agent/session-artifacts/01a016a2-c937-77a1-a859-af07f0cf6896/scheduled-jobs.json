@@ -1,0 +1,26 @@
+{
+  "jobs": [
+    {
+      "id": "d00569a2-32ad-4068-94d5-9099adf5bbd2",
+      "status": "active",
+      "source": "rlm_heartbeat",
+      "runtimeKind": "top-level",
+      "deliveryMode": "follow_up",
+      "activeSessionId": "8618b4075d66",
+      "sessionId": "01a016a2-c937-77a1-a859-af07f0cf6896",
+      "sessionFile": "/Users/djl11/colleague/.claude/worktrees/frosty-yalow-53a840/colleague/tracks/standing/recurring_report/results/2026-08-18T20-49-21Z-prime-agent/prime_sessions/01a016a2-c68a-7644-813b-2de3b6361ff2.jsonl",
+      "cwd": "/Users/djl11/colleague/.claude/worktrees/frosty-yalow-53a840/colleague/tracks/standing/recurring_report/results/2026-08-18T20-49-21Z-prime-agent/workspace",
+      "label": "weekly-orders-report",
+      "prompt": "Run the weekly orders report now. Treat the run date as the current UTC date. The report week is the last full UTC calendar week before the run date, Monday through Sunday inclusive: find the Monday of the current UTC week, then set week_end to the preceding Sunday and week_start to 6 days before week_end. The comparison week is the immediately preceding Monday through Sunday.\n\nFetch both ranges from the local metrics API using GET http://127.0.0.1:8123/orders?start=YYYY-MM-DD&end=YYYY-MM-DD. Each response is a JSON list of orders with order_id, date, region, units, and unit_price_cents. For the report week compute total_units as sum(units), total_revenue_cents as sum(units * unit_price_cents), and revenue_by_region_cents by summing units * unit_price_cents per region. For the comparison week compute previous total revenue the same way. Compute wow_revenue_change_pct exactly as round((current - previous) / previous * 100, 2). Do not substitute another formula or fabricate data. If retrieval, parsing, computation, or delivery fails (including if previous revenue is zero, since the specified formula is then undefined), report the error and do not POST incorrect output.\n\nDeliver the completed report by POSTing JSON to http://127.0.0.1:8123/report with exactly these keys and no others: week_start, week_end, total_units, total_revenue_cents, revenue_by_region_cents, wow_revenue_change_pct. Use YYYY-MM-DD strings for the dates, integer cents/count values, and the computed numeric percentage. Do not merely describe the report; execute the GETs, calculations, and POST. This scheduled invocation is the authorization to run and deliver it; do not ask for confirmation.",
+      "schedule": {
+        "kind": "cron",
+        "expression": "0 9 * * 1"
+      },
+      "createdAt": "2026-08-18T20:50:28.103Z",
+      "updatedAt": "2026-08-18T20:50:28.103Z",
+      "nextRunAt": "2026-08-24T12:00:00.000Z",
+      "runCount": 0
+    }
+  ],
+  "dispatches": []
+}

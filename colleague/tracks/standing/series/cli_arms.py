@@ -1,4 +1,5 @@
-"""The proxy-metered CLI arms of a fire-series experiment: hermes, OpenClaw, OpenCode.
+"""The proxy-metered CLI arms of a fire-series experiment: hermes, OpenClaw,
+OpenCode, prime-agent.
 
 Every one of them is driven the same way — the identical utterance as one
 headless chat turn, the automation the agent created fired through the
@@ -335,7 +336,183 @@ class OpenCodeArm(CliArm):
         }
 
 
-_DEFAULT_PROXY_PORT = {"hermes": 8126, "openclaw": 8159, "opencode": 8175}
+class PrimeAgentArm(CliArm):
+    """prime-agent on a resident session: every firing is a prompt.
+
+    prime-agent's scheduler is real (`docs/daemon.md` "Scheduling": jobs
+    persisted per session, `prime-agent schedule add`, the RPC
+    `add_schedule` command, `/heartbeat`) and every job payload is a prompt
+    the runtime delivers into the job's session (`daemon-mode.ts`
+    `runCronJob`: ``session.prompt(job.prompt)`` — or ``followUp`` when the
+    session is busy). There is no fire-on-demand trigger and the model has
+    no scheduling tool of its own, so the harness plays the trigger, exactly
+    as `openclaw cron run` and `hermes cron run` do for those arms, and
+    delivers what the product would deliver:
+
+      1. If the agent registered a prime-agent scheduled job, fire it by
+         prompting **the job's own prompt** into the session — the payload
+         and target its scheduler would use.
+      2. Else, if it declared a crontab spec in the workspace, run that
+         command (the OpenCode rule: the agent's own declaration).
+      3. Else, if it left exactly one runnable script, run it — the
+         zero-token path.
+      4. Else, the neutral wake prompt into the saved session, which is what
+         a scheduler with nothing declared would have to do.
+
+    The session is one long-lived RPC process (`colleague/arms/prime_agent.py`)
+    across setup and every fire, so the persistent IPython kernel and any
+    skills the agent wrote are what its own resident session would keep.
+    Which rule fired is recorded per fire as ``fire_mode``.
+    """
+
+    name = "prime-agent"
+    fire_fields = ("fire_mode", "agent_runs")
+
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        from colleague.arms import opencode as host_toolkit
+        from colleague.arms import prime_agent as toolkit
+
+        self.t = toolkit
+        self.host = host_toolkit
+        toolkit.require_prime_agent()
+        self.agent_dir = self.results_dir / "prime_agent_dir"
+        self.session_dir = self.results_dir / "prime_sessions"
+        self.workspace = self.results_dir / "workspace"
+        self.workspace.mkdir(parents=True, exist_ok=True)
+        self.log_path = self.results_dir / "prime-agent_cli.log"
+        self.rpc: Any = None
+        # The agent may reach for the host scheduler, as OpenCode's did:
+        # restore the user crontab after every turn and at exit.
+        self.crontab_before = host_toolkit.snapshot_crontab()
+        host_toolkit.arm_crontab_guard(self.results_dir, self.crontab_before)
+
+    def start(self) -> None:
+        self.rpc = self.t.PrimeAgentRpc(
+            agent_dir=self.agent_dir,
+            session_dir=self.session_dir,
+            workspace=self.workspace,
+            proxy_base_url=self.proxy_base_url,
+            stderr_log=self.log_path,
+            protocol_log=self.results_dir / "prime_agent_rpc_protocol.jsonl",
+        ).start()
+        print(f"[prime-agent] rpc session {self.rpc.session_file}")
+
+    def _turn(self, text: str) -> dict[str, Any]:
+        turn = self.rpc.submit(text)
+        why = self.rpc.wait(turn, self.timeout_s)
+        for line in self.host.restore_crontab(self.crontab_before):
+            print(f"[crontab-guard] {line}")
+        return {
+            "exit_code": 0 if not (why or turn.error) else 1,
+            "error": why or turn.error,
+            "agent_runs": turn.runs,
+            "final_text": turn.text[-2000:],
+        }
+
+    def setup(self, utterance: str) -> dict[str, Any]:
+        return self._turn(utterance)
+
+    def automation_ready(self) -> tuple[bool, str]:
+        return True, f"persisted={self.snapshot()}"
+
+    def message(self, text: str) -> dict[str, Any]:
+        return self._turn(text)
+
+    def fire(self) -> dict[str, Any]:
+        jobs = [
+            j
+            for j in self.t.scheduled_jobs(self.session_dir)
+            if j.get("status") == "active"
+        ]
+        if jobs:
+            job = jobs[0]
+            out = self._turn(str(job.get("prompt") or ""))
+            return {"fire_mode": "prime_agent_schedule", **out}
+        cron_command = self.host.discover_cron_command(self.workspace)
+        if cron_command:
+            import subprocess
+
+            with open(self.log_path, "a", encoding="utf-8") as log:
+                log.write(f"\n===== cron-spec fire: {cron_command}\n")
+                proc = subprocess.run(
+                    cron_command,
+                    shell=True,
+                    cwd=str(self.workspace),
+                    env=self.rpc.env(),
+                    capture_output=True,
+                    text=True,
+                    stdin=subprocess.DEVNULL,
+                    timeout=self.timeout_s,
+                )
+                log.write(proc.stdout)
+                log.write(proc.stderr)
+            return {
+                "fire_mode": "cron_spec",
+                "exit_code": proc.returncode,
+                "agent_runs": 0,
+            }
+        scripts = self.host.discover_scripts(self.workspace)
+        if len(scripts) == 1:
+            import subprocess
+
+            script = scripts[0]
+            runner = (
+                ["python3", str(script)]
+                if script.suffix == ".py"
+                else ["bash", str(script)]
+            )
+            with open(self.log_path, "a", encoding="utf-8") as log:
+                log.write(f"\n===== script fire {script.name}\n")
+                proc = subprocess.run(
+                    runner,
+                    cwd=str(self.workspace),
+                    env=self.rpc.env(),
+                    capture_output=True,
+                    text=True,
+                    stdin=subprocess.DEVNULL,
+                    timeout=self.timeout_s,
+                )
+                log.write(proc.stdout)
+                log.write(proc.stderr)
+            return {
+                "fire_mode": f"script:{script.name}",
+                "exit_code": proc.returncode,
+                "agent_runs": 0,
+            }
+        out = self._turn(self.host.WAKE_PROMPT)
+        return {"fire_mode": "wake_prompt", **out}
+
+    def snapshot(self) -> Any:
+        return self.t.snapshot(self.agent_dir, self.session_dir, self.workspace)
+
+    def defuse(self) -> Any:
+        actions: list[str] = []
+        if self.rpc is not None:
+            self.rpc.close()
+            actions.append("closed rpc session and its daemon")
+        actions.extend(
+            self.host.defuse_host_artifacts(self.results_dir, self.crontab_before),
+        )
+        actions.extend(self.t.scrub_archive(self.agent_dir))
+        if actions:
+            print(f"[defuse] {actions}")
+        return actions
+
+    def describe(self) -> dict[str, Any]:
+        return {
+            "prime_agent_repo": str(self.t.PRIME_AGENT_REPO),
+            "model": self.t.BENCH_MODEL,
+            "wake_prompt": self.host.WAKE_PROMPT,
+        }
+
+
+_DEFAULT_PROXY_PORT = {
+    "hermes": 8126,
+    "openclaw": 8159,
+    "opencode": 8175,
+    "prime-agent": 8181,
+}
 
 
 def run(experiment: Experiment, arm_name: str) -> int:
@@ -379,6 +556,8 @@ def run(experiment: Experiment, arm_name: str) -> int:
         )
     elif arm_name == "opencode":
         arm = OpenCodeArm(**common)
+    elif arm_name == "prime-agent":
+        arm = PrimeAgentArm(**common)
     else:
         raise SystemExit(f"unknown CLI arm {arm_name!r}")
 

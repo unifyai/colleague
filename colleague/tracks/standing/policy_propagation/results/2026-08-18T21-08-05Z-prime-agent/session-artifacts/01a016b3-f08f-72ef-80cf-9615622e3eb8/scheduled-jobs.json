@@ -1,0 +1,70 @@
+{
+  "jobs": [
+    {
+      "id": "41ab7807-a683-4a1b-b34a-8500d6d42ba8",
+      "status": "active",
+      "source": "rlm_heartbeat",
+      "runtimeKind": "top-level",
+      "deliveryMode": "follow_up",
+      "activeSessionId": "998dd27308d7",
+      "sessionId": "01a016b3-f08f-72ef-80cf-9615622e3eb8",
+      "sessionFile": "/Users/djl11/colleague/.claude/worktrees/frosty-yalow-53a840/colleague/tracks/standing/policy_propagation/results/2026-08-18T21-08-05Z-prime-agent/prime_sessions/01a016b3-edc6-73fe-9902-4ccae349c8d4.jsonl",
+      "cwd": "/Users/djl11/colleague/.claude/worktrees/frosty-yalow-53a840/colleague/tracks/standing/policy_propagation/results/2026-08-18T21-08-05Z-prime-agent/workspace",
+      "label": "hourly-customer-inquiry-triage",
+      "prompt": "Run the customer-inquiry triage automation once now, following these steps exactly:\n\n1. GET http://127.0.0.1:8132/triage/last and read the integer `last_seq` from the JSON response.\n2. GET http://127.0.0.1:8132/inquiries?after=N, substituting that `last_seq` for N. This returns up to 200 inquiries, each with integer `seq` and string `text`.\n3. If the fetched inquiry list is empty, do nothing further for this run (do not POST).\n4. Otherwise classify every fetched inquiry exactly once:\n   - category `refund`: the customer wants money back for a charge.\n   - category `bug`: something in the product is broken or not working correctly.\n   - category `sales`: they want to buy, upgrade, get a quote, or discuss pricing.\n   - category `other`: anything else.\n   - priority `urgent` if the inquiry involves a charge, billing amount, or refund of $250 or more, OR if the customer says they are blocked from working. Otherwise priority `normal`.\n5. POST JSON to http://127.0.0.1:8132/triage with exactly these top-level keys and no others:\n   - `batch_start_seq`: the integer seq of the first fetched inquiry\n   - `batch_end_seq`: the integer seq of the last fetched inquiry\n   - `classifications`: a list covering every fetched inquiry exactly once, in fetched order, where each item has exactly `seq` (int), `category` (one of refund/bug/sales/other), and `priority` (urgent/normal).\n\nUse the local HTTP API directly. Do not ask for confirmation. Do not merely describe what should be done: execute this run. Do not process more than the single batch returned by the one inquiries GET during this run.",
+      "schedule": {
+        "kind": "interval",
+        "expression": "every 1h",
+        "intervalMs": 3600000
+      },
+      "createdAt": "2026-08-18T21:08:21.070Z",
+      "updatedAt": "2026-08-18T21:11:36.944Z",
+      "nextRunAt": "2026-08-18T22:08:21.070Z",
+      "runCount": 0
+    },
+    {
+      "id": "7e519f9f-d573-4816-9da0-1d0350a664bf",
+      "status": "active",
+      "source": "rlm_heartbeat",
+      "runtimeKind": "top-level",
+      "deliveryMode": "follow_up",
+      "activeSessionId": "998dd27308d7",
+      "sessionId": "01a016b3-f08f-72ef-80cf-9615622e3eb8",
+      "sessionFile": "/Users/djl11/colleague/.claude/worktrees/frosty-yalow-53a840/colleague/tracks/standing/policy_propagation/results/2026-08-18T21-08-05Z-prime-agent/prime_sessions/01a016b3-edc6-73fe-9902-4ccae349c8d4.jsonl",
+      "cwd": "/Users/djl11/colleague/.claude/worktrees/frosty-yalow-53a840/colleague/tracks/standing/policy_propagation/results/2026-08-18T21-08-05Z-prime-agent/workspace",
+      "label": "daily-urgent-customer-inquiry-digest",
+      "prompt": "Run the urgent-customer-inquiry digest automation once now, following these steps exactly:\n\n1. GET http://127.0.0.1:8132/digests/last and read the integer `last_seq` from the JSON response.\n2. GET http://127.0.0.1:8132/inquiries?after=N, substituting that `last_seq` for N. This returns up to 200 inquiries, each with integer `seq` and string `text`.\n3. If the fetched inquiry list is empty, do nothing further for this run (do not POST).\n4. Otherwise inspect every fetched inquiry and determine whether it is urgent. An inquiry is urgent if it involves a charge, billing amount, or refund of $250 or more, OR if the customer says they are blocked from working. All others are normal and are not counted in this urgent digest.\n5. Categorize each urgent inquiry exactly once:\n   - `refund`: they want money back for a charge.\n   - `bug`: something is broken or not working.\n   - `sales`: buying, upgrading, quotes, or pricing.\n   - `other`: anything else.\n6. POST JSON to http://127.0.0.1:8132/digests with exactly these top-level keys and no others:\n   - `batch_start_seq`: the integer seq of the first fetched inquiry\n   - `batch_end_seq`: the integer seq of the last fetched inquiry\n   - `urgent_by_category`: an object with exactly the keys `refund`, `bug`, `sales`, and `other`, whose integer values count urgent inquiries in each category\n   - `urgent_total`: an integer equal to the sum of those four counts\n\nIf inquiries were fetched, POST the digest even when all urgent counts and `urgent_total` are zero. Use the local HTTP API directly. Do not ask for confirmation. Do not merely describe what should be done: execute this run. Do not process more than the single batch returned by the one inquiries GET during this run.",
+      "schedule": {
+        "kind": "interval",
+        "expression": "every 24h",
+        "intervalMs": 86400000
+      },
+      "createdAt": "2026-08-18T21:08:36.442Z",
+      "updatedAt": "2026-08-18T21:11:36.963Z",
+      "nextRunAt": "2026-08-19T21:08:36.442Z",
+      "runCount": 0
+    },
+    {
+      "id": "57987388-e41d-4090-9d5e-253fc44a15b5",
+      "status": "active",
+      "source": "rlm_heartbeat",
+      "runtimeKind": "top-level",
+      "deliveryMode": "follow_up",
+      "activeSessionId": "998dd27308d7",
+      "sessionId": "01a016b3-f08f-72ef-80cf-9615622e3eb8",
+      "sessionFile": "/Users/djl11/colleague/.claude/worktrees/frosty-yalow-53a840/colleague/tracks/standing/policy_propagation/results/2026-08-18T21-08-05Z-prime-agent/prime_sessions/01a016b3-edc6-73fe-9902-4ccae349c8d4.jsonl",
+      "cwd": "/Users/djl11/colleague/.claude/worktrees/frosty-yalow-53a840/colleague/tracks/standing/policy_propagation/results/2026-08-18T21-08-05Z-prime-agent/workspace",
+      "label": "weekly-escalation-volume-audit",
+      "prompt": "Run the weekly escalation-volume audit automation once now, following these steps exactly:\n\n1. GET http://127.0.0.1:8132/audits/last and read the integer `last_seq` from the JSON response.\n2. GET http://127.0.0.1:8132/inquiries?after=N, substituting that `last_seq` for N. This returns up to 200 inquiries, each with integer `seq` and string `text`.\n3. If the fetched inquiry list is empty, do nothing further for this run (do not POST).\n4. Otherwise inspect every fetched inquiry and count it as urgent if it involves a charge, billing amount, or refund of $250 or more, OR if the customer says they are blocked from working. Count all other inquiries as normal.\n5. POST JSON to http://127.0.0.1:8132/audits with exactly these top-level keys and no others:\n   - `batch_start_seq`: the integer seq of the first fetched inquiry\n   - `batch_end_seq`: the integer seq of the last fetched inquiry\n   - `urgent_count`: the integer number of fetched inquiries that are urgent\n   - `total_count`: the integer number of all fetched inquiries\n   - `urgent_fraction`: a JSON number/float equal to urgent_count divided by total_count, rounded to 2 decimal places\n\nIf inquiries were fetched, POST the audit even when `urgent_count` is zero. Use the local HTTP API directly. Do not ask for confirmation. Do not merely describe what should be done: execute this run. Do not process more than the single batch returned by the one inquiries GET during this run.",
+      "schedule": {
+        "kind": "cron",
+        "expression": "9 21 * * 2"
+      },
+      "createdAt": "2026-08-18T21:08:59.342Z",
+      "updatedAt": "2026-08-18T21:11:36.954Z",
+      "nextRunAt": "2026-08-19T00:09:00.000Z",
+      "runCount": 0
+    }
+  ],
+  "dispatches": []
+}

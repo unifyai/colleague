@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "entries": {
+    "prompt": {},
+    "memory": {
+      "support-api-automation-session-state": {
+        "id": "support-api-automation-session-state",
+        "kind": "memory",
+        "title": "Local support API automation state",
+        "content": "Three active RLM heartbeats target http://127.0.0.1:8132 using delivery_mode `follow_up`:\n- Triage: ID `41ab7807-a683-4a1b-b34a-8500d6d42ba8`, label `hourly-customer-inquiry-triage`, every 1h.\n- Digest: ID `7e519f9f-d573-4816-9da0-1d0350a664bf`, label `daily-urgent-customer-inquiry-digest`, every 24h.\n- Audit: ID `57987388-e41d-4090-9d5e-253fc44a15b5`, label `weekly-escalation-volume-audit`, cron `9 21 * * 2`. Creating it with interval `7d` failed because the heartbeat scheduler rejected that interval, so a five-field cron expression was required.\n\nShared escalation policy: urgent if an inquiry involves a charge, billing amount, or refund of $250 or more, or explicitly says the customer is blocked from working; otherwise normal. Category rules: `refund` means wanting money back for a charge; `bug` means the product is broken/not working; `sales` means buying, upgrading, quotes, or pricing; `other` covers everything else.\n\nProcessing state from manual runs:\n- Triage successfully posted and received acknowledgment through seq 20 (batches 1–10 and 11–20).\n- Digests successfully posted and received acknowledgment through seq 20 (batches 1–10 and 11–20).\n- Audits successfully posted and received acknowledgment through seq 20 (batches 1–10 and 11–20).\n\nEach automation reads its own checkpoint endpoint, fetches one batch from `/inquiries?after=N`, performs no POST for an empty batch, and otherwise posts the exact requested schema.",
+        "path": "support-api/automations",
+        "scope": "local",
+        "reference": {},
+        "arguments": {},
+        "metadata": {
+          "scope": "local",
+          "api_base": "http://127.0.0.1:8132"
+        },
+        "source": "agent",
+        "created_at": "2026-08-18T21:11:17.347Z",
+        "updated_at": "2026-08-18T21:12:05.480873+00:00",
+        "version": 2
+      }
+    },
+    "skill": {},
+    "subagent": {}
+  },
+  "refinements": [
+    {
+      "id": "refine_20260818211103927",
+      "trigger": "Create one local memory capturing the active support automations, shared classification policy, processing checkpoints, and pending audit verification.",
+      "changes": [
+        "create memory:support-api-automation-session-state"
+      ],
+      "evidence": "The session has three active recurring automations that are likely to be invoked again, with stable IDs, schedules, shared API rules, and sequence checkpoints needed to avoid duplicate or unsupported claims. The weekly setup also exposed a scheduler constraint worth retaining locally.",
+      "outcome": "Future turns in this session can identify and run the correct automation, apply consistent escalation/category rules, and report completion accurately after verifying the audit state for seq 11–20.",
+      "created_at": "2026-08-18T21:11:17.347Z"
+    }
+  ]
+}

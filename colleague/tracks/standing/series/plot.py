@@ -22,12 +22,13 @@ from typing import Any
 from colleague.tracks.standing.series.report import PURPOSES, attach_fire_tokens
 from colleague.tracks.standing.series.spec import Experiment
 
-ARM_ORDER = ("unify", "hermes", "openclaw", "opencode")
+ARM_ORDER = ("unify", "hermes", "openclaw", "opencode", "prime-agent")
 ARM_COLOR = {
     "unify": "#2a78d6",
     "hermes": "#eb6834",
     "openclaw": "#009E73",
     "opencode": "#7B52AB",
+    "prime-agent": "#CC79A7",
 }
 PURPOSE_SHADE = {"planning": 1.0, "verification": 0.55, "repair": 0.25}
 OUTCOME_COLOR = {"correct": "#2e9e5b", "held": "#e0a100", "wrong": "#d0342c"}

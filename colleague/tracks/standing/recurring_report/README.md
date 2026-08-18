@@ -47,6 +47,18 @@ same off-spec shape hermes chose. Its setup is the cheapest of any arm
 the script bare, bypassing the gate, delivered 4/4 byte-exact reports (see
 both `*-opencode` NOTE.md files).
 
+The prime-agent arm (`run_prime_agent.sh` / `prime_agent.py`, driving the
+shared fire-series arm in `series/cli_arms.py`) keeps one resident JSONL-RPC
+session across setup and every fire, because that is where the product's
+scheduler delivers its job prompts. Measured result: **4/4 exactly right**,
+and no distillation of any kind — no scheduled job registered (the model has
+no scheduling tool on the RPC surface), no script left in the workspace; the
+resident session is the automation, so every fire is a prompt into it
+(2–5 LLM calls, ~38k–90k prompt tokens) and the per-fire cost carries the
+session's accreting context. Setup is mid-pack at 134k. The zero-token
+steady state the unify/hermes/opencode arms converge to does not exist on
+this architecture (see the `*-prime-agent` results).
+
 ## Task definition
 
 - Fixture: a seeded deterministic orders API (`fixture.py`), four regions,

@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "entries": {
+    "prompt": {},
+    "memory": {
+      "support-triage-automation-state": {
+        "id": "support-triage-automation-state",
+        "kind": "memory",
+        "title": "Local support triage automation and progress",
+        "content": "An active RLM heartbeat performs hourly customer-inquiry triage. Heartbeat ID: 4c2ecee6-abcd-4c3d-8699-3103851288d1; label: hourly-support-triage; interval: 1h; delivery mode: follow_up.\n\nPer-run workflow:\n1. GET http://127.0.0.1:8128/batches/last and read integer last_seq.\n2. GET http://127.0.0.1:8128/inquiries?after=<last_seq>; response is a list of up to 200 objects with integer seq and string text.\n3. If empty, do not POST.\n4. Otherwise classify every fetched inquiry exactly once through semantic understanding, not keyword matching: refund = wants money returned for a charge; bug = product behavior is broken or incorrect; sales = wants to buy, upgrade, obtain a quote, demo, pricing, or discuss expanded usage; other = anything else.\n5. POST http://127.0.0.1:8128/batches with exactly three top-level keys: batch_start_seq (minimum fetched seq), batch_end_seq (maximum fetched seq), and classifications (one {\"seq\": int, \"category\": \"refund|bug|sales|other\"} per fetched inquiry, with no omissions or extras).\n\nProgress: batches covering sequences 1–84 were successfully submitted. The latest requested manual run read last_seq 84 and fetched sequences 85–96, but no classification POST result has occurred yet. Resume by classifying that already-fetched set and submitting one batch for 85–96; avoid starting a second fetch unless runtime state has been lost, in which case re-read /batches/last before proceeding.",
+        "path": "automations/support-triage",
+        "scope": "local",
+        "reference": {},
+        "arguments": {},
+        "metadata": {
+          "scope": "local",
+          "heartbeat_id": "4c2ecee6-abcd-4c3d-8699-3103851288d1",
+          "status": "active-run-pending-post",
+          "last_submitted_seq": 84,
+          "pending_start_seq": 85,
+          "pending_end_seq": 96
+        },
+        "source": "refine",
+        "created_at": "2026-08-18T05:20:46.588Z",
+        "updated_at": "2026-08-18T05:20:46.588Z",
+        "version": 1
+      }
+    },
+    "skill": {},
+    "subagent": {}
+  },
+  "refinements": [
+    {
+      "id": "refine_20260818052034616",
+      "trigger": "Record the active support-triage automation configuration and current run progress for this session.",
+      "changes": [
+        "create memory:support-triage-automation-state"
+      ],
+      "evidence": "The workflow has been executed repeatedly and successfully through sequence 84, while the latest manual run fetched sequences 85–96 but has not yet classified or submitted them; persisting this state prevents duplicate fetching or lost progress.",
+      "outcome": "Subsequent turns can resume the pending run by semantically classifying sequences 85–96 and posting exactly one batch, while retaining the heartbeat ID and validated API contract for future runs.",
+      "created_at": "2026-08-18T05:20:46.588Z"
+    }
+  ]
+}
