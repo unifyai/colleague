@@ -1090,6 +1090,22 @@ class UnifyCMSession(ArmSession):
             )
         return Reply(text=text, ok=True, meta=meta, raw=egress)
 
+    # ------------------------------------------------- voice (delimited hook)
+    # The implementation lives in `unify_cm_voice.py`; this file carries only
+    # the delegation, because another stream owns its text-side behaviour.
+
+    def join_voice_room(self, invite, *, on_text, personas=()) -> dict[str, Any]:
+        from colleague.arms.sessions.unify_cm_voice import UnifyCMVoiceBridge
+
+        self._voice_bridge = UnifyCMVoiceBridge(self)
+        return self._voice_bridge.join(invite, on_text=on_text, personas=personas)
+
+    def leave_voice_room(self) -> None:
+        bridge = getattr(self, "_voice_bridge", None)
+        if bridge is not None:
+            bridge.leave()
+            self._voice_bridge = None
+
     # -------------------------------------------------------- clarifications
 
     def on_clarification(self, responder) -> None:
