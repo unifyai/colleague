@@ -30,8 +30,10 @@ One session across the track (`SESSION_SCOPE = "track"`). Eight `day_N`
 turns from Daniel, each `continue: True`, with nothing to do; then seven
 `ask_*` turns. Every arm answers Daniel through its own reply channel, so
 there is no fixture endpoint and nothing to route — the fixture is bare.
-Scoring is containment: every part of the current value present, no stale
-marker present.
+Scoring is containment: every part of the current value present, and no
+stale value *instead of* it. A reply that gives the current value and names
+what it replaced is correct — a containment test cannot tell explanation
+from confusion — so the old names are recorded as evidence, not scored.
 
 **Cost per answer** is not scored but is reported: the arms already produce
 a per-turn ledger (`unify_ledger.jsonl` / `llm_segments` in the run

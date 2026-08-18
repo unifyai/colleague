@@ -28,6 +28,14 @@ when the run actually happened. `user not found` (OpenRouter's wording for
 a revoked key, surfaced as text by the CLI arms) joins the marker list. That
 sweep is discarded; the secret was refreshed and the sweep re-run.
 
+**`[wrong]` recall — explaining a supersession scored as recalling it.**
+`no_stale_value` failed any reply containing a replaced value, so "Jonas
+Ekdahl — he took over after Marta Lindqvist left" (prime-agent, first live
+run) scored FAIL for saying who the predecessor was. The check is now
+`not_a_stale_value_instead`: a stale value without the current one fails;
+the current value with its history passes, and the old names are recorded
+as evidence. Would have mismeasured a competent arm of any architecture.
+
 ## 2026-08-17
 
 **`[wrong]` custody/briefing — an acknowledgement to the requester scored as

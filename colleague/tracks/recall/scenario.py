@@ -144,14 +144,22 @@ def score(
         wanted=list(parts),
     )
     stale = mentions_any(text, truth["stale"])
-    card.check("no_stale_value", not stale, stale_markers=stale)
+    # A stale value *instead of* the current one is the failure. A reply that
+    # gives the current value and names what it replaced ("Ekdahl — he took
+    # over after Lindqvist left") is correct, and a containment test cannot
+    # tell explanation from confusion, so the old names are recorded as
+    # evidence rather than scored.
+    card.check(
+        "not_a_stale_value_instead",
+        not (stale and not card.checks["recalled_the_current_value"]),
+        stale_markers=stale,
+    )
     card.evidence["reply_text"] = text[:400]
+    card.evidence["mentioned_replaced_values"] = stale
     if card.passed:
         return ScenarioResult(name, Outcome.PASS, card.as_dict(), "")
-    if stale and not card.checks["recalled_the_current_value"]:
+    if stale:
         reason = "recalled a value that had since been replaced"
-    elif stale:
-        reason = "gave the current value alongside a stale one"
     else:
         reason = "did not recall the value"
     return ScenarioResult(name, Outcome.FAIL, card.as_dict(), reason)
