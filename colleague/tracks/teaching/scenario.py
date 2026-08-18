@@ -180,7 +180,9 @@ def mock_plan(
         if row["days_overdue"] <= threshold:
             continue
         # Mid-run: has the correction arrived? Only the ideal arm listens.
-        if mode == "ideal" and any("payment plan" in c["text"].lower() for c in corrections):
+        if mode == "ideal" and any(
+            "payment plan" in c["text"].lower() for c in corrections
+        ):
             memory["skip_payment_plan"] = True
             skip_pp = True
         if skip_pp and row["payment_plan"]:
@@ -218,7 +220,10 @@ def score(
             return ScenarioResult(
                 name,
                 Outcome.ERROR,
-                {"reminders": len(reminders), "delivery_mode": mode or "no journal entry"},
+                {
+                    "reminders": len(reminders),
+                    "delivery_mode": mode or "no journal entry",
+                },
                 "the correction was never offered — nothing about learning was measured",
             )
         correction_seq = int(entry.get("recorder_seq") or 0)
@@ -226,19 +231,34 @@ def score(
         after = [r for r in reminders if r["seq"] > correction_seq]
         pp_after = sorted(only_recipients(after) & pp)
         needed = expected_reminders(fixture.seed, week, skip_payment_plan=True)
-        card.check("no_payment_plan_reminder_after_correction", not pp_after, sent_after=pp_after)
-        card.check("everyone_else_still_reached", needed <= got, missing=sorted(needed - got))
+        card.check(
+            "no_payment_plan_reminder_after_correction",
+            not pp_after,
+            sent_after=pp_after,
+        )
+        card.check(
+            "everyone_else_still_reached",
+            needed <= got,
+            missing=sorted(needed - got),
+        )
         dup = [r for r in reminders]
         card.check(
             "nobody_reminded_twice",
-            len({str((r.get("payload") or {}).get("to", "")).lower() for r in dup}) == len(dup),
+            len({str((r.get("payload") or {}).get("to", "")).lower() for r in dup})
+            == len(dup),
         )
-        card.check("used_the_account_manager_route", ACCOUNT_MANAGER in got or ACCOUNT_MANAGER not in needed)
+        card.check(
+            "used_the_account_manager_route",
+            ACCOUNT_MANAGER in got or ACCOUNT_MANAGER not in needed,
+        )
         card.evidence["correction_seq"] = correction_seq
         card.evidence["reminder_seqs"] = [r["seq"] for r in reminders]
         outcome = Outcome.PASS if card.passed else Outcome.FAIL
         return ScenarioResult(
-            name, outcome, card.as_dict(), "" if card.passed else f"failed: {', '.join(card.failures)}"
+            name,
+            outcome,
+            card.as_dict(),
+            "" if card.passed else f"failed: {', '.join(card.failures)}",
         )
 
     expected = expected_reminders(

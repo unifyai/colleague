@@ -72,7 +72,12 @@ def invoices_for(seed: int, week: int) -> list[dict[str, Any]]:
     return rows
 
 
-def expected_reminders(seed: int, week: int, *, skip_payment_plan: bool = False) -> set[str]:
+def expected_reminders(
+    seed: int,
+    week: int,
+    *,
+    skip_payment_plan: bool = False,
+) -> set[str]:
     """Who should be chased, recomputed rather than asserted."""
     out: set[str] = set()
     for row in invoices_for(seed, week):
