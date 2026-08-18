@@ -79,6 +79,18 @@ class UnifyCMVoiceBridge:
     ) -> dict[str, Any]:
         session = self._session
         assert session._loop is not None and session._cm is not None
+        wanted = tuple(getattr(invite, "assistant_identities", ()) or ())
+        if len(wanted) > 1:
+            # Two CM instances on one call is exactly what MeetFloor exists
+            # for, but this bridge boots one CM and dispatches one agent.
+            # Joining once and letting the second seat stay silently empty
+            # would score the floor protocol without ever exercising it.
+            from colleague.harness.session import Unsupported
+
+            raise Unsupported(
+                "the unify-cm bridge fields one assistant instance per call; "
+                f"this scene wants {len(wanted)} ({', '.join(wanted)})",
+            )
         self._on_text = on_text
         self._room_name = invite.room_name
 

@@ -58,15 +58,26 @@ class Utterance:
 
 @dataclass
 class RoomInvite:
-    """What an arm needs to join the room as itself."""
+    """What an arm needs to join the room as itself.
+
+    `assistant_identities` is every assistant the scene expects on the call;
+    an arm that cannot field that many instances must refuse the invite
+    (`Unsupported`), never join once and let the absence pass unmeasured.
+    """
 
     url: str
     token: str
     identity: str
     room_name: str
+    assistant_identities: tuple[str, ...] = ("assistant",)
 
     def as_dict(self) -> dict[str, Any]:
-        return {"url": self.url, "identity": self.identity, "room_name": self.room_name}
+        return {
+            "url": self.url,
+            "identity": self.identity,
+            "room_name": self.room_name,
+            "assistant_identities": list(self.assistant_identities),
+        }
 
 
 class _LoopThread:
@@ -166,6 +177,7 @@ class VoiceRoom:
             token=self._token(ident, publish=True, subscribe=True),
             identity=ident,
             room_name=self.room_name,
+            assistant_identities=tuple(self.assistant_identities),
         )
 
     def _assistant_alias(self, identity: str) -> str | None:
