@@ -47,6 +47,21 @@ Every line a role says is delivered to the arm through its own channel —
 recorded with how it got there. An arm no second person can reach resolves
 to UNSUPPORTED rather than being scored as having said nothing.
 
+## First live run (n = 1, 2026-08-18, `prime-agent`, print mode)
+
+DEGRADED · FAIL · DEGRADED · PASS. Two things in it are about the arm's
+surface and one is about the arm. Every line reached prime-agent as a later
+turn — print mode has no live channel — so "answered after the room moved
+on" is true by construction and the reasons say so; that is the same
+DEGRADED `interruption` gives a queued correction. `humans_talking` is a
+genuine finding: given five lines nobody addressed to it, the arm narrated
+them back to the room ("Thanks, Priya — confirmed: second week of
+October…"; "Bob, Daniel said the platform team needs to attend at least day
+one") — a loop whose only output is a reply will always produce a reply.
+The live roles behaved as designed: Daniel re-asked when no answer came in
+time, Priya answered the assistant's paraphrase. One run; read it as a shape,
+not a number.
+
 ## What to expect, and the fair reading
 
 The comparison harnesses are not empty here. hermes joins Discord voice with

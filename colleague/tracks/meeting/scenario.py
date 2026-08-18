@@ -313,6 +313,21 @@ def score(
             "no channel for people in the room to reach the assistant",
         )
 
+    # Every line reached this arm only as a later turn: it has no live channel
+    # into the room, so "in time" is unreachable by construction. That is a
+    # property of the arm's surface and is reported as such, the way
+    # `interruption` reports a queued correction — DEGRADED, with the reason.
+    queued = all(
+        e.get("mode") in ("resumed_turn", "queued_followup")
+        for e in journal
+        if e.get("delivered")
+    )
+    late_why = (
+        " — every line reached it as a later turn; this arm has no live channel into the room"
+        if queued
+        else ""
+    )
+
     def answers_after(seq: int, parts: tuple[str, ...]) -> list[dict[str, Any]]:
         return [l for l in lines if l["seq"] > seq and mentions_all(l["text"], parts)]
 
@@ -355,7 +370,7 @@ def score(
                 card.as_dict(),
                 "answered, but "
                 + (
-                    "after the conversation had moved on"
+                    "after the conversation had moved on" + late_why
                     if not timely
                     else "with extra lines"
                 ),
@@ -397,7 +412,11 @@ def score(
                 name,
                 Outcome.PASS if timely else Outcome.DEGRADED,
                 card.as_dict(),
-                "" if timely else "Bob got his answer after the room had moved on",
+                (
+                    ""
+                    if timely
+                    else "Bob got his answer after the room had moved on" + late_why
+                ),
             )
         return ScenarioResult(
             name,
