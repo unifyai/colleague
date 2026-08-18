@@ -160,7 +160,7 @@ jobs:
     # does not take a sweep down with it.
 
     - name: Check out unify (unify arm)
-      if: matrix.arm == 'unify'
+      if: startsWith(matrix.arm, 'unify')
       uses: actions/checkout@v4
       continue-on-error: true
       id: unify_checkout
@@ -174,7 +174,7 @@ jobs:
     # `../unillm` in [tool.uv.sources]), so a lone unify checkout cannot
     # resolve its own dependencies. They have to land beside it.
     - name: Check out unisdk
-      if: matrix.arm == 'unify'
+      if: startsWith(matrix.arm, 'unify')
       uses: actions/checkout@v4
       continue-on-error: true
       id: unisdk_checkout
@@ -184,7 +184,7 @@ jobs:
         token: ${{ secrets.HARNESS_TOKEN || github.token }}
 
     - name: Check out unillm
-      if: matrix.arm == 'unify'
+      if: startsWith(matrix.arm, 'unify')
       uses: actions/checkout@v4
       continue-on-error: true
       id: unillm_checkout
@@ -198,7 +198,7 @@ jobs:
     # installed together because each missing header costs a whole sweep to
     # discover, and apt is cheaper than another round trip.
     - name: System libraries for the unify dependency tree
-      if: matrix.arm == 'unify'
+      if: startsWith(matrix.arm, 'unify')
       run: |
         set -euo pipefail
         sudo apt-get update -qq
@@ -206,7 +206,7 @@ jobs:
           portaudio19-dev libasound2-dev libsndfile1 ffmpeg
 
     - name: Install unify
-      if: matrix.arm == 'unify' && steps.unify_checkout.outcome == 'success'
+      if: startsWith(matrix.arm, 'unify') && steps.unify_checkout.outcome == 'success'
       id: unify_install
       continue-on-error: true
       run: |
@@ -256,7 +256,7 @@ jobs:
       uses: oven-sh/setup-bun@v2
 
     - name: Check out hermes
-      if: matrix.arm == 'hermes'
+      if: startsWith(matrix.arm, 'hermes')
       uses: actions/checkout@v4
       continue-on-error: true
       id: hermes_checkout
@@ -266,7 +266,7 @@ jobs:
         token: ${{ secrets.HARNESS_TOKEN || github.token }}
 
     - name: Install hermes
-      if: matrix.arm == 'hermes' && steps.hermes_checkout.outcome == 'success'
+      if: startsWith(matrix.arm, 'hermes') && steps.hermes_checkout.outcome == 'success'
       id: hermes_install
       continue-on-error: true
       run: cd .harness/hermes && uv sync
@@ -279,10 +279,12 @@ jobs:
         set -euo pipefail
         ready=false
         case "$ARM" in
-          unify)    [[ "${{ steps.unify_install.outcome }}"   == "success" ]] && ready=true ;;
-          openclaw) [[ "${{ steps.openclaw_build.outcome }}"  == "success" ]] && ready=true ;;
-          opencode) [[ "${{ steps.opencode_build.outcome }}"  == "success" ]] && ready=true ;;
-          hermes)   [[ "${{ steps.hermes_install.outcome }}"  == "success" ]] && ready=true ;;
+          # `unify-cm` and `hermes-tui` are the faithful surfaces of the same
+          # two harnesses; they install exactly as their v0 arms do.
+          unify|unify-cm)   [[ "${{ steps.unify_install.outcome }}"   == "success" ]] && ready=true ;;
+          openclaw)         [[ "${{ steps.openclaw_build.outcome }}"  == "success" ]] && ready=true ;;
+          opencode)         [[ "${{ steps.opencode_build.outcome }}"  == "success" ]] && ready=true ;;
+          hermes|hermes-tui) [[ "${{ steps.hermes_install.outcome }}"  == "success" ]] && ready=true ;;
         esac
         echo "ready=$ready" >> "$GITHUB_OUTPUT"
         echo "$ARM ready=$ready" >> "$GITHUB_STEP_SUMMARY"
@@ -307,7 +309,7 @@ jobs:
         # harness venv rather than the runner's python. Colleague itself is
         # stdlib-only, so PYTHONPATH is enough to reach it from either.
         PY=python
-        if [[ "${{ matrix.arm }}" == "unify" ]]; then
+        if [[ "${{ matrix.arm }}" == unify* ]]; then
           PY="${{ github.workspace }}/.harness/unify/.venv/bin/python"
           "$PY" -c "import unify, unisdk, unillm" \
             || { echo "::error::unify runtime not importable from $PY"; exit 1; }
