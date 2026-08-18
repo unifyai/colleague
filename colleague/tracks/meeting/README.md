@@ -47,7 +47,22 @@ Every line a role says is delivered to the arm through its own channel —
 recorded with how it got there. An arm no second person can reach resolves
 to UNSUPPORTED rather than being scored as having said nothing.
 
-## First live run (n = 1, 2026-08-18, `prime-agent`, print mode)
+## First live runs (n = 1 each, 2026-08-18)
+
+**`unify-cm`** (cloud sweep, live roles): `interrupted_mid_answer` PASS —
+after Daniel changed the question it said exactly one line, "Thursday at
+14:00 UTC.", nothing about the budget. `addressed_by_name` DEGRADED — the
+right answer, one line, silent until addressed, but slower than the 25 s
+patience, so two human lines had landed before it (the CM's whole-turn
+latency on this surface; a real result). `commanded_work` FAIL on the first
+run for a reason that was the fixture's: the arm asked Priya which timezone
+"Monday at 9" meant — a fair question — and Priya's role, given none, said
+she would confirm later; the arm correctly did not guess and never
+scheduled. Priya now knows the timezone (recorded as `[wrong]`); the arm
+also answered Bob correctly in the same breath. All lines reached it as
+`live_interject`, and the roles reacted in character (Daniel: "Thanks.").
+
+**`prime-agent`** (print mode):
 
 DEGRADED · FAIL · DEGRADED · PASS. Two things in it are about the arm's
 surface and one is about the arm. Every line reached prime-agent as a later

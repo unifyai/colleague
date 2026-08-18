@@ -28,6 +28,14 @@ when the run actually happened. `user not found` (OpenRouter's wording for
 a revoked key, surfaced as text by the CLI arms) joins the marker list. That
 sweep is discarded; the secret was refreshed and the sweep re-run.
 
+**`[wrong]` meeting/commanded_work — a fair question the environment could
+not answer.** unify-cm's first live run asked Priya which timezone "Monday at
+9" meant, and Priya's role, given no timezone, said she would confirm later —
+so the arm, correctly, did not guess and never scheduled, and scored FAIL. An
+arm of any architecture that asks before creating recurring work would have
+failed the same way. Priya now knows the timezone (London) and what she wants
+from the reminder. Ground truth unchanged; the scorer unchanged.
+
 **`[wrong]` concurrency/route_corrections — an unreachable arm scored FAIL.**
 The scorer never read the delivery journal, so an arm with no way into a
 running turn (offered neither correction) failed `support_now_daily` as if

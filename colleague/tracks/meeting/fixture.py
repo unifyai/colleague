@@ -94,6 +94,14 @@ def _personas() -> PersonaPool:
                         "Three venues: Ashby House (your favourite, priciest), "
                         "The Wharf, Larkin Hall."
                     ),
+                    "timezone, if the assistant asks which one you mean": (
+                        "London time (Europe/London). Say so plainly."
+                    ),
+                    "the Monday reminder": (
+                        "You want it every Monday at 09:00 London time until the "
+                        "venue is booked; if asked anything else about it, keep it "
+                        "simple and let the assistant decide."
+                    ),
                 },
                 fallback="Will do.",
             ),
