@@ -367,7 +367,7 @@ def run_track(
                     # rather than being marked wrong for a capability it never
                     # had.
                     record["clarifications"] = session.clarifications()
-                result = scenario_module.score(name, fixture, record=record)
+                    result = scenario_module.score(name, fixture, record=record)
             except Unsupported as exc:
                 result = ScenarioResult(
                     name,

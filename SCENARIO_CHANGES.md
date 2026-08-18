@@ -15,6 +15,19 @@ admission, and a reader is entitled to discount the result accordingly. The
 rule is that a change is `[wrong]` only if it would have mismeasured a
 *competent arm of any architecture* — not merely if unify failed it.
 
+## 2026-08-18
+
+**`[wrong]` harness — an infrastructure failure was scored as a loss.** The
+runner detected the failure (its `infra_failure` markers matched the arm's
+`AuthenticationError`) and built the ERROR result — then called the scorer
+anyway, unconditionally, and the scorer's FAIL replaced it. A cloud sweep
+against `unify-cm` with a revoked OpenRouter key therefore came back as
+0/17 with plausible per-check reasons, which is the one outcome the code's
+own comment says a benchmark must never produce. The scorer now runs only
+when the run actually happened. `user not found` (OpenRouter's wording for
+a revoked key, surfaced as text by the CLI arms) joins the marker list. That
+sweep is discarded; the secret was refreshed and the sweep re-run.
+
 ## 2026-08-17
 
 **`[wrong]` custody/briefing — an acknowledgement to the requester scored as

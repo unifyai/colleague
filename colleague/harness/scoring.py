@@ -65,6 +65,9 @@ INFRA_FAILURE_MARKERS = (
     "429 too many requests",
     "invalid api key",
     "authenticationerror",
+    # OpenRouter's wording for a revoked or unknown key; the CLI arms surface
+    # it as text rather than as an exception class.
+    "user not found",
     "connection refused",
     "service unavailable",
     # hermes exhausts its provider retries and returns the failure as its
