@@ -219,7 +219,7 @@ jobs:
         echo "python=$PWD/.venv/bin/python" >> "$GITHUB_OUTPUT"
 
     - name: Check out OpenClaw
-      if: matrix.arm == 'openclaw'
+      if: startsWith(matrix.arm, 'openclaw')
       uses: actions/checkout@v4
       continue-on-error: true
       id: openclaw_checkout
@@ -229,7 +229,7 @@ jobs:
         token: ${{ secrets.HARNESS_TOKEN || github.token }}
 
     - name: Build OpenClaw
-      if: matrix.arm == 'openclaw' && steps.openclaw_checkout.outcome == 'success'
+      if: startsWith(matrix.arm, 'openclaw') && steps.openclaw_checkout.outcome == 'success'
       id: openclaw_build
       continue-on-error: true
       run: |
@@ -240,7 +240,7 @@ jobs:
         pnpm build
 
     - name: Check out prime-agent
-      if: matrix.arm == 'prime-agent'
+      if: startsWith(matrix.arm, 'prime-agent')
       uses: actions/checkout@v4
       continue-on-error: true
       id: prime_checkout
@@ -250,7 +250,7 @@ jobs:
         token: ${{ secrets.HARNESS_TOKEN || github.token }}
 
     - name: Build prime-agent
-      if: matrix.arm == 'prime-agent' && steps.prime_checkout.outcome == 'success'
+      if: startsWith(matrix.arm, 'prime-agent') && steps.prime_checkout.outcome == 'success'
       id: prime_build
       continue-on-error: true
       run: |
@@ -299,13 +299,14 @@ jobs:
         set -euo pipefail
         ready=false
         case "$ARM" in
-          # `unify-cm` and `hermes-tui` are the faithful surfaces of the same
-          # two harnesses; they install exactly as their v0 arms do.
-          unify|unify-cm)   [[ "${{ steps.unify_install.outcome }}"   == "success" ]] && ready=true ;;
-          openclaw)         [[ "${{ steps.openclaw_build.outcome }}"  == "success" ]] && ready=true ;;
-          opencode)         [[ "${{ steps.opencode_build.outcome }}"  == "success" ]] && ready=true ;;
-          hermes|hermes-tui) [[ "${{ steps.hermes_install.outcome }}"  == "success" ]] && ready=true ;;
-          prime-agent)      [[ "${{ steps.prime_build.outcome }}"     == "success" ]] && ready=true ;;
+          # `unify-cm`, `hermes-tui`, `openclaw-gateway` and `prime-agent-rpc`
+          # are the faithful surfaces of the same four harnesses; they
+          # install exactly as their v0 arms do.
+          unify|unify-cm)              [[ "${{ steps.unify_install.outcome }}"   == "success" ]] && ready=true ;;
+          openclaw|openclaw-gateway)   [[ "${{ steps.openclaw_build.outcome }}"  == "success" ]] && ready=true ;;
+          opencode)                    [[ "${{ steps.opencode_build.outcome }}"  == "success" ]] && ready=true ;;
+          hermes|hermes-tui)           [[ "${{ steps.hermes_install.outcome }}"  == "success" ]] && ready=true ;;
+          prime-agent|prime-agent-rpc) [[ "${{ steps.prime_build.outcome }}"     == "success" ]] && ready=true ;;
         esac
         echo "ready=$ready" >> "$GITHUB_OUTPUT"
         echo "$ARM ready=$ready" >> "$GITHUB_STEP_SUMMARY"

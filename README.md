@@ -36,17 +36,23 @@ outlives the conversation, and several people sharing one assistant.
 | `openclaw` | OpenClaw — gateway + cron whose payload is an agent turn | first-class |
 | `opencode` | OpenCode — no scheduler; improvises scripts and host crontab | none |
 | `prime-agent` | Prime Intellect's prime-agent — Python skills in a persistent kernel; every firing is a prompt | first-class (agent turn) |
+| `openclaw-gateway` | OpenClaw through its Gateway WebSocket protocol — blocking `ask_user`, `steer` as the default queue mode, persisted sessions | first-class |
+| `prime-agent-rpc` | prime-agent through JSONL-RPC — steering and follow-up lanes, one resident process per session | first-class (agent turn) |
 
-`prime-agent` is driven through its print mode (`pi -p`, sessions continued
-with `-c`), so its profile describes that surface: no way into a running
-turn, no ask-the-user tool. The product's steering and follow-up lanes live
-on its interactive and JSONL-RPC surfaces; an RPC-driven arm is the faithful
-one and is the next step for it. The `openclaw` profile likewise describes
-the headless CLI surface the arm drives, and says so —
-OpenClaw at HEAD documents a blocking `ask_user`, `steer` as the default
-queue mode and multi-user session ownership on its gateway, none of which a
-one-shot CLI turn carries. Re-driving it through the gateway is the first
-item under Next in `DESIGN.md`.
+Two arms drive a second surface of the same product, the way `hermes-tui`
+pairs with `hermes` and `unify-cm` with `unify`. `openclaw` is the headless
+one-shot CLI turn; `openclaw-gateway` speaks the Gateway WebSocket protocol
+— the control plane every product client speaks — where the blocking
+`ask_user` surfaces as a `question.requested` event, a correction is
+`chat.send` with `queueMode: steer` (the product's default), and sessions
+persist. `prime-agent` is print mode (`pi -p`, sessions continued with
+`-c`), no way into a running turn; `prime-agent-rpc` speaks `--mode rpc`,
+the documented integration surface, where a correction rides the steering
+lane (delivered at the next turn boundary, never a restart). Each profile
+describes the surface actually driven, the CLI profiles stay as the v0
+they are, and results across surfaces of one product are not directly
+comparable. prime-agent has no ask-the-user tool on any surface, so its
+clarification cells stay UNSUPPORTED rather than faked.
 
 Non-unify arms are metered by a local recording proxy in front of OpenRouter
 (`colleague/arms/proxy.py`); the unify arm is metered in-process through a
@@ -56,7 +62,7 @@ chained unillm hook. Both produce the same per-phase ledger.
 
 | Track | Question | Status |
 |---|---|---|
-| [`standing`](colleague/tracks/standing/) | What does firing N cost, and does the automation survive drift — loud, silent, or at the edges? | **run** — 4 experiments, 4 arms; 4 more built and self-testing |
+| [`standing`](colleague/tracks/standing/) | What does firing N cost, and does the automation survive drift — loud, silent, or at the edges? | **run** — 4 experiments, 5 arms; 4 more built, hermes run |
 | [`inheritance`](colleague/tracks/inheritance/) | Does the worker act on the right referent without a round-trip? | built |
 | [`interruption`](colleague/tracks/interruption/) | Does a mid-task correction land before the wrong thing happens? | built |
 | [`continuity`](colleague/tracks/continuity/) | Is a follow-up a warm turn or a cold restart? | built |
@@ -82,7 +88,7 @@ Full scope, scoring rules and the fairness constraints are in
 
 ## Results so far
 
-The `standing` track is complete across all four arms. Headlines, with full
+The `standing` track is complete across all five arms. Headlines, with full
 per-run detail and raw ledgers in each experiment's `results/`:
 
 - **Recurring report** — unify reaches a zero-LLM-token steady state (typed
@@ -90,18 +96,31 @@ per-run detail and raw ledgers in each experiment's `results/`:
   steady states via standalone scripts, but both independently encoded
   "every Monday 09:00" as an hourly job gated on a wall-clock check, and
   deliver 0/4 when fired as declared. OpenClaw never distills: every firing
-  boots an agent turn, forever.
+  boots an agent turn, forever. prime-agent delivers 4/4 exactly right and
+  also never leaves the model loop — no job, no script; the resident RPC
+  session is the automation, and every firing is a prompt into it
+  (~38k–90k prompt tokens per fire).
 - **Drift recovery** — the API renames a field mid-series. unify repairs
   itself in one attempt and never dips (10/10). OpenClaw adapts unattended
   (9/10) but its payload never heals, so post-drift firings cost ~2× forever.
-  hermes and OpenCode flatline at 4/10 without a human.
-- **Semantic triage** — all four arms hit 100% on 96 inquiries. Per-firing
+  hermes and OpenCode flatline at 4/10 without a human. prime-agent holds
+  at the drift — stops, delivers nothing, tells the owner why — and one
+  operator message restores it (8/10 + 2 held, the first run under the
+  engine's held rubric; the rubric defect this run exposed is logged in
+  `SCENARIO_CHANGES.md`).
+- **Semantic triage** — all five arms hit 100% on 96 inquiries. Per-firing
   cost spans two orders of magnitude: unify ~645 tokens (one focused
   `query_llm` call inside distilled code) against ~8.8k–30k for the others.
-- **Policy propagation** — one rule, three automations. unify and hermes both
-  propagate 15/15; OpenClaw is cheapest to change but drops to 10/15; OpenCode
-  cannot reach the scenario at all, building only two separable automations
-  from three requests across three attempts.
+  prime-agent lands in that band (~20k–35k) with a twist: its firings ride
+  one resident session, so per-fire cost *grows* as the session accretes,
+  where the cold-cron arms stay flat.
+- **Policy propagation** — one rule, three automations. unify, hermes and
+  prime-agent all propagate 15/15; OpenClaw is cheapest to change but drops
+  to 10/15; OpenCode cannot reach the scenario at all, building only two
+  separable automations from three requests across three attempts.
+  prime-agent's change is nearly as cheap as OpenClaw's (149k, one turn
+  into the resident session that holds all three automations) and its
+  steady state is the priciest of any arm — the same trade on both axes.
 
 The suite reports losses as prominently as wins — unify's first drift run
 failed outright at 4/10 and exposed four production defects, which is in the

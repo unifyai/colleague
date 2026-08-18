@@ -91,13 +91,24 @@ def write_openclaw_config(
     proxy_base_url: str,
     workspace: Path,
     model: str = BENCH_MODEL,
+    gateway_auth_token: str | None = None,
 ) -> None:
+    """Write the benchmark's OpenClaw config into a throwaway state dir.
+
+    ``gateway_auth_token`` pins the Gateway's shared token so an operator
+    client written by the harness can authenticate over the WebSocket
+    protocol; the CLI arm leaves it unset and lets the Gateway mint its own.
+    Either way `scrub_state_archive` strips ``gateway.auth`` before the state
+    dir is archived.
+    """
     config = json.loads(
         json.dumps(CONFIG_TEMPLATE)
         .replace("{model}", model)
         .replace("{workspace}", str(workspace))
         .replace("{proxy_base_url}", proxy_base_url),
     )
+    if gateway_auth_token:
+        config["gateway"]["auth"] = {"mode": "token", "token": gateway_auth_token}
     state_dir.mkdir(parents=True, exist_ok=True)
     (state_dir / "openclaw.json").write_text(
         json.dumps(config, indent=2),
@@ -422,6 +433,8 @@ def scrub_state_archive(state_dir: Path) -> None:
         "tasks",
         "canvas",
         "logs",
+        "tmp",
+        "media",
         "update-check.json",
     ):
         target = state_dir / name
@@ -429,7 +442,12 @@ def scrub_state_archive(state_dir: Path) -> None:
             shutil.rmtree(target, ignore_errors=True)
         elif target.exists():
             target.unlink()
-    for backup in state_dir.glob("openclaw.json.bak*"):
+    # The Gateway keeps its own copies of the config; they carry the auth
+    # token verbatim and add nothing the scrubbed openclaw.json does not.
+    for backup in [
+        *state_dir.glob("openclaw.json.bak*"),
+        *state_dir.glob("openclaw.json.last-good*"),
+    ]:
         backup.unlink()
     # The agent may `git init` its workspace; an embedded repo cannot be
     # committed into the results archive, and its history adds nothing.

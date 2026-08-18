@@ -70,6 +70,20 @@ spread is PASS ×2 · DEGRADED ×1 (Bob's answer late once).
 Read the whole table as a shape, not a verdict: n = 3, one arm, one week's
 code.
 
+**`openclaw-gateway`, local, live roles, `--repeat 3`:**
+
+| Scene | Spread | Reading |
+|---|---|---|
+| `addressed_by_name` | PASS ×3 | one line, the fixture literal, inside the room's patience every time — a live Gateway session answers at chat speed, where the CM's whole-turn latency ran DEGRADED |
+| `humans_talking` | PASS ×1 · FAIL ×2 | the same failure shape as unify-cm and prime-agent: given five lines nobody aimed at it, it summarised the humans back to themselves ("I'm caught up. I have the venue shortlist…") |
+| `commanded_work` | PASS ×3 | the schedule correct every time — `weekly`, Monday, to Priya — and Bob answered in time. These runs predate the cadence 400; every schedule it wrote was already inside the enum, so the fixture change reads the same either way |
+| `interrupted_mid_answer` | PASS ×3 | the answer after Daniel's change is the deploy window; the abandoned budget answer never followed |
+
+The one recurring loss is the mechanism under test: whether to speak now
+among several humans. The Gateway arm reads room lines as `[name] message`
+turns on one session — sender identity is text, as the profile says — and
+twice in three runs it broke silence to be helpful.
+
 **`prime-agent`** (print mode, n = 1): DEGRADED · FAIL · DEGRADED · PASS.
 Every line reached it as a later turn — print mode has no live channel — so
 "after the room moved on" is true by construction and the reasons say so;

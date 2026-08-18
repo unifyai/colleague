@@ -237,6 +237,41 @@ PROFILES: dict[str, ArmProfile] = {
             "call and would be the fixture supplying the capability."
         ),
     ),
+    "openclaw-gateway": ArmProfile(
+        name="openclaw-gateway",
+        clarification=True,
+        steering=Steering.LIVE_INTERJECT,
+        storage=Storage.FLAT,
+        persistent_sessions=True,
+        multi_party=False,
+        accepts_images=True,
+        scheduler=True,
+        notes=(
+            "OpenClaw's Gateway WebSocket protocol (docs/gateway/protocol.md), "
+            "the control plane every product client speaks, driven from a "
+            "stdlib client with the same state dir, config and managed "
+            "Gateway as the CLI arm. chat.send acks before the model call and "
+            "the reply is the run's terminal `chat` event; a correction is "
+            "chat.send with queueMode=steer bound to the active run — the "
+            "product's default queue mode, drained at the next model or "
+            "tool-launch boundary, never a restart (queue-steering.md); the "
+            "blocking `ask_user` tool surfaces as a `question.requested` event "
+            "and is answered with `question.resolve`, the method the Control "
+            "UI and channels use (docs/tools/ask-user.md); images travel as "
+            "chat.send attachments. multi_party stays false because a sender "
+            "the model can see is a *channel* envelope in OpenClaw — the "
+            "Gateway chat surface 'does not split messages by sender' and "
+            "attributes turns best-effort (docs/concepts/multi-user.md) — so "
+            "senders reach this arm as text, as they reach hermes-tui. "
+            "Voice: the CLI profile's reading applies unchanged — the "
+            "product's voice surfaces bind to vendor apps and third-party "
+            "services, and nothing on the Gateway chat surface joins a "
+            "room, so voice scenarios resolve UNSUPPORTED. "
+            "Results from this surface and the `openclaw` CLI surface are not "
+            "directly comparable: the CLI arm is one process per turn with "
+            "corrections landing as the next turn."
+        ),
+    ),
     "prime-agent": ArmProfile(
         name="prime-agent",
         clarification=False,
@@ -264,6 +299,38 @@ PROFILES: dict[str, ArmProfile] = {
             "Distinctive: Python skills pre-imported into a persistent IPython "
             "kernel, versioned HarnessEntry with a refinements.jsonl audit. "
             "The driver does not pass images; the product accepts them."
+        ),
+    ),
+    "prime-agent-rpc": ArmProfile(
+        name="prime-agent-rpc",
+        clarification=False,
+        steering=Steering.LIVE_INTERJECT,
+        storage=Storage.FLAT,
+        persistent_sessions=True,
+        multi_party=False,
+        accepts_images=True,
+        scheduler=True,
+        notes=(
+            "prime-agent's JSONL-RPC mode (`--mode rpc`, docs/rpc.md), the "
+            "documented headless integration surface, one long-lived process "
+            "per session with the print-mode adapter's throwaway agent dir, "
+            "proxy-metered provider and run-local session dir. `prompt` acks "
+            "on acceptance and the turn ends at `agent_end`; a correction is "
+            "the `steer` command — the steering lane of "
+            "session-action-store.ts, delivery policy next_turn_boundary: "
+            "delivered after the current assistant turn's tool calls, before "
+            "the next model call, never an abort. Follow-ups queue on the "
+            "follow-up lane (when_run_idle). Images travel on the prompt. "
+            "What print mode did not carry and this does: a way into a "
+            "running turn, and one process holding the session. Unchanged: "
+            "no ask-the-user tool exists anywhere in the product (the only "
+            "tools are bash/edit/ipython; `side-question` runs the other "
+            "way), so clarification stays false rather than faked; senders "
+            "are text in one session — terminal-only, single-user. Voice: "
+            "none on any surface, so voice scenarios resolve UNSUPPORTED, as "
+            "for print mode. Scheduler: cron/interval/once plus heartbeat, "
+            "every firing a prompt into an agent turn. Results from this "
+            "surface and the print-mode surface are not directly comparable."
         ),
     ),
     "unify-cm": ArmProfile(

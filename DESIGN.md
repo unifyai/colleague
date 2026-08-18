@@ -472,26 +472,21 @@ transport. Every published number in this repo is still `standing` only.
 
 ## Next
 
-1. Run every built track against every arm and publish the results
-2. Re-drive OpenClaw through its gateway (`ask_user`, `steer`, group
-   sessions) as an `openclaw-gateway` arm — the `hermes-tui` precedent. The
-   CLI profile is stated honestly but under-represents the product, and an
-   under-declared competitor flatters every other arm
-3. Drive prime-agent through its JSONL-RPC surface (steering and follow-up
-   lanes) as the faithful arm; the print-mode adapter is in and verified
-   end-to-end, and on `standing` it should win representation and lose
-   per-firing cost, which is the honest result
-4. `membership` needs the `unify-cm` adapter to provision two teams and the
+1. Run every built track against every arm and publish the results — the
+   arm set now includes `openclaw-gateway` and `prime-agent-rpc`, both
+   verified live on their tracks (outcomes in
+   `colleague/arms/sessions/NOTE.md`); what remains for them is volume
+2. `membership` needs the `unify-cm` adapter to provision two teams and the
    assistant's memberships, so unify's write-time scoping is exercised rather
    than its judgement
-5. `screenshare` needs one live `unify-cm` run to confirm frames reach the
+3. `screenshare` needs one live `unify-cm` run to confirm frames reach the
    slow brain's screenshot context; the CLI arms need attachment paths
-6. `recall` needs the CM adapter to pin its context tree across sessions
+4. `recall` needs the CM adapter to pin its context tree across sessions
    before the restart variant is added
-7. The voice transport: a room, persona voices, timing capture — once,
+5. The voice transport: a room, persona voices, timing capture — once,
    medium-agnostically. `meeting`'s scenes move onto it unchanged, `callflow`
    follows, and `attribution` and `interruption` gain voice variants
-8. Genuinely independent lifetimes in `concurrency`: a runner holding several
+6. Genuinely independent lifetimes in `concurrency`: a runner holding several
    handles, corrections against each while a fourth thing runs
 
 ## Open questions
