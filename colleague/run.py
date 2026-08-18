@@ -47,6 +47,19 @@ def main(argv: list[str] | None = None) -> int:
         help="mock arm only: `ideal` should PASS every scenario, `naive` should FAIL",
     )
     parser.add_argument("--only", help="run a single scenario by name")
+    parser.add_argument(
+        "--transport",
+        choices=("text", "voice"),
+        default="text",
+        help=(
+            "how role-played scenes reach the arm: `text` interjects lines; "
+            "`voice` speaks them through a room the arm joins by audio. An "
+            "arm with no voice surface resolves UNSUPPORTED; an environment "
+            "that cannot provide voice degrades to text with the reason "
+            "recorded. Results carry the transport and are never merged "
+            "across it."
+        ),
+    )
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--port", type=int, default=0, help="0 picks a free port")
     parser.add_argument("--timeout", type=float, default=900.0)
@@ -91,6 +104,7 @@ def main(argv: list[str] | None = None) -> int:
                 timeout_s=args.timeout,
                 only=args.only,
                 mode=args.mode,
+                transport=args.transport,
             ),
         )
     return worst

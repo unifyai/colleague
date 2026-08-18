@@ -92,13 +92,19 @@ class Said:
     to_assistant: bool = False
     delivered: bool = True
     mode: str = ""
-    """live_interject / queued_followup / pending / not_delivered / resumed_turn."""
+    """live_interject / queued_followup / pending / not_delivered / resumed_turn / spoken."""
 
     answered_seq: int | None = None
     """First assistant line recorded after this one, if any."""
 
     next_seq: int | None = None
     """Sequence of the next role line — the moment after which an answer is late."""
+
+    spoken_at: str | None = None
+    """Transport timestamp: when this line's audio began (voice transport only)."""
+
+    ended_at: str | None = None
+    """Transport timestamp: when this line's audio finished (voice transport only)."""
 
     def as_dict(self) -> dict[str, Any]:
         return {k: v for k, v in self.__dict__.items()}

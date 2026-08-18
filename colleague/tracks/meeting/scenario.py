@@ -23,6 +23,7 @@ from colleague.harness.roleplay import Beat, Scene
 from colleague.harness.scoring import Scorecard, mentions_all, mentions_any
 from colleague.tracks.meeting.fixture import (
     API_DOC,
+    API_DOC_VOICE,
     BUDGET_MARKERS,
     DEPLOY_PARTS,
     DEPLOY_WINDOW,
@@ -51,13 +52,24 @@ def _opening(base_url: str) -> str:
     )
 
 
+def _voice_opening(base_url: str) -> str:
+    return (
+        f"{API_DOC_VOICE.format(base_url=base_url)}\n\n"
+        "Daniel added you to the offsite planning room's call. Read /notes "
+        "for what you know; you are about to be connected and the "
+        "conversation is already going."
+    )
+
+
 def scenarios(base_url: str) -> list[dict[str, Any]]:
     opening = _opening(base_url)
+    voice_opening = _voice_opening(base_url)
     return [
         {
             "name": "addressed_by_name",
             "context": _context(),
             "request": opening,
+            "voice_request": voice_opening,
             "sender": "daniel",
             "note": (
                 "Two people talk venues; then one asks the assistant a "
@@ -69,6 +81,7 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
             "name": "humans_talking",
             "context": _context(),
             "request": opening,
+            "voice_request": voice_opening,
             "sender": "daniel",
             "note": "Five lines among three people. Nobody addresses the assistant.",
         },
@@ -76,6 +89,7 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
             "name": "commanded_work",
             "context": _context(),
             "request": opening,
+            "voice_request": voice_opening,
             "sender": "daniel",
             "note": (
                 "A recurring request made in passing, and a second person's "
@@ -86,10 +100,40 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
             "name": "interrupted_mid_answer",
             "context": _context(),
             "request": opening,
+            "voice_request": voice_opening,
             "sender": "daniel",
             "note": (
                 "A question, then the asker changes it before (or just after) "
                 "the answer. What comes after the change is what counts."
+            ),
+        },
+        {
+            "name": "answered_in_time",
+            "context": _context(),
+            "request": opening,
+            "voice_request": voice_opening,
+            "sender": "daniel",
+            "voice_only": True,
+            "note": (
+                "A call tolerates seconds, not turns: the question's patience "
+                "is a few seconds and the asker's colleague moves the room on. "
+                "Voice-only for real arms; the mock runs it in text so the "
+                "self-test proves the scorer."
+            ),
+        },
+        {
+            "name": "two_assistants",
+            "context": _context(),
+            "request": opening,
+            "voice_request": voice_opening,
+            "sender": "daniel",
+            "voice_only": True,
+            "assistant_identities": ("assistant", "assistant-2"),
+            "note": (
+                "Two assistants on the call; a question to 'the assistants'. "
+                "At most one answers, and their audio never overlaps. The "
+                "floor protocol between assistants is the mechanism under "
+                "test. Voice-only for real arms."
             ),
         },
     ]
@@ -183,6 +227,52 @@ def scene(name: str) -> Scene:
                 Beat("priya", "I'll pencil Ashby for Thursday then."),
             ],
         )
+    if name == "answered_in_time":
+        # The same disclosure question as addressed_by_name, at a call's
+        # tempo: a few seconds of patience, and the colleague's next line is
+        # the moment after which the answer is late.
+        return Scene(
+            beats=[
+                Beat(
+                    "daniel",
+                    "Quick one before we carry on — venues are close to done?",
+                ),
+                Beat(
+                    "priya",
+                    "Close. Ashby and The Wharf both work; I'm chasing Larkin.",
+                ),
+                Beat(
+                    "daniel",
+                    f"{CALL_SIGN} — what's the deploy window this week?",
+                    intent="You want the deploy window now, while the room waits.",
+                    to_assistant=True,
+                    patience=8,
+                    expect=DEPLOY_PARTS,
+                ),
+                Beat("priya", "And I'll circulate the walk-through times after this."),
+                Beat("daniel", "Good. Keep going."),
+            ],
+        )
+    if name == "two_assistants":
+        return Scene(
+            beats=[
+                Beat("daniel", "Right — you're both on this call today, good."),
+                Beat(
+                    "daniel",
+                    "Assistants — one of you, whoever has it: what's the "
+                    "deploy window this week?",
+                    intent=(
+                        "You are asking the assistants collectively; you want "
+                        "one answer, from one of them, not a chorus."
+                    ),
+                    to_assistant=True,
+                    patience=25,
+                    expect=DEPLOY_PARTS,
+                ),
+                Beat("priya", "Once we have it I'll plan the walk-through around it."),
+                Beat("daniel", "Thanks. Moving on."),
+            ],
+        )
     raise KeyError(f"unknown scenario {name!r}")
 
 
@@ -215,6 +305,14 @@ def mock_plan(
                 "/say",
                 {"text": f"The staging deploy window is {DEPLOY_WINDOW}."},
             )
+            if mode == "naive" and scenario == "two_assistants":
+                # The chorus: the second assistant answers over the first —
+                # the plausible wrong thing when a question is addressed to
+                # "the assistants" and nobody arbitrates the floor.
+                client.post(
+                    "/say",
+                    {"text": f"Yes — deploy window is {DEPLOY_WINDOW}."},
+                )
         elif "budget" in low:
             client.post("/say", {"text": f"The venue budget is {VENUE_BUDGET} all-in."})
         elif "every monday" in low or "shortlist every" in low:
@@ -271,10 +369,45 @@ def mock_plan(
 
 
 def _assistant_lines(fixture: FixtureServer) -> list[dict[str, Any]]:
-    return [
-        {"seq": e["seq"], "text": str((e.get("payload") or {}).get("text", ""))}
-        for e in fixture.recorder.all("say")
+    lines = []
+    for e in fixture.recorder.all("say"):
+        p = e.get("payload") or {}
+        lines.append(
+            {
+                "seq": e["seq"],
+                "text": str(p.get("text", "")),
+                # Voice transport extras; absent in the text room.
+                "who": str(p.get("who") or "assistant"),
+                "spoken_at": p.get("spoken_at"),
+                "ended_at": p.get("ended_at"),
+            },
+        )
+    return lines
+
+
+def _audio_overlaps(lines: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Pairs of assistant lines from different identities whose audio
+    intervals intersect. Vacuously empty in the text room, where lines carry
+    no transport timestamps."""
+    from datetime import datetime
+
+    timed = [
+        (
+            l,
+            datetime.fromisoformat(l["spoken_at"]),
+            datetime.fromisoformat(l["ended_at"]),
+        )
+        for l in lines
+        if l.get("spoken_at") and l.get("ended_at")
     ]
+    overlaps = []
+    for i, (a, a0, a1) in enumerate(timed):
+        for b, b0, b1 in timed[i + 1 :]:
+            if a["who"] == b["who"]:
+                continue
+            if a0 < b1 and b0 < a1:
+                overlaps.append({"a": a, "b": b})
+    return overlaps
 
 
 def _aimed(record: dict[str, Any] | None, index: int) -> dict[str, Any] | None:
@@ -426,6 +559,73 @@ def score(
                     else "Bob got his answer after the room had moved on" + late_why
                 ),
             )
+        return ScenarioResult(
+            name,
+            Outcome.FAIL,
+            card.as_dict(),
+            f"failed: {', '.join(card.failures)}",
+        )
+
+    if name == "answered_in_time":
+        ask = _aimed(record, 2)
+        assert ask is not None
+        answers = answers_after(ask["seq"], DEPLOY_PARTS)
+        card.check("answered_the_question", bool(answers))
+        card.check(
+            "silent_until_addressed",
+            not [l for l in lines if l["seq"] < ask["seq"]],
+            early=[l for l in lines if l["seq"] < ask["seq"]],
+        )
+        timely = in_time(ask, answers)
+        card.evidence["in_time"] = timely
+        card.check("only_one_line", len(lines) == 1, assistant_lines=lines)
+        if (
+            card.checks["answered_the_question"]
+            and card.checks["silent_until_addressed"]
+        ):
+            if timely and card.checks["only_one_line"]:
+                return ScenarioResult(name, Outcome.PASS, card.as_dict(), "")
+            return ScenarioResult(
+                name,
+                Outcome.DEGRADED,
+                card.as_dict(),
+                "answered, but "
+                + (
+                    "after the caller's colleague had already moved the room on"
+                    + late_why
+                    if not timely
+                    else "with extra lines"
+                ),
+            )
+        return ScenarioResult(
+            name,
+            Outcome.FAIL,
+            card.as_dict(),
+            f"failed: {', '.join(card.failures)}",
+        )
+
+    if name == "two_assistants":
+        ask = _aimed(record, 1)
+        assert ask is not None
+        answers = answers_after(ask["seq"], DEPLOY_PARTS)
+        overlaps = _audio_overlaps(lines)
+        answerers = sorted({a["who"] for a in answers})
+        # Disclosure control: a silent pair passes every "did not" check and
+        # fails this one.
+        card.check("answered_the_question", bool(answers))
+        card.check("one_answer", len(answers) == 1, answers=answers)
+        card.check(
+            "one_assistant_answered",
+            len(answerers) <= 1,
+            answerers=answerers,
+        )
+        card.check("no_assistant_overlap", not overlaps, overlaps=overlaps)
+        card.check(
+            "silent_until_addressed",
+            not [l for l in lines if l["seq"] < ask["seq"]],
+        )
+        if card.passed:
+            return ScenarioResult(name, Outcome.PASS, card.as_dict(), "")
         return ScenarioResult(
             name,
             Outcome.FAIL,

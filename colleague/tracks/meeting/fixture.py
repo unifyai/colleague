@@ -135,6 +135,16 @@ def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServe
         return 200, {"lines": list(fx.state["room"])}
 
     def say(r: Request) -> tuple[int, Any]:
+        # Over voice there is no text path into the room: speaking is the
+        # capability under test, and accepting a POSTed line here would be
+        # the fixture supplying it (the /clarify mistake). The recorder keeps
+        # the attempt as evidence; the arm is told to speak.
+        if fx.state.get("transport") == "voice":
+            r.server.recorder.record("rejected_say_voice", {"body": r.body})
+            return 400, {
+                "error": "this room is a live call; there is no text channel "
+                "— say it out loud",
+            }
         missing = missing_fields(r.body, "text")
         if missing:
             return reject(r.server, "say", r.body, missing)
@@ -183,4 +193,17 @@ Room API at {base_url}:
 You are in a shared room. Every message you receive here was said to the \
 room by the person named; everyone hears everyone, and everyone hears \
 anything you /say. Speaking is /say; there is no other channel into the room.\
+"""
+
+#: The call version offers no /say: over voice, speaking is speaking. The
+#: reference material and the scheduling surface stay — creating recurring
+#: work is an API action, not an utterance, and /schedule is its witness.
+API_DOC_VOICE = """\
+Reference API at {base_url}:
+  GET  {base_url}/notes    -> {{"text": "<things you know>"}}
+  POST {base_url}/schedule -> body {{"to": "<person>", "cadence": "daily"|"weekly", "weekday": "<day>?", "time": "HH:MM?", "text": "<what to send>"}}
+
+You are joining a live voice call with the people above. You hear everyone \
+and everyone hears you when you speak. There is no text channel into the \
+call: to say something, say it.\
 """

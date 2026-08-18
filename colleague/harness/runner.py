@@ -98,6 +98,7 @@ def run_track(
     timeout_s: float = 900.0,
     only: str | None = None,
     mode: str = "ideal",
+    transport: str = "text",
 ) -> int:
     # The suffix is load-bearing. run_id is the aggregate's dedupe key, and
     # parallel repeats of one scenario start within the same second — so a
@@ -120,6 +121,10 @@ def run_track(
         "run_id": run_id,
         "seed": seed,
         "session_scope": session_scope,
+        # What actually carried the scenes. Overwritten per scenario when
+        # voice was asked for and could not be provided, so a text result is
+        # never read as a voice one and the two are never merged silently.
+        "transport": transport,
         "scenarios": [],
     }
 
@@ -149,6 +154,14 @@ def run_track(
         for spec in scenario_module.scenarios("http://placeholder"):
             name = spec["name"]
             if only and name != only:
+                continue
+            # A voice-only scene measures something a text delivery cannot
+            # carry (a call's tolerance for delay; two assistants' audio
+            # overlapping). Under the text transport it is skipped for real
+            # arms rather than mismeasured — but still runs for the mock, so
+            # the self-test proves its scorer discriminates.
+            if spec.get("voice_only") and transport != "voice" and arm != "mock":
+                print(f"[{track}/{arm}] scenario {name} — skipped (voice-only)")
                 continue
 
             if shared_fixture is not None:
@@ -194,6 +207,7 @@ def run_track(
             clarifications_before = len(session.clarifications())
             print(f"[{track}/{arm}] scenario {name} — fixture {fixture.base_url}")
 
+            voice_t: Any = None
             try:
                 if shared_session is None or own_session:
                     session.setup()
@@ -246,6 +260,32 @@ def run_track(
                 if hasattr(scenario_module, "turns"):
                     turns = scenario_module.turns(name) or []
 
+                # The scene, if any, is needed before the first turn: a voice
+                # run speaks it through the room rather than interjecting it,
+                # and the opening request may differ (a room API that offers
+                # /say has no business existing on a call).
+                scene = (
+                    scenario_module.scene(name)
+                    if hasattr(scenario_module, "scene")
+                    else None
+                )
+                request_text = live["request"]
+                if transport == "voice" and scene is not None:
+                    voice_t, why = _voice_setup(session, live, name)
+                    record["transport"] = (
+                        "voice" if voice_t else f"text (voice unavailable: {why})"
+                    )
+                    results["transport"] = record["transport"]
+                    if voice_t is not None:
+                        # The fixture knows the room is a call, so a text
+                        # path that must not exist on a call (meeting's /say)
+                        # can refuse and record the attempt.
+                        fixture.state["transport"] = "voice"
+                        if live.get("voice_request"):
+                            request_text = live["voice_request"]
+                else:
+                    record["transport"] = "text"
+
                 # A continuation goes through the arm's own resume path when
                 # it has one. Arms without persistent sessions fall back to a
                 # cold turn, which is exactly the cost `continuity` measures —
@@ -267,10 +307,10 @@ def run_track(
                     and hasattr(session, "resume")
                     and not (steerable and live_channel)
                 ):
-                    handle = _Resumed(session, live["request"], live.get("sender"))
+                    handle = _Resumed(session, request_text, live.get("sender"))
                 else:
                     handle = session.begin(
-                        live["request"],
+                        request_text,
                         persist=bool(live.get("persist")),
                         context=live.get("context"),
                         sender=live.get("sender"),
@@ -299,13 +339,11 @@ def run_track(
 
                 # A scene: role-played people who speak in order, react to
                 # what the assistant says, and stop when the scene is done.
+                # Over voice the beats are spoken through the room after the
+                # opening turn has settled; over text they are interjected
+                # while it runs.
                 director: RolePlayDirector | None = None
-                scene = (
-                    scenario_module.scene(name)
-                    if hasattr(scenario_module, "scene")
-                    else None
-                )
-                if scene is not None:
+                if scene is not None and voice_t is None:
 
                     def deliver_line(sender, text, _h=handle):
                         return _h.interject(text, sender=sender)
@@ -317,7 +355,19 @@ def run_track(
                     ).start()
 
                 reply = handle.wait(timeout=timeout_s)
-                if director is not None:
+                if voice_t is not None and scene is not None:
+                    reply, journal = _run_voice_scene(
+                        voice_t,
+                        session=session,
+                        handle=handle,
+                        scene=scene,
+                        fixture=fixture,
+                        reply=reply,
+                        timeout_s=timeout_s,
+                    )
+                    record["roleplay"] = journal
+                    record["voice"] = voice_t.evidence()
+                elif director is not None:
                     reply = _finish_scene(
                         director,
                         session=session,
@@ -392,6 +442,8 @@ def run_track(
                     f"harness error: {type(exc).__name__}: {exc}",
                 )
 
+            if voice_t is not None:
+                voice_t.close()
             record["evidence"] = fixture.evidence()
             record["clarifications"] = session.clarifications()[clarifications_before:]
             record["result"] = result.as_dict()
@@ -421,6 +473,87 @@ def run_track(
     credited = results["summary"]["credited"]
     scoreable = results["summary"]["scoreable"]
     return 0 if scoreable and credited == scoreable else 1
+
+
+def _voice_setup(session: ArmSession, live: dict[str, Any], name: str):
+    """The voice transport for one scenario, or (None, why) to degrade.
+
+    The distinction matters and is deliberate:
+
+    - The **arm** has no way to join a room by audio → `Unsupported` raises
+      out of here, and the scenario resolves UNSUPPORTED. Falling back to the
+      text room would quietly score an arm's chat behaviour as if it had been
+      on a call.
+    - The **environment** cannot provide voice (no LiveKit, no TTS) → the
+      scenario degrades to the text room and the reason is recorded on the
+      run, so a text result is never read as a voice one.
+    """
+    if not (hasattr(session, "join_voice_room") and session.profile.supports("voice")):
+        raise Unsupported(
+            "no voice surface: this arm cannot join a room as an audio participant",
+        )
+    from colleague.harness.voice.transport import VoiceUnavailable, build_transport
+
+    idents = tuple(live.get("assistant_identities") or ("assistant",))
+    try:
+        return (
+            build_transport(scenario=name, assistant_identities=idents),
+            "",
+        )
+    except VoiceUnavailable as exc:
+        return None, str(exc)
+
+
+def _run_voice_scene(
+    voice_t: Any,
+    *,
+    session: ArmSession,
+    handle: RunHandle,
+    scene: Any,
+    fixture: Any,
+    reply: Reply,
+    timeout_s: float,
+) -> tuple[Reply, list[dict[str, Any]]]:
+    """Join the arm to the room, play the scene through it, and drain.
+
+    The opening turn has already completed (`reply`), so the arm knows the
+    situation before anyone speaks. The arm joins through its own voice
+    surface with the invite; the personas speak through their tracks; the
+    room's capture feeds the fixture recorder. Afterwards the arm leaves and
+    the session is drained once more so work commanded during the call is in
+    the record.
+    """
+    from colleague.harness.voice.director import VoiceRolePlayDirector
+
+    personas = sorted({b.who for b in scene.beats})
+    session.join_voice_room(
+        voice_t.invite,
+        on_text=voice_t.room.note_assistant_text,
+        personas=personas,
+    )
+    director = VoiceRolePlayDirector(
+        fixture=fixture,
+        scene=scene,
+        room=voice_t.room,
+    ).start()
+    try:
+        director.wait(timeout=timeout_s)
+    finally:
+        director.stop()
+        leave = getattr(session, "leave_voice_room", None)
+        if leave is not None:
+            try:
+                leave()
+            except Exception:  # noqa: BLE001 - teardown is best-effort
+                pass
+    latest = reply
+    try:
+        drained = handle.wait(timeout=timeout_s)
+        if drained.ok or not latest.ok:
+            latest = drained
+    except Exception:  # noqa: BLE001 - the opening reply stands
+        pass
+    return latest, director.journal()
 
 
 def _finish_scene(

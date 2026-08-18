@@ -120,6 +120,17 @@ class ArmProfile:
     """Whether image content can reach the arm through its normal input path."""
 
     scheduler: bool
+    voice: bool = False
+    """Whether the arm can join a room as an audio participant — its own
+    identity, listening to the room's audio, speaking through its own voice
+    surface. Never satisfied by a harness-supplied audio path: a "say this
+    text and we'll voice it" endpoint is the capability under test being
+    faked, exactly as the old `/clarify` stub was. The notes name the
+    surface (and, where every surface an arm has binds to a third-party
+    service the methodology excludes, they say that), so a reader can check
+    the claim.
+    """
+
     notes: str = ""
 
     def supports(self, requirement: str) -> bool:
@@ -161,7 +172,15 @@ PROFILES: dict[str, ArmProfile] = {
             "Still no mid-run address and no clarify channel headless; a "
             "converged automation is a no_agent cron script with no loop to "
             "address. Skills live in one directory readable by whoever runs "
-            "the agent."
+            "the agent. Voice: real surfaces exist — Discord voice with "
+            "per-SSRC attribution, a Google Meet plugin (v1 caption scrape, "
+            "v2 realtime duplex over BlackHole/PulseAudio) — but every one "
+            "joins a third-party room (Discord guild, meet.google.com) that "
+            "needs an account and system-audio devices this benchmark's "
+            "no-third-party-accounts methodology excludes, and none can join "
+            "a self-hosted LiveKit room. Voice scenarios resolve UNSUPPORTED "
+            "with that reason; a run with those accounts provisioned could "
+            "stand the Meet bot up."
         ),
     ),
     "hermes-tui": ArmProfile(
@@ -208,7 +227,14 @@ PROFILES: dict[str, ArmProfile] = {
             "as the next turn. Under-declaring the product would flatter the "
             "other arms; over-declaring the CLI would flatter this one. A "
             "gateway-driven `openclaw-gateway` arm — the hermes-tui precedent — "
-            "is the fix, and is listed in DESIGN.md."
+            "is the fix, and is listed in DESIGN.md. Voice: the product has "
+            "Talk mode (macOS/iOS/Android/browser apps), Meet/Zoom/Teams "
+            "meeting extensions and a voice-call extension "
+            "(Twilio/Telnyx/Plivo) — every surface binds to a vendor app or "
+            "a third-party service and none can join a self-hosted "
+            "LiveKit/SIP room, so voice scenarios resolve UNSUPPORTED with "
+            "that reason. The voice-call extension's mock provider places no "
+            "call and would be the fixture supplying the capability."
         ),
     ),
     "prime-agent": ArmProfile(
@@ -249,6 +275,7 @@ PROFILES: dict[str, ArmProfile] = {
         multi_party=True,
         accepts_images=True,
         scheduler=True,
+        voice=True,
         notes=(
             "The ConversationManager surface — DESIGN.md's 'faithful surface "
             "for these tracks'. Senders are first-class contacts on every "
@@ -256,7 +283,12 @@ PROFILES: dict[str, ArmProfile] = {
             "silence is the `wait` tool, detected exactly; each in-flight "
             "action exposes its own interject/stop/ask tools and routing a "
             "correction to the right one is a recorded brain decision. Adds "
-            "a slow-brain model axis the plain `act` arm never had."
+            "a slow-brain model axis the plain `act` arm never had. Voice: "
+            "`unify_meet` is the product's own LiveKit room; the fast brain "
+            "(medium_scripts/call.py) joins it as a participant, decides "
+            "silence|defer|smalltalk|continuation|hang_up per turn, and "
+            "speaks from text the adapter captures exactly "
+            "(app:comms:unify_meet_utterance)."
         ),
     ),
     "opencode": ArmProfile(
