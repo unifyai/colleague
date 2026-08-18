@@ -40,9 +40,21 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterator
 
-from unify.common.llm_client import purpose_from_origin
 from unillm import add_llm_event_listener
 from unillm.llm_events import LLMEvent
+
+try:
+    from unify.common.llm_client import purpose_from_origin
+except ImportError:  # unify main predates the purpose tag; staging carries it
+    # The benchmark drives whichever unify the runner checked out (CI: main;
+    # locally: the sibling checkout, usually staging). Purpose attribution
+    # is a column in the ledger, not the measurement — a unify without the
+    # tag records every call as planning rather than refusing to meter at
+    # all. Twelve cloud shards died on this import on 2026-08-18.
+    def purpose_from_origin(origin: str | None) -> str | None:
+        del origin
+        return None
+
 
 #: What an LLM call was for. unify tags every actor client with a purpose in
 #: its ``origin`` — the CodeAct loop and its librarian are ``planning``, the
