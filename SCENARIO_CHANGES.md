@@ -611,3 +611,41 @@ same second, so a 42-shard sweep deduped to 33 results and reported the
 survivors as the whole thing — n counts ragged, some scenarios showing n=1
 on a three-repeat run. A short random suffix now makes each shard distinct
 while a genuinely re-uploaded file still collapses.
+
+---
+
+## Voice: the first live runs, and what they corrected
+
+**Harness bug, not a scenario: the arm heard the recorder.** The voice
+room's capture participant joined first, as a standard participant — and
+livekit-agents links an agent's audio input to the *first* standard
+participant it sees. unify-cm's agent spent an entire scene listening to
+the harness's own recorder, which is silent by construction, and scored
+FAIL for never answering a question it never heard. The capture now joins
+as an `egress` participant (a recorder, which is what it is), outside the
+default link set, so only people are candidates for an arm's auto-link.
+The 21:15Z and 23:19Z voice runs of `addressed_by_name` were collected
+under this fault (the second also under a missing turn-detector model and
+an Orchestra without its embed() key) and are environment evidence, not
+arm results.
+
+**`[wrong]` meeting — `14:00` said aloud.** The first live voice run to
+get an answer out of unify-cm answered the deploy window correctly — "It's
+Thursday at fourteen o'clock UTC on the usual weekly schedule" — and
+scored FAIL, because the marker set wanted the literal `14:00`. An
+utterance is text written to be *spoken*: a model feeding TTS renders
+`14:00` as "fourteen o'clock", the same fact in the register the transport
+demands. A marker part may now declare its spoken forms, next to the
+ground truth it renders (`DEPLOY_PARTS` accepts `fourteen` / `2 pm`;
+callflow's `EARLY_PARTS` accepts `ten fifteen`); each form is still an
+exact containment test. Same lesson as `Thursday at 14:00 UTC` vs
+`Thursday 14:00 UTC`, one transport later.
+
+**callflow exists.** Six scenarios (`straight_path`, `branch_on_pushback`,
+`withheld_item`, `no_answer`, `voicemail`, `ivr`), all voice-only for real
+arms — a "call" conducted by POSTing lines is a chat transcript scored as
+a phone call. The controlled mock proves every scorer (ideal 6/6 PASS,
+naive 6/6 FAIL); live runs wait on the callee leg. The scorers read the
+`/outcome` disposition, the utterances, and recorder sequence — leaf
+reached, reference carried back, nothing withheld said, no slot invented,
+hang-up honoured.

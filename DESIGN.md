@@ -352,27 +352,30 @@ harness at HEAD, and all of them can drive their own desktop. The interesting
 cell is whether the arm that has both halves joins them; unify's own prompt
 rules push against it, and a loss belongs in the results.
 
-### `meeting` — built on a text room; voice is the next transport
+### `meeting` — built; text room v0 and a live voice transport
 
 Several people in a room, one assistant among them: speak when addressed,
 stay quiet when two humans are talking to each other, answer before the
-moment passes, turn a request made in passing into work. Four scenes,
-outcome-scored from the fixture's `/say` and `/schedule` records and from
-recorder sequence; never barge-in latency or disfluency.
+moment passes, turn a request made in passing into work. Six scenes (two
+voice-only), outcome-scored from the fixture's `/say` and `/schedule`
+records and from recorder sequence; never barge-in latency or disfluency.
 
 The people are **role-players** (below), which is what makes the track
 buildable at all: nobody can script every branch of what a model will say
-to three people. v0 runs on a text room; the scenes and scorer are
-medium-agnostic and the call transport slots in without redesign. See
-`colleague/tracks/meeting/`.
+to three people. v0 runs on a text room; the voice transport
+(`harness/voice/`, a LiveKit room with per-persona TTS tracks and arm-exact
+utterance capture) carries the same scenes unchanged, and unify-cm has run
+it live. See `colleague/tracks/meeting/`.
 
-### `callflow` — designed, not built
+### `callflow` — built on the controlled path; the callee leg is next
 
 A decision tree, a phone call, a persona callee whose brief fixes the path.
 Score is the leaf reached, the facts carried back, and what was not said.
 The call must go through the arm's own telephony — a fixture-provided "call"
-endpoint would be the `/clarify` mistake again. Voicemail and IVR variants
-are listed and will be red for every arm today. See
+endpoint would be the `/clarify` mistake again — so every scenario is
+voice-only for real arms and the six scorers are proven through the
+controlled mock. Live runs wait on a callee the arm can dial. Voicemail and
+IVR variants are in and will be red for every arm today. See
 `colleague/tracks/callflow/`.
 
 ### Further designs, not yet tracks
@@ -441,8 +444,7 @@ colleague/
   tracks/
     standing/      eight experiments, each with results/; series/ is the
                    shared fire-series engine; plot_distillation_curve.py
-    <eleven others>/  built, self-testing; see Status
-    callflow/      designed, not built
+    <twelve others>/  built, self-testing; see Status
 ```
 
 Arm toolkits are peers of the experiments, not children of one of them. The
@@ -451,8 +453,9 @@ OpenCode toolkits living inside `recurring_report`; that is fixed.
 
 ## Status
 
-Eleven tracks are built and self-testing; one is designed and waiting on a
-transport. Every published number in this repo is still `standing` only.
+Twelve tracks are built and self-testing; `callflow`'s live runs wait on a
+callee the arm can dial. Every published number in this repo is still
+`standing` only.
 
 | Track | Scenarios | Notes |
 |---|---|---|
@@ -467,8 +470,8 @@ transport. Every published number in this repo is still `standing` only.
 | `membership` | 3 + 4 controls + 1 setup | Team-scoped facts, structure vs structure |
 | `recall` | 3 + 4 controls + 8 setup | Supersession after a week of messages |
 | `screenshare` | 1 + 1 control | Frames in; final state of the arm's own instance out |
-| `meeting` | 4 | Text room, role-played; the call transport is next |
-| `callflow` | designed | Needs a callee the arm can dial |
+| `meeting` | 6 | Text room v0 + LiveKit voice transport (two voice-only scenes); unify-cm has run it live |
+| `callflow` | 6 | Voice-only for real arms; scorers mock-proven; live runs need a callee the arm can dial |
 
 ## Next
 
