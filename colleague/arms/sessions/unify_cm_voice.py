@@ -156,11 +156,26 @@ class UnifyCMVoiceBridge:
         cm = session._cm
         boss = session._contact_dict(session._M.SESSION_DETAILS.boss_contact_id)
         roster = self._roster(personas, boss)
-        await cm.call_manager.start_unify_meet(
+        # The arm boots the CM with apply_test_mocks=True, which stubs
+        # start_unify_meet on the *instance* (the CM test-suite never wants a
+        # real LiveKit worker). This bridge wants exactly that one real path
+        # — the class's own method — while every other comms mock stays in
+        # place. Calling through the class bypasses the instance stub without
+        # unpatching anything.
+        manager = cm.call_manager
+        start_real = type(manager).start_unify_meet.__get__(manager)
+        # mode="silent": opening_config is the CM's per-meet decision in
+        # production (a None here falls through to call.py's default, a
+        # generated greeting). This meet is a room mid-conversation the
+        # assistant was added to — greeting it interrupts the humans and
+        # scores as speaking unaddressed. Joining silently is the
+        # configuration the situation calls for, not a benchmark favour:
+        # what happens after the join stays entirely the fast brain's.
+        await start_real(
             boss,
             boss,
             self._room_name,
-            opening_config=None,
+            opening_config={"mode": "silent"},
             call_session_id=None,
             participants=roster,
         )
@@ -209,9 +224,11 @@ class UnifyCMVoiceBridge:
 
         The worker registers under the room's name (no call session id, so
         `call.py`'s per-assistant naming is bypassed and the name is
-        predictable). Dispatch attempts are retried while the worker boots —
-        unify's import chain takes tens of seconds — and stop at the first
-        success, so a slow boot never produces two agents in the room.
+        predictable). A dispatch created before the worker has registered can
+        go stale, and unify's import chain takes tens of seconds — so a
+        dispatch that produces no join within its window is deleted and
+        re-issued rather than trusted. Delete-then-recreate, never a second
+        live dispatch: two dispatches on one room would seat two agents.
         """
         from livekit import api as lk_api
 
@@ -229,10 +246,12 @@ class UnifyCMVoiceBridge:
             os.environ["LIVEKIT_API_KEY"],
             os.environ["LIVEKIT_API_SECRET"],
         )
+        dispatch_id = ""
+        dispatch_born = 0.0
         try:
-            dispatched = False
-            deadline = asyncio.get_event_loop().time() + 210
-            while asyncio.get_event_loop().time() < deadline:
+            loop_time = asyncio.get_event_loop().time
+            deadline = loop_time() + 210
+            while loop_time() < deadline:
                 try:
                     resp = await lk.room.list_participants(
                         lk_api.ListParticipantsRequest(room=self._room_name),
@@ -242,25 +261,43 @@ class UnifyCMVoiceBridge:
                             return p.identity
                 except Exception:  # noqa: BLE001 - room may not exist yet
                     pass
-                if not dispatched:
+                stale = dispatch_id and loop_time() - dispatch_born > 45
+                if stale:
                     try:
-                        await lk.agent_dispatch.create_dispatch(
+                        await lk.agent_dispatch.delete_dispatch(
+                            dispatch_id,
+                            self._room_name,
+                        )
+                    except Exception:  # noqa: BLE001 - already gone is fine
+                        pass
+                    dispatch_id = ""
+                if not dispatch_id:
+                    try:
+                        created = await lk.agent_dispatch.create_dispatch(
                             lk_api.CreateAgentDispatchRequest(
                                 agent_name=self._room_name,
                                 room=self._room_name,
                                 metadata="",
                             ),
                         )
-                        dispatched = True
+                        dispatch_id = getattr(created, "id", "") or "created"
+                        dispatch_born = loop_time()
                     except Exception:  # noqa: BLE001 - worker not registered yet
                         pass
                 await asyncio.sleep(2)
         finally:
             await lk.aclose()
+        proc = getattr(self._session._cm.call_manager, "_call_proc", None)
+        if proc is None:
+            worker_state = "no worker subprocess was ever spawned"
+        elif proc.poll() is None:
+            worker_state = "worker subprocess alive but never joined"
+        else:
+            worker_state = f"worker subprocess exited with {proc.poll()}"
         raise RuntimeError(
             f"the CM's voice agent never joined room {self._room_name!r} "
-            "(worker registered: "
-            + ("yes, dispatch created" if dispatched else "no dispatch accepted")
+            f"({worker_state}; dispatch "
+            + ("created" if dispatch_id else "never accepted")
             + ")",
         )
 

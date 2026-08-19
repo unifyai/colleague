@@ -151,7 +151,14 @@ class VoiceRoom:
 
     # ------------------------------------------------------------- tokens
 
-    def _token(self, identity: str, *, publish: bool, subscribe: bool) -> str:
+    def _token(
+        self,
+        identity: str,
+        *,
+        publish: bool,
+        subscribe: bool,
+        kind: str = "standard",
+    ) -> str:
         from livekit import api
 
         grants = api.VideoGrants(
@@ -165,6 +172,7 @@ class VoiceRoom:
             api.AccessToken(self._api_key, self._api_secret)
             .with_identity(identity)
             .with_name(identity)
+            .with_kind(kind)
             .with_grants(grants)
             .to_jwt()
         )
@@ -218,9 +226,21 @@ class VoiceRoom:
                 return
             asyncio.create_task(self._read_assistant(track, alias))
 
+        # kind="egress": the capture is harness apparatus, not a person in the
+        # room. livekit-agents auto-links its audio input to the first
+        # standard/sip/connector participant it sees — joined first and
+        # standard, the capture is what an arm's agent latches onto, and the
+        # agent spends the scene listening to a recorder that never speaks.
+        # An egress participant (a recorder, which is what this is) is outside
+        # that default set, so only people are candidates.
         await room.connect(
             self.url,
-            self._token("harness-capture", publish=False, subscribe=True),
+            self._token(
+                "harness-capture",
+                publish=False,
+                subscribe=True,
+                kind="egress",
+            ),
             options=rtc.RoomOptions(auto_subscribe=True),
         )
         self._capture = room
