@@ -274,9 +274,12 @@ class UnifyCMSession(ArmSession):
         self._clarifications: list[dict[str, Any]] = []
         self._turns = 0
         self._delivery_url: str | None = None
+        self._say_url: str | None = None
         self._bridged: list[dict[str, Any]] = []
         #: Shared teams provisioned for this run: team name -> team id.
         self._teams: dict[str, int] = {}
+        #: The one group room this session sits in, when a track opens one.
+        self._room: dict[str, Any] | None = None
 
     # ---------------------------------------------------------------- bridge
 
@@ -294,6 +297,7 @@ class UnifyCMSession(ArmSession):
         self._delivery_url = (
             base_url.rstrip("/") + "/reply" if "/reply" in post_paths else None
         )
+        self._say_url = base_url.rstrip("/") + "/say" if "/say" in post_paths else None
         self._bridged = []
 
     def _bridge_delivery(self, contact_id: Any, text: str) -> None:
@@ -768,6 +772,60 @@ class UnifyCMSession(ArmSession):
             return rows[0].model_dump(mode="json")
         return {"contact_id": contact_id, "first_name": "", "surname": ""}
 
+    # ------------------------------------------------------------- text room
+
+    def open_room(self, *, participants: list[str] = ()) -> None:
+        """Mark the session as sitting in one group room until closed.
+
+        The meeting track's text room used to reach the CM as a stream of
+        1:1 events, so the product's own room discipline — the group-chat
+        turn-taking protocol, "exactly one of us should answer",
+        reply-in-the-room routing — never engaged: the CM believed every
+        overheard line was a DM addressed to it. Room lines therefore enter
+        as what they are: `UnifyMessageReceived` with a `group_id` and the
+        room's member contact ids, per-sender attributed. `mentions` stays
+        empty on purpose — noticing you were addressed by name is what
+        `addressed_by_name` measures, and the name reaches every arm as
+        prose; a parsed mention would be the fixture supplying the
+        capability under test. The id is minted per run, like team ids;
+        the room is as throwaway as the session.
+        """
+        ids: list[int] = []
+        for pid in participants:
+            contact = self._correspondents.get(str(pid).strip().lower())
+            if contact and contact.get("contact_id") is not None:
+                ids.append(int(contact["contact_id"]))
+        self._room = {
+            "group_id": int(datetime.now(timezone.utc).timestamp()) % 1_000_000_000,
+            "participant_ids": ids,
+        }
+
+    def close_room(self) -> None:
+        self._room = None
+
+    def _bridge_room_say(self, text: str) -> None:
+        """Room replies bridge to /say: the CM's room channel IS the room.
+
+        Same principle as `_bridge_delivery`: the fixture stays the only
+        witness. A send addressed to the room's group_id is the CM-native
+        way of speaking into the room, so it posts where the room hears.
+        """
+        if not self._say_url or not text.strip():
+            return
+        try:
+            body = json.dumps({"text": text}).encode()
+            req = urllib.request.Request(
+                self._say_url,
+                data=body,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                status = resp.status
+        except Exception as exc:  # noqa: BLE001 - bridge is evidence, not control flow
+            status = f"error: {exc}"
+        self._bridged.append({"to": "__room__", "text": text[:200], "status": status})
+
     # ------------------------------------------------------------ turn entry
 
     def begin(
@@ -857,7 +915,16 @@ class UnifyCMSession(ArmSession):
         turn: int,
     ) -> _Inbound:
         contact = await self._ensure_correspondent(sender)
-        event = self._M.ev.UnifyMessageReceived(contact=contact, content=content)
+        room = self._room
+        if room is not None:
+            event = self._M.ev.UnifyMessageReceived(
+                contact=contact,
+                content=content,
+                group_id=room["group_id"],
+                participant_contact_ids=list(room["participant_ids"]) or None,
+            )
+        else:
+            event = self._M.ev.UnifyMessageReceived(contact=contact, content=content)
         item = _Inbound(kind, turn, event, int(contact.get("contact_id", -1)))
         item.egress_start = len(self._egress_log)
         item.clar_seen = item.egress_start
@@ -965,15 +1032,21 @@ class UnifyCMSession(ArmSession):
             text = str(
                 getattr(evt, "content", None) or getattr(evt, "query", "") or "",
             )
-        self._egress_log.append(
-            {
-                "type": name,
-                "contact_id": contact.get("contact_id"),
-                "text": text,
-            },
-        )
+        entry: dict[str, Any] = {
+            "type": name,
+            "contact_id": contact.get("contact_id"),
+            "text": text,
+        }
+        group_id = getattr(evt, "group_id", None)
+        if group_id is not None:
+            entry["group_id"] = group_id
+        self._egress_log.append(entry)
         if name in _MESSAGE_SENT_TYPES:
-            self._bridge_delivery(contact.get("contact_id"), text)
+            room = self._room
+            if room is not None and group_id == room["group_id"]:
+                self._bridge_room_say(text)
+            else:
+                self._bridge_delivery(contact.get("contact_id"), text)
 
     # -------------------------------------------------------------- draining
 

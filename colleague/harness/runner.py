@@ -344,6 +344,15 @@ def run_track(
                 # while it runs.
                 director: RolePlayDirector | None = None
                 if scene is not None and voice_t is None:
+                    # A text scene is a group room. An arm with a native
+                    # room surface may be told so before the lines arrive:
+                    # they then reach it as room traffic (per-sender,
+                    # group-addressed) rather than a stream of DMs. The
+                    # opening request was already delivered 1:1 — the
+                    # invitation is a message; the conversation is the room.
+                    # Arms without the hook are unaffected.
+                    if cast and hasattr(session, "open_room"):
+                        session.open_room(participants=[p.id for p in cast])
 
                     def deliver_line(sender, text, _h=handle):
                         return _h.interject(text, sender=sender)
@@ -376,6 +385,8 @@ def run_track(
                         timeout_s=timeout_s,
                     )
                     record["roleplay"] = director.journal()
+                    if hasattr(session, "close_room"):
+                        session.close_room()
                 if inter is not None:
                     inter.stop()
                     record["interlocutor"] = inter.journal()
