@@ -87,6 +87,19 @@ defer-then-answer shape means `only_one_line` is structurally out of reach
 for this surface at this model pin; the whole-turn latency is the same cost
 the text `--repeat 3` showed, now in real seconds.
 
+**`unify-cm`, local, live roles, `--transport voice`, first full-track
+pass** (run `2026-08-19T14-23-55Z-unify-cm-39a77c`, n = 1 — a shape, not a
+verdict):
+
+| Scene | Result | Reading |
+|---|---|---|
+| `addressed_by_name` | DEGRADED | right answer, late — the standing signature |
+| `humans_talking` | FAIL | spoke when nobody asked: summarised the humans back to themselves, the same shape as its text runs and prime-agent's |
+| `commanded_work` | FAIL | neither the Monday schedule nor Bob's answer landed — two aimed asks in one live scene is where the whole-turn cost compounds |
+| `interrupted_mid_answer` | PASS | dropped the abandoned budget question and answered the new one, over audio |
+| `answered_in_time` | FAIL | got the answer out but spoke before being addressed and in several lines; the 8-second patience is exactly what the defer shape cannot make |
+| `two_assistants` | UNSUPPORTED | the bridge fields one CM instance per call, by design — the floor protocol goes unmeasured rather than falsely kept |
+
 **`openclaw-gateway`, local, live roles, `--repeat 3`:**
 
 | Scene | Spread | Reading |
