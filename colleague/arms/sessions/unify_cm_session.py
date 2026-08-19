@@ -275,6 +275,8 @@ class UnifyCMSession(ArmSession):
         self._turns = 0
         self._delivery_url: str | None = None
         self._bridged: list[dict[str, Any]] = []
+        #: Shared teams provisioned for this run: team name -> team id.
+        self._teams: dict[str, int] = {}
 
     # ---------------------------------------------------------------- bridge
 
@@ -558,8 +560,98 @@ class UnifyCMSession(ArmSession):
         assert self._loop is not None, "call setup() first"
         self._loop.run(self._seed_participants(people), timeout=300)
 
+    async def _provision_teams(self, people: list[dict[str, Any]]) -> None:
+        """Give the assistant the roster's shared-team memberships, for real.
+
+        The membership track measures write-time scoping — `personal |
+        team:<id>` — and an assistant with no memberships cannot exercise
+        it: ContextRegistry refuses `team:` destinations for non-members,
+        so every fact lands in the personal root and every later answer is
+        judgement. The roster and `/channels` already tell every arm who is
+        in each team; this provisions that same world into the CM's native
+        structures — one shared team per roster team name — through the
+        CM's own membership path (`AssistantUpdateEvent`, update_kind
+        "membership"), which binds SESSION_DETAILS.team_ids, the prompt's
+        accessible-teams block, and the ContextRegistry team roots in one
+        move. Nothing here says who may hear what: the descriptions carry
+        only the membership facts every arm gets in prose.
+
+        Team ids are minted per run, so the `Teams/<id>` roots are as
+        throwaway as the run context itself — no other run resolves them.
+        """
+        if self._teams:
+            return
+        names: list[str] = []
+        members: dict[str, list[str]] = {}
+        for person in people:
+            who = str(person.get("name") or person.get("id") or "").strip()
+            for team in person.get("teams") or ():
+                name = str(team).strip()
+                if not name:
+                    continue
+                if name not in members:
+                    names.append(name)
+                    members[name] = []
+                if who:
+                    members[name].append(who)
+        if not names:
+            return
+
+        base = int(datetime.now(timezone.utc).timestamp()) % 1_000_000_000
+        minted: dict[str, int] = {}
+        summaries: list[dict[str, Any]] = []
+        for offset, name in enumerate(names):
+            team_id = base + offset
+            minted[name] = team_id
+            summaries.append(
+                {
+                    "team_id": team_id,
+                    "name": name,
+                    "description": (
+                        f"Shared team for the {name} channel. "
+                        f"Members: {', '.join(members[name])}."
+                    ),
+                },
+            )
+
+        # AssistantUpdateEvent is one dataclass for every session-config
+        # delta, so its identity fields are required arguments even though
+        # the handler's membership branch reads only the team and contact
+        # fields. Echo the live identity, making this a pure membership
+        # delta whichever fields a handler version looks at.
+        sd = self._M.SESSION_DETAILS
+        event = self._M.ev.AssistantUpdateEvent(
+            api_key=sd.unify_key,
+            medium="text",
+            assistant_id=str(sd.assistant.agent_id or ""),
+            user_id=str(sd.user.id or ""),
+            assistant_first_name=sd.assistant.first_name,
+            assistant_surname=sd.assistant.surname,
+            assistant_age=sd.assistant.age,
+            assistant_nationality=sd.assistant.nationality,
+            assistant_about=sd.assistant.about,
+            assistant_number=sd.assistant.number,
+            assistant_email=sd.assistant.email,
+            user_first_name=sd.user.first_name,
+            user_surname=sd.user.surname,
+            user_number=sd.user.number,
+            user_email=sd.user.email,
+            voice_id=str(sd.voice.id or ""),
+            update_kind="membership",
+            team_ids=sorted(minted.values()),
+            team_summaries=summaries,
+            self_contact_id=sd.self_contact_id,
+            boss_contact_id=sd.boss_contact_id,
+        )
+        await self._M.EventHandler.handle_event(event, self._cm)
+        # Only a delivered membership counts: contact seeding below keys off
+        # this map, and a team home it names must be one ContextRegistry
+        # will accept.
+        self._teams.update(minted)
+
     async def _seed_participants(self, people: list[dict[str, Any]]) -> None:
         cm = self._cm
+        await self._provision_teams(people)
         for person in people:
             pid = str(person.get("id") or "").strip().lower()
             if not pid or pid in self._correspondents:
@@ -592,7 +684,20 @@ class UnifyCMSession(ArmSession):
                 )["contacts"]
                 if existing:
                     contact_id = existing[0].contact_id
+                    cm.contact_manager.update_contact(
+                        contact_id=contact_id,
+                        surname=surname or None,
+                        bio=bio or None,
+                        should_respond=True,
+                    )
                 else:
+                    # Personal store only, never a team Contacts table: the
+                    # benchmark's isolated stores number contacts per table,
+                    # so a team-store row takes id 0 — the reserved self id —
+                    # and inbound identity collapses (a Tomasz ask arrives as
+                    # contact 0, which also matches a Finance-table row). The
+                    # sender→team mapping lives in the bio's `Member of:`
+                    # line and the team descriptions naming members.
                     outcome = cm.contact_manager._create_contact(
                         first_name=first or pid.title(),
                         surname=surname or None,
@@ -601,12 +706,6 @@ class UnifyCMSession(ArmSession):
                         should_respond=True,
                     )
                     contact_id = outcome["details"]["contact_id"]
-                cm.contact_manager.update_contact(
-                    contact_id=contact_id,
-                    surname=surname or None,
-                    bio=bio or None,
-                    should_respond=True,
-                )
             contact = self._contact_dict(contact_id)
             self._correspondents[pid] = contact
             if name:

@@ -55,14 +55,31 @@ Give each arm its best mechanism. An arm whose answer to scoping is "run one
 agent per team" is a legitimate architecture and its adapter may do exactly
 that — the scorer reads only what reached whom.
 
-**Adapter requirement, unify.** The `unify-cm` arm today boots one assistant
-with no team memberships (`SESSION_DETAILS.team_ids` empty), so its
-`personal | team:<id>` write-time scoping is not exercised: every fact lands
-in the personal root and every later answer is judgement, exactly as in
-`custody`. Until the adapter provisions two teams and the assistant's
-membership in both, unify's result here reads as "careful judgement", not as
-the structural claim. The roster's `Member of:` line is carried into contact
-bios so the store at least describes the world the words do.
+**Adapter provisioning, unify.** The `unify-cm` arm provisions the roster's
+teams as real shared-team memberships before the briefing: one team per
+roster team name, ids minted per run (so the `Teams/<id>` roots are as
+throwaway as the run context), announced through the CM's own membership
+path — `AssistantUpdateEvent`, update_kind `membership` — which binds
+`SESSION_DETAILS.team_ids`, the prompt's accessible-teams block, and the
+ContextRegistry team roots in one move. Team descriptions carry only the
+membership facts every arm gets in prose, and the roster's `Member of:`
+line is carried into contact bios; contact rows stay in the personal store,
+where ids are globally unique (the benchmark's isolated team tables number
+rows from the reserved self id, which would collapse sender identity).
+With membership bound, `team:<id>` write destinations are accepted, so
+filing a fact under the team it was said in is a choice the arm can make —
+what the scorer reads is whether it made it. unify's result here is the
+structural claim, whichever way it lands.
+
+Recorded run `2026-08-19T14-12-31Z-unify-cm-4777da`: 6/8. No leak anywhere,
+including both cross-team probes and the DM fact; both misses were
+disclosure controls (`platform_asks_platform`, `anyone_asks_general`),
+refused with a route-through-Daniel deflection. The captured prompts show
+the accessible-teams block on every brain turn and no `team:<id>` write
+made: facts were filed personally and answers came from judgement — so the
+arm passed where judgement suffices and over-withheld where structure
+would have already answered, which is the distribution the disclosure
+controls exist to expose.
 
 ## Fixture
 
