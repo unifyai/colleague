@@ -227,8 +227,11 @@ class UnifyCMVoiceBridge:
         predictable). A dispatch created before the worker has registered can
         go stale, and unify's import chain takes tens of seconds — so a
         dispatch that produces no join within its window is deleted and
-        re-issued rather than trusted. Delete-then-recreate, never a second
-        live dispatch: two dispatches on one room would seat two agents.
+        re-issued rather than trusted. But only a dispatch with **no job
+        assigned** may be treated as stale: deleting a dispatch does not kill
+        a job a slow-booting worker has already taken, and re-issuing over a
+        live boot seated three agents in one room (the 14:06Z run — a chorus
+        the harness itself caused). An assigned dispatch just gets more time.
         """
         from livekit import api as lk_api
 
@@ -261,16 +264,34 @@ class UnifyCMVoiceBridge:
                             return p.identity
                 except Exception:  # noqa: BLE001 - room may not exist yet
                     pass
-                stale = dispatch_id and loop_time() - dispatch_born > 45
-                if stale:
+                if dispatch_id and loop_time() - dispatch_born > 45:
+                    # Assigned means a worker took the job and is booting:
+                    # reset the clock and keep waiting. When the server can't
+                    # be read, assume assigned — a leaked wait is recoverable,
+                    # a second seated agent is not.
+                    assigned = True
                     try:
-                        await lk.agent_dispatch.delete_dispatch(
-                            dispatch_id,
+                        listed = await lk.agent_dispatch.list_dispatch(
                             self._room_name,
                         )
-                    except Exception:  # noqa: BLE001 - already gone is fine
+                        assigned = any(
+                            getattr(d, "id", "") == dispatch_id
+                            and bool(getattr(getattr(d, "state", None), "jobs", ()))
+                            for d in listed
+                        )
+                    except Exception:  # noqa: BLE001 - unreadable ≠ stale
                         pass
-                    dispatch_id = ""
+                    if assigned:
+                        dispatch_born = loop_time()
+                    else:
+                        try:
+                            await lk.agent_dispatch.delete_dispatch(
+                                dispatch_id,
+                                self._room_name,
+                            )
+                        except Exception:  # noqa: BLE001 - already gone is fine
+                            pass
+                        dispatch_id = ""
                 if not dispatch_id:
                     try:
                         created = await lk.agent_dispatch.create_dispatch(

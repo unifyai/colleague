@@ -70,6 +70,23 @@ spread is PASS ×2 · DEGRADED ×1 (Bob's answer late once).
 Read the whole table as a shape, not a verdict: n = 3, one arm, one week's
 code.
 
+**`unify-cm`, local, live roles, `--transport voice --only addressed_by_name
+--repeat 5`** (2026-08-19, runs `13-42-42Z`/`13-46-33Z`/`13-52-24Z`/
+`13-59-10Z`/`14-06-51Z`):
+
+| Scene | Spread | Reading |
+|---|---|---|
+| `addressed_by_name` (voice) | DEGRADED ×4 · 1 discarded | the right answer in every valid run — "Thursday at fourteen o'clock UTC" — always as a fast-brain defer line first, then the answer. Three landed after the room had moved on; one was in time but with extra lines, the live roles' reactions pulling it into over-talking (it volunteered venue opinions and the budget, unasked). The fifth run is discarded as a harness fault, not scored: the bridge's stale-dispatch delete raced a slow worker boot and seated three agents in one room — a chorus the harness caused (fixed: a dispatch with a job assigned is never deleted) |
+
+Scored on the arm's own utterance text, never a transcript; "fourteen
+o'clock" counts as `14:00` (spoken forms, declared beside the fixture's
+ground truth). Same day, earlier: three runs excluded as environment faults
+(the agent linked to the harness recorder; missing turn-detector models;
+Orchestra without its embed key) — the trail is in SCENARIO_CHANGES. The
+defer-then-answer shape means `only_one_line` is structurally out of reach
+for this surface at this model pin; the whole-turn latency is the same cost
+the text `--repeat 3` showed, now in real seconds.
+
 **`openclaw-gateway`, local, live roles, `--repeat 3`:**
 
 | Scene | Spread | Reading |

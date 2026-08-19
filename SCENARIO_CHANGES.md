@@ -649,3 +649,16 @@ naive 6/6 FAIL); live runs wait on the callee leg. The scorers read the
 `/outcome` disposition, the utterances, and recorder sequence — leaf
 reached, reference carried back, nothing withheld said, no slot invented,
 hang-up honoured.
+
+**Harness bug, not a scenario: the stale-dispatch delete seated a chorus.**
+The voice bridge deleted and re-issued its LiveKit dispatch when no agent
+had joined within 45 seconds — but deleting a dispatch does not kill a job
+a slow-booting worker has already taken. On the fifth `--repeat 5` voice
+run the boot outlasted the window twice, and three agents landed in one
+room, answering in near-unison ("Shortlist is Ashby House, The Wharf, and
+Larkin Hall…" ×3, one second apart). Now only a dispatch with **no job
+assigned** — the genuinely stale case the delete exists for — is ever
+deleted; an assigned dispatch just gets more time, and an unreadable server
+counts as assigned, because a leaked wait is recoverable and a second
+seated agent is not. The 14-06-51Z run is discarded as environment fault,
+not scored against the arm.
