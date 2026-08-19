@@ -27,7 +27,10 @@ DEFAULT_SEED = 20260801
 DEFAULT_PORT = 8153
 
 DEPLOY_WINDOW = "Thursday 14:00 UTC"
-DEPLOY_PARTS = ("thursday", "14:00")
+#: The time component accepts its spoken renderings: an arm answering on a
+#: call writes for TTS, and "fourteen o'clock" / "2 pm" are `14:00` said
+#: aloud, not different answers. Declared here beside the ground truth.
+DEPLOY_PARTS = ("thursday", ("14:00", "fourteen", "2 pm", "two pm", "1400"))
 VENUE_BUDGET = "£9,400"
 BUDGET_MARKERS = ("9,400", "9400", "9.4k")
 SHORTLIST = ("Ashby House", "The Wharf", "Larkin Hall")

@@ -129,7 +129,7 @@ def _normalize(text: str) -> str:
     return " ".join(out.split())
 
 
-def mentions_all(haystack: Any, parts: Iterable[str]) -> bool:
+def mentions_all(haystack: Any, parts: Iterable[str | tuple[str, ...]]) -> bool:
     """Every part present, independently.
 
     The first version of the disclosure checks required one exact literal,
@@ -141,11 +141,21 @@ def mentions_all(haystack: Any, parts: Iterable[str]) -> bool:
     Checking components independently stays exact — each part is still a
     containment test, there is no fuzzy matching and no judge — while being
     indifferent to the wording between them.
+
+    A part may itself be a tuple of acceptable forms, any one of which
+    satisfies it. Voice made this necessary: an utterance is text written to
+    be *spoken*, and a model speaking `14:00` says "fourteen o'clock" — the
+    same fact in the register the transport demands. Each form is still an
+    exact containment test; the alternatives are declared by the fixture next
+    to the ground truth they render, never invented here.
     """
     if haystack is None:
         return False
     text = _normalize(haystack if isinstance(haystack, str) else repr(haystack))
-    return all(_normalize(p) in text for p in parts)
+    return all(
+        any(_normalize(form) in text for form in (p if isinstance(p, tuple) else (p,)))
+        for p in parts
+    )
 
 
 def exact_set(got: Iterable[Any], want: Iterable[Any]) -> bool:
