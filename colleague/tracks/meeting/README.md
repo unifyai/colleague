@@ -70,6 +70,18 @@ spread is PASS ×2 · DEGRADED ×1 (Bob's answer late once).
 Read the whole table as a shape, not a verdict: n = 3, one arm, one week's
 code.
 
+**Text room under group semantics** (single run, `unify-cm`, run
+`2026-08-19T14-51-35Z-unify-cm-ac83c9`): `interrupted_mid_answer` PASS;
+`addressed_by_name` DEGRADED — answered after the conversation had moved
+on, the same latency degradation as the spread above; `commanded_work`
+FAIL — it asked Priya for the timezone, was told, then declined to
+schedule into a scheduler whose `09:00` encodes no timezone
+(`answered_bob` and `silent_until_addressed` both held); `humans_talking`
+FAIL — one volunteered line, spoken through the room. The room reaches the
+CM as group traffic: `group_id` plus the cast's contact ids per line,
+mentions left empty so noticing your own name stays the thing measured;
+room-addressed sends bridge to `/say`.
+
 **`unify-cm`, local, live roles, `--transport voice --only addressed_by_name
 --repeat 5`** (2026-08-19, runs `13-42-42Z`/`13-46-33Z`/`13-52-24Z`/
 `13-59-10Z`/`14-06-51Z`):
