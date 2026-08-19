@@ -1,7 +1,13 @@
-# callflow — designed, not built
+# callflow — built on the controlled path; the callee leg is next
 
 Hand the assistant a decision tree, ask it to call someone and follow it,
 and score which leaf it reached.
+
+The fixture, all six scenarios and their scorers are built and proven
+through the controlled mock (`selftest`: ideal 6/6 PASS, naive 6/6 FAIL).
+Every scenario is voice-only for real arms — the rule below forbids a text
+"call" — so live runs wait on the **adapter requirements** at the bottom:
+a callee the arm can actually dial.
 
 ## The callee is a role-player
 
@@ -82,7 +88,7 @@ call away from their own surface, and would score a chat transcript as a
 phone call. The call must go through the arm's own telephony; the fixture
 serves the tree, plays the callee, and receives the outcome.
 
-## Adapter requirements — the reason it is not built
+## Adapter requirements — the callee leg, still to build
 
 - **A callee** the arm can dial: a SIP/LiveKit endpoint the harness owns,
   answered by the persona (TTS out, STT in, the persona pool deciding what

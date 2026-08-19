@@ -31,6 +31,7 @@ TRACKS = (
     "recall",
     "screenshare",
     "meeting",
+    "callflow",
 )
 
 ROOT = Path(__file__).resolve().parent
