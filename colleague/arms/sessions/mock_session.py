@@ -21,7 +21,7 @@ from __future__ import annotations
 import json
 import urllib.error
 import urllib.request
-from typing import Any, Callable
+from typing import Any, Callable, ClassVar
 
 from colleague.arms.sessions import register
 from colleague.harness.capability import ArmProfile, Steering, Storage
@@ -79,11 +79,20 @@ class MockSession(ArmSession):
 
     profile = MOCK_PROFILE
 
+    #: Durable stores by run id — the mock's stand-in for an arm whose
+    #: memory survives its process. The runner's id convention does the
+    #: scoping: a track-scoped session and a `restart:` session carry the
+    #: run's own id and so read the same store; a `fresh_session:` scenario
+    #: carries a suffixed id and gets a blank one, which is exactly the
+    #: clean-mind control that key exists for.
+    _durable: ClassVar[dict[str, dict[str, Any]]] = {}
+
     def __init__(
         self,
         *,
         mode: str = "ideal",
         plan: Callable | None = None,
+        run_id: str = "",
         **_: Any,
     ) -> None:
         self.mode = mode
@@ -93,7 +102,9 @@ class MockSession(ArmSession):
         self._clarifications: list[dict[str, Any]] = []
         self.images: list[str] = []
         """Frames handed to the current turn, for plans that 'look'."""
-        self.memory: dict[str, Any] = {}
+        self.memory: dict[str, Any] = (
+            self._durable.setdefault(run_id, {}) if run_id else {}
+        )
         """Survives across scenarios, standing in for a live session.
 
         `ideal` plans read and write it; `naive` plans ignore it, which is

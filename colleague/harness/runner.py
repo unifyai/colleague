@@ -70,7 +70,9 @@ def _session_for(
     mode: str = "ideal",
 ) -> ArmSession:
     if arm == "mock":
-        return build_session("mock", mode=mode)
+        # run_id keys the mock's durable store; without it a restart
+        # session cannot find the week the shared session banked.
+        return build_session("mock", mode=mode, run_id=run_id)
     if arm in ("unify", "unify-cm"):
         return build_session(
             arm,
@@ -181,11 +183,19 @@ def run_track(
             # control that exists to establish what the API alone yields was
             # measuring retention instead — and made the taught result
             # unreadable.
-            own_session = bool(live.get("fresh_session"))
+            #
+            # `restart` is the opposite shape: a new process over the same
+            # durable world. It keeps the run's own id, so an arm whose
+            # store is keyed by it (the CM's context tree, the mock's
+            # durable store) reattaches, and an arm that kept the week in
+            # its prompt has nothing. A restart scenario belongs after the
+            # turns it must remember, and nothing may use the shared
+            # session once the restart has booted over it.
+            own_session = bool(live.get("fresh_session") or live.get("restart"))
             session = (None if own_session else shared_session) or _session_for(
                 arm,
                 track=track,
-                run_id=f"{run_id}-{name}",
+                run_id=run_id if live.get("restart") else f"{run_id}-{name}",
                 results_dir=results_dir / name,
                 timeout_s=timeout_s,
                 mode=mode,

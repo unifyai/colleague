@@ -51,11 +51,24 @@ two flat files that are always in the prompt. Any of those can get the
 newest value right. What differs is what it costs by day eight, and whether
 the old value is genuinely gone or merely outranked.
 
-## Not built yet
+## Across a restart
 
-**Across a restart.** The same questions in a fresh process, so that only a
-durable store answers. The scenario shape exists (`fresh_session: True`),
-but the CM adapter keys its context tree to the run id, so a fresh session
-would lose the week for a reason that is the adapter's and not the
-product's. Pin the context tree across sessions in the adapter first, then
-add the restart asks; until then a restart result would mismeasure.
+`ask_after_restart` re-asks the whole week in one message, in a fresh
+process (`restart: True`): the session is torn down and a new one boots
+over the same durable world. The runner hands a restart session the run's
+own id, so an arm whose store is keyed by it — the CM's context tree, the
+mock's durable store — reattaches, while an arm that carried the week in
+its prompt has nothing. `fresh_session:` remains the opposite shape, a
+clean store for control scenarios, which is why restart is its own key.
+Scoring is the ask scoring across every question at once: each current
+value contained, no stale value standing in for a missing one. A restart
+scenario belongs after the turns it must remember, and nothing may use
+the track's shared session once the restart has booted over it.
+
+Recorded run `2026-08-19T15-35-52Z-unify-cm-71152d`: every in-session ask
+passed; after the restart six of seven came back current — including both
+other supersessions, the twice-moved offsite and the shifted deploy
+window — and the Trellis contact came back as the replaced name. In one
+process the newest value outranked the old; across a restart the old one
+resurfaced, which is precisely the distinction this variant exists to
+catch.

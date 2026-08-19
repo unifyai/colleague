@@ -69,6 +69,22 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
                 ),
             },
         )
+    out.append(
+        {
+            "name": "ask_after_restart",
+            "request": (
+                "I had to restart you — quick check that nothing was lost. "
+                "One line each: " + " ".join(QUESTIONS.values())
+            ),
+            "restart": True,
+            "continue": True,
+            "sender": "daniel",
+            "note": (
+                "The same questions in a fresh process: only a durable store "
+                "answers. The week must survive the arm, not the prompt."
+            ),
+        },
+    )
     return out
 
 
@@ -101,6 +117,26 @@ def mock_plan(*, scenario: str, mode: str, memory, **_: Any) -> dict[str, Any]:
                 memory.setdefault(key, value)
         return {"noted": sorted(_ESTABLISHES[day])}
 
+    if scenario == "ask_after_restart":
+        # A durable store answers the whole week in one breath; a store
+        # that died with the process has nothing but apologies.
+        lines = [
+            f"{key}: {memory.get(key, 'I lost that.')}"
+            for key in (
+                "offsite",
+                "trellis_contact",
+                "deploy_window",
+                "portal_manager",
+                "travel_code",
+                "priya_cover",
+            )
+        ]
+        lines.append(
+            f"board pack: {memory.get('board_and_bucket:board', 'I lost that.')}; "
+            f"exports: {memory.get('board_and_bucket:bucket', 'I lost that.')}",
+        )
+        return {"answer": " | ".join(lines)}
+
     key = scenario.removeprefix("ask_")
     if key == "board_and_bucket":
         answer = (
@@ -132,6 +168,32 @@ def score(
             outcome,
             card.as_dict(),
             "" if card.passed else "turn failed",
+        )
+
+    if name == "ask_after_restart":
+        # The single-ask logic, across every question at once: each current
+        # value contained, and no stale value standing in for a missing one.
+        for key, truth in TRUTH.items():
+            current = truth["current"]
+            parts = current if isinstance(current, tuple) else (current,)
+            card.check(
+                f"recalled_{key}",
+                mentions_all(text, parts),
+                wanted=list(parts),
+            )
+            stale = mentions_any(text, truth["stale"])
+            card.check(
+                f"not_stale_{key}",
+                not (stale and not card.checks[f"recalled_{key}"]),
+                stale_markers=stale,
+            )
+        card.evidence["reply_text"] = text[:600]
+        outcome = Outcome.PASS if card.passed else Outcome.FAIL
+        return ScenarioResult(
+            name,
+            outcome,
+            card.as_dict(),
+            "" if card.passed else f"failed: {', '.join(card.failures)}",
         )
 
     key = name.removeprefix("ask_")
