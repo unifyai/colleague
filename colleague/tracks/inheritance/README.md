@@ -35,3 +35,12 @@ the conversation in its context has the same information unify's fork
 provides. The interesting result is the cold control, and the gap that opens
 when work is delegated deeper. If every arm passes all three, that is a real
 finding and should be reported as one.
+
+Recorded run `2026-08-19T16-13-52Z-unify-cm-1af0c5`: `ambiguous_recipient`,
+`quiet_constraint`, and `cold_control` passed — the cold control asked
+Daniel through the CM's own channel and acted on the answer, which is the
+clarification bridge working end to end. `ask_the_owner` failed as a
+genuine choice: the actor found the report and missed the vendor contact,
+and the brain reported the blocker back to Daniel as a statement rather
+than asking anyone — the inherited conversation had named Priya, and a
+question addressed to her would have been carried with its addressee.
