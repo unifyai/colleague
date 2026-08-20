@@ -1,0 +1,1132 @@
+{
+  "track": "teaching",
+  "arm": "unify",
+  "run_id": "2026-08-18T21-14-32Z-unify-e472b5",
+  "seed": 20260801,
+  "session_scope": "track",
+  "transport": "text",
+  "scenarios": [
+    {
+      "name": "week_31_taught",
+      "note": "Taught. Any arm following instructions should get this right, and should show the list once before sending.",
+      "profile": "ArmProfile(name='unify', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, voice=False, notes='ConversationManager holds per-action interject/ask/pause/stop tools; inner loops race generation against the interjection queue. Knowledge is written to typed contexts that carry scope.')",
+      "transport": "text",
+      "reply": {
+        "ok": true,
+        "text": "Week 31 invoice chase completed:\n\n- **INV-31-4 \u2014 Ostrava Metals:** sent to `ap@ostrava.example`\n- **INV-31-5 \u2014 Bergen Chemical:** sent to `amanda.reyes@northwind.example`\n\nBoth requests returned **HTTP 200** with `status: sent`.\n\nI\u2019ve saved the procedure. Future runs will use the **strictly over 45 days** threshold, apply the Bergen Chemical exception, send one reminder per invoice, and run without asking for approval again.\n\n**Uncertainties:** None."
+      },
+      "clarifications": [
+        {
+          "question": "Week 31 has 2 reminders under your rules (strictly more than 45 days overdue):\n\n1. INV-31-4 \u2014 Ostrava Metals \u2014 78 days overdue \u2014 amount 2,904 \u2014 send to ap@ostrava.example (invoice shows payment_plan=true)\n2. INV-31-5 \u2014 Bergen Chemical \u2014 63 days overdue \u2014 amount 1,178 \u2014 send to amanda.reyes@northwind.example (Bergen exception)\n\nNo reminders have been sent. Do you approve sending these two POSTs now?",
+          "answer": "Yes, go ahead and send both reminders.",
+          "call_id": "call_6MoXY3atBHLFtCUblOiIK2RI"
+        }
+      ],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_invoices",
+            "n": 1,
+            "at": "2026-08-18T21:16:57.801393+00:00",
+            "week": 31
+          },
+          {
+            "waypoint": "remind",
+            "n": 1,
+            "at": "2026-08-18T21:17:21.778605+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 2,
+            "at": "2026-08-18T21:17:24.785146+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "remind",
+            "at": "2026-08-18T21:17:21.778618+00:00",
+            "payload": {
+              "to": "ap@ostrava.example",
+              "invoice_id": "INV-31-4"
+            }
+          },
+          {
+            "seq": 2,
+            "kind": "remind",
+            "at": "2026-08-18T21:17:24.785167+00:00",
+            "payload": {
+              "to": "amanda.reyes@northwind.example",
+              "invoice_id": "INV-31-5"
+            }
+          }
+        ],
+        "persona_exchanges": [
+          {
+            "at": "2026-08-18T21:17:09.668717+00:00",
+            "persona": "daniel",
+            "question": "Week 31 has 2 reminders under your rules (strictly more than 45 days overdue):\n\n1. INV-31-4 \u2014 Ostrava Metals \u2014 78 days overdue \u2014 amount 2,904 \u2014 send to ap@ostrava.example (invoice shows payment_plan=true)\n2. INV-31-5 \u2014 Bergen Chemical \u2014 63 days overdue \u2014 amount 1,178 \u2014 send to amanda.reyes@northwind.example (Bergen exception)\n\nNo reminders have been sent. Do you approve sending these two POSTs now?",
+            "reply": "Yes, go ahead and send both reminders.",
+            "tokens": 356,
+            "mode": "model"
+          }
+        ],
+        "persona_tokens": 356
+      },
+      "result": {
+        "scenario": "week_31_taught",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_31_taught",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true,
+            "previewed_before_first_send": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 2,
+            "clarifications": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "week_32_replay",
+      "note": "The measurement. Nothing is restated \u2014 not the threshold, not the exception, not the API.",
+      "profile": "ArmProfile(name='unify', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, voice=False, notes='ConversationManager holds per-action interject/ask/pause/stop tools; inner loops race generation against the interjection queue. Knowledge is written to typed contexts that carry scope.')",
+      "transport": "text",
+      "reply": {
+        "ok": true,
+        "text": "Week 32 invoice chase completed. Two reminders sent:\n\n- **INV-32-4 \u2014 Ostrava Metals:** 56 days overdue, amount **3,899**, sent to `ap@ostrava.example`\n- **INV-32-5 \u2014 Bergen Chemical:** 61 days overdue, amount **2,640**, sent to `amanda.reyes@northwind.example`\n\nBoth returned **HTTP 200** with `status: sent`. No failures.\n\n**Uncertainties:** None."
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_invoices",
+            "n": 1,
+            "at": "2026-08-18T21:18:49.874094+00:00",
+            "week": 32
+          },
+          {
+            "waypoint": "remind",
+            "n": 1,
+            "at": "2026-08-18T21:18:49.874751+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 2,
+            "at": "2026-08-18T21:18:52.875585+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "remind",
+            "at": "2026-08-18T21:18:49.874756+00:00",
+            "payload": {
+              "to": "ap@ostrava.example",
+              "invoice_id": "INV-32-4"
+            }
+          },
+          {
+            "seq": 2,
+            "kind": "remind",
+            "at": "2026-08-18T21:18:52.875594+00:00",
+            "payload": {
+              "to": "amanda.reyes@northwind.example",
+              "invoice_id": "INV-32-5"
+            }
+          }
+        ],
+        "persona_exchanges": [
+          {
+            "at": "2026-08-18T21:17:09.668717+00:00",
+            "persona": "daniel",
+            "question": "Week 31 has 2 reminders under your rules (strictly more than 45 days overdue):\n\n1. INV-31-4 \u2014 Ostrava Metals \u2014 78 days overdue \u2014 amount 2,904 \u2014 send to ap@ostrava.example (invoice shows payment_plan=true)\n2. INV-31-5 \u2014 Bergen Chemical \u2014 63 days overdue \u2014 amount 1,178 \u2014 send to amanda.reyes@northwind.example (Bergen exception)\n\nNo reminders have been sent. Do you approve sending these two POSTs now?",
+            "reply": "Yes, go ahead and send both reminders.",
+            "tokens": 356,
+            "mode": "model"
+          }
+        ],
+        "persona_tokens": 356
+      },
+      "result": {
+        "scenario": "week_32_replay",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_32_replay",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true,
+            "unattended": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 2,
+            "clarifications": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "week_33_corrected",
+      "note": "A third rule arrives as a correction after the first reminder has gone: don't chase anyone on a payment plan. Progress kept, remainder corrected.",
+      "profile": "ArmProfile(name='unify', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, voice=False, notes='ConversationManager holds per-action interject/ask/pause/stop tools; inner loops race generation against the interjection queue. Knowledge is written to typed contexts that carry scope.')",
+      "transport": "text",
+      "interlocutor": [
+        {
+          "label": "correction",
+          "sender": "daniel",
+          "text": "Oh \u2014 one more thing, from now on: anyone on a payment plan (the API shows it) doesn't get chased at all. Skip them.",
+          "waypoint": "remind",
+          "nth": 1,
+          "delivered": true,
+          "mode": "live_interject",
+          "recorder_seq": 1,
+          "at": "2026-08-18T21:20:29.390836+00:00"
+        }
+      ],
+      "reply": {
+        "ok": true,
+        "text": "Week 33 invoice chase completed:\n\n- **INV-33-4 \u2014 Ostrava Metals:** reminder sent to `ap@ostrava.example` (HTTP 200). The API shows `payment_plan: true`; unfortunately, this send completed before your new instruction arrived.\n- **INV-33-5 \u2014 Bergen Chemical:** reminder sent to `amanda.reyes@northwind.example` (HTTP 200). Not on a payment plan.\n\nI\u2019ve updated the standing procedure: **all invoices marked as being on a payment plan will be skipped from now on**, regardless of overdue age.\n\n**Uncertainties:** The reminder API exposes no documented recall mechanism, so I did not attempt to retract the Ostrava message or send a corrective follow-up."
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_invoices",
+            "n": 1,
+            "at": "2026-08-18T21:20:23.377988+00:00",
+            "week": 33
+          },
+          {
+            "waypoint": "remind",
+            "n": 1,
+            "at": "2026-08-18T21:20:23.379200+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 2,
+            "at": "2026-08-18T21:20:26.384387+00:00"
+          },
+          {
+            "waypoint": "read_invoices",
+            "n": 2,
+            "at": "2026-08-18T21:21:15.626499+00:00",
+            "week": 33
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "remind",
+            "at": "2026-08-18T21:20:23.379213+00:00",
+            "payload": {
+              "to": "ap@ostrava.example",
+              "invoice_id": "INV-33-4"
+            }
+          },
+          {
+            "seq": 2,
+            "kind": "remind",
+            "at": "2026-08-18T21:20:26.384419+00:00",
+            "payload": {
+              "to": "amanda.reyes@northwind.example",
+              "invoice_id": "INV-33-5"
+            }
+          }
+        ],
+        "persona_exchanges": [
+          {
+            "at": "2026-08-18T21:17:09.668717+00:00",
+            "persona": "daniel",
+            "question": "Week 31 has 2 reminders under your rules (strictly more than 45 days overdue):\n\n1. INV-31-4 \u2014 Ostrava Metals \u2014 78 days overdue \u2014 amount 2,904 \u2014 send to ap@ostrava.example (invoice shows payment_plan=true)\n2. INV-31-5 \u2014 Bergen Chemical \u2014 63 days overdue \u2014 amount 1,178 \u2014 send to amanda.reyes@northwind.example (Bergen exception)\n\nNo reminders have been sent. Do you approve sending these two POSTs now?",
+            "reply": "Yes, go ahead and send both reminders.",
+            "tokens": 356,
+            "mode": "model"
+          }
+        ],
+        "persona_tokens": 356
+      },
+      "result": {
+        "scenario": "week_33_corrected",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_33_corrected",
+          "passed": true,
+          "checks": {
+            "no_payment_plan_reminder_after_correction": true,
+            "everyone_else_still_reached": true,
+            "nobody_reminded_twice": true,
+            "used_the_account_manager_route": true
+          },
+          "failures": [],
+          "evidence": {
+            "sent_after": [],
+            "missing": [],
+            "correction_seq": 1,
+            "reminder_seqs": [
+              1,
+              2
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "week_34_replay_after_correction",
+      "note": "The measurement for the correction: nothing restated. A colleague who was corrected last week does not need telling again.",
+      "profile": "ArmProfile(name='unify', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, voice=False, notes='ConversationManager holds per-action interject/ask/pause/stop tools; inner loops race generation against the interjection queue. Knowledge is written to typed contexts that carry scope.')",
+      "transport": "text",
+      "reply": {
+        "ok": true,
+        "text": "Week 34 invoice chase completed.\n\n**Sent:**\n- **INV-34-5 \u2014 Bergen Chemical:** 58 days overdue, amount **5,588**, sent to `amanda.reyes@northwind.example`\n- API returned **HTTP 200** with `status: sent`\n\n**Skipped:**\n- **INV-34-4 \u2014 Ostrava Metals:** 74 days overdue, but marked as being on a payment plan\n\nNo failures.\n\n**Uncertainties:** None."
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_invoices",
+            "n": 1,
+            "at": "2026-08-18T21:22:30.587492+00:00",
+            "week": 34
+          },
+          {
+            "waypoint": "remind",
+            "n": 1,
+            "at": "2026-08-18T21:22:30.588489+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "remind",
+            "at": "2026-08-18T21:22:30.588497+00:00",
+            "payload": {
+              "to": "amanda.reyes@northwind.example",
+              "invoice_id": "INV-34-5"
+            }
+          }
+        ],
+        "persona_exchanges": [
+          {
+            "at": "2026-08-18T21:17:09.668717+00:00",
+            "persona": "daniel",
+            "question": "Week 31 has 2 reminders under your rules (strictly more than 45 days overdue):\n\n1. INV-31-4 \u2014 Ostrava Metals \u2014 78 days overdue \u2014 amount 2,904 \u2014 send to ap@ostrava.example (invoice shows payment_plan=true)\n2. INV-31-5 \u2014 Bergen Chemical \u2014 63 days overdue \u2014 amount 1,178 \u2014 send to amanda.reyes@northwind.example (Bergen exception)\n\nNo reminders have been sent. Do you approve sending these two POSTs now?",
+            "reply": "Yes, go ahead and send both reminders.",
+            "tokens": 356,
+            "mode": "model"
+          }
+        ],
+        "persona_tokens": 356
+      },
+      "result": {
+        "scenario": "week_34_replay_after_correction",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_34_replay_after_correction",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true,
+            "unattended": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example"
+            ],
+            "reminders": 1,
+            "clarifications": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "week_35",
+      "note": "One rule amended in one sentence; the threshold and the payment-plan rule are not mentioned and must not move.",
+      "profile": "ArmProfile(name='unify', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, voice=False, notes='ConversationManager holds per-action interject/ask/pause/stop tools; inner loops race generation against the interjection queue. Knowledge is written to typed contexts that carry scope.')",
+      "transport": "text",
+      "reply": {
+        "ok": true,
+        "text": "Updated the Bergen Chemical routing to **Tomas Lindqvist** for future runs.\n\nWeek 35 invoice chase completed:\n\n**Sent**\n- **INV-35-5 \u2014 Bergen Chemical:** 77 days overdue, amount **6,211**\n- Recipient: `tomas.lindqvist@northwind.example`\n- Result: **HTTP 200**, `status: sent`\n\n**Skipped**\n- **INV-35-4 \u2014 Ostrava Metals:** 81 days overdue, but on a payment plan\n\nNo failures.\n\n**Uncertainties:** None."
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_invoices",
+            "n": 1,
+            "at": "2026-08-18T21:23:59.535899+00:00",
+            "week": 35
+          },
+          {
+            "waypoint": "remind",
+            "n": 1,
+            "at": "2026-08-18T21:23:59.536845+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "remind",
+            "at": "2026-08-18T21:23:59.536851+00:00",
+            "payload": {
+              "to": "tomas.lindqvist@northwind.example",
+              "invoice_id": "INV-35-5"
+            }
+          }
+        ],
+        "persona_exchanges": [
+          {
+            "at": "2026-08-18T21:17:09.668717+00:00",
+            "persona": "daniel",
+            "question": "Week 31 has 2 reminders under your rules (strictly more than 45 days overdue):\n\n1. INV-31-4 \u2014 Ostrava Metals \u2014 78 days overdue \u2014 amount 2,904 \u2014 send to ap@ostrava.example (invoice shows payment_plan=true)\n2. INV-31-5 \u2014 Bergen Chemical \u2014 63 days overdue \u2014 amount 1,178 \u2014 send to amanda.reyes@northwind.example (Bergen exception)\n\nNo reminders have been sent. Do you approve sending these two POSTs now?",
+            "reply": "Yes, go ahead and send both reminders.",
+            "tokens": 356,
+            "mode": "model"
+          }
+        ],
+        "persona_tokens": 356
+      },
+      "result": {
+        "scenario": "week_35",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_35",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true,
+            "unattended": true,
+            "amendment_applied": true,
+            "untouched_rules_kept": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "tomas.lindqvist@northwind.example"
+            ],
+            "expected": [
+              "tomas.lindqvist@northwind.example"
+            ],
+            "reminders": 1,
+            "clarifications": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "week_36",
+      "note": "Unattended. Nothing restated, nothing should be asked.",
+      "profile": "ArmProfile(name='unify', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, voice=False, notes='ConversationManager holds per-action interject/ask/pause/stop tools; inner loops race generation against the interjection queue. Knowledge is written to typed contexts that carry scope.')",
+      "transport": "text",
+      "reply": {
+        "ok": true,
+        "text": "Week 36 processing stopped after the routing issue:\n\n- **INV-36-5 \u2014 Bergen Chemical:** incorrectly sent to former account manager `amanda.reyes@northwind.example` due to a stale compiled workflow. The API returned **HTTP 200 / `status: sent`**.\n- **No second reminder was sent to Tomas**, per your instruction.\n- **INV-36-4 \u2014 Ostrava Metals:** skipped because it is on a payment plan.\n- The other three invoices were not more than 45 days overdue.\n\nI repaired the workflow and added a pre-send safeguard requiring Bergen reminders to resolve to `tomas.lindqvist@northwind.example`.\n\n**Uncertainties:** Whether INV-36-5 should eventually receive a corrective reminder to Tomas remains unresolved."
+      },
+      "clarifications": [
+        {
+          "question": "I need your decision on a week 36 exception. The stored workflow unexpectedly used its stale compiled Bergen route and sent INV-36-5 to Amanda Reyes (HTTP 200) before I detected the mismatch. The correct recipient is Tomas, and I\u2019ve repaired the workflow and added a pre-send safety check. There is no recall endpoint, and sending to Tomas now would create a second reminder POST for the same invoice. Should I send a corrective reminder for INV-36-5 to tomas.lindqvist@northwind.example?",
+          "answer": "I don\u2019t know. Don\u2019t send another reminder yet.",
+          "call_id": "call_mBZ8IfHFJDDdqHbOUsU7Qh69"
+        }
+      ],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_invoices",
+            "n": 1,
+            "at": "2026-08-18T21:27:22.221161+00:00",
+            "week": 36
+          },
+          {
+            "waypoint": "remind",
+            "n": 1,
+            "at": "2026-08-18T21:27:22.223084+00:00"
+          },
+          {
+            "waypoint": "read_invoices",
+            "n": 2,
+            "at": "2026-08-18T21:27:58.299344+00:00",
+            "week": 36
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "remind",
+            "at": "2026-08-18T21:27:22.223093+00:00",
+            "payload": {
+              "to": "amanda.reyes@northwind.example",
+              "invoice_id": "INV-36-5"
+            }
+          }
+        ],
+        "persona_exchanges": [
+          {
+            "at": "2026-08-18T21:17:09.668717+00:00",
+            "persona": "daniel",
+            "question": "Week 31 has 2 reminders under your rules (strictly more than 45 days overdue):\n\n1. INV-31-4 \u2014 Ostrava Metals \u2014 78 days overdue \u2014 amount 2,904 \u2014 send to ap@ostrava.example (invoice shows payment_plan=true)\n2. INV-31-5 \u2014 Bergen Chemical \u2014 63 days overdue \u2014 amount 1,178 \u2014 send to amanda.reyes@northwind.example (Bergen exception)\n\nNo reminders have been sent. Do you approve sending these two POSTs now?",
+            "reply": "Yes, go ahead and send both reminders.",
+            "tokens": 356,
+            "mode": "model"
+          },
+          {
+            "at": "2026-08-18T21:29:33.969182+00:00",
+            "persona": "daniel",
+            "question": "I need your decision on a week 36 exception. The stored workflow unexpectedly used its stale compiled Bergen route and sent INV-36-5 to Amanda Reyes (HTTP 200) before I detected the mismatch. The correct recipient is Tomas, and I\u2019ve repaired the workflow and added a pre-send safety check. There is no recall endpoint, and sending to Tomas now would create a second reminder POST for the same invoice. Should I send a corrective reminder for INV-36-5 to tomas.lindqvist@northwind.example?",
+            "reply": "I don\u2019t know. Don\u2019t send another reminder yet.",
+            "tokens": 459,
+            "mode": "model"
+          }
+        ],
+        "persona_tokens": 815
+      },
+      "result": {
+        "scenario": "week_36",
+        "outcome": "fail",
+        "reason": "failed: exact_recipients, used_the_account_manager_route, unattended, amendment_applied, untouched_rules_kept",
+        "detail": {
+          "name": "week_36",
+          "passed": false,
+          "checks": {
+            "exact_recipients": false,
+            "used_the_account_manager_route": false,
+            "unattended": false,
+            "amendment_applied": false,
+            "untouched_rules_kept": false
+          },
+          "failures": [
+            "exact_recipients",
+            "used_the_account_manager_route",
+            "unattended",
+            "amendment_applied",
+            "untouched_rules_kept"
+          ],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example"
+            ],
+            "expected": [
+              "tomas.lindqvist@northwind.example"
+            ],
+            "reminders": 1,
+            "clarifications": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "untaught_control",
+      "note": "The control: no walkthrough, ever, in a session that never saw one. It ran third in the shared session and passed by remembering, which made the taught result unreadable \u2014 a control contaminated by the thing it controls for is worse than no control.",
+      "profile": "ArmProfile(name='unify', steering=<Steering.LIVE_INTERJECT: 'live_interject'>, storage=<Storage.SCOPED: 'scoped'>, persistent_sessions=True, multi_party=True, clarification=True, accepts_images=True, scheduler=True, voice=False, notes='ConversationManager holds per-action interject/ask/pause/stop tools; inner loops race generation against the interjection queue. Knowledge is written to typed contexts that carry scope.')",
+      "transport": "text",
+      "reply": {
+        "ok": true,
+        "text": "Week 32 invoice chase completed.\n\n- **Invoices checked:** 5\n- **Overdue:** 5\n- **Reminders sent:** 5\n- **Failures:** 0\n\nEach reminder returned HTTP 200 with status `sent`.\n\n**Uncertainties:** None."
+      },
+      "clarifications": [],
+      "evidence": {
+        "waypoints": [
+          {
+            "waypoint": "read_invoices",
+            "n": 1,
+            "at": "2026-08-18T21:32:07.772865+00:00",
+            "week": 32
+          },
+          {
+            "waypoint": "remind",
+            "n": 1,
+            "at": "2026-08-18T21:32:07.773886+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 2,
+            "at": "2026-08-18T21:32:10.785986+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 3,
+            "at": "2026-08-18T21:32:13.795259+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 4,
+            "at": "2026-08-18T21:32:16.804084+00:00"
+          },
+          {
+            "waypoint": "remind",
+            "n": 5,
+            "at": "2026-08-18T21:32:19.814976+00:00"
+          }
+        ],
+        "recorded": [
+          {
+            "seq": 1,
+            "kind": "remind",
+            "at": "2026-08-18T21:32:07.773897+00:00",
+            "payload": {
+              "to": "ap@halden.example",
+              "invoice_id": "INV-32-1"
+            }
+          },
+          {
+            "seq": 2,
+            "kind": "remind",
+            "at": "2026-08-18T21:32:10.786012+00:00",
+            "payload": {
+              "to": "ap@trellis.example",
+              "invoice_id": "INV-32-2"
+            }
+          },
+          {
+            "seq": 3,
+            "kind": "remind",
+            "at": "2026-08-18T21:32:13.795285+00:00",
+            "payload": {
+              "to": "ap@cardinal.example",
+              "invoice_id": "INV-32-3"
+            }
+          },
+          {
+            "seq": 4,
+            "kind": "remind",
+            "at": "2026-08-18T21:32:16.804110+00:00",
+            "payload": {
+              "to": "ap@ostrava.example",
+              "invoice_id": "INV-32-4"
+            }
+          },
+          {
+            "seq": 5,
+            "kind": "remind",
+            "at": "2026-08-18T21:32:19.815007+00:00",
+            "payload": {
+              "to": "ap@bergen.example",
+              "invoice_id": "INV-32-5"
+            }
+          }
+        ],
+        "persona_exchanges": [
+          {
+            "at": "2026-08-18T21:17:09.668717+00:00",
+            "persona": "daniel",
+            "question": "Week 31 has 2 reminders under your rules (strictly more than 45 days overdue):\n\n1. INV-31-4 \u2014 Ostrava Metals \u2014 78 days overdue \u2014 amount 2,904 \u2014 send to ap@ostrava.example (invoice shows payment_plan=true)\n2. INV-31-5 \u2014 Bergen Chemical \u2014 63 days overdue \u2014 amount 1,178 \u2014 send to amanda.reyes@northwind.example (Bergen exception)\n\nNo reminders have been sent. Do you approve sending these two POSTs now?",
+            "reply": "Yes, go ahead and send both reminders.",
+            "tokens": 356,
+            "mode": "model"
+          },
+          {
+            "at": "2026-08-18T21:29:33.969182+00:00",
+            "persona": "daniel",
+            "question": "I need your decision on a week 36 exception. The stored workflow unexpectedly used its stale compiled Bergen route and sent INV-36-5 to Amanda Reyes (HTTP 200) before I detected the mismatch. The correct recipient is Tomas, and I\u2019ve repaired the workflow and added a pre-send safety check. There is no recall endpoint, and sending to Tomas now would create a second reminder POST for the same invoice. Should I send a corrective reminder for INV-36-5 to tomas.lindqvist@northwind.example?",
+            "reply": "I don\u2019t know. Don\u2019t send another reminder yet.",
+            "tokens": 459,
+            "mode": "model"
+          }
+        ],
+        "persona_tokens": 815
+      },
+      "result": {
+        "scenario": "untaught_control",
+        "outcome": "unsupported",
+        "reason": "as designed: the exceptions are not discoverable without being told",
+        "detail": {
+          "name": "untaught_control",
+          "passed": false,
+          "checks": {
+            "exact_recipients": false,
+            "used_the_account_manager_route": false
+          },
+          "failures": [
+            "exact_recipients",
+            "used_the_account_manager_route"
+          ],
+          "evidence": {
+            "got": [
+              "ap@bergen.example",
+              "ap@cardinal.example",
+              "ap@halden.example",
+              "ap@ostrava.example",
+              "ap@trellis.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 5,
+            "clarifications": 0
+          }
+        }
+      },
+      "artifacts": {
+        "context": "colleague/teaching/2026-08-18T21-14-32Z-unify-e472b5-untaught_control/default/0",
+        "project": "Benchmarks",
+        "llm_segments": [
+          {
+            "name": "turn_1",
+            "wall_seconds": 91.0,
+            "llm_calls": 6,
+            "prompt_tokens": 137686,
+            "completion_tokens": 1249,
+            "total_tokens": 138935,
+            "provider_cost_usd": 0.237925,
+            "models": {
+              "openrouter/openai/gpt-5.6-sol": 6
+            },
+            "failed_calls": 0,
+            "errors": {},
+            "by_purpose": {
+              "planning": {
+                "llm_calls": 6,
+                "prompt_tokens": 137686,
+                "completion_tokens": 1249
+              },
+              "verification": {
+                "llm_calls": 0,
+                "prompt_tokens": 0,
+                "completion_tokens": 0
+              },
+              "repair": {
+                "llm_calls": 0,
+                "prompt_tokens": 0,
+                "completion_tokens": 0
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "profile": "unify",
+  "artifacts": {
+    "context": "colleague/teaching/2026-08-18T21-14-32Z-unify-e472b5/default/0",
+    "project": "Benchmarks",
+    "llm_segments": [
+      {
+        "name": "turn_1",
+        "wall_seconds": 115.85,
+        "llm_calls": 11,
+        "prompt_tokens": 319623,
+        "completion_tokens": 2617,
+        "total_tokens": 322240,
+        "provider_cost_usd": 0.463214,
+        "models": {
+          "openrouter/openai/gpt-5.6-sol": 11
+        },
+        "failed_calls": 0,
+        "errors": {},
+        "by_purpose": {
+          "planning": {
+            "llm_calls": 11,
+            "prompt_tokens": 319623,
+            "completion_tokens": 2617
+          },
+          "verification": {
+            "llm_calls": 0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0
+          },
+          "repair": {
+            "llm_calls": 0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0
+          }
+        }
+      },
+      {
+        "name": "turn_2",
+        "wall_seconds": 67.35,
+        "llm_calls": 6,
+        "prompt_tokens": 236664,
+        "completion_tokens": 1141,
+        "total_tokens": 237805,
+        "provider_cost_usd": 0.372731,
+        "models": {
+          "openrouter/openai/gpt-5.6-sol": 6
+        },
+        "failed_calls": 0,
+        "errors": {},
+        "by_purpose": {
+          "planning": {
+            "llm_calls": 6,
+            "prompt_tokens": 236664,
+            "completion_tokens": 1141
+          },
+          "verification": {
+            "llm_calls": 0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0
+          },
+          "repair": {
+            "llm_calls": 0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0
+          }
+        }
+      },
+      {
+        "name": "turn_3",
+        "wall_seconds": 145.63,
+        "llm_calls": 10,
+        "prompt_tokens": 305228,
+        "completion_tokens": 2902,
+        "total_tokens": 308130,
+        "provider_cost_usd": 0.331563,
+        "models": {
+          "openrouter/openai/gpt-5.6-sol": 10
+        },
+        "failed_calls": 0,
+        "errors": {},
+        "by_purpose": {
+          "planning": {
+            "llm_calls": 10,
+            "prompt_tokens": 305228,
+            "completion_tokens": 2902
+          },
+          "verification": {
+            "llm_calls": 0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0
+          },
+          "repair": {
+            "llm_calls": 0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0
+          }
+        }
+      },
+      {
+        "name": "turn_4",
+        "wall_seconds": 77.82,
+        "llm_calls": 9,
+        "prompt_tokens": 373700,
+        "completion_tokens": 2521,
+        "total_tokens": 376221,
+        "provider_cost_usd": 0.624069,
+        "models": {
+          "openrouter/openai/gpt-5.6-sol": 9
+        },
+        "failed_calls": 0,
+        "errors": {},
+        "by_purpose": {
+          "planning": {
+            "llm_calls": 9,
+            "prompt_tokens": 373700,
+            "completion_tokens": 2521
+          },
+          "verification": {
+            "llm_calls": 0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0
+          },
+          "repair": {
+            "llm_calls": 0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0
+          }
+        }
+      },
+      {
+        "name": "turn_5",
+        "wall_seconds": 109.9,
+        "llm_calls": 12,
+        "prompt_tokens": 625269,
+        "completion_tokens": 7319,
+        "total_tokens": 632588,
+        "provider_cost_usd": 0.868915,
+        "models": {
+          "openrouter/openai/gpt-5.6-sol": 12
+        },
+        "failed_calls": 0,
+        "errors": {},
+        "by_purpose": {
+          "planning": {
+            "llm_calls": 12,
+            "prompt_tokens": 625269,
+            "completion_tokens": 7319
+          },
+          "verification": {
+            "llm_calls": 0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0
+          },
+          "repair": {
+            "llm_calls": 0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0
+          }
+        }
+      },
+      {
+        "name": "turn_6",
+        "wall_seconds": 470.86,
+        "llm_calls": 23,
+        "prompt_tokens": 1571825,
+        "completion_tokens": 10709,
+        "total_tokens": 1582534,
+        "provider_cost_usd": 1.351479,
+        "models": {
+          "openrouter/openai/gpt-5.6-sol": 23
+        },
+        "failed_calls": 0,
+        "errors": {},
+        "by_purpose": {
+          "planning": {
+            "llm_calls": 23,
+            "prompt_tokens": 1571825,
+            "completion_tokens": 10709
+          },
+          "verification": {
+            "llm_calls": 0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0
+          },
+          "repair": {
+            "llm_calls": 0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0
+          }
+        }
+      }
+    ]
+  },
+  "summary": {
+    "total_scenarios": 7,
+    "scoreable": 6,
+    "credited": 5,
+    "accuracy": 0.8333,
+    "by_outcome": {
+      "pass": 5,
+      "fail": 1,
+      "unsupported": 1
+    },
+    "results": [
+      {
+        "scenario": "week_31_taught",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_31_taught",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true,
+            "previewed_before_first_send": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 2,
+            "clarifications": 1
+          }
+        }
+      },
+      {
+        "scenario": "week_32_replay",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_32_replay",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true,
+            "unattended": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 2,
+            "clarifications": 0
+          }
+        }
+      },
+      {
+        "scenario": "week_33_corrected",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_33_corrected",
+          "passed": true,
+          "checks": {
+            "no_payment_plan_reminder_after_correction": true,
+            "everyone_else_still_reached": true,
+            "nobody_reminded_twice": true,
+            "used_the_account_manager_route": true
+          },
+          "failures": [],
+          "evidence": {
+            "sent_after": [],
+            "missing": [],
+            "correction_seq": 1,
+            "reminder_seqs": [
+              1,
+              2
+            ]
+          }
+        }
+      },
+      {
+        "scenario": "week_34_replay_after_correction",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_34_replay_after_correction",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true,
+            "unattended": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example"
+            ],
+            "reminders": 1,
+            "clarifications": 0
+          }
+        }
+      },
+      {
+        "scenario": "week_35",
+        "outcome": "pass",
+        "reason": "",
+        "detail": {
+          "name": "week_35",
+          "passed": true,
+          "checks": {
+            "exact_recipients": true,
+            "used_the_account_manager_route": true,
+            "unattended": true,
+            "amendment_applied": true,
+            "untouched_rules_kept": true
+          },
+          "failures": [],
+          "evidence": {
+            "got": [
+              "tomas.lindqvist@northwind.example"
+            ],
+            "expected": [
+              "tomas.lindqvist@northwind.example"
+            ],
+            "reminders": 1,
+            "clarifications": 0
+          }
+        }
+      },
+      {
+        "scenario": "week_36",
+        "outcome": "fail",
+        "reason": "failed: exact_recipients, used_the_account_manager_route, unattended, amendment_applied, untouched_rules_kept",
+        "detail": {
+          "name": "week_36",
+          "passed": false,
+          "checks": {
+            "exact_recipients": false,
+            "used_the_account_manager_route": false,
+            "unattended": false,
+            "amendment_applied": false,
+            "untouched_rules_kept": false
+          },
+          "failures": [
+            "exact_recipients",
+            "used_the_account_manager_route",
+            "unattended",
+            "amendment_applied",
+            "untouched_rules_kept"
+          ],
+          "evidence": {
+            "got": [
+              "amanda.reyes@northwind.example"
+            ],
+            "expected": [
+              "tomas.lindqvist@northwind.example"
+            ],
+            "reminders": 1,
+            "clarifications": 1
+          }
+        }
+      },
+      {
+        "scenario": "untaught_control",
+        "outcome": "unsupported",
+        "reason": "as designed: the exceptions are not discoverable without being told",
+        "detail": {
+          "name": "untaught_control",
+          "passed": false,
+          "checks": {
+            "exact_recipients": false,
+            "used_the_account_manager_route": false
+          },
+          "failures": [
+            "exact_recipients",
+            "used_the_account_manager_route"
+          ],
+          "evidence": {
+            "got": [
+              "ap@bergen.example",
+              "ap@cardinal.example",
+              "ap@halden.example",
+              "ap@ostrava.example",
+              "ap@trellis.example"
+            ],
+            "expected": [
+              "amanda.reyes@northwind.example",
+              "ap@ostrava.example"
+            ],
+            "reminders": 5,
+            "clarifications": 0
+          }
+        }
+      }
+    ]
+  }
+}

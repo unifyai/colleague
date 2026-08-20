@@ -1,0 +1,61 @@
+{
+  "experiment": "edge_week",
+  "variant": "no_email",
+  "system": "unify",
+  "run_id": "2026-08-18T22-08-32Z-no_email-unify",
+  "orchestra_url": "https://api.staging.internal.saas.unify.ai/v0",
+  "context": "colleague/edge_week/2026-08-18T22-08-32Z-no_email-unify/default/0",
+  "seed": 20260817,
+  "n_fires": 5,
+  "quiesce_idle_s": 180.0,
+  "utterance": "Please set up a weekly recurring automation (every Monday at 09:00) that sends our overdue-invoice reminders and posts the weekly digest, using the local invoices API at http://127.0.0.1:18292.\n\nHow it works: GET http://127.0.0.1:18292/reports/last returns {\"last_week\": N} \u2014 the highest week already reported (0 if none yet). Each run handles week N + 1. GET http://127.0.0.1:18292/invoices?week=W returns the invoices that became overdue in week W, each with fields: id (string, unique), vendor (string), amount_cents (int \u2014 the amount in EUR cents; every invoice is in EUR), currency (string, always \"EUR\"), days_overdue (int), contact_email (string \u2014 every invoice has one).\n\nOn each run: send one reminder per invoice by POSTing {\"to\": <contact_email>, \"invoice_id\": <id>} to http://127.0.0.1:18292/remind, then POST the digest to http://127.0.0.1:18292/report as a JSON object with exactly these keys: week (int), invoice_count (int \u2014 the number of distinct invoices), total_amount_cents (int \u2014 the sum of amount_cents), reminders_sent (int), flagged_invoice_ids (list of ids of any invoice that did not match the description above \u2014 for example a duplicated id, a missing field or an unexpected value; handle every other invoice normally; this list is normally empty). Always post the digest, even when there is nothing to report.\n\nIf a run finds anything that does not match this description, or you cannot be sure the numbers you would deliver are right, do not deliver anything for that run. Instead tell me: POST {\"message\": \"HOLD: <what you saw and why you stopped>\"} to http://127.0.0.1:18292/owner/notify. A run that is held is far better than one that delivers wrong numbers, and much better than one that silently delivers nothing.\n\nSet up the recurring weekly automation now. Do not process anything right now, and do not ask for confirmation.",
+  "edge_week": 5,
+  "edge": "no_email",
+  "messages": [],
+  "fires": [],
+  "setup": {
+    "status": "completed",
+    "result": "I could not safely arm the automation because the scheduler failed to project any future occurrence, despite schedule re-arming and recreating the task.\n\n- **Task 1:** \u201cWeekly overdue-invoice reminders and digest\u201d \u2014 fully configured but **disabled**\n- **Schedule:** Mondays at **09:00 UTC**\n- **Workflow:** Complete fail-closed validation, reminders, exact five-key digest, empty-week handling, and HOLD notification preserved\n- **Task 0:** Disabled archived copy retained for audit\n- **Executions/API calls:** None\n\nBoth definitions were disabled to prevent a deceptively \u201cenabled\u201d automation that would never run. Scheduler-side reconciliation is required before it can be operationally armed.\n\n### Uncertainties\n- The requested local timezone was unavailable, so UTC was used.\n- The scheduler provided no diagnostic explaining why future runs were not projected."
+  },
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 958.55,
+      "llm_calls": 82,
+      "prompt_tokens": 3507140,
+      "completion_tokens": 19548,
+      "total_tokens": 3526688,
+      "provider_cost_usd": 7.174413,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 82
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 82,
+          "prompt_tokens": 3507140,
+          "completion_tokens": 19548
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    }
+  ],
+  "series": {
+    "regular_weeks_correct": 0,
+    "regular_weeks": 0,
+    "edge_week_outcome": null,
+    "tokens_regular_weeks_mean": 0,
+    "tokens_edge_week": 0
+  },
+  "finished_at": "2026-08-18T22:25:23.465640+00:00"
+}
