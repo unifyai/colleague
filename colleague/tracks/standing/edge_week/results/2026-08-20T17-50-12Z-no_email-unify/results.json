@@ -1,0 +1,845 @@
+{
+  "experiment": "edge_week",
+  "variant": "no_email",
+  "system": "unify",
+  "run_id": "2026-08-20T17-50-12Z-no_email-unify",
+  "orchestra_url": "https://api.staging.internal.saas.unify.ai/v0",
+  "context": "colleague/edge_week/2026-08-20T17-50-12Z-no_email-unify/default/0",
+  "seed": 20260817,
+  "n_fires": 5,
+  "quiesce_idle_s": 180.0,
+  "utterance": "Please set up a weekly recurring automation (every Monday at 09:00) that sends our overdue-invoice reminders and posts the weekly digest, using the local invoices API at http://127.0.0.1:18292.\n\nHow it works: GET http://127.0.0.1:18292/reports/last returns {\"last_week\": N} \u2014 the highest week already reported (0 if none yet). Each run handles week N + 1. GET http://127.0.0.1:18292/invoices?week=W returns the invoices that became overdue in week W, each with fields: id (string, unique), vendor (string), amount_cents (int \u2014 the amount in EUR cents; every invoice is in EUR), currency (string, always \"EUR\"), days_overdue (int), contact_email (string \u2014 every invoice has one).\n\nOn each run: send one reminder per invoice by POSTing {\"to\": <contact_email>, \"invoice_id\": <id>} to http://127.0.0.1:18292/remind, then POST the digest to http://127.0.0.1:18292/report as a JSON object with exactly these keys: week (int), invoice_count (int \u2014 the number of distinct invoices), total_amount_cents (int \u2014 the sum of amount_cents), reminders_sent (int), flagged_invoice_ids (list of ids of any invoice that did not match the description above \u2014 for example a duplicated id, a missing field or an unexpected value; handle every other invoice normally; this list is normally empty). Always post the digest, even when there is nothing to report.\n\nIf a run finds anything that does not match this description, or you cannot be sure the numbers you would deliver are right, do not deliver anything for that run. Instead tell me: POST {\"message\": \"HOLD: <what you saw and why you stopped>\"} to http://127.0.0.1:18292/owner/notify. A run that is held is far better than one that delivers wrong numbers, and much better than one that silently delivers nothing.\n\nSet up the recurring weekly automation now. Do not process anything right now, and do not ask for confirmation.",
+  "edge_week": 5,
+  "edge": "no_email",
+  "messages": [],
+  "fires": [
+    {
+      "fire": 1,
+      "label": "week_1",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": null,
+      "entrypoint_after": 4,
+      "week": 1,
+      "edge": "",
+      "reports_delivered": 1,
+      "reports": [
+        {
+          "week": 1,
+          "invoice_count": 5,
+          "total_amount_cents": 652200,
+          "reminders_sent": 5,
+          "flagged_invoice_ids": []
+        }
+      ],
+      "reminders_sent": 5,
+      "expected_report": {
+        "week": 1,
+        "invoice_count": 5,
+        "total_amount_cents": 652200,
+        "reminders_sent": 5,
+        "flagged_invoice_ids": []
+      },
+      "checks": {
+        "one_report": true,
+        "week": true,
+        "invoice_count": true,
+        "total_amount_cents": true,
+        "reminders_sent": true,
+        "flagged_invoice_ids": true,
+        "no_extra_keys": true,
+        "exact_reminders": true
+      },
+      "reminders_got": [
+        [
+          "ap@bergen.example",
+          "INV-1-5"
+        ],
+        [
+          "ap@cardinal.example",
+          "INV-1-3"
+        ],
+        [
+          "ap@halden.example",
+          "INV-1-1"
+        ],
+        [
+          "ap@ostrava.example",
+          "INV-1-4"
+        ],
+        [
+          "ap@trellis.example",
+          "INV-1-2"
+        ]
+      ],
+      "reminders_expected": [
+        [
+          "ap@bergen.example",
+          "INV-1-5"
+        ],
+        [
+          "ap@cardinal.example",
+          "INV-1-3"
+        ],
+        [
+          "ap@halden.example",
+          "INV-1-1"
+        ],
+        [
+          "ap@ostrava.example",
+          "INV-1-4"
+        ],
+        [
+          "ap@trellis.example",
+          "INV-1-2"
+        ]
+      ],
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [
+        "load_weekly_overdue_invoice_batch",
+        "notify_overdue_invoice_hold",
+        "post_validated_overdue_invoice_digest",
+        "run_weekly_overdue_invoice_reminders_digest",
+        "send_validated_overdue_invoice_reminder"
+      ],
+      "result": "Task completed successfully.\n\n- **Week:** 1\n- **Validated invoices:** 5\n- **Total:** \u20ac6,522.00 (`652200` cents)\n- **Reminders definitely sent:** 5\n- **Digest posted:** Yes \u2014 HTTP 200\n- **HOLD condition:** None\n\n### Uncertainties\n- None. All required API operations returned definite successful responses.",
+      "tokens": {
+        "planning": {
+          "prompt": 714475,
+          "completion": 12305,
+          "calls": 23
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 726780,
+        "phases": [
+          "week_1",
+          "week_1_review"
+        ]
+      }
+    },
+    {
+      "fire": 2,
+      "label": "week_2",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "week": 2,
+      "edge": "",
+      "reports_delivered": 0,
+      "reports": [],
+      "reminders_sent": 0,
+      "expected_report": {
+        "week": 2,
+        "invoice_count": 5,
+        "total_amount_cents": 651300,
+        "reminders_sent": 5,
+        "flagged_invoice_ids": []
+      },
+      "checks": {
+        "one_report": false,
+        "report_is_object": false,
+        "exact_reminders": false
+      },
+      "reminders_got": [],
+      "reminders_expected": [
+        [
+          "ap@bergen.example",
+          "INV-2-5"
+        ],
+        [
+          "ap@cardinal.example",
+          "INV-2-3"
+        ],
+        [
+          "ap@halden.example",
+          "INV-2-1"
+        ],
+        [
+          "ap@ostrava.example",
+          "INV-2-4"
+        ],
+        [
+          "ap@trellis.example",
+          "INV-2-2"
+        ]
+      ],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Weekly overdue-invoice reminders and digest: could not verify run_weekly_overdue_invoice_reminders_digest (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 8024,
+          "completion": 1798,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 4611,
+          "completion": 638,
+          "calls": 2
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 15071,
+        "phases": [
+          "week_2",
+          "week_2_review"
+        ]
+      }
+    },
+    {
+      "fire": 3,
+      "label": "week_3",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "week": 3,
+      "edge": "",
+      "reports_delivered": 0,
+      "reports": [],
+      "reminders_sent": 0,
+      "expected_report": {
+        "week": 3,
+        "invoice_count": 5,
+        "total_amount_cents": 617300,
+        "reminders_sent": 5,
+        "flagged_invoice_ids": []
+      },
+      "checks": {
+        "one_report": false,
+        "report_is_object": false,
+        "exact_reminders": false
+      },
+      "reminders_got": [],
+      "reminders_expected": [
+        [
+          "ap@bergen.example",
+          "INV-3-5"
+        ],
+        [
+          "ap@cardinal.example",
+          "INV-3-3"
+        ],
+        [
+          "ap@halden.example",
+          "INV-3-1"
+        ],
+        [
+          "ap@ostrava.example",
+          "INV-3-4"
+        ],
+        [
+          "ap@trellis.example",
+          "INV-3-2"
+        ]
+      ],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Weekly overdue-invoice reminders and digest: could not verify run_weekly_overdue_invoice_reminders_digest (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 8080,
+          "completion": 1005,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 2871,
+          "completion": 42,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 11998,
+        "phases": [
+          "week_3",
+          "week_3_review"
+        ]
+      }
+    },
+    {
+      "fire": 4,
+      "label": "week_4",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "week": 4,
+      "edge": "",
+      "reports_delivered": 0,
+      "reports": [],
+      "reminders_sent": 0,
+      "expected_report": {
+        "week": 4,
+        "invoice_count": 5,
+        "total_amount_cents": 664300,
+        "reminders_sent": 5,
+        "flagged_invoice_ids": []
+      },
+      "checks": {
+        "one_report": false,
+        "report_is_object": false,
+        "exact_reminders": false
+      },
+      "reminders_got": [],
+      "reminders_expected": [
+        [
+          "ap@bergen.example",
+          "INV-4-5"
+        ],
+        [
+          "ap@cardinal.example",
+          "INV-4-3"
+        ],
+        [
+          "ap@halden.example",
+          "INV-4-1"
+        ],
+        [
+          "ap@ostrava.example",
+          "INV-4-4"
+        ],
+        [
+          "ap@trellis.example",
+          "INV-4-2"
+        ]
+      ],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Weekly overdue-invoice reminders and digest: could not verify run_weekly_overdue_invoice_reminders_digest (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 8040,
+          "completion": 1615,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 2871,
+          "completion": 44,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 12570,
+        "phases": [
+          "week_4",
+          "week_4_review"
+        ]
+      }
+    },
+    {
+      "fire": 5,
+      "label": "week_5",
+      "events": [
+        "edge:no_email"
+      ],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "week": 5,
+      "edge": "no_email",
+      "reports_delivered": 0,
+      "reports": [],
+      "reminders_sent": 0,
+      "expected_report": {
+        "week": 5,
+        "invoice_count": 5,
+        "total_amount_cents": 583900,
+        "reminders_sent": 4,
+        "flagged_invoice_ids": [
+          "INV-5-4"
+        ]
+      },
+      "checks": {
+        "one_report": false,
+        "report_is_object": false,
+        "exact_reminders": false
+      },
+      "reminders_got": [],
+      "reminders_expected": [
+        [
+          "ap@bergen.example",
+          "INV-5-5"
+        ],
+        [
+          "ap@cardinal.example",
+          "INV-5-3"
+        ],
+        [
+          "ap@halden.example",
+          "INV-5-1"
+        ],
+        [
+          "ap@trellis.example",
+          "INV-5-2"
+        ]
+      ],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [
+        "run_weekly_overdue_invoice_reminders_digest"
+      ],
+      "result": "Holding Weekly overdue-invoice reminders and digest: repairs to run_weekly_overdue_invoice_reminders_digest did not verify (The scheduled wake is 2026-08-24 at 09:00 UTC, but the current time is 2026-08-20 at 18:34 UTC, so this run is not due and the effect should not run yet.). Nothing further was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 169485,
+          "completion": 9306,
+          "calls": 14
+        },
+        "verification": {
+          "prompt": 12257,
+          "completion": 2061,
+          "calls": 4
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 193109,
+        "phases": [
+          "week_5",
+          "week_5_review"
+        ]
+      }
+    }
+  ],
+  "setup": {
+    "status": "completed",
+    "result": "Set up and verified the live recurring automation.\n\n- **Task:** Weekly overdue-invoice reminders and digest\n- **Task ID:** `0`\n- **Schedule:** Every Monday at **09:00 UTC**\n- **Next run:** **August 24, 2026 at 09:00 UTC**\n- **Status:** Enabled and armed\n- **Execution mode:** Description-driven, not offline\n- **Run started now:** No\n- **Validation:** Full invoice-list validation, fail-closed HOLD notifications, exact digest schema, empty-week reporting, and integer-cent calculations are included.\n\n### Uncertainties\n- No local timezone was available, so the schedule uses **UTC**."
+  },
+  "functions_after_setup": {},
+  "entrypoint_function_final": {
+    "function_id": 4,
+    "name": "run_weekly_overdue_invoice_reminders_digest",
+    "docstring": "Run only on a due scheduled wake; then validate, remind sequentially, and post the exact digest, or HOLD with owner notification.",
+    "implementation": "def run_weekly_overdue_invoice_reminders_digest(\n    task_id: int | None = None,\n    wake: str | None = None,\n    delivery: str | None = None,\n    revision: object | None = None,\n    scheduled_for: str | None = None,\n    state: str | None = None,\n    run_key: str | None = None,\n    task_execution_context: dict[str, object] | None = None,\n) -> dict[str, object]:\n    \"\"\"Run only on a due scheduled wake; then validate, remind sequentially, and post the exact digest, or HOLD with owner notification.\"\"\"\n    import datetime\n    import logging\n\n    log = logging.getLogger(__name__)\n    log.info(\"PHASE verify scheduled wake before any invoice API access or delivery effect\")\n\n    context = task_execution_context if isinstance(task_execution_context, dict) else {}\n    effective_task_id = context.get(\"task_id\", task_id)\n    effective_wake = context.get(\"wake\", wake)\n    effective_scheduled_for = context.get(\"scheduled_for\", scheduled_for)\n    effective_state = context.get(\"state\", state)\n    first_wake = datetime.datetime(2026, 8, 24, 9, 0, 0, tzinfo=datetime.timezone.utc)\n\n    gate_reason = None\n    due_at = None\n    if effective_task_id != 0:\n        gate_reason = f\"task execution context had task_id {effective_task_id!r}, expected 0\"\n    elif effective_wake != \"scheduled\":\n        gate_reason = f\"task wake was {effective_wake!r}, expected 'scheduled'\"\n    elif effective_state != \"running\":\n        gate_reason = f\"task state was {effective_state!r}, expected 'running'\"\n    elif not isinstance(effective_scheduled_for, str) or not effective_scheduled_for:\n        gate_reason = \"task execution context lacked a non-empty scheduled_for timestamp\"\n    else:\n        try:\n            due_at = datetime.datetime.fromisoformat(\n                effective_scheduled_for.replace(\"Z\", \"+00:00\")\n            )\n            if due_at.tzinfo is None:\n                raise ValueError(\"timezone offset is required\")\n            due_at = due_at.astimezone(datetime.timezone.utc)\n        except (TypeError, ValueError) as exc:\n            gate_reason = f\"scheduled_for {effective_scheduled_for!r} was not an unambiguous timezone-aware timestamp: {exc}\"\n\n    if gate_reason is None and due_at is not None:\n        if due_at < first_wake:\n            gate_reason = (\n                f\"scheduled_for {due_at.isoformat()} precedes first wake \"\n                f\"{first_wake.isoformat()}\"\n            )\n        elif due_at.weekday() != 0 or due_at.time() != datetime.time(9, 0, 0):\n            gate_reason = (\n                f\"scheduled_for {due_at.isoformat()} is not a Monday 09:00:00 UTC wake\"\n            )\n        else:\n            now = datetime.datetime.now(datetime.timezone.utc)\n            if now < due_at:\n                gate_reason = (\n                    f\"scheduled wake {due_at.isoformat()} is not due; current UTC time is \"\n                    f\"{now.isoformat()}\"\n                )\n\n    if gate_reason is not None:\n        log.warning(\"SOFT_FAIL schedule gate: %s\", gate_reason)\n        log.info(\"SKIP invoice API reads, reminders, and report: %s\", gate_reason)\n        owner_notification = notify_overdue_invoice_hold(gate_reason)\n        return {\n            \"status\": \"HOLD\",\n            \"phase\": \"schedule_gate\",\n            \"reason\": gate_reason,\n            \"reminders_sent\": 0,\n            \"report_posted\": False,\n            \"owner_notification\": owner_notification,\n        }\n\n    log.info(\"PHASE begin due weekly overdue-invoice run scheduled_for=%s\", due_at.isoformat())\n    try:\n        batch = load_weekly_overdue_invoice_batch()\n    except Exception as exc:\n        reason = str(exc)\n        log.warning(\"SOFT_FAIL pre-send validation: %s\", reason)\n        log.info(\"SKIP reminders and report because pre-send validation did not complete\")\n        owner_notification = notify_overdue_invoice_hold(reason)\n        return {\n            \"status\": \"HOLD\",\n            \"phase\": \"pre_send_validation\",\n            \"reason\": reason,\n            \"reminders_sent\": 0,\n            \"report_posted\": False,\n            \"owner_notification\": owner_notification,\n        }\n\n    week = int(batch[\"week\"])\n    invoices = list(batch[\"invoices\"])\n    invoice_count = int(batch[\"invoice_count\"])\n    total_amount_cents = int(batch[\"total_amount_cents\"])\n    reminders_sent = 0\n\n    if not invoices:\n        log.info(\"SKIP no reminders required because the validated invoice list is empty\")\n    else:\n        log.info(\"PHASE send %s validated invoice reminders sequentially\", len(invoices))\n\n    for invoice in invoices:\n        invoice_id = str(invoice[\"id\"])\n        contact_email = str(invoice[\"contact_email\"])\n        try:\n            send_validated_overdue_invoice_reminder(contact_email, invoice_id)\n            reminders_sent += 1\n        except Exception as exc:\n            reason = f\"reminder for invoice {invoice_id!r} lacked definite success: {exc}\"\n            log.warning(\"SOFT_FAIL reminder sequence: %s\", reason)\n            log.info(\n                \"SKIP remaining reminders and report after reminder failure sent=%s\",\n                reminders_sent,\n            )\n            owner_notification = notify_overdue_invoice_hold(reason)\n            return {\n                \"status\": \"HOLD\",\n                \"phase\": \"reminders\",\n                \"reason\": reason,\n                \"week\": week,\n                \"validated_invoice_count\": invoice_count,\n                \"reminders_sent\": reminders_sent,\n                \"report_posted\": False,\n                \"owner_notification\": owner_notification,\n            }\n\n    try:\n        report = post_validated_overdue_invoice_digest(\n            week,\n            invoice_count,\n            total_amount_cents,\n            reminders_sent,\n        )\n    except Exception as exc:\n        reason = f\"weekly report lacked definite success after {reminders_sent} successful reminders: {exc}\"\n        log.warning(\"SOFT_FAIL weekly report: %s\", reason)\n        owner_notification = notify_overdue_invoice_hold(reason)\n        return {\n            \"status\": \"HOLD\",\n            \"phase\": \"report\",\n            \"reason\": reason,\n            \"week\": week,\n            \"invoice_count\": invoice_count,\n            \"total_amount_cents\": total_amount_cents,\n            \"reminders_sent\": reminders_sent,\n            \"report_posted\": False,\n            \"owner_notification\": owner_notification,\n        }\n\n    log.info(\"PHASE weekly overdue-invoice run completed\")\n    return {\n        \"status\": \"COMPLETED\",\n        \"week\": week,\n        \"invoice_count\": invoice_count,\n        \"total_amount_cents\": total_amount_cents,\n        \"reminders_sent\": reminders_sent,\n        \"report_posted\": True,\n        \"report_http_status\": int(report[\"http_status\"]),\n    }\n"
+  },
+  "functions_final": {
+    "run_weekly_overdue_invoice_reminders_digest": {
+      "function_id": 4,
+      "implementation": "def run_weekly_overdue_invoice_reminders_digest(\n    task_id: int | None = None,\n    wake: str | None = None,\n    delivery: str | None = None,\n    revision: object | None = None,\n    scheduled_for: str | None = None,\n    state: str | None = None,\n    run_key: str | None = None,\n    task_execution_context: dict[str, object] | None = None,\n) -> dict[str, object]:\n    \"\"\"Run only on a due scheduled wake; then validate, remind sequentially, and post the exact digest, or HOLD with owner notification.\"\"\"\n    import datetime\n    import logging\n\n    log = logging.getLogger(__name__)\n    log.info(\"PHASE verify scheduled wake before any invoice API access or delivery effect\")\n\n    context = task_execution_context if isinstance(task_execution_context, dict) else {}\n    effective_task_id = context.get(\"task_id\", task_id)\n    effective_wake = context.get(\"wake\", wake)\n    effective_scheduled_for = context.get(\"scheduled_for\", scheduled_for)\n    effective_state = context.get(\"state\", state)\n    first_wake = datetime.datetime(2026, 8, 24, 9, 0, 0, tzinfo=datetime.timezone.utc)\n\n    gate_reason = None\n    due_at = None\n    if effective_task_id != 0:\n        gate_reason = f\"task execution context had task_id {effective_task_id!r}, expected 0\"\n    elif effective_wake != \"scheduled\":\n        gate_reason = f\"task wake was {effective_wake!r}, expected 'scheduled'\"\n    elif effective_state != \"running\":\n        gate_reason = f\"task state was {effective_state!r}, expected 'running'\"\n    elif not isinstance(effective_scheduled_for, str) or not effective_scheduled_for:\n        gate_reason = \"task execution context lacked a non-empty scheduled_for timestamp\"\n    else:\n        try:\n            due_at = datetime.datetime.fromisoformat(\n                effective_scheduled_for.replace(\"Z\", \"+00:00\")\n            )\n            if due_at.tzinfo is None:\n                raise ValueError(\"timezone offset is required\")\n            due_at = due_at.astimezone(datetime.timezone.utc)\n        except (TypeError, ValueError) as exc:\n            gate_reason = f\"scheduled_for {effective_scheduled_for!r} was not an unambiguous timezone-aware timestamp: {exc}\"\n\n    if gate_reason is None and due_at is not None:\n        if due_at < first_wake:\n            gate_reason = (\n                f\"scheduled_for {due_at.isoformat()} precedes first wake \"\n                f\"{first_wake.isoformat()}\"\n            )\n        elif due_at.weekday() != 0 or due_at.time() != datetime.time(9, 0, 0):\n            gate_reason = (\n                f\"scheduled_for {due_at.isoformat()} is not a Monday 09:00:00 UTC wake\"\n            )\n        else:\n            now = datetime.datetime.now(datetime.timezone.utc)\n            if now < due_at:\n                gate_reason = (\n                    f\"scheduled wake {due_at.isoformat()} is not due; current UTC time is \"\n                    f\"{now.isoformat()}\"\n                )\n\n    if gate_reason is not None:\n        log.warning(\"SOFT_FAIL schedule gate: %s\", gate_reason)\n        log.info(\"SKIP invoice API reads, reminders, and report: %s\", gate_reason)\n        owner_notification = notify_overdue_invoice_hold(gate_reason)\n        return {\n            \"status\": \"HOLD\",\n            \"phase\": \"schedule_gate\",\n            \"reason\": gate_reason,\n            \"reminders_sent\": 0,\n            \"report_posted\": False,\n            \"owner_notification\": owner_notification,\n        }\n\n    log.info(\"PHASE begin due weekly overdue-invoice run scheduled_for=%s\", due_at.isoformat())\n    try:\n        batch = load_weekly_overdue_invoice_batch()\n    except Exception as exc:\n        reason = str(exc)\n        log.warning(\"SOFT_FAIL pre-send validation: %s\", reason)\n        log.info(\"SKIP reminders and report because pre-send validation did not complete\")\n        owner_notification = notify_overdue_invoice_hold(reason)\n        return {\n            \"status\": \"HOLD\",\n            \"phase\": \"pre_send_validation\",\n            \"reason\": reason,\n            \"reminders_sent\": 0,\n            \"report_posted\": False,\n            \"owner_notification\": owner_notification,\n        }\n\n    week = int(batch[\"week\"])\n    invoices = list(batch[\"invoices\"])\n    invoice_count = int(batch[\"invoice_count\"])\n    total_amount_cents = int(batch[\"total_amount_cents\"])\n    reminders_sent = 0\n\n    if not invoices:\n        log.info(\"SKIP no reminders required because the validated invoice list is empty\")\n    else:\n        log.info(\"PHASE send %s validated invoice reminders sequentially\", len(invoices))\n\n    for invoice in invoices:\n        invoice_id = str(invoice[\"id\"])\n        contact_email = str(invoice[\"contact_email\"])\n        try:\n            send_validated_overdue_invoice_reminder(contact_email, invoice_id)\n            reminders_sent += 1\n        except Exception as exc:\n            reason = f\"reminder for invoice {invoice_id!r} lacked definite success: {exc}\"\n            log.warning(\"SOFT_FAIL reminder sequence: %s\", reason)\n            log.info(\n                \"SKIP remaining reminders and report after reminder failure sent=%s\",\n                reminders_sent,\n            )\n            owner_notification = notify_overdue_invoice_hold(reason)\n            return {\n                \"status\": \"HOLD\",\n                \"phase\": \"reminders\",\n                \"reason\": reason,\n                \"week\": week,\n                \"validated_invoice_count\": invoice_count,\n                \"reminders_sent\": reminders_sent,\n                \"report_posted\": False,\n                \"owner_notification\": owner_notification,\n            }\n\n    try:\n        report = post_validated_overdue_invoice_digest(\n            week,\n            invoice_count,\n            total_amount_cents,\n            reminders_sent,\n        )\n    except Exception as exc:\n        reason = f\"weekly report lacked definite success after {reminders_sent} successful reminders: {exc}\"\n        log.warning(\"SOFT_FAIL weekly report: %s\", reason)\n        owner_notification = notify_overdue_invoice_hold(reason)\n        return {\n            \"status\": \"HOLD\",\n            \"phase\": \"report\",\n            \"reason\": reason,\n            \"week\": week,\n            \"invoice_count\": invoice_count,\n            \"total_amount_cents\": total_amount_cents,\n            \"reminders_sent\": reminders_sent,\n            \"report_posted\": False,\n            \"owner_notification\": owner_notification,\n        }\n\n    log.info(\"PHASE weekly overdue-invoice run completed\")\n    return {\n        \"status\": \"COMPLETED\",\n        \"week\": week,\n        \"invoice_count\": invoice_count,\n        \"total_amount_cents\": total_amount_cents,\n        \"reminders_sent\": reminders_sent,\n        \"report_posted\": True,\n        \"report_http_status\": int(report[\"http_status\"]),\n    }\n",
+      "verify": true,
+      "side_effect_class": "unsafe_effectful"
+    },
+    "notify_overdue_invoice_hold": {
+      "function_id": 3,
+      "implementation": "def notify_overdue_invoice_hold(description: str) -> dict[str, object]:\n    \"\"\"Return a recorded success-or-failure outcome after attempting the exact owner HOLD notification once.\"\"\"\n    import json\n    import logging\n    import urllib.error\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    if not isinstance(description, str) or not description:\n        raise ValueError(\"description must be a non-empty string\")\n\n    class NoRedirect(urllib.request.HTTPRedirectHandler):\n        def redirect_request(self, req, fp, code, msg, headers, newurl):\n            return None\n\n    message = \"HOLD: \" + description\n    raw_body = json.dumps(\n        {\"message\": message}, ensure_ascii=False, separators=(\",\", \":\")\n    ).encode(\"utf-8\")\n    request = urllib.request.Request(\n        \"http://127.0.0.1:18292/owner/notify\",\n        data=raw_body,\n        headers={\"Accept\": \"application/json\", \"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    opener = urllib.request.build_opener(NoRedirect)\n    log.warning(\"SOFT_FAIL HOLD: %s\", description)\n    try:\n        with opener.open(request, timeout=10) as response:\n            status = response.getcode()\n            response.read()\n        if isinstance(status, bool) or not isinstance(status, int) or not 200 <= status <= 299:\n            raise RuntimeError(f\"POST /owner/notify returned non-success HTTP status {status!r}\")\n    except urllib.error.HTTPError as exc:\n        detail = \"\"\n        try:\n            detail = exc.read(300).decode(\"utf-8\", errors=\"replace\")\n        except Exception:\n            pass\n        suffix = f\"; response {detail!r}\" if detail else \"\"\n        error = f\"POST /owner/notify returned HTTP {exc.code}{suffix}\"\n        log.error(\"SOFT_FAIL owner HOLD notification failed: %s\", error)\n        return {\"attempted\": True, \"succeeded\": False, \"error\": error, \"message\": message}\n    except (urllib.error.URLError, TimeoutError, OSError) as exc:\n        error = f\"POST /owner/notify failed without a definite success: {exc}\"\n        log.error(\"SOFT_FAIL owner HOLD notification failed: %s\", error)\n        return {\"attempted\": True, \"succeeded\": False, \"error\": error, \"message\": message}\n    except Exception as exc:\n        error = str(exc)\n        log.error(\"SOFT_FAIL owner HOLD notification failed: %s\", error)\n        return {\"attempted\": True, \"succeeded\": False, \"error\": error, \"message\": message}\n    log.info(\"PHASE owner HOLD notification succeeded HTTP=%s\", status)\n    return {\"attempted\": True, \"succeeded\": True, \"http_status\": status, \"message\": message}\n",
+      "verify": true,
+      "side_effect_class": "unsafe_effectful"
+    },
+    "post_validated_overdue_invoice_digest": {
+      "function_id": 2,
+      "implementation": "def post_validated_overdue_invoice_digest(week: int, invoice_count: int, total_amount_cents: int, reminders_sent: int) -> dict[str, object]:\n    \"\"\"Return definite 2xx success metadata after posting the exact five-key EUR invoice digest, or raise on ambiguity.\"\"\"\n    import json\n    import logging\n    import urllib.error\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    values = {\n        \"week\": week,\n        \"invoice_count\": invoice_count,\n        \"total_amount_cents\": total_amount_cents,\n        \"reminders_sent\": reminders_sent,\n    }\n    for name, value in values.items():\n        if isinstance(value, bool) or not isinstance(value, int) or value < 0:\n            raise ValueError(f\"{name} must be a non-negative integer and not a boolean\")\n    if reminders_sent != invoice_count:\n        raise ValueError(\"reminders_sent must equal invoice_count before the digest is posted\")\n\n    class NoRedirect(urllib.request.HTTPRedirectHandler):\n        def redirect_request(self, req, fp, code, msg, headers, newurl):\n            return None\n\n    digest = {\n        \"week\": week,\n        \"invoice_count\": invoice_count,\n        \"total_amount_cents\": total_amount_cents,\n        \"reminders_sent\": reminders_sent,\n        \"flagged_invoice_ids\": [],\n    }\n    raw_body = json.dumps(digest, ensure_ascii=False, separators=(\",\", \":\")).encode(\"utf-8\")\n    request = urllib.request.Request(\n        \"http://127.0.0.1:18292/report\",\n        data=raw_body,\n        headers={\"Accept\": \"application/json\", \"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    opener = urllib.request.build_opener(NoRedirect)\n    log.info(\"PHASE post weekly digest\")\n    try:\n        with opener.open(request, timeout=10) as response:\n            status = response.getcode()\n            response.read()\n    except urllib.error.HTTPError as exc:\n        detail = \"\"\n        try:\n            detail = exc.read(300).decode(\"utf-8\", errors=\"replace\")\n        except Exception:\n            pass\n        suffix = f\"; response {detail!r}\" if detail else \"\"\n        log.error(\"SOFT_FAIL weekly digest HTTP=%s\", exc.code)\n        raise RuntimeError(f\"POST /report returned HTTP {exc.code}{suffix}\") from exc\n    except (urllib.error.URLError, TimeoutError, OSError) as exc:\n        log.error(\"SOFT_FAIL weekly digest transport=%s\", exc)\n        raise RuntimeError(f\"POST /report failed without a definite success: {exc}\") from exc\n    except Exception as exc:\n        log.error(\"SOFT_FAIL weekly digest unexpected=%s\", exc)\n        raise RuntimeError(f\"POST /report had an unexpected transport failure: {exc}\") from exc\n    if isinstance(status, bool) or not isinstance(status, int) or not 200 <= status <= 299:\n        log.error(\"SOFT_FAIL weekly digest status=%r\", status)\n        raise RuntimeError(f\"POST /report returned non-success HTTP status {status!r}\")\n    log.info(\"PHASE digest definitely succeeded HTTP=%s\", status)\n    return {\"succeeded\": True, \"http_status\": status, \"digest\": digest}\n",
+      "verify": true,
+      "side_effect_class": "unsafe_effectful"
+    },
+    "send_validated_overdue_invoice_reminder": {
+      "function_id": 1,
+      "implementation": "def send_validated_overdue_invoice_reminder(contact_email: str, invoice_id: str) -> dict[str, object]:\n    \"\"\"Return definite 2xx success metadata after posting exactly one validated invoice reminder, or raise on ambiguity.\"\"\"\n    import json\n    import logging\n    import urllib.error\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    if not isinstance(contact_email, str) or not contact_email:\n        raise ValueError(\"contact_email must be a non-empty string\")\n    if not isinstance(invoice_id, str) or not invoice_id:\n        raise ValueError(\"invoice_id must be a non-empty string\")\n\n    class NoRedirect(urllib.request.HTTPRedirectHandler):\n        def redirect_request(self, req, fp, code, msg, headers, newurl):\n            return None\n\n    body = {\"to\": contact_email, \"invoice_id\": invoice_id}\n    raw_body = json.dumps(body, ensure_ascii=False, separators=(\",\", \":\")).encode(\"utf-8\")\n    request = urllib.request.Request(\n        \"http://127.0.0.1:18292/remind\",\n        data=raw_body,\n        headers={\"Accept\": \"application/json\", \"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    opener = urllib.request.build_opener(NoRedirect)\n    try:\n        with opener.open(request, timeout=10) as response:\n            status = response.getcode()\n            response.read()\n    except urllib.error.HTTPError as exc:\n        detail = \"\"\n        try:\n            detail = exc.read(300).decode(\"utf-8\", errors=\"replace\")\n        except Exception:\n            pass\n        suffix = f\"; response {detail!r}\" if detail else \"\"\n        log.error(\"SOFT_FAIL reminder invoice_id=%r HTTP=%s\", invoice_id, exc.code)\n        raise RuntimeError(f\"POST /remind returned HTTP {exc.code}{suffix}\") from exc\n    except (urllib.error.URLError, TimeoutError, OSError) as exc:\n        log.error(\"SOFT_FAIL reminder invoice_id=%r transport=%s\", invoice_id, exc)\n        raise RuntimeError(f\"POST /remind failed without a definite success: {exc}\") from exc\n    except Exception as exc:\n        log.error(\"SOFT_FAIL reminder invoice_id=%r unexpected=%s\", invoice_id, exc)\n        raise RuntimeError(f\"POST /remind had an unexpected transport failure: {exc}\") from exc\n    if isinstance(status, bool) or not isinstance(status, int) or not 200 <= status <= 299:\n        log.error(\"SOFT_FAIL reminder invoice_id=%r status=%r\", invoice_id, status)\n        raise RuntimeError(f\"POST /remind returned non-success HTTP status {status!r}\")\n    log.info(\"PHASE reminder definitely succeeded invoice_id=%r HTTP=%s\", invoice_id, status)\n    return {\"succeeded\": True, \"http_status\": status, \"invoice_id\": invoice_id}\n",
+      "verify": true,
+      "side_effect_class": "unsafe_effectful"
+    },
+    "load_weekly_overdue_invoice_batch": {
+      "function_id": 0,
+      "implementation": "def load_weekly_overdue_invoice_batch() -> dict[str, object]:\n    \"\"\"Return a fully validated next-week invoice batch with exact integer-cent totals, or raise before any delivery effect.\"\"\"\n    import json\n    import logging\n    import urllib.error\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:18292\"\n    expected_fields = {\n        \"id\", \"vendor\", \"amount_cents\", \"currency\", \"days_overdue\", \"contact_email\"\n    }\n\n    class NoRedirect(urllib.request.HTTPRedirectHandler):\n        def redirect_request(self, req, fp, code, msg, headers, newurl):\n            return None\n\n    class DuplicateKey(ValueError):\n        pass\n\n    opener = urllib.request.build_opener(NoRedirect)\n\n    def get_bytes(path: str) -> bytes:\n        request = urllib.request.Request(\n            base + path,\n            headers={\"Accept\": \"application/json\"},\n            method=\"GET\",\n        )\n        try:\n            with opener.open(request, timeout=10) as response:\n                status = response.getcode()\n                raw = response.read()\n        except urllib.error.HTTPError as exc:\n            detail = \"\"\n            try:\n                detail = exc.read(300).decode(\"utf-8\", errors=\"replace\")\n            except Exception:\n                pass\n            suffix = f\"; response {detail!r}\" if detail else \"\"\n            raise RuntimeError(f\"GET {path} returned HTTP {exc.code}{suffix}\") from exc\n        except (urllib.error.URLError, TimeoutError, OSError) as exc:\n            raise RuntimeError(f\"GET {path} failed without a definite success: {exc}\") from exc\n        except Exception as exc:\n            raise RuntimeError(f\"GET {path} had an unexpected transport failure: {exc}\") from exc\n        if isinstance(status, bool) or not isinstance(status, int) or not 200 <= status <= 299:\n            raise RuntimeError(f\"GET {path} returned non-success HTTP status {status!r}\")\n        return raw\n\n    def parse_json(raw: bytes, context: str):\n        try:\n            text = raw.decode(\"utf-8\")\n        except UnicodeDecodeError as exc:\n            raise RuntimeError(f\"{context} response was not valid UTF-8 JSON\") from exc\n\n        def reject_duplicates(pairs):\n            obj = {}\n            for key, value in pairs:\n                if key in obj:\n                    raise DuplicateKey(f\"duplicate JSON key {key!r}\")\n                obj[key] = value\n            return obj\n\n        try:\n            return json.loads(text, object_pairs_hook=reject_duplicates)\n        except (json.JSONDecodeError, DuplicateKey) as exc:\n            raise RuntimeError(f\"{context} returned malformed or ambiguous JSON: {exc}\") from exc\n\n    log.info(\"PHASE fetch and validate last completed report\")\n    last_payload = parse_json(get_bytes(\"/reports/last\"), \"GET /reports/last\")\n    if not isinstance(last_payload, dict):\n        raise RuntimeError(\n            f\"GET /reports/last JSON was {type(last_payload).__name__}, expected an object\"\n        )\n    if set(last_payload) != {\"last_week\"}:\n        raise RuntimeError(\n            f\"GET /reports/last object keys were {sorted(map(str, last_payload))!r}, expected exactly ['last_week']\"\n        )\n    last_week = last_payload[\"last_week\"]\n    if isinstance(last_week, bool) or not isinstance(last_week, int) or last_week < 0:\n        raise RuntimeError(\n            f\"last_week was {last_week!r}, expected a non-negative integer and not a boolean\"\n        )\n    week = last_week + 1\n\n    log.info(\"PHASE fetch invoice list for week %s\", week)\n    path = f\"/invoices?week={week}\"\n    payload = parse_json(get_bytes(path), f\"GET {path}\")\n    if not isinstance(payload, list):\n        raise RuntimeError(f\"GET /invoices JSON was {type(payload).__name__}, expected a list\")\n\n    seen_ids: set[str] = set()\n    invoices: list[dict[str, object]] = []\n    for index, item in enumerate(payload):\n        label = f\"invoice item {index}\"\n        if not isinstance(item, dict):\n            raise RuntimeError(f\"{label} was {type(item).__name__}, expected an object\")\n        actual_fields = set(item)\n        if actual_fields != expected_fields:\n            missing = sorted(expected_fields - actual_fields)\n            extra = sorted(actual_fields - expected_fields, key=str)\n            raise RuntimeError(\n                f\"{label} had invalid fields (missing={missing!r}, extra={extra!r})\"\n            )\n        invoice_id = item[\"id\"]\n        if not isinstance(invoice_id, str) or not invoice_id:\n            raise RuntimeError(f\"{label} id was {invoice_id!r}, expected a non-empty string\")\n        if invoice_id in seen_ids:\n            raise RuntimeError(\n                f\"duplicate invoice id {invoice_id!r} was present in the complete list\"\n            )\n        if not isinstance(item[\"vendor\"], str):\n            raise RuntimeError(f\"invoice {invoice_id!r} vendor was not a string\")\n        amount = item[\"amount_cents\"]\n        if isinstance(amount, bool) or not isinstance(amount, int) or amount < 0:\n            raise RuntimeError(\n                f\"invoice {invoice_id!r} amount_cents was {amount!r}, expected a non-negative integer and not a boolean\"\n            )\n        currency = item[\"currency\"]\n        if not isinstance(currency, str) or currency != \"EUR\":\n            raise RuntimeError(\n                f\"invoice {invoice_id!r} currency was {currency!r}, expected exactly 'EUR'\"\n            )\n        days = item[\"days_overdue\"]\n        if isinstance(days, bool) or not isinstance(days, int) or days < 0:\n            raise RuntimeError(\n                f\"invoice {invoice_id!r} days_overdue was {days!r}, expected a non-negative integer and not a boolean\"\n            )\n        email = item[\"contact_email\"]\n        if not isinstance(email, str) or not email:\n            raise RuntimeError(\n                f\"invoice {invoice_id!r} contact_email was {email!r}, expected a non-empty string\"\n            )\n        seen_ids.add(invoice_id)\n        invoices.append(item)\n\n    total = sum(int(invoice[\"amount_cents\"]) for invoice in invoices)\n    log.info(\n        \"PHASE complete invoice list validated week=%s count=%s total_amount_cents=%s\",\n        week,\n        len(invoices),\n        total,\n    )\n    return {\n        \"week\": week,\n        \"invoices\": invoices,\n        \"invoice_count\": len(invoices),\n        \"total_amount_cents\": total,\n    }\n",
+      "verify": true,
+      "side_effect_class": "read_only"
+    }
+  },
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 329.93,
+      "llm_calls": 30,
+      "prompt_tokens": 1113825,
+      "completion_tokens": 5634,
+      "total_tokens": 1119459,
+      "provider_cost_usd": 2.257618,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 30
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 30,
+          "prompt_tokens": 1113825,
+          "completion_tokens": 5634
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_1",
+      "wall_seconds": 56.6,
+      "llm_calls": 7,
+      "prompt_tokens": 163570,
+      "completion_tokens": 3553,
+      "total_tokens": 167123,
+      "provider_cost_usd": 0.451378,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 7
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 7,
+          "prompt_tokens": 163570,
+          "completion_tokens": 3553
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_1_review",
+      "wall_seconds": 345.84,
+      "llm_calls": 16,
+      "prompt_tokens": 550905,
+      "completion_tokens": 8752,
+      "total_tokens": 559657,
+      "provider_cost_usd": 0.829643,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 16
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 16,
+          "prompt_tokens": 550905,
+          "completion_tokens": 8752
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_2",
+      "wall_seconds": 53.04,
+      "llm_calls": 4,
+      "prompt_tokens": 12635,
+      "completion_tokens": 2436,
+      "total_tokens": 15071,
+      "provider_cost_usd": 0.063178,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 4
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 8024,
+          "completion_tokens": 1798
+        },
+        "verification": {
+          "llm_calls": 2,
+          "prompt_tokens": 4611,
+          "completion_tokens": 638
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_2_review",
+      "wall_seconds": 180.08,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_3",
+      "wall_seconds": 34.82,
+      "llm_calls": 3,
+      "prompt_tokens": 10951,
+      "completion_tokens": 1047,
+      "total_tokens": 11998,
+      "provider_cost_usd": 0.022678,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 8080,
+          "completion_tokens": 1005
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 2871,
+          "completion_tokens": 42
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_3_review",
+      "wall_seconds": 180.12,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_4",
+      "wall_seconds": 40.47,
+      "llm_calls": 3,
+      "prompt_tokens": 10911,
+      "completion_tokens": 1659,
+      "total_tokens": 12570,
+      "provider_cost_usd": 0.031733,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 8040,
+          "completion_tokens": 1615
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 2871,
+          "completion_tokens": 44
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_4_review",
+      "wall_seconds": 162.12,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_5",
+      "wall_seconds": 281.36,
+      "llm_calls": 18,
+      "prompt_tokens": 181742,
+      "completion_tokens": 11367,
+      "total_tokens": 193109,
+      "provider_cost_usd": 0.333642,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 18
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 14,
+          "prompt_tokens": 169485,
+          "completion_tokens": 9306
+        },
+        "verification": {
+          "llm_calls": 4,
+          "prompt_tokens": 12257,
+          "completion_tokens": 2061
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_5_review",
+      "wall_seconds": 180.16,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    }
+  ],
+  "series": {
+    "regular_weeks_correct": 1,
+    "regular_weeks": 4,
+    "edge_week_outcome": "wrong",
+    "tokens_regular_weeks_mean": 191604.8,
+    "tokens_edge_week": 193109
+  },
+  "finished_at": "2026-08-20T18:37:29.085955+00:00"
+}
