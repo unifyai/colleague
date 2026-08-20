@@ -31,6 +31,7 @@ class CliSession(ArmSession):
         run_id: str | None = None,
         proxy_port: int = 0,
         timeout_s: float = 900.0,
+        transport: str = "text",
     ) -> None:
         if not os.environ.get("OPENROUTER_API_KEY"):
             raise SystemExit("OPENROUTER_API_KEY is required to meter this arm")
@@ -40,6 +41,11 @@ class CliSession(ArmSession):
         self.results_dir = Path(results_dir)
         self.results_dir.mkdir(parents=True, exist_ok=True)
         self.timeout_s = timeout_s
+        #: The transport the runner intends ("text" | "voice"). Boot-time
+        #: information only: an arm whose product must be *configured* to
+        #: field a call (OpenClaw's voice-call plugin) reads it in setup();
+        #: it never substitutes for the per-scenario voice availability probe.
+        self.transport = transport
         self.log_path = self.results_dir / f"{self.arm}_cli.log"
         self.ledger_path = self.results_dir / "proxy_ledger.jsonl"
         self.proxy = RecordingProxy(

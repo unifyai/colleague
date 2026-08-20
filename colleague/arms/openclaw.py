@@ -92,6 +92,7 @@ def write_openclaw_config(
     workspace: Path,
     model: str = BENCH_MODEL,
     gateway_auth_token: str | None = None,
+    extra: dict[str, Any] | None = None,
 ) -> None:
     """Write the benchmark's OpenClaw config into a throwaway state dir.
 
@@ -100,6 +101,11 @@ def write_openclaw_config(
     protocol; the CLI arm leaves it unset and lets the Gateway mint its own.
     Either way `scrub_state_archive` strips ``gateway.auth`` before the state
     dir is archived.
+
+    ``extra`` deep-merges additional product configuration on top of the
+    shared template. The voice arm uses it to enable the voice-call plugin
+    for a voice run only, so text-track runs keep exactly the tool surface
+    the published results used.
     """
     config = json.loads(
         json.dumps(CONFIG_TEMPLATE)
@@ -109,6 +115,8 @@ def write_openclaw_config(
     )
     if gateway_auth_token:
         config["gateway"]["auth"] = {"mode": "token", "token": gateway_auth_token}
+    if extra:
+        config = _deep_merge(config, extra)
     state_dir.mkdir(parents=True, exist_ok=True)
     (state_dir / "openclaw.json").write_text(
         json.dumps(config, indent=2),
@@ -116,8 +124,18 @@ def write_openclaw_config(
     )
 
 
+def _deep_merge(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any]:
+    merged = dict(base)
+    for key, value in overlay.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = _deep_merge(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
+
+
 def openclaw_env(state_dir: Path, gateway_port: int) -> dict[str, str]:
-    return {
+    env = {
         "PATH": os.environ.get("PATH", ""),
         "HOME": os.environ.get("HOME", ""),
         "OPENCLAW_STATE_DIR": str(state_dir),
@@ -126,6 +144,14 @@ def openclaw_env(state_dir: Path, gateway_port: int) -> dict[str, str]:
         "NO_COLOR": "1",
         "TERM": "dumb",
     }
+    # The voice arm's own STT (real Deepgram, the caller's ears) reads this
+    # from config via ${DEEPGRAM_API_KEY}; pass it through when present. It is
+    # inert for every non-voice run — an extra unread variable.
+    for passthrough in ("DEEPGRAM_API_KEY",):
+        value = os.environ.get(passthrough)
+        if value:
+            env[passthrough] = value
+    return env
 
 
 def run_openclaw(

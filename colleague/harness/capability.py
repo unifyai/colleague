@@ -379,6 +379,78 @@ PROFILES: dict[str, ArmProfile] = {
             "runs, but no running loop can be addressed."
         ),
     ),
+    "hermes-voice": ArmProfile(
+        name="hermes-voice",
+        clarification=False,
+        steering=Steering.RESTART_ONLY,
+        storage=Storage.FLAT,
+        persistent_sessions=True,
+        multi_party=True,
+        accepts_images=False,
+        scheduler=True,
+        voice=True,
+        notes=(
+            "hermes's Discord voice substrate, driven for real: the harness "
+            "stands up a Discord-protocol server on loopback "
+            "(harness/voice/discord_room.py) and runs the pinned `hermes "
+            "gateway` against it. The arm joins a guild voice channel through "
+            "its own discord.py client, attributes each speaker by SSRC "
+            "(voice op 5), transcribes with its local Whisper (stt.provider "
+            "local, offline), and speaks replies as Opus. Personas are "
+            "separate Discord users each on their own SSRC, so who-said-what "
+            "is a real problem the arm solves from the audio. Utterance text "
+            "is the arm's own, tapped at its TTS input — the exact string it "
+            "chose to say at the point it speaks from text, the same faithful "
+            "capture unify-cm's LiveKit result uses, never a transcription of "
+            "the audio (a TTS voice's clause pauses would fragment that). The "
+            "bot audio is carried on the real substrate and captured as "
+            "corroboration (duration, and a whole-call cross-check "
+            "transcript). No hermes code is patched: discord.py's REST base "
+            "and gateway URL are class constants a sitecustomize shim on "
+            "PYTHONPATH repoints at the loopback server, and its one wss://-"
+            "only path (the voice gateway) is rewritten to ws:// on loopback. "
+            "Two assistants on one call is Unsupported by design — the bridge "
+            "fields one bot per call. This is the voice sibling of the text "
+            "`hermes`/`hermes-tui` arms; results carry transport=voice and "
+            "are never merged with a text cell."
+        ),
+    ),
+    "openclaw-voice": ArmProfile(
+        name="openclaw-voice",
+        clarification=False,
+        steering=Steering.RESTART_ONLY,
+        storage=Storage.FLAT,
+        persistent_sessions=True,
+        multi_party=False,
+        accepts_images=True,
+        scheduler=True,
+        voice=True,
+        notes=(
+            "OpenClaw's voice-call extension, driven for real over an inbound "
+            "phone call: the harness plays the carrier "
+            "(harness/voice/phone_room.py), POSTing the provider's inbound "
+            "webhook to the extension's local server and connecting the "
+            "Twilio-shaped media stream it answers with, then streaming G.711 "
+            "µ-law both ways. The extension runs its own classic streaming "
+            "pipeline — its own TTS into the stream, its own Deepgram STT out "
+            "of it — and each caller turn drives a full agent turn "
+            "(response-generator), pinned to the bench model via "
+            "voice-call.responseModel. Personas are distinct TTS voices on the "
+            "one caller channel (a conference call over one line — speaker "
+            "attribution from the audio is the arm's problem). Utterance text "
+            "is the arm's own, tapped at its TTS input (the exact spoken "
+            "string, the same capture as unify-cm and hermes-voice); the "
+            "streamed µ-law audio is captured as corroboration, with a "
+            "whole-call transcript kept as a cross-check. The call is ended by "
+            "the carrier's own "
+            "`completed` webhook, never the arm's hangup (which would POST to "
+            "the real carrier API). No provider account: provider `twilio` "
+            "with skipSignatureVerification and a fake public host; every "
+            "byte on the carrier side is the harness. Voice sibling of the "
+            "text `openclaw`/`openclaw-gateway` arms; results carry "
+            "transport=voice."
+        ),
+    ),
 }
 
 

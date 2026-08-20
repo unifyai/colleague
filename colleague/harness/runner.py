@@ -68,6 +68,7 @@ def _session_for(
     results_dir: Path,
     timeout_s: float,
     mode: str = "ideal",
+    transport: str = "text",
 ) -> ArmSession:
     if arm == "mock":
         # run_id keys the mock's durable store; without it a restart
@@ -80,11 +81,16 @@ def _session_for(
             track=track,
             results_dir=results_dir,
         )
+    # The transport is boot-time information for arms whose product needs a
+    # different configuration to field a call at all (the OpenClaw Gateway
+    # only carries its voice-call plugin on a voice run, so text tracks keep
+    # exactly the tool surface their published results used).
     return build_session(
         arm,
         results_dir=results_dir,
         run_id=run_id,
         timeout_s=timeout_s,
+        transport=transport,
     )
 
 
@@ -139,6 +145,7 @@ def run_track(
             results_dir=results_dir,
             timeout_s=timeout_s,
             mode=mode,
+            transport=transport,
         )
         shared_session.setup()
         results["profile"] = shared_session.profile.name
@@ -199,6 +206,7 @@ def run_track(
                 results_dir=results_dir / name,
                 timeout_s=timeout_s,
                 mode=mode,
+                transport=transport,
             )
             if arm == "mock":
                 session.bind(
@@ -517,6 +525,15 @@ def _voice_setup(session: ArmSession, live: dict[str, Any], name: str):
 
     idents = tuple(live.get("assistant_identities") or ("assistant",))
     try:
+        # An arm whose voice surface lives on its own substrate (hermes's
+        # Discord voice, OpenClaw's phone call) assembles the harness-owned
+        # room *on that substrate* — persona speakers and capture included —
+        # and hands back the same transport shape. LiveKit remains the
+        # default for arms without a substrate of their own (unify's
+        # `unify_meet` room IS LiveKit, so the default is its product room).
+        builder = getattr(session, "build_voice_transport", None)
+        if builder is not None:
+            return builder(scenario=name, assistant_identities=idents), ""
         return (
             build_transport(scenario=name, assistant_identities=idents),
             "",
