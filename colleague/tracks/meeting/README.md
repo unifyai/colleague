@@ -90,9 +90,16 @@ room-addressed sends bridge to `/say`.
 |---|---|---|
 | `addressed_by_name` (voice) | DEGRADED ×4 · 1 discarded | the right answer in every valid run — "Thursday at fourteen o'clock UTC" — always as a fast-brain defer line first, then the answer. Three landed after the room had moved on; one was in time but with extra lines, the live roles' reactions pulling it into over-talking (it volunteered venue opinions and the budget, unasked). The fifth run is discarded as a harness fault, not scored: the bridge's stale-dispatch delete raced a slow worker boot and seated three agents in one room — a chorus the harness caused (fixed: a dispatch with a job assigned is never deleted) |
 
-Scored on the arm's own utterance text, never a transcript; "fourteen
-o'clock" counts as `14:00` (spoken forms, declared beside the fixture's
-ground truth). Same day, earlier: three runs excluded as environment faults
+Scored on the assistant's utterance text; "fourteen o'clock" counts as
+`14:00` (spoken forms, declared beside the fixture's ground truth).
+Correction, on the record (2026-08-20): these runs' "arm-exact" lines were
+in fact Deepgram transcripts — the bridge's utterance tap parsed the arm's
+events flat when they serialize nested, and fell back silently. The
+verdicts survive (the credited checks found their markers in text that
+carried them; the lost ones were about speaking at all or speaking late,
+which transcription cannot manufacture), the tap is fixed for future runs,
+and the trail is in SCENARIO_CHANGES ("The callee"). Same day, earlier:
+three runs excluded as environment faults
 (the agent linked to the harness recorder; missing turn-detector models;
 Orchestra without its embed key) — the trail is in SCENARIO_CHANGES. The
 defer-then-answer shape means `only_one_line` is structurally out of reach

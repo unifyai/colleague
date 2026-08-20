@@ -367,16 +367,19 @@ to three people. v0 runs on a text room; the voice transport
 utterance capture) carries the same scenes unchanged, and unify-cm has run
 it live. See `colleague/tracks/meeting/`.
 
-### `callflow` — built on the controlled path; the callee leg is next
+### `callflow`
 
 A decision tree, a phone call, a persona callee whose brief fixes the path.
 Score is the leaf reached, the facts carried back, and what was not said.
 The call must go through the arm's own telephony — a fixture-provided "call"
 endpoint would be the `/clarify` mistake again — so every scenario is
 voice-only for real arms and the six scorers are proven through the
-controlled mock. Live runs wait on a callee the arm can dial. Voicemail and
-IVR variants are in and will be red for every arm today. See
-`colleague/tracks/callflow/`.
+controlled mock. The callee is built (`harness/voice/callee.py`): a number
+the harness owns, a local exchange standing where the telephony gateway
+stands, and the answered call as `meeting`'s room on one leg — persona TTS
+in, arm-exact capture out. unify-cm dials it through its real `make_call`
+comms path. Voicemail and IVR variants are in and will be red for every arm
+today. See `colleague/tracks/callflow/`.
 
 ### Further designs, not yet tracks
 
@@ -453,9 +456,8 @@ OpenCode toolkits living inside `recurring_report`; that is fixed.
 
 ## Status
 
-Twelve tracks are built and self-testing; `callflow`'s live runs wait on a
-callee the arm can dial. Every published number in this repo is still
-`standing` only.
+Twelve tracks are built and self-testing. Every published number in this
+repo is still `standing` only.
 
 | Track | Scenarios | Notes |
 |---|---|---|
@@ -471,7 +473,7 @@ callee the arm can dial. Every published number in this repo is still
 | `recall` | 3 + 4 controls + 8 setup | Supersession after a week of messages |
 | `screenshare` | 1 + 1 control | Frames in; final state of the arm's own instance out |
 | `meeting` | 6 | Text room v0 + LiveKit voice transport (two voice-only scenes); unify-cm has run it live |
-| `callflow` | 6 | Voice-only for real arms; scorers mock-proven; live runs need a callee the arm can dial |
+| `callflow` | 6 | Voice-only for real arms; scorers mock-proven; the callee is built and unify-cm dials it through its real `make_call` path |
 
 ## Next
 

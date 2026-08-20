@@ -74,7 +74,7 @@ chained unillm hook. Both produce the same per-phase ledger.
 | [`recall`](colleague/tracks/recall/) | A week of messages, three facts replaced: is the newest value the one recalled? | built |
 | [`screenshare`](colleague/tracks/screenshare/) | Frames of a shared screen: can it do the same on its own instance? | built |
 | [`meeting`](colleague/tracks/meeting/) | Several people in a room: speak when addressed, quiet when not, work commanded in passing gets done | built — text room; voice next |
-| [`callflow`](colleague/tracks/callflow/) | A decision tree and a phone call: which leaf did it reach? | designed |
+| [`callflow`](colleague/tracks/callflow/) | A decision tree and a phone call: which leaf did it reach? | built |
 | [`usecases`](colleague/tracks/usecases/) | Are the figures on our own use-case pages real? | built — 2 of 19 pages |
 
 "Built" means the fixture, scenarios and scorers exist and self-test;

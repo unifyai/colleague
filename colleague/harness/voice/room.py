@@ -148,6 +148,10 @@ class VoiceRoom:
         #: Per-assistant-identity queue of (text, at) the arm handed over.
         self._noted_texts: dict[str, list[tuple[str, str]]] = {i: [] for i in idents}
         self._lock = threading.Lock()
+        #: Set when any assistant participant is present in the room. A caller
+        #: that must not speak into an empty line (callflow's callee answering
+        #: a dial) waits on this rather than guessing at boot times.
+        self.assistant_joined = threading.Event()
 
     # ------------------------------------------------------------- tokens
 
@@ -222,9 +226,15 @@ class VoiceRoom:
             alias = self._assistant_alias(participant.identity)
             if alias is None:
                 return
+            self.assistant_joined.set()
             if track.kind != rtc.TrackKind.KIND_AUDIO:
                 return
             asyncio.create_task(self._read_assistant(track, alias))
+
+        @room.on("participant_connected")
+        def _on_join(participant):  # noqa: ANN001
+            if self._assistant_alias(participant.identity) is not None:
+                self.assistant_joined.set()
 
         # kind="egress": the capture is harness apparatus, not a person in the
         # room. livekit-agents auto-links its audio input to the first
@@ -243,6 +253,9 @@ class VoiceRoom:
             ),
             options=rtc.RoomOptions(auto_subscribe=True),
         )
+        for participant in room.remote_participants.values():
+            if self._assistant_alias(participant.identity) is not None:
+                self.assistant_joined.set()
         self._capture = room
 
     async def _read_assistant(self, track: Any, who: str) -> None:
@@ -319,6 +332,16 @@ class VoiceRoom:
             self._noted_texts.setdefault(ident, []).append((text, _utcnow()))
 
     # ------------------------------------------------------------- speak
+
+    def prejoin_speaker(self, who: str) -> None:
+        """Publish `who`'s track before their first line.
+
+        On a call the answering voice must be a participant the moment the
+        caller's agent joins — an arm's livekit-agents auto-link binds its
+        audio input to the first standard participant it sees, and a speaker
+        that only appears mid-scene may never be linked at all.
+        """
+        self._loop.run(self._ensure_speaker(who), timeout=60)
 
     def speak(self, who: str, text: str) -> Utterance:
         """Render `who`'s line and play it; block until playout completes."""

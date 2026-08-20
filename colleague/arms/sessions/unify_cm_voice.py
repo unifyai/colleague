@@ -44,7 +44,6 @@ stream owns its text-side behaviour.
 from __future__ import annotations
 
 import asyncio
-import json
 import os
 from typing import Any, Callable
 
@@ -56,6 +55,32 @@ _DEV_KEY = "devkey"
 _DEV_SECRET = "secret"
 
 _UTTERANCE_CHANNEL = "app:comms:unify_meet_utterance"
+
+
+def prime_voice_env(url: str) -> None:
+    """Environment the CM's dispatch path and its worker subprocess read.
+
+    LIVEKIT_* is infrastructure access to the harness's room server, the
+    voice analogue of a fixture base URL. The fast brain is pinned to the
+    bench model — the same pin `_prime_environment` applies to the slow
+    brain — because rule 6 wants one model across arms; the product's own
+    default in this seat is a smaller model, and the consequence of the
+    pin (whatever it is) belongs in results, not in a quiet divergence.
+    Shared by the meet bridge and the call bridge: both surfaces spawn the
+    same worker into the same room server.
+    """
+    os.environ["LIVEKIT_URL"] = url
+    if url == _DEV_URL:
+        os.environ.setdefault("LIVEKIT_API_KEY", _DEV_KEY)
+        os.environ.setdefault("LIVEKIT_API_SECRET", _DEV_SECRET)
+    bench_model = (os.environ.get("UNIFY_MODEL") or "").strip()
+    if bench_model:
+        for key in (
+            "UNIFY_CONVERSATION_FAST_BRAIN_MODEL",
+            "UNITY_CONVERSATION_FAST_BRAIN_MODEL",
+        ):
+            if not (os.environ.get(key) or "").strip():
+                os.environ[key] = bench_model
 
 
 class UnifyCMVoiceBridge:
@@ -105,46 +130,33 @@ class UnifyCMVoiceBridge:
         return {"room": self._room_name, "identity": joined_as, "surface": "unify_meet"}
 
     def _prime_voice_env(self, url: str) -> None:
-        """Environment the CM's dispatch path and its worker subprocess read.
-
-        LIVEKIT_* is infrastructure access to the harness's room server, the
-        voice analogue of a fixture base URL. The fast brain is pinned to the
-        bench model — the same pin `_prime_environment` applies to the slow
-        brain — because rule 6 wants one model across arms; the product's own
-        default in this seat is a smaller model, and the consequence of the
-        pin (whatever it is) belongs in results, not in a quiet divergence.
-        """
-        os.environ["LIVEKIT_URL"] = url
-        if url == _DEV_URL:
-            os.environ.setdefault("LIVEKIT_API_KEY", _DEV_KEY)
-            os.environ.setdefault("LIVEKIT_API_SECRET", _DEV_SECRET)
-        bench_model = (os.environ.get("UNIFY_MODEL") or "").strip()
-        if bench_model:
-            for key in (
-                "UNIFY_CONVERSATION_FAST_BRAIN_MODEL",
-                "UNITY_CONVERSATION_FAST_BRAIN_MODEL",
-            ):
-                if not (os.environ.get(key) or "").strip():
-                    os.environ[key] = bench_model
+        prime_voice_env(url)
 
     def _tap_utterances(self) -> None:
         """Compose over the session's broker tap to hand utterance text out.
 
         The worker's events reach the CM broker through the IPC socket
         server's republish (`domains/ipc_socket.py`), so wrapping
-        `event_broker.publish` sees every spoken line exactly once.
+        `event_broker.publish` sees every spoken line exactly once. The
+        channel carries both directions (the arm's lines and what its STT
+        heard the room say) and events serialize nested — the shared parser
+        takes only `OutboundUnifyMeetUtterance` content. Before it, a flat
+        `.get("content")` read None forever and every "arm-exact" meet line
+        was quietly a Deepgram transcript (found live on callflow, whose tap
+        was copied from here).
         """
         cm = self._session._cm
         self._orig_publish = cm.event_broker.publish
         orig = self._orig_publish
         on_text = self._on_text
+        from colleague.arms.sessions.unify_cm_call import outbound_utterance_content
 
         async def tapping_publish(channel: str, message: str) -> int:
             if channel == _UTTERANCE_CHANNEL and on_text is not None:
-                try:
-                    content = str(json.loads(message).get("content") or "")
-                except Exception:  # noqa: BLE001 - non-JSON payloads pass through
-                    content = ""
+                content = outbound_utterance_content(
+                    message,
+                    "OutboundUnifyMeetUtterance",
+                )
                 if content.strip():
                     on_text(content)
             return await orig(channel, message)

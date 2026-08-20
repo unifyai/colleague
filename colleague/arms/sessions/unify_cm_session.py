@@ -1278,6 +1278,18 @@ class UnifyCMSession(ArmSession):
             bridge.leave()
             self._voice_bridge = None
 
+    def attach_call_surface(self, invite, *, on_text) -> dict[str, Any]:
+        from colleague.arms.sessions.unify_cm_call import UnifyCMCallBridge
+
+        self._call_bridge = UnifyCMCallBridge(self)
+        return self._call_bridge.attach(invite, on_text=on_text)
+
+    def detach_call_surface(self) -> None:
+        bridge = getattr(self, "_call_bridge", None)
+        if bridge is not None:
+            bridge.detach()
+            self._call_bridge = None
+
     # -------------------------------------------------------- clarifications
 
     def on_clarification(self, responder) -> None:

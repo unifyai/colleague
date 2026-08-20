@@ -32,3 +32,8 @@ colleague/tracks/*/results/*-mock/
 # (standing/ keeps its committed results — they are the published record,
 # and they live one level deeper so this does not match them.)
 colleague/tracks/*/results/
+
+# unify's LLM-call cache, written into the CWD by an in-process CM boot.
+# Never a benchmark artifact; the run record lives in results/.
+.cache.ndjson
+.cache.ndjson.idx

@@ -662,3 +662,85 @@ deleted; an assigned dispatch just gets more time, and an unreadable server
 counts as assigned, because a leaked wait is recoverable and a second
 seated agent is not. The 14-06-51Z run is discarded as environment fault,
 not scored against the arm.
+
+---
+
+## The callee: callflow's first live calls, and what they corrected
+
+**The callee is built the way the README demanded.** A number the harness
+owns, an exchange standing where the telephony gateway stands
+(`harness/voice/callee.py`: `/phone/send-call` answered by the persona
+pool, `/phone/dispatch-livekit-agent` served the way the comms service
+serves it, with the meet track's assigned-dispatches-are-never-deleted
+rule), and the answered call as `meeting`'s `VoiceRoom` on the room the
+*arm* names in its dial. unify-cm dials through its real `make_call`
+comms path (`arms/sessions/unify_cm_call.py`): the two functions its test
+boot stubs on that path are restored for the duration of the call surface
+— nothing reimplemented — and `UNIFY_COMMS_URL` points at the exchange.
+No text path into a call exists anywhere.
+
+**Harness bug, not a scenario: a silent provider means a silent arm.**
+The first answered call (run `18-04-51Z`) heard the whole scene and never
+spoke: on an outbound call the fast brain holds its verbatim opener until
+the provider's *answered* webhook (`call.py` waits on `call_answered`),
+and the harness answered the phone without ever saying so. The callee now
+pushes status `"answered"` at pick-up; the bridge publishes
+`PhoneCallAnswered` — the exact event the hosted telephony path publishes
+— once no stepped turn is in flight, because the stepped driver's publish
+wrapper drops the non-Event status the CM forwards to its agent. The same
+sink carries `"no-answer"` when the line rings out.
+
+**`[wrong]` callflow — a silent caller could ride the beats to DEGRADED.**
+That same silent run scored DEGRADED, because the callee's beats march
+whether or not the caller says a word: the receptionist "booked" a slot
+nobody asked for, and the arm truthfully reported the booking it had
+overheard. `straight_path` and `withheld_item` now carry a core
+`spoke_on_the_call` check (the other scenarios' cores already require
+speech); an assistant that never spoke on an answered call did not follow
+the tree — it audited someone else's call.
+
+**Harness bug, not a scenario: the "arm-exact" text was a transcript.**
+The utterance tap parsed events flat (`json.loads(msg).get("content")`),
+but unify events serialize nested (`{"event_name", "payload": {...}}`) —
+so the tap read None forever and every assistant line in run `18-40-10Z`
+was silently Deepgram output, choppy enough to lose
+`confirmed_the_slot_back` on a call that probably earned it. The parse is
+fixed and filters on `event_name == "OutboundPhoneUtterance"`, because
+the channel carries *both* directions and an unfiltered tap would note
+the receptionist's words as the arm's. The meet bridge's tap had the
+identical bug — meaning the meeting voice runs' "arm-exact" lines were
+also transcripts — and now shares the fixed parser. Meeting's verdicts
+survive the correction: the credited checks found their markers in text
+that carried them, and the lost ones were about speaking at all or
+speaking late, which transcription cannot manufacture. But the provenance
+claim ("never a transcript") was wrong until now, and the fix is what
+makes it true.
+
+**The first passing call** (run `18-49-42Z`, `straight_path`): dialled
+`+442079460958` through `make_call`, opener released by the answered
+webhook, a real back-and-forth with the live receptionist, "Yes, please
+book Daniel for Tuesday at ten fifteen" in the arm's own words,
+`booked / Tuesday 10:15 next week` reported after the goodbye, all five
+checks green. One small tax stated: the contact store validates phone
+numbers as E.164-compact, so the bridge seeds the digits-only form while
+the tree keeps the human one (run `18-03-27Z` died on that pattern check).
+
+**`[wrong]` callflow — `CL-4471` said aloud.** The first full-track pass
+lost `branch_on_pushback` to one check: the arm navigated the surname, the
+DOB, the late-slot refusal and the cancellation list, and reported the
+reference it had *heard* — `CL4471`. The check wanted the literal hyphen,
+which does not survive speech. Same lesson as `14:00` vs "fourteen
+o'clock", one field over: the comparison is now alphanumeric-normalized,
+and a wrong reference still fails because the characters must match.
+
+**`[wrong]` callflow — the callee answered its own question.** In the
+re-run of `branch_on_pushback`, the live receptionist's beat intent told
+her the record was filed under Okafor-Reid, and she volunteered it ("I can
+only find a record under Okafor-Reid — is that the patient you mean?") —
+so the arm, correctly, just confirmed, and failed
+`offered_the_other_surname` for a branch the environment had walked for
+it. The inheritance track's `/clarify` lesson in miniature: the callee
+must never supply the move the check measures. Her beat intent now says
+the alternative is the caller's to offer, and her knowledge says she has
+no reason to guess it — she can only search a name she is given. Ground
+truth and the scorer are unchanged.

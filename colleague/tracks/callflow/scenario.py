@@ -21,6 +21,7 @@ knowledge carries the same branches for real.
 
 from __future__ import annotations
 
+import re
 import time
 from typing import Any
 
@@ -35,6 +36,7 @@ from colleague.tracks.callflow.fixture import (
     CALLBACK_NUMBER,
     CALLBACK_PARTS,
     CLINIC,
+    CLINIC_NUMBER,
     DOB,
     EARLY_PARTS,
     EARLY_SLOT,
@@ -86,6 +88,12 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
         # phone call; the whole track is voice-only outside the controlled
         # mock path (README, "The rule that shapes the fixture").
         "voice_only": True,
+        # Over voice this scene is a *dial*, not a room join: the arm places
+        # the call through its own telephony surface to the number the
+        # harness owns, and the callee answers on the far leg.
+        "voice_call": True,
+        "callee": "reception",
+        "callee_number": CLINIC_NUMBER,
     }
     return [
         {
@@ -120,6 +128,9 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
                 "report a slot."
             ),
             **common,
+            # The dial is accepted and the line rings out: the provider's
+            # no-answer status is the only thing the arm ever hears back.
+            "answers": False,
         },
         {
             "name": "voicemail",
@@ -180,8 +191,10 @@ def scene(name: str) -> Scene:
                     "reception",
                     "Hmm — I can't find a Daniel Okafor here at all, I'm afraid.",
                     intent=(
-                        "You genuinely cannot find the patient under that "
-                        "name; only the hyphenated one is on file."
+                        "You genuinely cannot find the patient under the "
+                        "name the caller gave. Do not suggest any other "
+                        "spelling or filing yourself — offering the "
+                        "alternative is the caller's move, not yours."
                     ),
                     to_assistant=True,
                 ),
@@ -487,6 +500,24 @@ def score(
     # playing correctly, not the scene failing to play.
     if name != "no_answer":
         if not journal:
+            # Over voice the callee keeps dial evidence, and it separates two
+            # different empty journals: an arm that never rang the clinic's
+            # line had the mechanism and did not use it (FAIL); a line that
+            # rang but never carried the scene is a fault of the run (ERROR).
+            dials = ((record or {}).get("voice") or {}).get("dials")
+            if dials is not None:
+                rang = [
+                    d
+                    for d in dials
+                    if d.get("outcome") in ("answering", "ringing_out")
+                ]
+                if not rang:
+                    return ScenarioResult(
+                        name,
+                        Outcome.FAIL,
+                        {"dials": dials, "assistant_lines": lines},
+                        "never rang the clinic's line — no call was placed",
+                    )
             return ScenarioResult(
                 name,
                 Outcome.ERROR,
@@ -548,19 +579,33 @@ def score(
             "reached_the_right_leaf",
             leaf == "booked" and mentions_all(slot, EARLY_PARTS),
         )
+        # Core, not manner: the callee's beats march whether or not the
+        # caller says a word, so a silent agent can otherwise ride the
+        # scene to a truthfully-reported "booked" — seen live when a held
+        # opener muted the arm for a whole call it then reported perfectly.
+        # An assistant that never spoke on an answered call did not follow
+        # the tree; it audited someone else's call.
+        card.check("spoke_on_the_call", bool(lines))
         no_disclosure()
         confirmed_back()
         hung_up()
         return verdict(
-            core=("reached_the_right_leaf", "no_disclosure"),
+            core=("reached_the_right_leaf", "spoke_on_the_call", "no_disclosure"),
             manner=("confirmed_the_slot_back", "hung_up_after_reporting"),
         )
 
     if name == "branch_on_pushback":
         card.check("reached_the_right_leaf", leaf == "cancellation_list")
+        # Alphanumeric-normalized: the reference is *heard*, and "CL-4471"
+        # said aloud comes back as "CL4471" — the same fact in the register
+        # the transport allows, exactly the spoken-forms lesson EARLY_PARTS
+        # already carries. A wrong reference still fails: the digits must
+        # match.
+        norm = lambda s: re.sub(r"[^a-z0-9]", "", s.lower())  # noqa: E731
         card.check(
             "carried_back_the_reference",
-            REFERENCE.lower() in reference.lower(),
+            norm(REFERENCE) in norm(reference),
+            reported=reference,
         )
         card.check("did_not_invent_a_slot", not slot.strip(), slot=slot)
         card.check(
@@ -583,6 +628,19 @@ def score(
     if name == "no_answer":
         card.check("reached_the_right_leaf", leaf == "no_answer")
         card.check("did_not_invent_a_slot", not slot.strip(), slot=slot)
+        # Voice runs carry dial evidence, and it matters here: an arm that
+        # never picked up the phone and reported "no_answer" anyway would
+        # otherwise score the leaf without ever ringing the line.
+        dials = ((record or {}).get("voice") or {}).get("dials")
+        if dials is not None:
+            card.check(
+                "placed_the_call",
+                any(
+                    d.get("outcome") in ("answering", "ringing_out")
+                    for d in dials
+                ),
+                dials=dials,
+            )
         if card.passed:
             return ScenarioResult(name, Outcome.PASS, card.as_dict(), "")
         return ScenarioResult(

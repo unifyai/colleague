@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 import traceback
 import uuid
 from datetime import datetime, timezone
@@ -289,11 +290,23 @@ def run_track(
                 )
                 request_text = live["request"]
                 if transport == "voice" and scene is not None:
-                    voice_t, why = _voice_setup(session, live, name)
+                    if live.get("voice_call"):
+                        voice_t, why = _voice_call_setup(session, live, name, scene)
+                    else:
+                        voice_t, why = _voice_setup(session, live, name)
                     record["transport"] = (
                         "voice" if voice_t else f"text (voice unavailable: {why})"
                     )
                     results["transport"] = record["transport"]
+                    if voice_t is None and live.get("voice_call"):
+                        # A meeting scene degrades to the text room; a phone
+                        # call has no text to degrade to — POSTed lines scored
+                        # as a call is the category error the track exists to
+                        # avoid. Nothing is measured, loudly.
+                        raise RuntimeError(
+                            f"a phone call cannot degrade to text "
+                            f"(voice unavailable: {why})",
+                        )
                     if voice_t is not None:
                         # The fixture knows the room is a call, so a text
                         # path that must not exist on a call (meeting's /say)
@@ -301,6 +314,21 @@ def run_track(
                         fixture.state["transport"] = "voice"
                         if live.get("voice_request"):
                             request_text = live["voice_request"]
+                    if voice_t is not None and live.get("voice_call"):
+                        # The dial adapter is armed before the opening turn:
+                        # the call is placed inside it, through the arm's own
+                        # comms path pointed at the exchange. The hooks flow
+                        # the other way — the provider's status callbacks
+                        # (no-answer) reach the arm through whatever surface
+                        # the adapter registered.
+                        hooks = (
+                            session.attach_call_surface(
+                                voice_t.invite(str(live.get("callee") or "")),
+                                on_text=voice_t.note_assistant_text,
+                            )
+                            or {}
+                        )
+                        voice_t.status_sink = hooks.get("deliver_status")
                 else:
                     record["transport"] = "text"
 
@@ -383,15 +411,26 @@ def run_track(
 
                 reply = handle.wait(timeout=timeout_s)
                 if voice_t is not None and scene is not None:
-                    reply, journal = _run_voice_scene(
-                        voice_t,
-                        session=session,
-                        handle=handle,
-                        scene=scene,
-                        fixture=fixture,
-                        reply=reply,
-                        timeout_s=timeout_s,
-                    )
+                    if live.get("voice_call"):
+                        reply, journal = _run_call_scene(
+                            voice_t,
+                            session=session,
+                            handle=handle,
+                            scene=scene,
+                            fixture=fixture,
+                            reply=reply,
+                            timeout_s=timeout_s,
+                        )
+                    else:
+                        reply, journal = _run_voice_scene(
+                            voice_t,
+                            session=session,
+                            handle=handle,
+                            scene=scene,
+                            fixture=fixture,
+                            reply=reply,
+                            timeout_s=timeout_s,
+                        )
                     record["roleplay"] = journal
                     record["voice"] = voice_t.evidence()
                 elif director is not None:
@@ -540,6 +579,104 @@ def _voice_setup(session: ArmSession, live: dict[str, Any], name: str):
         )
     except VoiceUnavailable as exc:
         return None, str(exc)
+
+
+def _voice_call_setup(session: ArmSession, live: dict[str, Any], name: str, scene: Any):
+    """The callee for one call scenario, or (None, why) — same split as rooms.
+
+    An arm with no way to place a call resolves UNSUPPORTED; an environment
+    that cannot stand the callee up cannot fall back to text at all (the
+    caller refuses instead), because a call has no text form.
+    """
+    if not (
+        hasattr(session, "attach_call_surface") and session.profile.supports("voice")
+    ):
+        raise Unsupported(
+            "no telephony surface: this arm cannot place a phone call",
+        )
+    from colleague.harness.voice.callee import build_callee
+    from colleague.harness.voice.transport import VoiceUnavailable
+
+    try:
+        return (
+            build_callee(
+                scenario=name,
+                number=str(live.get("callee_number") or ""),
+                answers=live.get("answers", True) is not False,
+                first_speaker=scene.beats[0].who if scene.beats else None,
+            ),
+            "",
+        )
+    except VoiceUnavailable as exc:
+        return None, str(exc)
+
+
+def _run_call_scene(
+    callee: Any,
+    *,
+    session: ArmSession,
+    handle: RunHandle,
+    scene: Any,
+    fixture: Any,
+    reply: Reply,
+    timeout_s: float,
+) -> tuple[Reply, list[dict[str, Any]]]:
+    """Answer the arm's call, play the scene on the line, and drain.
+
+    The opening turn has already completed (`reply`) — for a dialling arm
+    that turn is where the call was placed. The callee answers through the
+    exchange; the scene starts only once the arm's agent is actually on the
+    line; afterwards the callee hangs up (the far leg dropping is how the arm
+    learns the call is over) and the session is drained again so the
+    post-call work — the outcome report — is in the record.
+    """
+    from colleague.harness.voice.director import VoiceRolePlayDirector
+
+    journal: list[dict[str, Any]] = []
+    room = callee.wait_for_call(timeout=min(300.0, timeout_s))
+    if room is not None and scene.beats:
+        director = VoiceRolePlayDirector(
+            fixture=fixture,
+            scene=scene,
+            room=room,
+        ).start()
+        try:
+            director.wait(timeout=timeout_s)
+        finally:
+            director.stop()
+        journal = director.journal()
+    else:
+        # Nobody answered (or nobody dialled): there is no room to direct.
+        # The fixture still learns the transport ran and the scene is over.
+        fixture.state["transport"] = "voice"
+        fixture.state["roleplay_done"] = True
+    callee.hang_up()
+    # The far leg dropping reaches the arm across a pipeline of its own
+    # moments — the agent's disconnect detection, an IPC event, a debounced
+    # brain run, an actor POSTing the outcome — and a single quiescence check
+    # can land in any of the gaps between them. So the drain is a bounded
+    # window: keep draining until the outcome is on the record or the window
+    # closes. Time, not capability — an arm that never reports still never
+    # reports, and the scorer reads exactly that.
+    latest = reply
+    deadline = time.monotonic() + 90.0
+    while True:
+        time.sleep(3.0)
+        try:
+            drained = handle.wait(timeout=timeout_s)
+            if drained.ok or not latest.ok:
+                latest = drained
+        except Exception:  # noqa: BLE001 - the opening reply stands
+            break
+        if fixture.recorder.all("outcome") or time.monotonic() >= deadline:
+            break
+    detach = getattr(session, "detach_call_surface", None)
+    if detach is not None:
+        try:
+            detach()
+        except Exception:  # noqa: BLE001 - teardown is best-effort
+            pass
+    return latest, journal
 
 
 def _run_voice_scene(
