@@ -90,6 +90,7 @@ class HumanSession(ArmSession):
         participant_id: str = "anonymous",
         input_fn: Callable[[str], str] = input,
         output: TextIO | None = None,
+        event_sink: Callable[[dict[str, Any]], None] | None = None,
         **_: Any,
     ) -> None:
         import sys
@@ -103,6 +104,7 @@ class HumanSession(ArmSession):
         self.participant_id = participant_id
         self.input_fn = input_fn
         self.output = output or sys.stdout
+        self.event_sink = event_sink
         self.fixture: Any = None
         self.scenario = ""
         self.images: list[str] = []
@@ -122,6 +124,13 @@ class HumanSession(ArmSession):
     def bind_fixture(self, fixture: Any, scenario: str) -> None:
         self.fixture = fixture
         self.scenario = scenario
+        self._emit(
+            {
+                "type": "fixture",
+                "scenario": scenario,
+                "base_url": fixture.base_url,
+            },
+        )
 
     def on_clarification(self, responder) -> None:
         self._responder = responder
@@ -149,6 +158,7 @@ class HumanSession(ArmSession):
     def deliver_interjection(self, text: str, *, sender: str | None = None) -> None:
         entry = {"sender": sender, "text": text, "at": time.time()}
         self._interjections.append(entry)
+        self._emit({"type": "correction", **entry})
         self._write(f"\n>>> CORRECTION from {sender or 'participant'}: {text}\n")
 
     def begin(
@@ -173,6 +183,17 @@ class HumanSession(ArmSession):
     def _turn(self, *, text: str, context: str | None, sender: str | None) -> Reply:
         started = time.monotonic()
         self._turns += 1
+        self._emit(
+            {
+                "type": "turn",
+                "scenario": self.scenario,
+                "sender": sender,
+                "context": context,
+                "request": text,
+                "images": list(self.images),
+                "turn": self._turns,
+            },
+        )
         try:
             self._write("\n" + "=" * 72)
             self._write(f"SCENARIO: {self.scenario or '(continuation)'}")
@@ -229,6 +250,7 @@ class HumanSession(ArmSession):
             )
         finally:
             self._active_seconds += time.monotonic() - started
+            self._emit({"type": "cost", "cost": self.cost_snapshot()})
 
     def _help(self) -> None:
         self._write(
@@ -339,8 +361,17 @@ Use /post for fixture-observed actions. Nothing is sent by plain text.""",
             self._write(f"Command failed: {exc}")
 
     def _write(self, text: str) -> None:
+        self._emit({"type": "output", "text": text})
         with self._print_lock:
             print(text, file=self.output, flush=True)
+
+    def _emit(self, event: dict[str, Any]) -> None:
+        if self.event_sink is None:
+            return
+        try:
+            self.event_sink(event)
+        except Exception:  # noqa: BLE001 - UI telemetry must never break a run
+            pass
 
 
 register("human", HumanSession)

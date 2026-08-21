@@ -26,7 +26,7 @@ import traceback
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, TextIO
 
 from colleague.arms.sessions import build as build_session
 from colleague.harness.capability import Outcome, ScenarioResult, Steering, summarize
@@ -74,6 +74,9 @@ def _session_for(
     transport: str = "text",
     human_hourly_rate_usd: float = 30.0,
     human_participant_id: str = "anonymous",
+    human_input_fn: Callable[[str], str] | None = None,
+    human_output: TextIO | None = None,
+    human_event_sink: Callable[[dict[str, Any]], None] | None = None,
 ) -> ArmSession:
     if arm == "mock":
         # run_id keys the mock's durable store; without it a restart
@@ -85,6 +88,9 @@ def _session_for(
             results_dir=results_dir,
             hourly_rate_usd=human_hourly_rate_usd,
             participant_id=human_participant_id,
+            input_fn=human_input_fn or input,
+            output=human_output,
+            event_sink=human_event_sink,
         )
     if arm in ("unify", "unify-cm"):
         return build_session(
@@ -121,6 +127,9 @@ def run_track(
     transport: str = "text",
     human_hourly_rate_usd: float = 30.0,
     human_participant_id: str = "anonymous",
+    human_input_fn: Callable[[str], str] | None = None,
+    human_output: TextIO | None = None,
+    human_event_sink: Callable[[dict[str, Any]], None] | None = None,
 ) -> int:
     # The suffix is load-bearing. run_id is the aggregate's dedupe key, and
     # parallel repeats of one scenario start within the same second — so a
@@ -162,6 +171,9 @@ def run_track(
             transport=transport,
             human_hourly_rate_usd=human_hourly_rate_usd,
             human_participant_id=human_participant_id,
+            human_input_fn=human_input_fn,
+            human_output=human_output,
+            human_event_sink=human_event_sink,
         )
         shared_session.setup()
         results["profile"] = shared_session.profile.name
@@ -225,6 +237,9 @@ def run_track(
                 transport=transport,
                 human_hourly_rate_usd=human_hourly_rate_usd,
                 human_participant_id=human_participant_id,
+                human_input_fn=human_input_fn,
+                human_output=human_output,
+                human_event_sink=human_event_sink,
             )
             if arm == "mock":
                 session.bind(

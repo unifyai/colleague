@@ -37,3 +37,8 @@ colleague/tracks/*/results/
 # Never a benchmark artifact; the run record lives in results/.
 .cache.ndjson
 .cache.ndjson.idx
+
+# Local browser package dependencies/build and human-run evidence.
+web/node_modules/
+web/dist/
+human-results/

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, TextIO
 
 from colleague.tracks.standing.human_legacy import Protocol
 
@@ -14,6 +14,10 @@ def agency_client_reporting(
     mode: str,
     hourly_rate_usd: float,
     participant_id: str,
+    input_fn: Callable[[str], str] = input,
+    output: TextIO | None = None,
+    event_sink: Callable[[dict[str, Any]], None] | None = None,
+    results_root: Path | None = None,
 ) -> int:
     from colleague.tracks.usecases.agency_client_reporting.fixture import (
         DEFAULT_PORT,
@@ -43,6 +47,10 @@ def agency_client_reporting(
         participant_id=participant_id,
         hourly_rate_usd=hourly_rate_usd,
         timeout_s=timeout,
+        input_fn=input_fn,
+        output=output,
+        event_sink=event_sink,
+        results_root=results_root,
     )
     try:
         ask = utterance(brief, fixture.base_url)
@@ -91,6 +99,10 @@ def ecommerce_trading_review(
     mode: str,
     hourly_rate_usd: float,
     participant_id: str,
+    input_fn: Callable[[str], str] = input,
+    output: TextIO | None = None,
+    event_sink: Callable[[dict[str, Any]], None] | None = None,
+    results_root: Path | None = None,
 ) -> int:
     from colleague.tracks.usecases.ecommerce_trading_review.fixture import (
         DEFAULT_PORT,
@@ -120,6 +132,10 @@ def ecommerce_trading_review(
         participant_id=participant_id,
         hourly_rate_usd=hourly_rate_usd,
         timeout_s=timeout,
+        input_fn=input_fn,
+        output=output,
+        event_sink=event_sink,
+        results_root=results_root,
     )
     try:
         ask = utterance(brief, fixture.base_url)

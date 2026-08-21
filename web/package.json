@@ -1,0 +1,24 @@
+{
+  "name": "@unify/colleague-human-ui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "api": "cd .. && python3 -m colleague.web --no-open",
+    "build": "tsc -b && vite build",
+    "start": "cd .. && python3 -m colleague.web",
+    "check": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest",
+    "vite": "latest"
+  }
+}

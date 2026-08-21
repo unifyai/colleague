@@ -13,7 +13,7 @@ import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, TextIO
 
 from colleague.arms.sessions.human_session import HumanSession
 from colleague.harness.cost import delta as cost_delta
@@ -31,6 +31,10 @@ class Protocol:
         participant_id: str,
         hourly_rate_usd: float,
         timeout_s: float,
+        input_fn: Callable[[str], str] = input,
+        output: TextIO | None = None,
+        event_sink: Callable[[dict[str, Any]], None] | None = None,
+        results_root: Path | None = None,
     ) -> None:
         self.name = name
         self.mode = mode
@@ -39,12 +43,15 @@ class Protocol:
         self.run_id = (
             datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ") + f"-human-{mode}"
         )
-        self.results_dir = directory / "results" / self.run_id
+        self.results_dir = (results_root or directory / "results") / self.run_id
         self.results_dir.mkdir(parents=True, exist_ok=True)
         self.session = HumanSession(
             results_dir=self.results_dir,
             participant_id=participant_id,
             hourly_rate_usd=hourly_rate_usd,
+            input_fn=input_fn,
+            output=output,
+            event_sink=event_sink,
         )
         self.commands: dict[str, str] = {}
         self.phases: list[dict[str, Any]] = []
@@ -198,7 +205,16 @@ class Protocol:
         print(f"[done] results in {self.results_dir}")
 
 
-def recurring_report(*, mode: str, hourly_rate_usd: float, participant_id: str) -> int:
+def recurring_report(
+    *,
+    mode: str,
+    hourly_rate_usd: float,
+    participant_id: str,
+    input_fn: Callable[[str], str] = input,
+    output: TextIO | None = None,
+    event_sink: Callable[[dict[str, Any]], None] | None = None,
+    results_root: Path | None = None,
+) -> int:
     from colleague.tracks.standing.recurring_report.fixture import (
         DEFAULT_PORT,
         DEFAULT_SEED,
@@ -224,6 +240,10 @@ def recurring_report(*, mode: str, hourly_rate_usd: float, participant_id: str) 
         participant_id=participant_id,
         hourly_rate_usd=hourly_rate_usd,
         timeout_s=timeout,
+        input_fn=input_fn,
+        output=output,
+        event_sink=event_sink,
+        results_root=results_root,
     )
     try:
         utterance = UTTERANCE_TEMPLATE.format(base_url=fixture.base_url)
@@ -252,7 +272,16 @@ def recurring_report(*, mode: str, hourly_rate_usd: float, participant_id: str) 
     return 0
 
 
-def semantic_triage(*, mode: str, hourly_rate_usd: float, participant_id: str) -> int:
+def semantic_triage(
+    *,
+    mode: str,
+    hourly_rate_usd: float,
+    participant_id: str,
+    input_fn: Callable[[str], str] = input,
+    output: TextIO | None = None,
+    event_sink: Callable[[dict[str, Any]], None] | None = None,
+    results_root: Path | None = None,
+) -> int:
     from colleague.tracks.standing.semantic_triage.fixture import (
         DEFAULT_PORT,
         DEFAULT_SEED,
@@ -278,6 +307,10 @@ def semantic_triage(*, mode: str, hourly_rate_usd: float, participant_id: str) -
         participant_id=participant_id,
         hourly_rate_usd=hourly_rate_usd,
         timeout_s=timeout,
+        input_fn=input_fn,
+        output=output,
+        event_sink=event_sink,
+        results_root=results_root,
     )
     try:
         utterance = UTTERANCE_TEMPLATE.format(base_url=fixture.base_url)
@@ -309,6 +342,10 @@ def policy_propagation(
     mode: str,
     hourly_rate_usd: float,
     participant_id: str,
+    input_fn: Callable[[str], str] = input,
+    output: TextIO | None = None,
+    event_sink: Callable[[dict[str, Any]], None] | None = None,
+    results_root: Path | None = None,
 ) -> int:
     from colleague.tracks.standing.policy_propagation.fixture import (
         DEFAULT_PORT,
@@ -341,6 +378,10 @@ def policy_propagation(
         participant_id=participant_id,
         hourly_rate_usd=hourly_rate_usd,
         timeout_s=timeout,
+        input_fn=input_fn,
+        output=output,
+        event_sink=event_sink,
+        results_root=results_root,
     )
     try:
         utterances = {a: build_utterance(a, fixture.base_url) for a in AUTOMATIONS}

@@ -261,6 +261,22 @@ Human runs need neither key. Pass the participant's real compensated or loaded
 rate with `--human-hourly-rate-usd` / `--hourly-rate-usd`; the documented
 default is a reference assumption and is stored in the result.
 
+Human participants can also run the same protocols through the local browser
+workbench:
+
+```bash
+cd web
+npm install
+npm run build
+npm start
+```
+
+This opens <http://127.0.0.1:8765>. The React client adds no answer-bearing
+API: fixtures, ground truth, scoring and result creation remain in Python.
+Runs are written to the git-ignored `human-results/` directory. See
+[`web/README.md`](web/README.md) for the development workflow and local safety
+boundary.
+
 ### Running a sweep in the cloud
 
 A full sweep is dozens of shards making real, uncached LLM calls, and there

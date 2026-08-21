@@ -15,7 +15,7 @@ import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, TextIO
 
 from colleague.arms.sessions.human_session import HumanSession
 from colleague.harness.cost import delta as cost_delta
@@ -35,6 +35,9 @@ class HumanStandingArm:
         hourly_rate_usd: float,
         participant_id: str,
         timeout_s: float,
+        input_fn: Callable[[str], str] = input,
+        output: TextIO | None = None,
+        event_sink: Callable[[dict[str, Any]], None] | None = None,
     ) -> None:
         self.fixture = fixture
         self.results_dir = results_dir
@@ -44,6 +47,9 @@ class HumanStandingArm:
             results_dir=results_dir,
             hourly_rate_usd=hourly_rate_usd,
             participant_id=participant_id,
+            input_fn=input_fn,
+            output=output,
+            event_sink=event_sink,
         )
         self.session.bind_fixture(fixture, "setup")
         self.command = ""
@@ -154,6 +160,10 @@ def run(
     mode: str = "builder",
     hourly_rate_usd: float = 30.0,
     participant_id: str = "anonymous",
+    input_fn: Callable[[str], str] = input,
+    output: TextIO | None = None,
+    event_sink: Callable[[dict[str, Any]], None] | None = None,
+    results_root: Path | None = None,
 ) -> int:
     prefix = experiment.env_prefix
     seed = int(os.environ.get(f"{prefix}_SEED", experiment.default_seed))
@@ -164,7 +174,7 @@ def run(
         + experiment.run_suffix()
         + f"-human-{mode}"
     )
-    results_dir = experiment.directory / "results" / run_id
+    results_dir = (results_root or experiment.directory / "results") / run_id
     results_dir.mkdir(parents=True, exist_ok=True)
     fixture = experiment.build_fixture(seed=seed, port=port).start()
     arm = HumanStandingArm(
@@ -174,6 +184,9 @@ def run(
         hourly_rate_usd=hourly_rate_usd,
         participant_id=participant_id,
         timeout_s=timeout_s,
+        input_fn=input_fn,
+        output=output,
+        event_sink=event_sink,
     )
     utterance = experiment.utterance(fixture.base_url)
     phases: list[dict[str, Any]] = []

@@ -29,6 +29,34 @@ person does; a builder baseline answers what a person can automate.
 
 ## Run it
 
+### Browser workbench
+
+The local browser UI exposes all browser-compatible human protocols from one
+benchmark library and measures the declared labour rate throughout the run:
+
+```bash
+cd web
+npm install
+npm run build
+npm start
+```
+
+Open <http://127.0.0.1:8765> if it does not open automatically. Choose a
+benchmark, an available scenario or full track, operator/builder mode where
+applicable, a pseudonymous participant id and the participant's compensated
+or loaded hourly rate. The live workbench presents the same request and
+fixture contract as the terminal arm; result JSON is available when scoring
+finishes. Local results live under `human-results/` and are not committed.
+
+The server is deliberately loopback-only by default. `callflow` is listed but
+disabled until a microphone/speaker bridge can put the participant on the
+same real call leg as machine arms; browser text would be a different test.
+
+For UI development, run `npm run api` and `npm run dev` in separate terminals.
+The package details are in [`web/README.md`](web/README.md).
+
+### Terminal workbench
+
 Conversational tracks:
 
 ```bash
