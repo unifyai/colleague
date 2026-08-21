@@ -105,6 +105,7 @@ class ProxyLedger:
 class _ProxyHandler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     ledger: ProxyLedger
+    capture: ProxyLedger | None = None
 
     def _forward(self) -> None:
         t0 = time.time()
@@ -124,13 +125,23 @@ class _ProxyHandler(BaseHTTPRequestHandler):
         request_model = None
         request_stream = False
         if request_body:
+            decoded = request_body.decode("utf-8", errors="replace")
+            parsed: Any = None
             try:
-                parsed = json.loads(request_body.decode("utf-8", errors="replace"))
+                parsed = json.loads(decoded)
                 if isinstance(parsed, dict):
                     request_model = parsed.get("model")
                     request_stream = bool(parsed.get("stream"))
             except json.JSONDecodeError:
                 pass
+            if self.capture is not None:
+                self.capture.append(
+                    {
+                        "ts": t0,
+                        "path": self.path,
+                        "request": parsed if parsed is not None else decoded,
+                    },
+                )
 
         response_chunks: list[bytes] = []
         try:
@@ -231,9 +242,26 @@ class _ProxyHandler(BaseHTTPRequestHandler):
 
 
 class RecordingProxy:
-    def __init__(self, *, port: int, ledger_path: Path) -> None:
+    def __init__(
+        self,
+        *,
+        port: int,
+        ledger_path: Path,
+        capture_requests_path: Path | None = None,
+    ) -> None:
         self.ledger = ProxyLedger(ledger_path)
-        handler = type("BoundProxyHandler", (_ProxyHandler,), {"ledger": self.ledger})
+        # Verbatim request bodies, when asked for: the metadata ledger says
+        # what a call cost, the capture says what the model was actually
+        # shown — the evidence a decision autopsy needs. Uniform for every
+        # arm behind the proxy, so no arm needs a privileged in-process hook.
+        self.capture = (
+            ProxyLedger(capture_requests_path) if capture_requests_path else None
+        )
+        handler = type(
+            "BoundProxyHandler",
+            (_ProxyHandler,),
+            {"ledger": self.ledger, "capture": self.capture},
+        )
         self._server = ThreadingHTTPServer(("127.0.0.1", port), handler)
         self.port = self._server.server_address[1]
         self._thread = threading.Thread(

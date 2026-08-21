@@ -261,6 +261,7 @@ class UnifyCMSession(ArmSession):
         self.track = track
         self.project = project or os.environ.get("COLLEAGUE_PROJECT", "Benchmarks")
         self.ledger = ledger
+        self._proxy: Any = None
         self.results_dir = Path(results_dir) if results_dir else None
         self.context = ""
         self._loop: _LoopThread | None = None
@@ -367,6 +368,38 @@ class UnifyCMSession(ArmSession):
             f"/{UNASSIGNED_USER_CONTEXT}/{UNASSIGNED_ASSISTANT_CONTEXT}"
         )
         unisdk.activate(self.project)
+        # Meter at the HTTP boundary, exactly as every other arm: a recording
+        # proxy in front of OpenRouter, reached through unillm's own gateway
+        # override (UNILLM_LLM_GATEWAY_URL redirects every openrouter/-model
+        # call's api_base; the key rides through to the real provider). One
+        # capture mechanism for the whole benchmark — provider cost on every
+        # response, verbatim request bodies beside it — and the vendor's arm
+        # holds no privileged in-process hook the other arms lack. unillm
+        # skips client-side credit deduction for gateway-routed calls, which
+        # is correct here too: the spend lands on the same OpenRouter key,
+        # at the same price sheet, as every other arm's. The env must be in
+        # place before the first LLM call anywhere in the boot, so this
+        # precedes unify's own init.
+        if self.ledger is None and self.results_dir is not None:
+            from colleague.arms.proxy import RecordingProxy
+            from colleague.harness.ledger import PhaseLedger
+
+            key = os.environ.get("OPENROUTER_API_KEY", "")
+            if not key:
+                raise SystemExit(
+                    "OPENROUTER_API_KEY is required: the unify arm meters "
+                    "through the recording proxy in front of OpenRouter.",
+                )
+            self.results_dir.mkdir(parents=True, exist_ok=True)
+            self._proxy = RecordingProxy(
+                port=0,
+                ledger_path=self.results_dir / "proxy_ledger.jsonl",
+                capture_requests_path=self.results_dir / "llm_requests.jsonl",
+            ).start()
+            os.environ["UNILLM_LLM_GATEWAY_URL"] = self._proxy.base_url
+            os.environ["UNILLM_LLM_GATEWAY_KEY"] = key
+            self.ledger = PhaseLedger(self.results_dir / "proxy_ledger.jsonl")
+
         unisdk.create_context(self.context)
         unisdk.set_context(self.context, relative=False)
         ManagerRegistry.clear()
@@ -380,19 +413,6 @@ class UnifyCMSession(ArmSession):
 
         self._loop.run(self._boot(), timeout=900)
 
-        # Meter by default, exactly as the v0 arm does -- the unify arms have
-        # no recording proxy in front of them. Install must come after the CM
-        # boot: `_init_managers` calls unify.init() again, and the global LLM
-        # event hook is last-write-wins.
-        if self.ledger is None:
-            from colleague.harness.llm_ledger import LLMLedger
-
-            capture = None
-            if os.environ.get("COLLEAGUE_CAPTURE_REQUESTS") and self.results_dir:
-                self.results_dir.mkdir(parents=True, exist_ok=True)
-                capture = self.results_dir / "requests.jsonl"
-            self.ledger = LLMLedger(capture_requests_path=capture)
-        self.ledger.install()
 
     async def _boot(self) -> None:
         """Standalone CM boot, on the loop thread.
@@ -1510,12 +1530,24 @@ class UnifyCMSession(ArmSession):
                 pass
         if self._loop is not None:
             self._loop.close()
+        # Per-call rows already live in proxy_ledger.jsonl as they happen;
+        # what close writes is the phase view over them. The proxy stops
+        # last so a straggling in-flight response still lands in the ledger.
         if self.ledger is not None and self.results_dir is not None:
             try:
                 self.results_dir.mkdir(parents=True, exist_ok=True)
-                self.ledger.dump(self.results_dir / "unify_ledger.jsonl")
+                (self.results_dir / "phase_summary.json").write_text(
+                    json.dumps(self.ledger.segments(), indent=1, default=str),
+                    encoding="utf-8",
+                )
             except Exception:  # noqa: BLE001 - metering must never break a run
                 pass
+        if self._proxy is not None:
+            try:
+                self._proxy.stop()
+            except Exception:  # noqa: BLE001 - teardown is best-effort
+                pass
+            self._proxy = None
 
     def artifacts(self) -> dict[str, Any]:
         out: dict[str, Any] = {
@@ -1530,7 +1562,7 @@ class UnifyCMSession(ArmSession):
             }
         if self.ledger is not None:
             try:
-                out["llm_segments"] = [s.to_json() for s in self.ledger.segments()]
+                out["llm_segments"] = list(self.ledger.segments())
             except Exception:  # noqa: BLE001 - metering must never break a run
                 pass
         return out

@@ -10,6 +10,7 @@ the arms side by side without special-casing who was metered how.
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 from typing import Any
 
@@ -44,6 +45,8 @@ class PhaseLedger:
     def __init__(self, ledger_path: Path) -> None:
         self.ledger_path = ledger_path
         self.marks: list[tuple[str, int, int, float]] = []
+        self._boundary_row = 0
+        self._boundary_time = time.monotonic()
 
     def _lines(self) -> list[dict[str, Any]]:
         if not self.ledger_path.exists():
@@ -59,6 +62,56 @@ class PhaseLedger:
 
     def mark(self, name: str, start: int, end: int, wall: float) -> None:
         self.marks.append((name, start, end, wall))
+
+    def boundary(self, name: str) -> None:
+        """Close a phase window at the current row count.
+
+        The session-facing twin of ``mark``: a turn-driven arm knows only
+        that a turn just ended, never row indices, so each boundary claims
+        every row since the previous one. Windows built either way
+        aggregate identically in ``summarize``.
+        """
+        end = self.count()
+        now = time.monotonic()
+        self.mark(name, self._boundary_row, end, now - self._boundary_time)
+        self._boundary_row = end
+        self._boundary_time = now
+
+    def segments(self) -> list[dict[str, Any]]:
+        """The phase windows as plain dicts — ``summarize`` under the name
+        the session interface uses."""
+        return self.summarize()
+
+    def cost_snapshot(self) -> dict[str, Any]:
+        """Whole-file counters in the shape the runner diffs per scenario.
+
+        The void-cost rule lives here once, for every proxy-metered arm: a
+        single call the provider did not price voids the sum (``None``,
+        never a partial total masquerading as the whole).
+        """
+        rows = [
+            r
+            for r in self._lines()
+            if "/chat/completions" in str(r.get("path", ""))
+        ]
+        costs: list[float] = []
+        missing = 0
+        for row in rows:
+            value = _row_cost(row)
+            if value is None:
+                missing += 1
+            else:
+                costs.append(value)
+        return {
+            "meter": "model_usage",
+            "llm_calls": len(rows),
+            "prompt_tokens": sum(int(r.get("prompt_tokens") or 0) for r in rows),
+            "completion_tokens": sum(
+                int(r.get("completion_tokens") or 0) for r in rows
+            ),
+            "provider_cost_usd": round(sum(costs), 6) if not missing else None,
+            "provider_cost_missing_calls": missing,
+        }
 
     def summarize(self) -> list[dict[str, Any]]:
         rows = self._lines()
