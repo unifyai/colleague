@@ -95,12 +95,13 @@ curve is the finding: prompt tokens per week ran 534k → 796k → 1.09M →
 1.60M → 1.79M → 1.66M (8.1M total, 210 calls; the provider-USD column is
 null, not zero — 34 calls carried no provider price, and the void-cost
 rule refuses to sum a partial column) — correctness converged and cost did
-not, the same rising-trajectory shape the four-arm
-cloud run of 2026-08-21 showed for the retired bare-actor arm against
-prime-agent's ~106k. The conversational path does not yet bring stored
+not. The conversational path does not yet bring stored
 work back into later weeks — each round re-derives the procedure with the
 previous trajectory in context — and whenever reuse lands in the product,
-this curve is where it will show.
+this curve is where it will show. (Earlier same-day runs through since-
+retired arm surfaces showed the same rising shape; they predate the
+person-shaped regime and the sleeping weeks, were never committed, and
+are quoted nowhere per the no-figure-without-a-committed-summary rule.)
 
 Run `python -m colleague.run refinement --arm human`. The same participant
 receives the brief, the feedback and the amendment; notes persist, and the
