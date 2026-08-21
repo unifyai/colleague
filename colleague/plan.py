@@ -3,8 +3,9 @@
 A shard is one matrix job. The finest safe unit is a single scenario against
 a single arm, but not every track can be split that way: the tracks that
 declare `SESSION_SCOPE = "track"` (`continuity`, `custody`, `teaching`,
-`membership`, `recall` today) hold one session across their scenarios, so
-their scenarios are one unit or the measurement is destroyed. That constraint
+`refinement`, `membership`, `recall` today) hold one session across their
+scenarios, so their scenarios are one unit or the measurement is destroyed.
+That constraint
 lives here rather than in the workflow, because it is a property of the track
 and the workflow should not have to know about it.
 

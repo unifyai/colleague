@@ -34,7 +34,10 @@ what distillation costs, whether trust is earned or assumed, what a run
 costs once bound, and how much of the automation a repair touches. The
 `silent_drift`, `edge_week`, `repair_locality` and
 `change_without_regression` experiments, and the six-week `teaching`
-extension, are that measurement. A fourth property joined later, once the comparison
+extension, are that measurement; `refinement` asks the distil question of
+a spec that arrives the way specs actually arrive — drip-fed in
+conversation — and its trap weeks price distilling too early as well as
+too late. A fourth property joined later, once the comparison
 harnesses caught up on the mechanics of the first three:
 
 4. **It has to see and hear.** A colleague is on the call, watches the
@@ -313,6 +316,39 @@ raise nothing (message-present outcomes, never prose). Tokens per week are
 reported, not scored. An untaught control establishes what the API alone
 yields, so the taught weeks can be read as retention rather than inference.
 
+### `refinement` — a drip-fed spec, and what got frozen too early
+
+One recurring deliverable — a weekly client spend report — receives its
+spec the way specs actually arrive: a prose brief (including one dormant
+rule: foreign-currency rows convert at the rates endpoint), format feedback
+on the first draft (exact title, exact columns in order, string amounts),
+then nothing restated for four weeks, then a one-sentence column rename
+with everything else held fixed.
+
+*Scoring:* exact structural comparison of the filed report — title, column
+list and order, rows as lists in API order — recomputed from the seed.
+Week 4's personal-spend flags stay exact ground truth without a judge
+because the fixture builds them by construction: descriptions come from
+labelled templates, the early weeks' personal items carry obvious tokens
+("personal", "gift"), and the probe week's are paraphrases sharing none of
+them while a business item picks one up — a keyword ladder distilled from
+the observed samples fails in both directions. Week 5 is the dormant
+rule's first input; USD amounts are even by construction so nearest-cent
+conversion is unambiguous. A correct week that needed a clarification
+resolves DEGRADED — the answer was already given, and the round trip is
+priced, not forbidden. Cost per week is reported from the ledger and never
+scored; across the six weeks that ledger is the amortisation curve for a
+drip-fed spec. An unbriefed control establishes that the format is not
+discoverable from the API.
+
+*Why it exists:* the suite had drip-fed teaching (`teaching`) and exact
+structural regression on a recurring artifact
+(`standing/change_without_regression`) as separate measurements; this
+track joins them on one artifact, and its two trap weeks separate an arm
+that froze its procedure from observed examples — cheap, and silently
+wrong the first time the world steps outside them — from one that kept
+judgment at the semantic joints.
+
 ### `custody` — where knowledge is kept decides who can reach it
 
 Three facts arrive in one briefing: an operational detail, someone's medical
@@ -475,7 +511,7 @@ colleague/
   tracks/
     standing/      eight experiments, each with results/; series/ is the
                    shared fire-series engine; plot_distillation_curve.py
-    <twelve others>/  built, self-testing; see Status
+    <thirteen others>/  built, self-testing; see Status
 ```
 
 Arm toolkits are peers of the experiments, not children of one of them. The
@@ -484,7 +520,7 @@ OpenCode toolkits living inside `recurring_report`; that is fixed.
 
 ## Status
 
-Twelve tracks are built and self-testing. Every published number in this
+Thirteen tracks are built and self-testing. Every published number in this
 repo is still `standing` only.
 
 | Track | Scenarios | Notes |
@@ -497,6 +533,7 @@ repo is still `standing` only.
 | `custody` | 5 + 3 controls + 4 setup | Immediate half, late half, standing rule, authority pair |
 | `concurrency` | 2 | `three_senders` routes corrections by sender |
 | `teaching` | 6 + 1 control | Walkthrough with a preview once, replay, a correction mid-run honoured next week, an amendment before week 35, two more weeks unattended |
+| `refinement` | 5 + 1 control + 1 setup | Drip-fed spec on one recurring report; paraphrase week defeats keyword ladders, dormant-rule week catches frozen procedures, rename week regression-tests everything at once |
 | `membership` | 3 + 4 controls + 1 setup | Team-scoped facts, structure vs structure |
 | `recall` | 3 + 4 controls + 8 setup | Supersession after a week of messages |
 | `screenshare` | 1 + 1 control | Frames in; final state of the arm's own instance out |

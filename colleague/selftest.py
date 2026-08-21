@@ -57,6 +57,17 @@ EXEMPT = {
         "Establishes what the API alone yields. Unreachable without the "
         "walkthrough by construction, so UNSUPPORTED under both plans."
     ),
+    ("refinement", "week_1_briefed"): (
+        "The pre-spec first pass: the brief fixes no format, so both plans "
+        "file the obvious draft and only filing is scored. The feedback "
+        "that fixes the format is the next scenario, and the measurement "
+        "is every later week."
+    ),
+    ("refinement", "unbriefed_control"): (
+        "Establishes what the API alone yields. The exact format is not "
+        "discoverable without the brief by construction, so UNSUPPORTED "
+        "under both plans."
+    ),
     ("continuity", "january"): (
         "The expensive first pass, which both plans perform identically. "
         "The measurement is the follow-up."

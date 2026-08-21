@@ -74,6 +74,7 @@ benchmark mappings.
 | | [`continuity`](colleague/tracks/continuity/) | Is a follow-up a warm turn or a cold restart? | built |
 | | [`recall`](colleague/tracks/recall/) | A week of messages, three facts replaced: is the newest value the one recalled? | built |
 | | [`teaching`](colleague/tracks/teaching/) | Does a walked-through procedure become a reusable artifact — and survive six weeks and one amendment? | built |
+| | [`refinement`](colleague/tracks/refinement/) | A spec drip-fed over six weeks of one recurring report: does the arm freeze the structure without freezing the judgment — and does each round get cheaper? | built |
 | Steering work in flight | [`interruption`](colleague/tracks/interruption/) | Does a mid-task correction land before the wrong thing happens? | built |
 | | [`concurrency`](colleague/tracks/concurrency/) | Several tasks, several people — does each correction land in the right one? | built |
 | Boundaries & governance | [`attribution`](colleague/tracks/attribution/) | Many people, one assistant: right person, nothing leaked, silence when correct | built |
@@ -96,7 +97,8 @@ topic hangs off one of `DESIGN.md`'s four properties (durable work and
 durable knowledge are the two faces of "work outlives the conversation";
 `teaching`'s weeks 35–36 carry a topic override to durable work, because an
 amendment plus a regression test is the change-without-regression question
-asked of a taught procedure). Each cell carries a **role** (`probe` — a
+asked of a taught procedure, and `refinement`'s weeks 5–6 carry the same
+override for the same reason). Each cell carries a **role** (`probe` — a
 scored question; `feed` — beats that establish state, like `recall`'s eight
 days; `control` — cells that prove the measurement, like the disclosure
 controls), the correct response's **shape** (`act` / `ask` / `refuse` /
@@ -313,17 +315,17 @@ and run it locally.
 
 It fires the `Benchmark` workflow and returns a run URL. A shard is one
 scenario against one arm — except for tracks that hold a single session
-across their scenarios (`continuity`, `custody`, `teaching`, `membership`,
-`recall`), which stay
+across their scenarios (`continuity`, `custody`, `teaching`, `refinement`,
+`membership`, `recall`), which stay
 whole because splitting them would destroy exactly what they measure.
 `colleague/plan.py` owns that distinction, so the workflow never has to know
 about it.
 
 | Sweep | Shards |
 |---|---|
-| all tracks, unify | 25 |
-| all tracks, all arms | 175 |
-| all tracks, all arms, repeat 5 | 875 |
+| all tracks, unify | 34 |
+| all tracks, all arms | 374 |
+| all tracks, all arms, repeat 5 | 1870 |
 
 Anything over 40 shards needs `--confirm`, enforced again inside the
 workflow. Repeats that disagree are shown as a spread rather than a majority

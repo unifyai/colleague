@@ -116,6 +116,7 @@ TRACK_TOPICS = {
     "continuity": "durable-knowledge",
     "recall": "durable-knowledge",
     "teaching": "durable-knowledge",
+    "refinement": "durable-knowledge",
     "interruption": "steering",
     "concurrency": "steering",
     "attribution": "governance",
@@ -377,6 +378,69 @@ SCENARIOS: dict[tuple[str, str], Tags] = {
                 "chat",
                 note="Calibration: unreachable without the walkthrough by "
                 "construction, UNSUPPORTED for everybody. No response shape "
+                "is credited.",
+            ),
+        },
+    ),
+    **_cells(
+        "refinement",
+        {
+            "week_1_briefed": Tags(
+                "feed",
+                None,
+                "turn",
+                "chat",
+                note="The brief, including one dormant rule (foreign "
+                "currency) nothing exercises for four weeks. No format is "
+                "fixed yet; scored on filing only.",
+            ),
+            "week_2_columns": Tags(
+                "probe",
+                "act",
+                "session",
+                "chat",
+                note="The format feedback on the first draft: exact title, "
+                "exact columns in order, string amounts. In force from this "
+                "round on.",
+            ),
+            "week_3_replay": Tags("probe", "act", "distant", "chat"),
+            "week_4_paraphrase": Tags(
+                "probe",
+                "act",
+                "distant",
+                "chat",
+                note="The personal items stop sharing tokens with the "
+                "earlier samples and a business item picks one up: a keyword "
+                "ladder distilled from the samples fails both ways, "
+                "judgment does not.",
+            ),
+            "week_5_offcycle": Tags(
+                "probe",
+                "act",
+                "distant",
+                "chat",
+                topic="durable-work",
+                note="The dormant rule fires: the first foreign-currency "
+                "rows. A procedure frozen from the observed weeks silently "
+                "mis-converts; asking again resolves DEGRADED.",
+            ),
+            "week_6_amendment": Tags(
+                "probe",
+                "act",
+                "distant",
+                "chat",
+                topic="durable-work",
+                note="One column renamed in one sentence; flags, conversion, "
+                "order and title must not move — both traps replay in the "
+                "same scorecard.",
+            ),
+            "unbriefed_control": Tags(
+                "control",
+                None,
+                "turn",
+                "chat",
+                note="Calibration: the exact format is not discoverable "
+                "from the API, UNSUPPORTED for everybody. No response shape "
                 "is credited.",
             ),
         },
