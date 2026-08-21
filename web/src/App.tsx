@@ -666,6 +666,8 @@ function isHarnessChrome(text: string): boolean {
 
 function RunWorkspace({ run, events, benchmark, onError }: { run: RunSnapshot; events: RunEvent[]; benchmark: Benchmark | null; onError: (value: string) => void }) {
   const [sending, setSending] = useState(false);
+  const [briefCollapsed, setBriefCollapsed] = useState(false);
+  const [activityCollapsed, setActivityCollapsed] = useState(false);
   const feedRef = useRef<HTMLDivElement>(null);
   const turn = [...events].reverse().find((event) => event.type === "turn");
   const endpoints = useMemo(() => parseApiDoc(turn?.request || ""), [turn?.request]);
@@ -722,42 +724,47 @@ function RunWorkspace({ run, events, benchmark, onError }: { run: RunSnapshot; e
 
       {complete && <Completion run={run} />}
 
-      <div className="run-grid">
-        <section className="brief-panel">
-          <div className="panel-label">Task brief</div>
-          {turn ? (
-            <>
-              {surface ? (
-                <>
-                  {turn.context && <ConversationBrief text={turn.context} />}
-                  <SurfaceRequest surface={surface} from={requester} />
-                  <SurfaceBrief surface={surface} />
-                </>
-              ) : (
-                <>
-                  {turn.context && <ConversationBrief text={turn.context} />}
-                  {briefRequest && <TaskBrief text={briefRequest} requester={requester} />}
-                </>
-              )}
-              {!!turn.images?.length && (
-                <div className="image-list">
-                  <h3>Attachments</h3>
-                  {turn.images.map((path, index) => (
-                    <a key={path} href={runFileUrl(run.id, path)} target="_blank" rel="noreferrer">Frame {index + 1}<span>open ↗</span></a>
-                  ))}
-                </div>
-              )}
-            </>
-          ) : <p className="empty-copy">Loading the task…</p>}
-        </section>
-
-        <section className="activity-panel">
-          <div className="panel-heading"><span className="panel-label">Activity</span></div>
-          <div className="activity-feed" ref={feedRef} aria-live="polite">
-            {events.filter(displayEvent).slice(-120).map((event) => (
-              <EventItem event={event} key={event.seq} labels={commandLabels} />
-            ))}
-            {!events.length && <div className="empty-feed"><span>·</span><p>No activity yet.</p></div>}
+      <div className={`run-grid ${briefCollapsed ? "brief-collapsed" : ""} ${activityCollapsed ? "activity-collapsed" : ""}`}>
+        <section className={`brief-panel collapsible-panel ${briefCollapsed ? "is-collapsed" : ""}`}>
+          <div className="panel-heading">
+            <span className="panel-label">Task brief</span>
+            <button
+              type="button"
+              className="panel-toggle"
+              aria-controls="task-brief-content"
+              aria-expanded={!briefCollapsed}
+              aria-label={`${briefCollapsed ? "Expand" : "Collapse"} task brief`}
+              title={`${briefCollapsed ? "Expand" : "Collapse"} task brief`}
+              onClick={() => setBriefCollapsed((current) => !current)}
+            >
+              <span aria-hidden="true">{briefCollapsed ? "›" : "‹"}</span>
+            </button>
+          </div>
+          <div id="task-brief-content" className="panel-content" hidden={briefCollapsed}>
+            {turn ? (
+              <>
+                {surface ? (
+                  <>
+                    {turn.context && <ConversationBrief text={turn.context} />}
+                    <SurfaceRequest surface={surface} from={requester} />
+                    <SurfaceBrief surface={surface} />
+                  </>
+                ) : (
+                  <>
+                    {turn.context && <ConversationBrief text={turn.context} />}
+                    {briefRequest && <TaskBrief text={briefRequest} requester={requester} />}
+                  </>
+                )}
+                {!!turn.images?.length && (
+                  <div className="image-list">
+                    <h3>Attachments</h3>
+                    {turn.images.map((path, index) => (
+                      <a key={path} href={runFileUrl(run.id, path)} target="_blank" rel="noreferrer">Frame {index + 1}<span>open ↗</span></a>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : <p className="empty-copy">Loading the task…</p>}
           </div>
         </section>
 
@@ -767,6 +774,29 @@ function RunWorkspace({ run, events, benchmark, onError }: { run: RunSnapshot; e
             <span className={`input-state ${run.awaitingInput ? "ready" : "busy"}`}>{run.awaitingInput ? "Your turn" : complete ? "Complete" : "Waiting"}</span>
           </div>
           <FriendlyBench endpoints={endpoints} roster={roster} pool={pool} disabled={disabled} onSubmit={submit} surface={surface} />
+        </section>
+
+        <section className={`activity-panel collapsible-panel ${activityCollapsed ? "is-collapsed" : ""}`}>
+          <div className="panel-heading">
+            <span className="panel-label">Activity</span>
+            <button
+              type="button"
+              className="panel-toggle"
+              aria-controls="activity-content"
+              aria-expanded={!activityCollapsed}
+              aria-label={`${activityCollapsed ? "Expand" : "Collapse"} activity`}
+              title={`${activityCollapsed ? "Expand" : "Collapse"} activity`}
+              onClick={() => setActivityCollapsed((current) => !current)}
+            >
+              <span aria-hidden="true">{activityCollapsed ? "‹" : "›"}</span>
+            </button>
+          </div>
+          <div id="activity-content" className="activity-feed" ref={feedRef} aria-live="polite" hidden={activityCollapsed}>
+            {events.filter(displayEvent).slice(-120).map((event) => (
+              <EventItem event={event} key={event.seq} labels={commandLabels} />
+            ))}
+            {!events.length && <div className="empty-feed"><span>·</span><p>No activity yet.</p></div>}
+          </div>
         </section>
       </div>
     </main>
