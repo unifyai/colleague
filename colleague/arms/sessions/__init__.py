@@ -26,16 +26,12 @@ def _load(name: str) -> None:
     import importlib
 
     module = {
-        "unify": "colleague.arms.sessions.unify_session",
         "unify-cm": "colleague.arms.sessions.unify_cm_session",
-        "hermes": "colleague.arms.sessions.hermes_session",
         "hermes-tui": "colleague.arms.sessions.hermes_tui_session",
         "hermes-voice": "colleague.arms.sessions.hermes_voice_session",
-        "openclaw": "colleague.arms.sessions.openclaw_session",
         "openclaw-gateway": "colleague.arms.sessions.openclaw_gateway_session",
         "openclaw-voice": "colleague.arms.sessions.openclaw_voice_session",
         "opencode": "colleague.arms.sessions.opencode_session",
-        "prime-agent": "colleague.arms.sessions.prime_agent_session",
         "prime-agent-rpc": "colleague.arms.sessions.prime_agent_rpc_session",
         "human": "colleague.arms.sessions.human_session",
         "mock": "colleague.arms.sessions.mock_session",
@@ -44,22 +40,25 @@ def _load(name: str) -> None:
         importlib.import_module(module)
 
 
-#: `hermes-tui`, `unify-cm`, `openclaw-gateway` and `prime-agent-rpc` are the
-#: faithful surfaces (product steering, clarification where the product has
-#: it); `hermes`, `unify`, `openclaw` and `prime-agent` remain the v0 arms —
-#: the first three are what the published standing numbers used. Capability
-#: labels name a path.
+#: The benchmark interfaces with every harness as though it were a person —
+#: English in, English out — so each harness gets exactly one arm: the
+#: surface closest to talking to it. That is the persistent conversation
+#: layer where the product has one (`unify-cm` = ConversationManager,
+#: `hermes-tui` = the TUI gateway JSON-RPC protocol, `openclaw-gateway` =
+#: the Gateway WebSocket control plane, `prime-agent-rpc` = JSONL-RPC mode)
+#: and the plain CLI where it does not (`opencode`). The voice arms are the
+#: same surfaces reached over audio, recorded as transport=voice and never
+#: merged with a text cell. The earlier "v0" arms (bare `CodeActActor.act`,
+#: one-shot CLIs) were modes of driving a harness, and modes cannot be
+#: applied to a person; they are gone, and results produced under them are
+#: labelled old-regime wherever they are kept.
 AUTOMATED_ARMS = (
-    "unify",
     "unify-cm",
-    "hermes",
     "hermes-tui",
     "hermes-voice",
-    "openclaw",
     "openclaw-gateway",
     "openclaw-voice",
     "opencode",
-    "prime-agent",
     "prime-agent-rpc",
 )
 

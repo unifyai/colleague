@@ -55,11 +55,23 @@ the raw ledger. `plot.py` renders `silent_drift_<variant>.svg`: an outcome
 strip per arm and tokens per fire by purpose.
 
 ```bash
-SD_VARIANT=units bash colleague/tracks/standing/silent_drift/run_unify.sh
-SD_VARIANT=page  bash colleague/tracks/standing/silent_drift/run_unify.sh
-SD_VARIANT=units bash colleague/tracks/standing/silent_drift/run_hermes.sh     # also run_openclaw.sh, run_opencode.sh
+python -m colleague.tracks.standing.run silent_drift --variant units --arm unify-cm
+python -m colleague.tracks.standing.run silent_drift --variant page  --arm unify-cm
+python -m colleague.tracks.standing.run silent_drift --variant units --arm hermes-tui   # also openclaw-gateway, opencode, prime-agent-rpc
 .venv/bin/python -m colleague.tracks.standing.silent_drift.plot
 ```
+
+> **Old-regime results.** Every measured figure below was produced under
+> the retired installed-and-fired regime: the brief was planted through
+> harness internals (`actor.act()`, one-shot CLI turns) and the recurring
+> mechanism was fired deterministically by per-arm drivers that no longer
+> exist, under the retired arm names (`unify`, `hermes`, `openclaw`,
+> `prime-agent`). The figures stand as the committed record — each came
+> from a committed summary — but they are **not comparable** with
+> person-shaped runs, which deliver the brief through the arm's
+> conversation surface and let the system decide how the work recurs
+> (see `SCENARIO_CHANGES.md`, 2026-08-21). Person-shaped reruns replace
+> this table as they land in `results/`.
 
 ## Measured results (2026-08-18, gpt-5.6-sol@openrouter)
 

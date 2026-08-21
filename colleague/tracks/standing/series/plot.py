@@ -22,8 +22,24 @@ from typing import Any
 from colleague.tracks.standing.series.report import PURPOSES, attach_fire_tokens
 from colleague.tracks.standing.series.spec import Experiment
 
-ARM_ORDER = ("unify", "hermes", "openclaw", "opencode", "prime-agent")
+#: Person-shaped arms first; the retired old-regime arm names stay so the
+#: committed runs they produced keep plotting, clearly apart from reruns.
+ARM_ORDER = (
+    "unify-cm",
+    "hermes-tui",
+    "openclaw-gateway",
+    "opencode",
+    "prime-agent-rpc",
+    "unify",
+    "hermes",
+    "openclaw",
+    "prime-agent",
+)
 ARM_COLOR = {
+    "unify-cm": "#1b5fb8",
+    "hermes-tui": "#c94f1c",
+    "openclaw-gateway": "#00785a",
+    "prime-agent-rpc": "#a85b8c",
     "unify": "#2a78d6",
     "hermes": "#eb6834",
     "openclaw": "#009E73",
@@ -287,7 +303,7 @@ def render_experiment(
     lx += 20
     for purpose in PURPOSES:
         svg.append(
-            f'<rect x="{lx}" y="{ly - 10}" width="12" height="12" fill="{_shade(ARM_COLOR["unify"], PURPOSE_SHADE[purpose])}"/>',
+            f'<rect x="{lx}" y="{ly - 10}" width="12" height="12" fill="{_shade(ARM_COLOR["unify-cm"], PURPOSE_SHADE[purpose])}"/>',
         )
         svg.append(
             f'<text x="{lx + 16}" y="{ly}" font-size="11" fill="{INK}">{purpose}</text>',

@@ -17,6 +17,18 @@ are generator-controlled) and validated to 100% agreement with the
 benchmark model at both thresholds across repeated samples; every
 post-change scoring window contains at least one item whose priority flips.
 
+> **Old-regime results.** Every measured figure below was produced under
+> the retired installed-and-fired regime: the brief was planted through
+> harness internals (`actor.act()`, one-shot CLI turns) and the recurring
+> mechanism was fired deterministically by per-arm drivers that no longer
+> exist, under the retired arm names (`unify`, `hermes`, `openclaw`,
+> `prime-agent`). The figures stand as the committed record — each came
+> from a committed summary — but they are **not comparable** with
+> person-shaped runs, which deliver the brief through the arm's
+> conversation surface and let the system decide how the work recurs
+> (see `SCENARIO_CHANGES.md`, 2026-08-21). Person-shaped reruns replace
+> this table as they land in `results/`.
+
 ## Measured results (2026-07-31, gpt-5.6-sol@openrouter)
 
 ![policy propagation](results/policy_propagation.svg)
@@ -29,7 +41,7 @@ post-change scoring window contains at least one item whose priority flips.
 | steady state, whole family per round | **~2.2k tokens** | ~57k tokens | ~80k tokens |
 | payback of the change-cost gap | cheaper than hermes from the change itself | — | change wins outright; steady state repays unify's gap in ~11 rounds |
 
-The prime-agent arm (2026-08-18, `prime_agent.py` / `run_prime_agent.sh`,
+The prime-agent arm (2026-08-18, old-regime driver, retired,
 on the shared fire-series arm) scores **15/15, every fire exactly right,
 both epochs** — and propagates the change for **149k tokens** in one turn,
 in the same league as openclaw's cheap change and ~7× cheaper than
@@ -68,7 +80,7 @@ the storage prompts framed guidance solely as compositional recipes.
 Unify commit `9f54cf012` made shared rules a first-class guidance concern
 (fully general wording: durable rules/policies get one canonical linked
 entry; updates treat `function_ids` as the authoritative impact set),
-validated first on a one-automation slice (`slice_check.py`), then
+validated first on a one-automation slice (`slice_check.py`, since retired), then
 confirmed here. Storage-time reviews cost ~230k tokens more each (the
 search-and-link work); the change dropped 1.6M — net positive after one
 change, and every future change of the same rule is cheap.
@@ -102,7 +114,7 @@ same effect at N=1 automation.
   balance was topped up via the existing `create_recharge` admin promo.
 
 ```bash
-bash colleague/tracks/standing/policy_propagation/run_unify.sh
-PP_PORT=8133 PP_PROXY_PORT=8134 bash colleague/tracks/standing/policy_propagation/run_hermes.sh
+python -m colleague.tracks.standing.run policy_propagation --arm unify-cm
+python -m colleague.tracks.standing.run policy_propagation --arm hermes-tui
 .venv/bin/python -m colleague.tracks.standing.policy_propagation.plot
 ```

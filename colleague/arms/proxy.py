@@ -13,7 +13,7 @@ usage are recorded with ``usage_missing: true`` (never silently dropped),
 with a response-tail excerpt for audit.
 
 Run standalone:
-    python colleague/tracks/standing/recurring_report/openrouter_proxy.py --port 8124 \
+    python -m colleague.arms.proxy --port 8124 \
         --ledger /tmp/proxy_ledger.jsonl
 """
 

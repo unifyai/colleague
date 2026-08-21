@@ -99,7 +99,7 @@ class _LoopThread:
         self.loop = asyncio.new_event_loop()
         self._ready = threading.Event()
         self._thread = threading.Thread(
-            target=self._run, name="discord-srv", daemon=True
+            target=self._run, name="discord-srv", daemon=True,
         )
         self._thread.start()
         self._ready.wait(timeout=10)
@@ -185,11 +185,11 @@ class FakeDiscordServer:
         app.router.add_route("GET", "/api/v10/users/@me", self._rest_me)
         app.router.add_route("GET", "/api/v{ver}/users/@me", self._rest_me)
         app.router.add_route(
-            "GET", "/api/v{ver}/oauth2/applications/@me", self._rest_app
+            "GET", "/api/v{ver}/oauth2/applications/@me", self._rest_app,
         )
         app.router.add_route("GET", "/api/v10/oauth2/applications/@me", self._rest_app)
         app.router.add_route(
-            "POST", "/api/v{ver}/channels/{cid}/messages", self._rest_message
+            "POST", "/api/v{ver}/channels/{cid}/messages", self._rest_message,
         )
         app.router.add_route("*", "/{tail:.*}", self._rest_catchall)
         self._runner = web.AppRunner(app)
@@ -715,7 +715,7 @@ class FakeDiscordServer:
             seq = (seq + 1) & 0xFFFF
             ts = (ts + _OPUS_FRAME_SAMPLES) & 0xFFFFFFFF
             await asyncio.sleep(
-                max(0.0, t0 + (i + 1) * _OPUS_FRAME_S - self._loop.loop.time())
+                max(0.0, t0 + (i + 1) * _OPUS_FRAME_S - self._loop.loop.time()),
             )
         await self._speak_persona(ssrc, uid, False)
 
@@ -876,7 +876,7 @@ class DiscordVoiceRoom(SubstrateVoiceRoom):
             personas=personas,
             on_reply=self._raw_posts.append,
             on_bot_pcm=lambda pcm: self._feed_assistant_pcm(
-                self.assistant_identity, pcm
+                self.assistant_identity, pcm,
             ),
         )
 
@@ -906,7 +906,7 @@ class DiscordVoiceRoom(SubstrateVoiceRoom):
             if len(chunk) < frame_bytes:
                 chunk = chunk + b"\x00" * (frame_bytes - len(chunk))
             frame = av.AudioFrame(
-                format="s16", layout="stereo", samples=_OPUS_FRAME_SAMPLES
+                format="s16", layout="stereo", samples=_OPUS_FRAME_SAMPLES,
             )
             frame.sample_rate = 48000
             frame.planes[0].update(chunk)

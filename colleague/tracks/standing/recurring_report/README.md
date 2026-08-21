@@ -17,7 +17,7 @@ architecture converge to unattended, and what does week-N cost look like?
    (`_CodeActEntrypointHandle`): the expected steady state is **0 LLM calls,
    0 tokens**, with a bounded LLM repair loop only on failure.
 
-The hermes-agent comparison arm (`run_hermes.sh` / `hermes.py`)
+The hermes-agent comparison arm (old-regime driver, retired)
 applies the identical protocol: the same utterance via headless
 `hermes chat -q` in a throwaway `HERMES_HOME`, then manual
 `hermes cron run` fires of whatever the agent created, metered by a local
@@ -27,8 +27,8 @@ result: the hermes agent also converged to a zero-LLM steady state
 hourly-on-Mondays with an in-script wall-clock gate — off-spec, and inert
 when fired on demand (see the `*-hermes` results NOTE.md).
 
-The OpenClaw arm (`run_openclaw.sh` / `openclaw.py`, driving the shared
-toolkit in `colleague/arms/openclaw.py`) applies the
+The OpenClaw arm (old-regime driver over the shared toolkit in
+`colleague/arms/openclaw.py`, retired) applies the
 same protocol via a throwaway `OPENCLAW_STATE_DIR`, a managed Gateway
 child, and `openclaw cron run` fires. Measured result: the cheapest setup
 of the three arms by an order of magnitude (67k tokens) and 4/4 exact
@@ -36,7 +36,7 @@ on-demand deliveries — but no zero-token steady state exists to converge
 to: every fire boots an agent turn (~16.8k tokens), forever (see the
 `*-openclaw` results NOTE.md).
 
-The OpenCode arm (`run_opencode.sh` / `opencode.py`) has no
+The OpenCode arm (old-regime driver, retired) has no
 scheduler to register with, so the harness executes whatever the agent
 itself declared — preferring the command named in any crontab spec it
 writes. Measured result: **0/4 delivered when fired as declared**, because
@@ -47,8 +47,8 @@ same off-spec shape hermes chose. Its setup is the cheapest of any arm
 the script bare, bypassing the gate, delivered 4/4 byte-exact reports (see
 both `*-opencode` NOTE.md files).
 
-The prime-agent arm (`run_prime_agent.sh` / `prime_agent.py`, driving the
-shared fire-series arm in `series/cli_arms.py`) keeps one resident JSONL-RPC
+The prime-agent arm (old-regime driver, retired, driving the
+shared fire-series arm, since retired) keeps one resident JSONL-RPC
 session across setup and every fire, because that is where the product's
 scheduler delivers its job prompts. Measured result: **4/4 exactly right**,
 and no distillation of any kind — no scheduled job registered (the model has
@@ -90,10 +90,10 @@ this architecture (see the `*-prime-agent` results).
 ## Run it
 
 ```bash
-bash colleague/tracks/standing/recurring_report/run.sh          # unify arm
-bash colleague/tracks/standing/recurring_report/run_hermes.sh   # hermes-agent arm
-bash colleague/tracks/standing/recurring_report/run_openclaw.sh # openclaw arm
-bash colleague/tracks/standing/recurring_report/run_opencode.sh # opencode arm
+python -m colleague.tracks.standing.run recurring_report --arm unify-cm
+python -m colleague.tracks.standing.run recurring_report --arm hermes-tui
+python -m colleague.tracks.standing.run recurring_report --arm openclaw-gateway
+python -m colleague.tracks.standing.run recurring_report --arm opencode
 ```
 
 Knobs (env): `RWR_RUNS` (default 4), `RWR_SEED`, `RWR_PORT`,
@@ -106,6 +106,18 @@ Outputs land in `results/<run-id>/`:
   (when attached).
 - `ledger.jsonl` — every LLM call (model, tokens, cost, origin).
 - `summary.md` — the human-readable table.
+
+> **Old-regime results.** Every measured figure below was produced under
+> the retired installed-and-fired regime: the brief was planted through
+> harness internals (`actor.act()`, one-shot CLI turns) and the recurring
+> mechanism was fired deterministically by per-arm drivers that no longer
+> exist, under the retired arm names (`unify`, `hermes`, `openclaw`,
+> `prime-agent`). The figures stand as the committed record — each came
+> from a committed summary — but they are **not comparable** with
+> person-shaped runs, which deliver the brief through the arm's
+> conversation surface and let the system decide how the work recurs
+> (see `SCENARIO_CHANGES.md`, 2026-08-21). Person-shaped reruns replace
+> this table as they land in `results/`.
 
 ## Reading the numbers
 

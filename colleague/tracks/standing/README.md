@@ -3,6 +3,23 @@
 Eight experiments test work that outlives its originating conversation. See
 the experiment README files for their fixtures and exact scorers.
 
+Every experiment runs person-shaped, through one engine
+(`series/person.py`): the brief is delivered in English through the arm's
+conversation surface, whether and how the work comes to recur is the
+system's own choice (recorded, never enforced), and the harness plays only
+the clock — firing whatever the system itself scheduled, through the
+product's own machinery, then observing the fixture's sink.
+
+```bash
+python -m colleague.tracks.standing.run semantic_triage --arm unify-cm
+python -m colleague.tracks.standing.run silent_drift --variant units --arm hermes-tui
+python -m colleague.tracks.standing.run --list
+```
+
+Results committed before 2026-08-21 are old-regime (installed-and-fired)
+and labelled so in each experiment README; they are not comparable with
+person-shaped runs.
+
 Every experiment has one direct human protocol using those same fixtures and
 scorers:
 

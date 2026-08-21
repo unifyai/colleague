@@ -27,7 +27,7 @@ DEGRADED, Daniel only is FAIL with the reason stated — and a channel that
 names no addressee is reported as exactly that.
 
 ```bash
-python -m colleague.run inheritance --arm unify
+python -m colleague.run inheritance --arm unify-cm
 ```
 
 **What to expect.** At one hop, most arms should do well — a single loop with

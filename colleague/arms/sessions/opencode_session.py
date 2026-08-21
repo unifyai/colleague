@@ -59,8 +59,24 @@ class OpenCodeSession(CliSession):
         )
         self._crontab_before = snapshot_crontab()
         arm_crontab_guard(self.results_dir, self._crontab_before)
+        #: Host crontab lines the agent installed, captured before each
+        #: restore. The host never keeps them, but they are what the agent
+        #: bound to a clock — the fire-series clock runs exactly these.
+        self.agent_crontab_lines: list[str] = []
         # Touch the env once so the CLI shim is on PATH before any turn.
         opencode_env(self.state_root, self.config_path)
+
+    def _capture_crontab_additions(self) -> None:
+        after = snapshot_crontab()
+        before_lines = (self._crontab_before or "").splitlines()
+        for line in (after or "").splitlines():
+            if (
+                line.strip()
+                and not line.strip().startswith("#")
+                and line not in before_lines
+                and line not in self.agent_crontab_lines
+            ):
+                self.agent_crontab_lines.append(line)
 
     def _turn(self, prompt: str) -> Reply:
         code, out = run_opencode(
@@ -71,8 +87,10 @@ class OpenCodeSession(CliSession):
             log_path=self.log_path,
             timeout_s=self.timeout_s,
         )
-        # OpenCode writes host crontab entries unprompted; put the host back
-        # after every single turn rather than only at the end.
+        # OpenCode writes host crontab entries unprompted; capture what the
+        # agent bound to the clock, then put the host back after every single
+        # turn rather than only at the end.
+        self._capture_crontab_additions()
         restore_crontab(self._crontab_before)
         return self._reply(code, out)
 

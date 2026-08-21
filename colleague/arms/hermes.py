@@ -1,28 +1,13 @@
-"""Recurring weekly report benchmark: hermes-agent comparison arm.
+"""hermes-agent toolkit: isolation envelope, CLI runner, cron store, defusing.
 
-Identical protocol to the unify driver (harness.py), applied to hermes-agent:
-
-  - The literally identical natural-language utterance is given to the hermes
-    agent as one headless chat message (``cli.py -q ...``). No manual cron
-    setup, no skill authoring — the agent self-organizes, exactly as the
-    unify actor did.
-  - Whatever recurring automation the agent created is then fired N times
-    via hermes's own manual trigger (``hermes cron run <id>``), which
-    executes the job in-process exactly like a scheduler tick would.
-  - The same seeded fixture serves the data and receives the reports, and
-    the same ground-truth scorer grades every delivered report.
-
-Metering is neutral: hermes's OpenAI-compatible ``base_url`` points at a
-local recording proxy (openrouter_proxy.py) that forwards to OpenRouter
-unchanged and records provider-reported usage per call — the same source of
-truth the unify arm's in-process hook read. Model is pinned to the same
-``openai/gpt-5.6-sol`` via OpenRouter.
-
-Isolation: a throwaway ``HERMES_HOME`` under the results directory, so no
-real hermes profile is touched; the agent's shell cwd is a scratch
-workspace.
-
-Launch via run_hermes.sh.
+Shared by the hermes-tui and hermes-voice session adapters and by the
+standing track's clock: a throwaway ``HERMES_HOME`` under the run's results
+directory (no real profile is touched), the agent's shell cwd pinned to a
+scratch workspace, the model pinned via OpenRouter, and metering through
+the local recording proxy. ``_load_cron_jobs`` reads the profile's own cron
+store — what the agent bound to the clock — and ``defuse_hermes_artifacts``
+makes sure nothing an agent installed (cron jobs, gateway processes,
+launchd services) outlives its run.
 """
 
 from __future__ import annotations
@@ -33,23 +18,6 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-
-EXPERIMENT_DIR = Path(__file__).resolve().parent
-
-from colleague.arms.proxy import (  # noqa: E402
-    RecordingProxy,
-)
-from colleague.harness.ledger import PhaseLedger  # noqa: F401
-from colleague.tracks.standing.recurring_report.fixture import (  # noqa: E402
-    DEFAULT_PORT,
-    DEFAULT_SEED,
-    FixtureServer,
-    expected_report,
-    score_report,
-)
-from colleague.tracks.standing.recurring_report.harness import (  # noqa: E402
-    UTTERANCE_TEMPLATE,
-)
 
 HERMES_REPO = Path(
     os.environ.get("RWR_HERMES_REPO", str(Path.home() / "hermes-agent")),

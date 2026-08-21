@@ -1,8 +1,7 @@
 """prime-agent through its JSONL-RPC surface.
 
-The `prime-agent` arm drives print mode (`pi -p`, one process per turn,
-sessions continued with `-c`). That surface cannot reach a running turn, so
-its profile is restart-only. The product's steering and follow-up lanes —
+Print mode (`pi -p`, one process per turn, sessions continued with `-c`)
+cannot reach a running turn. The product's steering and follow-up lanes —
 `core/session-action-store.ts`: ``QueuedMessageLane = "steering" |
 "followUp"``, delivery policy ``next_turn_boundary`` for steering and
 ``when_run_idle`` for follow-ups — live on its interactive TUI and on RPC
@@ -22,13 +21,13 @@ speaks that, through the transport in `colleague/arms/prime_agent.py`:
                     persisted to the run-local session dir; a later prompt on
                     it is a warm turn
 
-Isolation is the print-mode adapter's — throwaway agent dir with the
-proxy-metered provider, run-local session dir, scratch workspace — plus a
-per-session daemon socket that is shut down on close. Unlike the print-mode
-arm, this one leaves the product's skills, extensions, prompt templates and
-context files enabled: nothing is preloaded in a throwaway agent dir, so the
-arm still reasons from the request alone, but what it writes during a track
-is picked up the way the product would pick it up.
+Isolation: a throwaway agent dir with the proxy-metered provider, a
+run-local session dir, a scratch workspace, and a per-session daemon socket
+that is shut down on close. The product's skills, extensions, prompt
+templates and context files stay enabled: nothing is preloaded in the
+throwaway agent dir, so the arm still reasons from the request alone, but
+what it writes during a track is picked up the way the product would pick
+it up.
 
 There is no ask-the-user tool anywhere in prime-agent (`side-question` runs
 the other way), so ``clarification`` stays false and no channel is faked.

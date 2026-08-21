@@ -295,7 +295,7 @@ class OpenClawVoiceSession(OpenClawGatewaySession):
                         room.note_assistant_text(text)
 
         self._tap_thread = threading.Thread(
-            target=tail, name="openclaw-tts-tap", daemon=True
+            target=tail, name="openclaw-tts-tap", daemon=True,
         )
         self._tap_thread.start()
 
@@ -306,7 +306,7 @@ class OpenClawVoiceSession(OpenClawGatewaySession):
         while time.monotonic() < deadline:
             try:
                 with socket.create_connection(
-                    ("127.0.0.1", self._serve_port), timeout=2
+                    ("127.0.0.1", self._serve_port), timeout=2,
                 ):
                     return
             except OSError:

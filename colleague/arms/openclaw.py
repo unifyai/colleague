@@ -1,20 +1,15 @@
-"""Recurring weekly report benchmark: OpenClaw comparison arm.
+"""OpenClaw toolkit: isolation envelope, Gateway lifecycle, cron surfaces.
 
-Identical protocol to the unify and hermes drivers, applied to OpenClaw:
-
-  - The literally identical natural-language utterance is delivered as one
-    headless agent turn (``openclaw agent -m ...``). No manual cron setup —
-    the agent self-organizes with its own cron tool.
-  - Whatever recurring automation the agent created is then fired N times
-    via OpenClaw's own manual trigger (``openclaw cron run <id>``), executed
-    by the same Gateway scheduler a production deployment would use.
-  - The same seeded fixture serves the data and receives the reports, and
-    the same ground-truth scorer grades every delivered report.
+Shared by the openclaw-gateway and openclaw-voice session adapters and by
+the standing track's clock. ``cron_jobs`` reads whatever recurring
+automation the agent itself created; ``cron_fire`` runs one via OpenClaw's
+own manual trigger (``openclaw cron run <id>``), executed by the same
+Gateway scheduler a production deployment would use.
 
 Metering is neutral: the OpenRouter provider's ``baseUrl`` is repointed at
-the local recording proxy (openrouter_proxy.py), which forwards to
-OpenRouter unchanged and records provider-reported usage per call. Model is
-pinned to the same ``openai/gpt-5.6-sol``.
+the local recording proxy, which forwards to OpenRouter unchanged and
+records provider-reported usage per call. Model is pinned to the same
+``openai/gpt-5.6-sol``.
 
 Isolation: a throwaway ``OPENCLAW_STATE_DIR`` under the results directory
 (config, cron store, sessions, workspace all live inside it), a dedicated
@@ -23,11 +18,6 @@ is never read or written. The Gateway runs as a managed child process for
 exactly the duration of the run; ``defuse_openclaw_artifacts`` disables
 every cron job, stops the Gateway, and sweeps for any daemon artifacts
 before the results directory is committed.
-
-This module doubles as the shared OpenClaw toolkit for the other
-experiments' drivers (config template, gateway lifecycle, CLI helpers).
-
-Launch via run_openclaw.sh.
 """
 
 from __future__ import annotations
@@ -42,21 +32,6 @@ from pathlib import Path
 from typing import Any
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
-
-from colleague.arms.proxy import (  # noqa: E402
-    RecordingProxy,
-)
-from colleague.harness.ledger import PhaseLedger  # noqa: E402
-from colleague.tracks.standing.recurring_report.fixture import (  # noqa: E402
-    DEFAULT_PORT,
-    DEFAULT_SEED,
-    FixtureServer,
-    expected_report,
-    score_report,
-)
-from colleague.tracks.standing.recurring_report.harness import (  # noqa: E402
-    UTTERANCE_TEMPLATE,
-)
 
 OPENCLAW_REPO = Path(
     os.environ.get("OC_REPO", str(Path.home() / "openclaw")),

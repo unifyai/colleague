@@ -1,43 +1,14 @@
-"""Recurring weekly report benchmark: OpenCode comparison arm.
+"""OpenCode toolkit: isolation envelope, CLI runner, clock surfaces, guards.
 
-Same protocol as the unify / hermes / openclaw drivers, with one
-structural difference that has to be stated up front because it changes
-what "firing" means.
-
-**OpenCode ships no scheduler.** There is no cron surface, so the agent
-cannot register a recurring job the way the other three arms do; something
-outside it has to supply the wake. The harness therefore plays the
-scheduler, executing whatever the agent itself declared, in this
-precedence:
-
-  1. If the agent wrote a **crontab spec** into the workspace, run the
-     command that spec names. This is the agent stating outright what
-     should run on a schedule, and is the direct analogue of reading a job
-     row out of hermes's or openclaw's cron store.
-  2. Else, if it declared a **custom command** (`.opencode/command*/*.md`
-     — OpenCode's named-invocable-prompt mechanism), fire it with
-     ``opencode run --command <name>``.
-  3. Else, if it left exactly one **runnable script** (`*.py` / `*.sh` at
-     the workspace root, under `scripts/`, or under `.opencode/`), execute
-     that directly — the zero-token path, matching how the hermes arm's
-     ``no_agent`` script is fired.
-  4. Else, fire a fixed neutral wake prompt (``WAKE_PROMPT``), which is
-     what a scheduler with nothing declared would have to do.
-
-Rules 2-4 were fixed before any run. Rule 1 was added after the first
-triage runs showed the agent declaring its automation in a `.cron` file
-that rules 2-3 could not see — a gap in the harness, not a property of
-the system under test. The revision moves strictly toward executing the
-agent's own declaration rather than a harness guess, and every experiment
-in this arm is run under it.
-
-Which rule fired is recorded per fire in ``results.json`` as
-``fire_mode``, so the report can never quietly depend on the choice.
-Fires use a fresh session (no ``--continue``), because a scheduler wake
-carries no conversation — the same way the other arms' isolated cron
-sessions start cold. Whatever the agent persisted into the workspace is
-therefore the only thing carried between fires, which is exactly the
-property under test.
+**OpenCode ships no scheduler.** What its agent can bind to a clock is a
+host crontab entry (captured, then removed from the host by the guard
+below) or a crontab-format spec file written into the workspace, which
+``discover_cron_command`` reads back — the agent stating outright what
+should run on a schedule, the direct analogue of a job row in hermes's or
+OpenClaw's cron store. The person-shaped fire-series clock runs exactly
+those commands and nothing else; the old drivers' further fallbacks (a
+declared custom command, a lone runnable script, a neutral wake prompt)
+were the harness deciding the mechanism and are retired with them.
 
 Metering is neutral: the OpenRouter provider's ``baseURL`` is repointed at
 the local recording proxy. Both ``model`` and ``small_model`` are pinned to
@@ -48,11 +19,6 @@ provider and off the comparison.
 Isolation: per-run XDG dirs (``XDG_{DATA,CACHE,CONFIG,STATE}_HOME``) plus a
 fresh git-initialised workspace, so the real ``~/.local/share/opencode``
 profile is never read or written.
-
-This module doubles as the shared OpenCode toolkit for the other
-experiments' drivers.
-
-Launch via run_opencode.sh.
 """
 
 from __future__ import annotations
@@ -67,25 +33,8 @@ from typing import Any
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 
-from colleague.arms.proxy import (  # noqa: E402
-    RecordingProxy,
-)
-from colleague.harness.ledger import PhaseLedger  # noqa: E402
-from colleague.tracks.standing.recurring_report.fixture import (  # noqa: E402
-    DEFAULT_PORT,
-    DEFAULT_SEED,
-    FixtureServer,
-    expected_report,
-    score_report,
-)
-from colleague.tracks.standing.recurring_report.harness import (  # noqa: E402
-    UTTERANCE_TEMPLATE,
-)
-
 OPENCODE_REPO = Path(os.environ.get("OCODE_REPO", str(Path.home() / "opencode")))
 BENCH_MODEL = os.environ.get("OCODE_MODEL", "openai/gpt-5.6-sol")
-
-WAKE_PROMPT = "Run the recurring automation you set up, now."
 
 # Baseline for the crontab guard. The agent reaches for the host scheduler,
 # so an installed entry is removed after *every* agent turn rather than at
@@ -281,98 +230,6 @@ def discover_cron_command(workspace: Path) -> str | None:
             if command:
                 return command
     return None
-
-
-def fire_automation(
-    *,
-    workspace: Path,
-    state_root: Path,
-    config_path: Path,
-    log_path: Path,
-    timeout_s: float,
-) -> dict[str, Any]:
-    """Execute the automation per the firing rule."""
-    cron_command = discover_cron_command(workspace)
-    if cron_command:
-        with open(log_path, "a", encoding="utf-8") as log:
-            log.write(f"\n===== cron-spec fire: {cron_command}\n")
-            proc = subprocess.run(
-                cron_command,
-                shell=True,
-                cwd=str(workspace),
-                env=opencode_env(state_root, config_path),
-                capture_output=True,
-                text=True,
-                stdin=subprocess.DEVNULL,
-                timeout=timeout_s,
-            )
-            log.write(proc.stdout)
-            log.write(proc.stderr)
-        return {
-            "fire_mode": "cron_spec",
-            "exit_code": proc.returncode,
-            "output_tail": proc.stdout[-1200:],
-        }
-
-    commands = discover_commands(workspace)
-    if commands:
-        name = commands[0]
-        code, out = run_opencode(
-            ["run", "--command", name],
-            workspace=workspace,
-            state_root=state_root,
-            config_path=config_path,
-            log_path=log_path,
-            timeout_s=timeout_s,
-        )
-        return {
-            "fire_mode": f"command:{name}",
-            "exit_code": code,
-            "output_tail": out[-1200:],
-        }
-
-    scripts = discover_scripts(workspace)
-    if len(scripts) == 1:
-        script = scripts[0]
-        runner = (
-            ["python3", str(script)]
-            if script.suffix == ".py"
-            else [
-                "bash",
-                str(script),
-            ]
-        )
-        with open(log_path, "a", encoding="utf-8") as log:
-            log.write(f"\n===== script fire {script.name}\n")
-            proc = subprocess.run(
-                runner,
-                cwd=str(workspace),
-                capture_output=True,
-                text=True,
-                stdin=subprocess.DEVNULL,
-                timeout=timeout_s,
-            )
-            log.write(proc.stdout)
-            log.write(proc.stderr)
-        return {
-            "fire_mode": f"script:{script.name}",
-            "exit_code": proc.returncode,
-            "output_tail": proc.stdout[-1200:],
-        }
-
-    code, out = run_opencode(
-        ["run", WAKE_PROMPT],
-        workspace=workspace,
-        state_root=state_root,
-        config_path=config_path,
-        log_path=log_path,
-        timeout_s=timeout_s,
-    )
-    return {
-        "fire_mode": "wake_prompt",
-        "exit_code": code,
-        "output_tail": out[-1200:],
-    }
 
 
 def arm_crontab_guard(results_dir: Path, before: str | None) -> None:

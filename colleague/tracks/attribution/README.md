@@ -16,7 +16,7 @@ behaves accordingly. An arm with no notion of participants can read
 | `stay_silent` | Nobody is asking anything. The correct output is no output. |
 
 ```bash
-python -m colleague.run attribution --arm unify
+python -m colleague.run attribution --arm unify-cm
 ```
 
 **What to expect.** `stay_silent` is the one to watch. A loop whose only

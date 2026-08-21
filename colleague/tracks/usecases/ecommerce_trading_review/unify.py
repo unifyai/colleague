@@ -1,11 +1,12 @@
-"""ecommerce-trading-review: the unify arm.
+"""ecommerce-trading-review: the unify-cm arm, person-shaped.
 
-Boots the Unify brain standalone against a hosted Orchestra (staging by
-default), hands it the landing page's `brief` verbatim, then drives the Monday
-wake through `TaskScheduler.execute` with the same delegate mechanics the
-production ConversationManager uses for due tasks. Every LLM call is metered
-per phase; the posted review is scored against ground truth recomputed from
-the served weekly series.
+Delivers the landing page's `brief` verbatim as one owner message through
+the ConversationManager session and lets the system decide how the Monday
+work comes to recur. Each metered run is then the clock: the harness
+delivers a due tick for whatever task the system itself scheduled (through
+the CM's own due-task path) and observes the fixture's sink. Every LLM call
+is metered per phase; the posted review is scored against ground truth
+recomputed from the served weekly series.
 
 One review per run rather than one per client, so the page-eligible cost is
 per run. `summary.md` ends with a transcription block naming the figures
@@ -23,8 +24,6 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-
-from colleague.arms.unify_runtime import BenchmarkTaskExecutionDelegate
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 
@@ -63,36 +62,6 @@ def _require_env() -> None:
         )
 
 
-async def _await_handle(handle: Any, timeout_s: float) -> tuple[str, str]:
-    """Await a steerable handle's result; returns (status, text)."""
-    try:
-        text = await asyncio.wait_for(handle.result(), timeout=timeout_s)
-        return "completed", str(text)
-    except asyncio.TimeoutError:
-        try:
-            await handle.stop(reason="measurement phase timeout")
-        except Exception as exc:
-            return "timeout", f"timed out after {timeout_s}s; stop failed: {exc}"
-        return "timeout", f"timed out after {timeout_s}s"
-    except Exception as exc:
-        return "error", f"{type(exc).__name__}: {exc}"
-
-
-def _task_snapshot(task: Any) -> dict[str, Any]:
-    return {
-        "task_id": task.task_id,
-        "name": task.name,
-        "description": task.description,
-        "enabled": task.enabled,
-        "entrypoint": task.entrypoint,
-        "repeat": (
-            [p.model_dump(mode="json") for p in task.repeat] if task.repeat else None
-        ),
-        "schedule": task.schedule.model_dump(mode="json") if task.schedule else None,
-        "offline": task.offline,
-    }
-
-
 def _function_snapshot(function_id: int) -> dict[str, Any]:
     from unify.manager_registry import ManagerRegistry
 
@@ -113,7 +82,7 @@ def _function_snapshot(function_id: int) -> dict[str, Any]:
 async def main() -> int:
     _require_env()
 
-    from colleague.tracks.standing.recurring_report.measure import LLMLedger
+    from colleague.harness.llm_ledger import LLMLedger
     from colleague.tracks.usecases.ecommerce_trading_review.fixture import (
         DEFAULT_PORT,
         DEFAULT_SEED,
@@ -143,7 +112,7 @@ async def main() -> int:
     quiesce_timeout_s = float(os.environ.get("ETR_QUIESCE_TIMEOUT_S", "1800"))
     check_only = os.environ.get("ETR_CHECK", "").lower() == "true"
     tsx_path = Path(os.environ.get("ETR_USECASES_TSX") or DEFAULT_USECASES_TSX)
-    run_id = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ") + "-unify"
+    run_id = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ") + "-unify-cm"
 
     results_dir = EXPERIMENT_DIR / "results" / run_id
     results_dir.mkdir(parents=True, exist_ok=True)
@@ -166,55 +135,33 @@ async def main() -> int:
 
     ledger = LLMLedger()
 
-    # ── Boot the brain standalone (mirrors sandboxes/conversation_manager) ──
-    import unify as unify_pkg
-    import unisdk
-    from unify.common.context_registry import ContextRegistry
-    from unify.manager_registry import ManagerRegistry
-    from unify.session_details import (
-        UNASSIGNED_ASSISTANT_CONTEXT,
-        UNASSIGNED_USER_CONTEXT,
-    )
+    # ── Boot the ConversationManager session (the arm's one door) ──────────
+    from colleague.arms.sessions import build as build_session
 
     project = os.environ.get("ETR_PROJECT", "Benchmarks")
-    ctx = (
-        f"colleague/usecases/ecommerce_trading_review/{run_id}"
-        f"/{UNASSIGNED_USER_CONTEXT}/{UNASSIGNED_ASSISTANT_CONTEXT}"
-    )
     print(f"[boot] orchestra={os.environ['ORCHESTRA_URL']}")
-    print(f"[boot] context={ctx}")
-    unisdk.activate(project)
-    unisdk.create_context(ctx)
-    unisdk.set_context(ctx, relative=False)
-    ManagerRegistry.clear()
-    ContextRegistry.clear()
-    unify_pkg.init(project_name=project)
-    # After init: unify installed its global LLM hook; chain ours on top.
-    ledger.install()
-
-    from unify.actor.code_act_actor import CodeActActor
-    from unify.actor.environments import StateManagerEnvironment
-    from unify.common.task_execution_context import current_task_execution_delegate
-    from unify.function_manager.primitives import Primitives
-    from unify.task_scheduler.types.activated_by import ActivatedBy
-
-    primitives = Primitives()
-    actor = CodeActActor(
-        environments=[StateManagerEnvironment(primitives)],
-        function_manager=ManagerRegistry.get_function_manager(),
-        guidance_manager=ManagerRegistry.get_guidance_manager(),
-        knowledge_manager=ManagerRegistry.get_knowledge_manager(),
-    )
-    scheduler = ManagerRegistry.get_task_scheduler()
-    print("[boot] actor + managers ready")
+    session: Any = None
+    if not check_only:
+        session = build_session(
+            "unify-cm",
+            run_id=run_id,
+            track="usecases/ecommerce_trading_review",
+            results_dir=results_dir,
+            ledger=ledger,
+        )
+        session.setup()
+        # The phases below own the attribution; turn marks would fragment it.
+        session.auto_turn_boundaries = False
+        print(f"[boot] context={session.context}")
 
     results: dict[str, Any] = {
         "experiment": "usecases/ecommerce_trading_review",
-        "system": "unify",
+        "system": "unify-cm",
+        "regime": "person",
         "use_case_slug": "ecommerce-trading-review",
         "run_id": run_id,
         "orchestra_url": os.environ["ORCHESTRA_URL"],
-        "context": ctx,
+        "context": session.context if session is not None else None,
         "seed": seed,
         "anchor_week": anchor,
         "n_runs": n_runs,
@@ -237,17 +184,29 @@ async def main() -> int:
         fixture.stop()
         return 0
 
-    # ── Phase: setup (the brief → a recurring Monday task) ──────────────────
+    # ── Phase: setup (the brief, as one owner message) ──────────────────────
+    # The brief arrives the way a person's would: through the CM, from the
+    # owner. Its clarification channel is real here — an earlier bare-actor
+    # run correctly stopped to ask which timezone "Monday 07:00" means, and
+    # with nobody listening no task was ever created. Now the owner answers,
+    # with one scripted, information-free line; whatever the system settles
+    # on is part of what this measures. (Timezone does not move the scoring:
+    # the fixture's weeks are dates, not instants.)
+    from colleague.tracks.standing.series.person import OWNER_CLARIFICATION_REPLY
+
+    clarifications: list[dict[str, Any]] = []
+
+    def _responder(question: str, who: str | None = None) -> str:
+        clarifications.append({"question": question, "who": who})
+        return OWNER_CLARIFICATION_REPLY
+
+    session.on_clarification(_responder)
+
     print("[setup] issuing the brief ...")
     with ledger.phase("setup"):
-        # Unattended, as the page describes it: nobody is watching the Monday
-        # 07:00 wake. With clarification on, the actor correctly stops to ask
-        # which timezone "07:00" means — the brief never says — and no task is
-        # ever created. Whatever it settles on instead is part of what this
-        # measures. (Timezone does not move the scoring: the fixture's weeks are
-        # dates, not instants.)
-        handle = await actor.act(utterance, persist=False, clarification_enabled=False)
-        setup_status, setup_text = await _await_handle(handle, phase_timeout_s)
+        reply = session.send(utterance, timeout=phase_timeout_s)
+        setup_status = "completed" if reply.ok else "error"
+        setup_text = str(reply.text or reply.error)
         if not await ledger.wait_quiescent(
             idle_seconds=quiesce_idle_s,
             timeout_seconds=quiesce_timeout_s,
@@ -255,6 +214,7 @@ async def main() -> int:
             print("[setup] warning: LLM activity still ongoing at quiesce timeout")
     print(f"[setup] {setup_status}: {setup_text[:300]}")
     results["setup"] = {"status": setup_status, "result": setup_text}
+    results["clarifications"] = clarifications
 
     # A dry run during setup is a fair reading of the brief, which asks for a
     # schedule without forbidding an immediate run. Those posts are setup's.
@@ -269,50 +229,48 @@ async def main() -> int:
         )
         print(f"[setup] posted {posts_seen} review(s) during setup (scored separately)")
 
-    tasks = [
-        t
-        for t in scheduler._filter_tasks(filter=None, limit=100)
-        if t.repeat is not None or t.trigger is not None
-    ]
-    if setup_status != "completed" or len(tasks) != 1:
-        results["setup"]["recurring_tasks_found"] = [_task_snapshot(t) for t in tasks]
-        _finalize(results, ledger, results_dir, fixture)
-        print(
-            f"[abort] setup did not yield exactly one recurring task "
-            f"(status={setup_status}, found={len(tasks)})",
-        )
-        return 1
-    task = tasks[0]
-    results["task_after_setup"] = _task_snapshot(task)
+    # What the system bound to the clock — an observation, not a gate.
+    tasks = session.scheduled_recurrences()
+    results["task_after_setup"] = tasks[0] if len(tasks) == 1 else None
+    results["recurring_tasks_found"] = tasks
     print(
-        f"[setup] task_id={task.task_id} entrypoint={task.entrypoint} "
-        f"repeat={'yes' if task.repeat else 'no'}",
+        f"[setup] the system scheduled {len(tasks)} recurring task(s)"
+        + (
+            f"; task_id={tasks[0]['task_id']} entrypoint={tasks[0]['entrypoint']}"
+            if len(tasks) == 1
+            else ""
+        ),
     )
-    start_at = (results["task_after_setup"].get("schedule") or {}).get("start_at")
+    start_at = ((results.get("task_after_setup") or {}).get("schedule") or {}).get(
+        "start_at",
+    )
     if start_at:
         print(f"[align] task activates {start_at}; fixture is pinned to week {anchor}")
 
-    # ── Phases: Monday wakes ────────────────────────────────────────────────
-    delegate = BenchmarkTaskExecutionDelegate(actor)
+    # ── Phases: Monday wakes — the harness is only the clock ───────────────
     for i in range(1, n_runs + 1):
-        before = scheduler._filter_tasks(filter=f"task_id == {task.task_id}")[0]
-        print(f"[run_{i}] executing (entrypoint before: {before.entrypoint}) ...")
+        before_tasks = session.scheduled_recurrences()
+        entrypoint_before = next(
+            (t["entrypoint"] for t in before_tasks if t["entrypoint"] is not None),
+            None,
+        )
+        print(f"[run_{i}] the clock ticks (entrypoint before: {entrypoint_before}) ...")
         with ledger.phase(f"run_{i}"):
-            token = current_task_execution_delegate.set(delegate)
-            try:
-                run_status, run_text = (
-                    "error",
-                    "execute() raised before returning a handle",
-                )
-                run_handle = await scheduler.execute(
-                    task_id=task.task_id,
-                    _activated_by=ActivatedBy.schedule,
-                )
-                run_status, run_text = await _await_handle(run_handle, phase_timeout_s)
-            except Exception as exc:
-                run_text = f"{type(exc).__name__}: {exc}"
-            finally:
-                current_task_execution_delegate.reset(token)
+            fired = session.fire_due_recurrences()
+            settled = session.settle(timeout=phase_timeout_s)
+            errors = [f["error"] for f in fired if f.get("error")]
+            if not fired:
+                run_status = "nothing_scheduled"
+                run_text = "no recurring task existed for the clock to fire"
+            elif errors:
+                run_status = "error"
+                run_text = "; ".join(errors)
+            elif not settled:
+                run_status = "timeout"
+                run_text = f"tick started but did not settle within {phase_timeout_s}s"
+            else:
+                run_status = "completed"
+                run_text = json.dumps(fired)
 
         with ledger.phase(f"run_{i}_review"):
             if not await ledger.wait_quiescent(
@@ -323,7 +281,11 @@ async def main() -> int:
                     f"[run_{i}] warning: LLM activity still ongoing at quiesce timeout",
                 )
 
-        after = scheduler._filter_tasks(filter=f"task_id == {task.task_id}")[0]
+        after_tasks = session.scheduled_recurrences()
+        entrypoint_after = next(
+            (t["entrypoint"] for t in after_tasks if t["entrypoint"] is not None),
+            None,
+        )
         posted = fixture.sink.snapshot()[posts_seen:]
         posts_seen += len(posted)
         scored = score_run(posted, seed=seed, anchor=anchor)
@@ -331,9 +293,10 @@ async def main() -> int:
         row = {
             "run": i,
             "status": run_status,
-            "entrypoint_before": before.entrypoint,
-            "entrypoint_after": after.entrypoint,
-            "regime": "entrypoint" if before.entrypoint is not None else "description",
+            "fired": fired,
+            "entrypoint_before": entrypoint_before,
+            "entrypoint_after": entrypoint_after,
+            "regime": "entrypoint" if entrypoint_before is not None else "description",
             "window": {
                 "aligned": aligned,
                 "anchor": anchor,
@@ -347,7 +310,7 @@ async def main() -> int:
             f"[run_{i}] {run_status} ({row['regime']}); posted={row['posted']} "
             f"week={row['week_reported']} flags={len(row['flags_matched'])}"
             f"/{len(row['flags_expected'])} extra={len(row['flags_extra'])} "
-            f"moved={row['moved']} entrypoint_after={after.entrypoint}",
+            f"moved={row['moved']} entrypoint_after={entrypoint_after}",
         )
         if not aligned:
             print(
@@ -355,12 +318,18 @@ async def main() -> int:
                 f"anomalies are planted in {anchor} — flags from this run mean nothing",
             )
 
-    final_task = scheduler._filter_tasks(filter=f"task_id == {task.task_id}")[0]
-    results["task_final"] = _task_snapshot(final_task)
-    if final_task.entrypoint is not None:
-        results["entrypoint_function"] = _function_snapshot(final_task.entrypoint)
+    final_tasks = session.scheduled_recurrences()
+    results["task_final"] = final_tasks[0] if len(final_tasks) == 1 else None
+    results["recurring_tasks_final"] = final_tasks
+    final_entrypoint = next(
+        (t["entrypoint"] for t in final_tasks if t["entrypoint"] is not None),
+        None,
+    )
+    if final_entrypoint is not None:
+        results["entrypoint_function"] = _function_snapshot(final_entrypoint)
 
     _finalize(results, ledger, results_dir, fixture)
+    session.close()
     return 0
 
 
@@ -457,7 +426,7 @@ def _finalize(
         json.dump(results, f, indent=2, default=str)
 
     lines = [
-        f"# ecommerce-trading-review (unify arm) — {results['run_id']}",
+        f"# ecommerce-trading-review (unify-cm arm, person-shaped) — {results['run_id']}",
         "",
         f"- orchestra: `{results['orchestra_url']}`",
         f"- context: `{results['context']}`",

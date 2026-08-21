@@ -15,6 +15,65 @@ admission, and a reader is entitled to discount the result accordingly. The
 rule is that a change is `[wrong]` only if it would have mismeasured a
 *competent arm of any architecture* — not merely if unify failed it.
 
+## 2026-08-21
+
+**`[wrong]` the whole suite — the benchmark now interfaces with every
+harness as though it were a person.** Inputs and outputs are English,
+through the surface closest to talking to the system. Two consequences,
+both of which change what the suite measures rather than how well:
+
+1. **The v0/faithful arm duality is dissolved.** Modes cannot be applied
+   to a person, so each harness keeps exactly one arm — its conversation
+   surface: `unify-cm`, `hermes-tui`, `openclaw-gateway`,
+   `prime-agent-rpc`, and `opencode` (whose one-shot CLI is the closest
+   thing it has). The bare-`CodeActActor.act` `unify` arm and the one-shot
+   CLI `hermes`/`openclaw`/`prime-agent` arms are retired — registry,
+   profiles and adapters removed. This supersedes the closing sentences of
+   "Profiles, closed" (2026-08-17) and of the 2026-08-01 v0-adapters
+   entry: the v0 arms no longer stay registered. The voice arms
+   (`hermes-voice`, `openclaw-voice`, unify-cm's LiveKit transport) are
+   the same surfaces reached over audio and stay.
+2. **Recurring work is never pre-installed or force-fired by the harness.**
+   The standing experiments and the usecases pages previously planted the
+   brief through harness internals (`actor.act()`, one-shot CLI turns) and
+   fired the recurring mechanism deterministically
+   (`TaskScheduler.execute` under a benchmark delegate; `hermes cron run`
+   on the one job the driver demanded exist). Person-shaped, the brief is
+   one owner message through the arm's session; whether and how the work
+   comes to recur is the system's own choice, recorded as evidence
+   (`recurrences_after_setup`) instead of enforced by the old
+   abort-unless-exactly-one-task gate; and the harness is only the clock —
+   a fire delivers the due tick for whatever the system itself bound to
+   the clock, through the product's own machinery (the CM's due-task path,
+   `hermes cron run`, `openclaw cron run`, a prime-agent scheduled job's
+   own prompt, a captured host-crontab line), then observes the sink and
+   the per-fire meter inside a bounded quiescence window. The engine is
+   `colleague/tracks/standing/series/person.py`; the entrypoint is
+   `python -m colleague.tracks.standing.run <experiment> --arm <arm>`.
+   Casualties, deliberate: OpenCode's fire ladder loses its
+   harness-invented rungs (a declared command, a lone script, the neutral
+   wake prompt) — only clock-bound declarations run; policy_propagation's
+   per-automation token attribution becomes per-round, because a clock
+   tick runs everything due at once; and the three oldest experiments
+   (`recurring_report`, `semantic_triage`, `policy_propagation`) still
+   carry no HTTP owner channel — their fixtures predate the shared
+   `FixtureServer` — so their held rung is reachable only through an arm's
+   own owner channel until those fixtures are ported.
+
+Why now, and why `[wrong]`: the refinement track's four-arm live run
+(2026-08-21) scored every arm 6/6 while the bare-actor unify arm spent
+2.77M tokens rising week-on-week against prime-agent's 106k — the
+conversational path never converged to a stored function, and the
+installed-and-fired regime had been quietly pre-deciding exactly that
+convergence for the standing track. Convergence — cliff versus climb — is
+the central measurement, so a regime that decides it for the system
+mismeasures every architecture, not just one.
+
+Published-numbers consequence: every figure produced under the old regime
+stays where a committed summary produced it and is labelled old-regime in
+its README; none is comparable with person-shaped runs, and reruns replace
+them experiment by experiment.
+
 ## 2026-08-18
 
 **`[wrong]` harness — an infrastructure failure was scored as a loss.** The

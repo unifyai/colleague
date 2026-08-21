@@ -185,7 +185,9 @@ among several humans. The Gateway arm reads room lines as `[name] message`
 turns on one session — sender identity is text, as the profile says — and
 twice in three runs it broke silence to be helpful.
 
-**`prime-agent`** (print mode, n = 1): DEGRADED · FAIL · DEGRADED · PASS.
+**`prime-agent`** (print mode, n = 1 — an old-regime run of a retired arm;
+the arm is now `prime-agent-rpc`, whose steering lane changes exactly the
+mechanism these losses hinge on): DEGRADED · FAIL · DEGRADED · PASS.
 Every line reached it as a later turn — print mode has no live channel — so
 "after the room moved on" is true by construction and the reasons say so;
 the same DEGRADED `interruption` gives a queued correction. `humans_talking`

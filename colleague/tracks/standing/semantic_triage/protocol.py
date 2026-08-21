@@ -10,11 +10,17 @@ reliability of recurring work that contains a genuine judgment substep.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from colleague.tracks.standing.semantic_triage.fixture import (
     TriageFixtureServer,
     score_triage_batch,
+)
+from colleague.tracks.standing.series.spec import (
+    Experiment,
+    OwnerInbox,
+    outcome_for,
 )
 
 N_FIRES = 8
@@ -46,6 +52,70 @@ exactly once.
 Set up the recurring hourly automation now. Do not triage anything right \
 now, and do not ask for confirmation.\
 """
+
+
+class SemanticTriage(Experiment):
+    """The fire-series shape of this experiment, for the person engine.
+
+    The bespoke fixture predates the shared `FixtureServer`, so it carries
+    no HTTP owner channel; the utterance never described one, and that is
+    kept — the held rung is reachable here only through an arm's own owner
+    channel (a unify-cm message to the boss carrying the HOLD marker).
+    """
+
+    name = "semantic_triage"
+    env_prefix = "ST"
+    directory = Path(__file__).resolve().parent
+    n_fires = N_FIRES
+    default_seed = 20260731
+    default_port = 8128
+    fire_columns = ("batches_delivered", "accuracy")
+
+    def utterance(self, base_url: str) -> str:
+        return UTTERANCE_TEMPLATE.format(base_url=base_url)
+
+    def build_fixture(self, *, seed: int, port: int) -> Any:
+        fixture = TriageFixtureServer(seed=seed, port=port)
+        fixture.state = {"owner": OwnerInbox()}
+        return fixture
+
+    def prepare_fire(self, fixture: Any) -> dict[str, Any]:
+        cursor_before, released_now, batches_before = prepare_fire(fixture)
+        return {
+            "cursor_before": cursor_before,
+            "released_now": released_now,
+            "batches_before": batches_before,
+        }
+
+    def score_fire(
+        self,
+        fixture: Any,
+        ctx: dict[str, Any],
+        *,
+        messages: list[Any],
+    ) -> dict[str, Any]:
+        base = score_fire(
+            fixture,
+            cursor_before=ctx["cursor_before"],
+            released_now=ctx["released_now"],
+            batches_before=ctx["batches_before"],
+        )
+        return {
+            **base,
+            **outcome_for(
+                delivered=base["batches_delivered"],
+                exact=base["correct"],
+                messages=messages,
+            ),
+            "accuracy": base["accuracy"],
+        }
+
+    def describe(self) -> dict[str, Any]:
+        return {"items_per_fire": ITEMS_PER_FIRE}
+
+
+def experiment() -> SemanticTriage:
+    return SemanticTriage()
 
 
 def prepare_fire(fixture: TriageFixtureServer) -> tuple[int, int, int]:

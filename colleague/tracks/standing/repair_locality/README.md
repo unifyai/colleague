@@ -45,10 +45,22 @@ arm is built.
 `results/<run-id>-<arm>/`; `plot.py` renders `repair_locality.svg`.
 
 ```bash
-bash colleague/tracks/standing/repair_locality/run_unify.sh
-bash colleague/tracks/standing/repair_locality/run_hermes.sh      # also run_openclaw.sh, run_opencode.sh
+python -m colleague.tracks.standing.run repair_locality --arm unify-cm
+python -m colleague.tracks.standing.run repair_locality --arm hermes-tui   # also openclaw-gateway, opencode, prime-agent-rpc
 .venv/bin/python -m colleague.tracks.standing.repair_locality.plot
 ```
+
+> **Old-regime results.** Every measured figure below was produced under
+> the retired installed-and-fired regime: the brief was planted through
+> harness internals (`actor.act()`, one-shot CLI turns) and the recurring
+> mechanism was fired deterministically by per-arm drivers that no longer
+> exist, under the retired arm names (`unify`, `hermes`, `openclaw`,
+> `prime-agent`). The figures stand as the committed record — each came
+> from a committed summary — but they are **not comparable** with
+> person-shaped runs, which deliver the brief through the arm's
+> conversation surface and let the system decide how the work recurs
+> (see `SCENARIO_CHANGES.md`, 2026-08-21). Person-shaped reruns replace
+> this table as they land in `results/`.
 
 ## Measured results (2026-08-18, gpt-5.6-sol@openrouter)
 

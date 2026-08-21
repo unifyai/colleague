@@ -17,14 +17,14 @@ is the fixture — a warm session must not be penalised for remembering a base
 URL the harness moved.
 
 ```bash
-python -m colleague.run continuity --arm unify
+python -m colleague.run continuity --arm unify-cm
 ```
 
 **What to expect.** A correct answer that re-authenticates scores `DEGRADED`
 rather than `FAIL`, because it is correct and the cost is the finding.
-unify's `persist=True` keeps the sandbox and its variables; OpenClaw keeps
-the session; hermes and OpenCode start each turn from nothing. The number to
-watch is `auth_calls` in the February evidence.
+The CM, the OpenClaw Gateway, the hermes TUI gateway and prime-agent's
+resident RPC process all hold their session; OpenCode starts each turn from
+nothing. The number to watch is `auth_calls` in the February evidence.
 
 **Honest limit.** Authentication is a cheap stand-in for the real thing,
 which is any working state a task built and never wrote down — a parsed

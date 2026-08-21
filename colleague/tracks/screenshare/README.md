@@ -47,9 +47,10 @@ look. Today:
 | Arm | Path |
 |---|---|
 | `unify-cm` | the CM's own screenshot buffer, source `user`, attributed to the sender and paired with the message — the same path a shared screen takes from the fast brain |
-| `unify` (act) | raises: this v0 surface is text-only; frames belong to the conversation layer |
-| `hermes`, `hermes-tui` | raise: no image path in the driven surface (`accepts_images=False`) |
-| `openclaw`, `opencode` | raise: the CLI drivers have no attachment path yet, though both products accept images — an adapter gap to close, and stated as one |
+| `hermes-tui` | raises: no image path in the driven surface (`accepts_images=False`) |
+| `openclaw-gateway` | images travel as chat.send attachments |
+| `opencode` | raises: the driver has no attachment path yet, though the product accepts images — an adapter gap to close, and stated as one |
+| `prime-agent-rpc` | images travel on the prompt |
 | `mock` | receives the paths; the scripted plan acts on the demonstration by construction |
 
 The `unify-cm` path is wired but has not yet been exercised against a live

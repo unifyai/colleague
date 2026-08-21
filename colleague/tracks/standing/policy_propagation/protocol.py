@@ -15,12 +15,21 @@ post-change fires.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from colleague.tracks.standing.policy_propagation.fixture import (
+    INITIAL_THRESHOLD,
     POLICY_STATEMENT,
+    POLICY_UPDATE_MESSAGE,
+    UPDATED_THRESHOLD,
     PolicyFixtureServer,
     score_sink_batch,
+)
+from colleague.tracks.standing.series.spec import (
+    Experiment,
+    OwnerInbox,
+    outcome_for,
 )
 
 AUTOMATIONS = ("triage", "digests", "audits")
@@ -100,6 +109,124 @@ UTTERANCES: dict[str, str] = {
 
 def build_utterance(automation: str, base_url: str) -> str:
     return UTTERANCES[automation].format(base_url=base_url, policy=POLICY_STATEMENT)
+
+
+class PolicyPropagation(Experiment):
+    """The fire-series shape of this experiment, for the person engine.
+
+    Three setup turns, one per automation. A fire is one *round*: the clock
+    tick runs everything the system bound to it, and the round is scored
+    per automation — correct only when all three delivered exactly one
+    correct batch. The policy update arrives as an ordinary owner message
+    before round ``PRE_CHANGE_ROUNDS + 1``. Per-automation token
+    attribution from the old drivers is gone by design: a person cannot
+    fire one automation at a time, so a round's spend is a round's spend.
+
+    The bespoke fixture predates the shared `FixtureServer` and carries no
+    HTTP owner channel; the held rung is reachable here only through an
+    arm's own owner channel.
+    """
+
+    name = "policy_propagation"
+    env_prefix = "PP"
+    directory = Path(__file__).resolve().parent
+    fire_noun = "round"
+    n_fires = PRE_CHANGE_ROUNDS + POST_CHANGE_ROUNDS
+    default_seed = 20260731
+    default_port = 8132
+    fire_columns = tuple(f"{a}_correct" for a in AUTOMATIONS)
+
+    def utterance(self, base_url: str) -> str:
+        return "\n\n---\n\n".join(build_utterance(a, base_url) for a in AUTOMATIONS)
+
+    def setup_utterances(self, base_url: str) -> list[str]:
+        return [build_utterance(a, base_url) for a in AUTOMATIONS]
+
+    def build_fixture(self, *, seed: int, port: int) -> Any:
+        fixture = PolicyFixtureServer(seed=seed, port=port)
+        fixture.state = {"owner": OwnerInbox()}
+        return fixture
+
+    def operator_messages(self, i: int, base_url: str) -> list[str]:
+        del base_url
+        return [POLICY_UPDATE_MESSAGE] if i == PRE_CHANGE_ROUNDS + 1 else []
+
+    def threshold_for(self, i: int) -> int:
+        return INITIAL_THRESHOLD if i <= PRE_CHANGE_ROUNDS else UPDATED_THRESHOLD
+
+    def prepare_fire(self, fixture: Any) -> dict[str, Any]:
+        release_round(fixture)
+        return {
+            automation: dict(
+                zip(
+                    ("cursor_before", "released_now", "batches_before"),
+                    prepare_fire(fixture, automation),
+                ),
+            )
+            for automation in AUTOMATIONS
+        }
+
+    def score_fire(
+        self,
+        fixture: Any,
+        ctx: dict[str, Any],
+        *,
+        messages: list[Any],
+    ) -> dict[str, Any]:
+        threshold = self.threshold_for(int(ctx["fire"]))
+        per: dict[str, Any] = {}
+        for automation in AUTOMATIONS:
+            snap = ctx[automation]
+            per[automation] = score_fire(
+                fixture,
+                automation,
+                cursor_before=snap["cursor_before"],
+                released_now=snap["released_now"],
+                batches_before=snap["batches_before"],
+                threshold=threshold,
+            )
+        counts = [per[a]["batches_delivered"] for a in AUTOMATIONS]
+        exact = all(per[a]["correct"] for a in AUTOMATIONS)
+        # The rubric's `delivered` collapses the round: 1 when every
+        # automation delivered exactly once, 0 when nothing was delivered
+        # anywhere (the held-eligible case), otherwise a wrong count.
+        if all(c == 1 for c in counts):
+            delivered = 1
+        elif all(c == 0 for c in counts):
+            delivered = 0
+        else:
+            delivered = sum(counts)
+        return {
+            "threshold": threshold,
+            "automations": per,
+            **{f"{a}_correct": per[a]["correct"] for a in AUTOMATIONS},
+            **outcome_for(delivered=delivered, exact=exact, messages=messages),
+        }
+
+    def summarize(self, rows: list[dict[str, Any]]) -> dict[str, Any]:
+        post = [r for r in rows if int(r["fire"]) > PRE_CHANGE_ROUNDS]
+        cells = [(r, a) for r in post for a in AUTOMATIONS]
+        propagated = sum(1 for r, a in cells if r[f"{a}_correct"])
+        return {
+            "post_change_cells": len(cells),
+            "post_change_correct": propagated,
+            "propagation_complete": bool(cells) and propagated == len(cells),
+        }
+
+    def describe(self) -> dict[str, Any]:
+        return {
+            "automations": list(AUTOMATIONS),
+            "pre_change_rounds": PRE_CHANGE_ROUNDS,
+            "post_change_rounds": POST_CHANGE_ROUNDS,
+            "items_per_round": ITEMS_PER_ROUND,
+            "initial_threshold": INITIAL_THRESHOLD,
+            "updated_threshold": UPDATED_THRESHOLD,
+            "policy_update_message": POLICY_UPDATE_MESSAGE,
+        }
+
+
+def experiment() -> PolicyPropagation:
+    return PolicyPropagation()
 
 
 def release_round(fixture: PolicyFixtureServer) -> int:

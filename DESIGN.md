@@ -122,8 +122,10 @@ changed. No check asks whether an arm has a ContactManager.
 
 *Give each arm its own best mechanism.* The `interruption` track does not
 demand a live interjection. It offers the correction and lets each arm cope
-however it can: unify interjects, OpenClaw queues a turn, hermes and OpenCode
-have nowhere to put it. All three are recorded as what they are.
+however it can: unify-cm routes it into the in-flight action, hermes-tui
+steers the running batch, openclaw-gateway steers at the product's queue
+boundary, prime-agent-rpc rides its steering lane, and OpenCode has nowhere
+to put it. Each is recorded as what it is.
 
 *"No mechanism" is a declared outcome, not a loss.* `UNSUPPORTED` is kept out
 of the accuracy denominator and reported in its own column. An arm with no
@@ -203,7 +205,13 @@ state remain separate phases so cheap execution cannot hide expensive labour.
 
 ### `standing` — work that outlives the conversation
 
-**Complete.** Four experiments, four arms. See
+**Rebuilt person-shaped.** The brief is delivered in English through each
+arm's conversation surface; whether and how the work comes to recur — a
+stored function on a scheduler, a cron script, an agent kept in the loop,
+or nothing — is the system's own choice and part of what is measured. The
+published runs predate this: their drivers planted the brief through
+harness internals and fired the recurring mechanism deterministically, and
+their figures are kept but labelled old-regime. See
 [`colleague/tracks/standing/`](colleague/tracks/standing/).
 
 | Experiment | Question |
@@ -224,11 +232,14 @@ unify's client tags by the in-process ledger; the proxy-metered arms report
 every token as planning. `plot_distillation_curve.py` draws them side by
 side across the track.
 
-The finding that shapes the rest of the suite: the arms sort into two pairs.
-Script steady states (hermes, OpenCode) are free per firing and cannot
-self-heal. Model-in-loop steady states (unify's repair path, OpenClaw's agent
-turn) recover unattended and pay for it. unify is the only arm that is in
-both categories — free when nothing is wrong, model-backed when something is.
+The old-regime finding that shaped the rest of the suite: the harnesses
+sort into two camps. Script steady states (hermes, OpenCode) are free per
+firing and cannot self-heal. Model-in-loop steady states (unify's repair
+path, OpenClaw's agent turn) recover unattended and pay for it. unify is
+the only harness in both categories — free when nothing is wrong,
+model-backed when something is. Whether each system still converges to
+that steady state when the brief arrives as conversation — the cliff or
+the climb — is the central question of the person-shaped reruns.
 
 ### `interruption` — does a correction land in time
 
@@ -498,9 +509,12 @@ Requirements:
   them (this is itself a finding worth recording — an arm with no concept of
   a second sender should be reported as such, not scored as a failure)
 
-**A unified entrypoint.** Currently each experiment ships its own
-`run_<arm>.sh`. Once the interlocutor lands, these should collapse into one
-runner taking track, experiment and arm.
+**A unified entrypoint.** Delivered: the conversational tracks run through
+`python -m colleague.run <track> --arm <arm>`, and the standing fire-series
+experiments through `python -m colleague.tracks.standing.run <experiment>
+--arm <arm>` — one person-shaped engine
+(`colleague/tracks/standing/series/person.py`) in place of the old
+per-experiment `run_<arm>.sh` launchers.
 
 ## Repository layout
 
@@ -525,7 +539,7 @@ repo is still `standing` only.
 
 | Track | Scenarios | Notes |
 |---|---|---|
-| `standing` | 8 experiments | Four complete and published; four built on the shared fire-series engine, self-testing, awaiting runs |
+| `standing` | 8 experiments | Rebuilt person-shaped; published runs are old-regime and labelled so, person-shaped reruns pending |
 | `inheritance` | 4 | `ask_the_owner` scores *whom* the arm asked |
 | `interruption` | 4 | `resume_after_correction` scores progress kept |
 | `continuity` | 1 + 1 control | |
@@ -542,15 +556,16 @@ repo is still `standing` only.
 
 ## Next
 
-1. Run every built track against every arm and publish the results — the
-   arm set now includes `openclaw-gateway` and `prime-agent-rpc`, both
-   verified live on their tracks (outcomes in
-   `colleague/arms/sessions/NOTE.md`); what remains for them is volume
+1. Run every built track against every arm and publish the results — one
+   arm per harness now, its person-shaped surface (`openclaw-gateway` and
+   `prime-agent-rpc` were verified live on their tracks; outcomes in
+   `colleague/arms/sessions/NOTE.md`); what remains is volume, and the
+   person-shaped standing reruns
 2. `membership` needs the `unify-cm` adapter to provision two teams and the
    assistant's memberships, so unify's write-time scoping is exercised rather
    than its judgement
 3. `screenshare` needs one live `unify-cm` run to confirm frames reach the
-   slow brain's screenshot context; the CLI arms need attachment paths
+   slow brain's screenshot context; the other arms need attachment paths
 4. `recall` needs the CM adapter to pin its context tree across sessions
    before the restart variant is added
 5. The voice transport: a room, persona voices, timing capture — once,

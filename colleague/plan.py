@@ -9,7 +9,7 @@ That constraint
 lives here rather than in the workflow, because it is a property of the track
 and the workflow should not have to know about it.
 
-    python -m colleague.plan --tracks all --arms unify,openclaw --repeat 3
+    python -m colleague.plan --tracks all --arms unify-cm,openclaw-gateway --repeat 3
 
 Emits JSON on stdout, suitable for a GitHub Actions matrix.
 """
@@ -25,13 +25,9 @@ from typing import Any
 from colleague.arms.sessions import ARMS, AUTOMATED_ARMS
 from colleague.run import TRACKS
 
-#: The `standing` experiments predate this runner and keep their own launchers.
-STANDING = (
-    "recurring_report",
-    "drift_recovery",
-    "semantic_triage",
-    "policy_propagation",
-)
+#: The `standing` fire-series experiments run through their own entrypoint
+#: (`python -m colleague.tracks.standing.run <experiment> --arm <arm>`),
+#: because a fire series is not a scenario list; they are not sharded here.
 
 
 def track_shards(track: str) -> list[dict[str, Any]]:
@@ -101,7 +97,7 @@ def _resolve_arms(value: str) -> list[str]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="colleague.plan")
     parser.add_argument("--tracks", default="all")
-    parser.add_argument("--arms", default="unify")
+    parser.add_argument("--arms", default="unify-cm")
     parser.add_argument("--repeat", type=int, default=1)
     parser.add_argument(
         "--no-shard",

@@ -7,9 +7,9 @@ set -euo pipefail
 # parallel on someone else's machines; this fires it and returns.
 #
 # Usage:
-#   scripts/cloud_run.sh                              # all tracks, unify arm
+#   scripts/cloud_run.sh                              # all tracks, unify-cm arm
 #   scripts/cloud_run.sh --arms all                   # all tracks, all arms
-#   scripts/cloud_run.sh --tracks custody,attribution --arms unify,openclaw
+#   scripts/cloud_run.sh --tracks custody,attribution --arms unify-cm,openclaw-gateway
 #   scripts/cloud_run.sh --arms all --repeat 5        # distributions, not points
 #   scripts/cloud_run.sh --dry-run                    # print the shard list only
 #   scripts/cloud_run.sh --watch                      # follow to completion
@@ -18,7 +18,7 @@ REPO="${COLLEAGUE_REPO:-unifyai/colleague}"
 WORKFLOW="benchmark.yml"
 
 TRACKS="all"
-ARMS="unify"
+ARMS="unify-cm"
 REPEAT=1
 MAX_PARALLEL=20
 TIMEOUT=45

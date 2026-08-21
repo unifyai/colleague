@@ -119,7 +119,7 @@ def main() -> int:
     lx += 24
     for purpose in PURPOSES:
         svg.append(
-            f'<rect x="{lx}" y="{ly - 10}" width="12" height="12" fill="{_shade(ARM_COLOR["unify"], PURPOSE_SHADE[purpose])}"/>',
+            f'<rect x="{lx}" y="{ly - 10}" width="12" height="12" fill="{_shade(ARM_COLOR["unify-cm"], PURPOSE_SHADE[purpose])}"/>',
         )
         svg.append(
             f'<text x="{lx + 16}" y="{ly}" font-size="11" fill="{INK}">unify: {purpose}</text>',

@@ -23,10 +23,9 @@ is invisible to the harness, and a scorer cannot tell "the system found
 nothing" from "the call that would have found it died" — see `install`.
 
 Lived in `tracks/standing/recurring_report/measure.py` first; promoted here
-once the conversational tracks needed the same metering — the unify arm has
-no proxy in front of it, so without this hook its token column is simply
-empty while every CLI arm is metered. `measure` re-exports for the standing
-drivers.
+once the conversational tracks needed the same metering — the unify-cm arm
+has no proxy in front of it, so without this hook its token column is
+simply empty while every proxy-metered arm is counted externally.
 """
 
 from __future__ import annotations

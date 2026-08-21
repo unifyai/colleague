@@ -11,6 +11,15 @@ replaces them with figures from an instrumented run and commits the ledger.
 
 ## Result
 
+> **Old-regime run.** This measurement predates the person-shaped
+> restructure (`SCENARIO_CHANGES.md`, 2026-08-21): its driver planted the
+> brief through `actor.act()` with clarification disabled and fired the
+> monthly wake itself through a benchmark delegate. The figures stand —
+> they came from a committed summary — but they are not comparable with
+> person-shaped runs (brief through the ConversationManager, the system's
+> own scheduled task fired by the CM's own due-task path), and the next
+> committed run replaces this table.
+
 From [`results/2026-08-04T17-36-52Z-unify`](results/2026-08-04T17-36-52Z-unify/)
 (read its `NOTE.md` first — the cost column in `summary.md` is void and the
 real figures are reconstructed from billing):

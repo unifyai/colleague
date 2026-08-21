@@ -56,7 +56,12 @@ delivers nothing.\
 @dataclass
 class OwnerMessage:
     text: str
-    via: str  # "fixture" (POST /owner/notify) or "native" (the arm's own hold channel)
+    #: "fixture" — POST /owner/notify; "arm" — a message the assistant sent
+    #: its owner through its own channel (the CM's boss sends), judged by
+    #: the same HOLD-marker rule as the fixture channel; "native" — a hold
+    #: outcome read off the arm's runtime, where the runtime's own refusal
+    #: text is the reason and no marker is required.
+    via: str
     at: str = field(default_factory=utcnow)
 
     def is_hold(self) -> bool:

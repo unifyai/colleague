@@ -1,14 +1,12 @@
-"""The unify arm through its faithful surface: ConversationManager.
+"""The unify arm: the ConversationManager, the door a person talks through.
 
-`unify_session.py` drives `CodeActActor.act` directly, which keeps the arm
-comparable to the published `standing` numbers but skips the layer these
-tracks are actually about: senders as first-class contacts, replies as Sent
-events addressed to someone, silence as an explicit `wait` decision, and
-mid-task steering as brain tools bound to a specific in-flight action. This
-adapter boots a real ConversationManager in-process -- the same recipe the CM
-integration tests and the OSS sandbox use -- and feeds it inbound message
-events, with a real CodeActActor (built exactly as the v0 arm builds it)
-doing the dispatched work.
+An earlier "v0" arm drove `CodeActActor.act` directly, which skipped the
+layer this benchmark is about: senders as first-class contacts, replies as
+Sent events addressed to someone, silence as an explicit `wait` decision,
+and mid-task steering as brain tools bound to a specific in-flight action.
+This adapter boots a real ConversationManager in-process -- the same recipe
+the CM integration tests and the OSS sandbox use -- and feeds it inbound
+message events, with a real CodeActActor doing the dispatched work.
 
 Driving mode is the stepped one from `tests/conversation_manager/
 cm_test_driver.py`, vendored here because `tests/` is not an importable
@@ -232,6 +230,12 @@ class UnifyCMRunHandle(RunHandle):
 
 class UnifyCMSession(ArmSession):
     profile = PROFILES["unify-cm"]
+
+    #: The conversational runner wants every turn's LLM calls attributed to
+    #: `turn_<n>`, so `begin` marks a ledger boundary itself. A fire-series
+    #: driver owns its own labels (`setup`, `fire_3`, `message_4`) and flips
+    #: this off so its per-fire attribution is not fragmented by turn marks.
+    auto_turn_boundaries = True
 
     #: Cap on brain steps within one stepped turn (the test driver uses 5;
     #: multi-send turns in the wild occasionally need more).
@@ -852,7 +856,7 @@ class UnifyCMSession(ArmSession):
         """
         assert self._loop is not None and self._cm is not None, "call setup() first"
         self._turns += 1
-        if self.ledger is not None:
+        if self.ledger is not None and self.auto_turn_boundaries:
             self.ledger.boundary(f"turn_{self._turns}")
         if images:
             self._buffer_frames(images, text, sender)
@@ -1261,6 +1265,160 @@ class UnifyCMSession(ArmSession):
                 raw=egress,
             )
         return Reply(text=text, ok=True, meta=meta, raw=egress)
+
+    # ---------------------------------------------- standing work (the clock)
+    # The fire-series experiments deliver their brief through `begin` like any
+    # other turn; whether and how the work comes to recur is the system's own
+    # choice. These three methods are the harness's only other involvement:
+    # read what the system bound to the clock (observation, never a gate),
+    # deliver the due tick for it through the product's own due-task path,
+    # and wait for the resulting work to genuinely settle.
+
+    def scheduled_recurrences(self) -> list[dict[str, Any]]:
+        """Recurring tasks the system itself has scheduled — evidence only."""
+        assert self._loop is not None, "call setup() first"
+        return self._loop.run(self._scheduled_recurrences(), timeout=120)
+
+    async def _scheduled_recurrences(self) -> list[dict[str, Any]]:
+        from unify.manager_registry import ManagerRegistry
+
+        scheduler = ManagerRegistry.get_task_scheduler()
+        out: list[dict[str, Any]] = []
+        for task in scheduler._filter_tasks(filter=None, limit=100):
+            if task.repeat is None and task.trigger is None:
+                continue
+            repeat = getattr(task, "repeat", None)
+            schedule = getattr(task, "schedule", None)
+            out.append(
+                {
+                    "task_id": task.task_id,
+                    "name": getattr(task, "name", None),
+                    "description": getattr(task, "description", None),
+                    "enabled": getattr(task, "enabled", None),
+                    "entrypoint": getattr(task, "entrypoint", None),
+                    "repeat": (
+                        [r.model_dump(mode="json") for r in repeat] if repeat else None
+                    ),
+                    "schedule": (
+                        schedule.model_dump(mode="json")
+                        if schedule is not None
+                        else None
+                    ),
+                },
+            )
+        return out
+
+    def fire_due_recurrences(
+        self,
+        *,
+        scheduled_for: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """Play the clock: a due tick for everything the system scheduled.
+
+        In production the passage of time produces a ``TaskDue`` event — from
+        Communication's Pub/Sub in hosted deployments, from the in-process
+        ``LocalActivationScheduler``'s asyncio timers locally — and the CM's
+        handler runs the task through ``TaskScheduler.execute`` under its own
+        due-task delegate, registered as a real in-flight action with
+        watchers. This compresses only the waiting: the same due path runs,
+        for the tasks the *system* created, with the CM's own delegate. The
+        hosted staleness validation (revision/execution-row echo checks) is
+        skipped because the benchmark's deliberately-unassigned context has
+        no Orchestra-projected execution rows to echo. Returns one entry per
+        recurring task: started handles, or the error that kept one from
+        starting. A system that scheduled nothing gets an empty tick — and
+        the sink shows it.
+        """
+        assert self._loop is not None and self._cm is not None, "call setup() first"
+        return self._loop.run(
+            self._fire_due_recurrences(scheduled_for),
+            timeout=self.STEP_TIMEOUT,
+        )
+
+    async def _fire_due_recurrences(
+        self,
+        scheduled_for: str | None,
+    ) -> list[dict[str, Any]]:
+        from unify.conversation_manager.domains import task_execution as te
+        from unify.conversation_manager.events import TaskDue
+
+        due_at = scheduled_for or datetime.now(timezone.utc).isoformat()
+        fired: list[dict[str, Any]] = []
+        for task in await self._scheduled_recurrences():
+            entry: dict[str, Any] = {
+                "task_id": task["task_id"],
+                "name": task.get("name"),
+                "entrypoint": task.get("entrypoint"),
+            }
+            if task.get("enabled") is False:
+                entry["skipped"] = "disabled"
+                fired.append(entry)
+                continue
+            try:
+                event = TaskDue(
+                    task_id=int(task["task_id"]),
+                    source_task_log_id=0,
+                    revision="colleague-clock",
+                    scheduled_for=due_at,
+                    task_label=str(task.get("name") or ""),
+                    task_summary=str(task.get("description") or "")[:280],
+                    recurrence_hint="recurring",
+                )
+                entry["handle_id"] = await te._start_live_task_due_execution(
+                    event,
+                    self._cm,
+                    None,
+                )
+            except (
+                Exception
+            ) as exc:  # noqa: BLE001 - a fire that cannot start is a result
+                entry["error"] = f"{type(exc).__name__}: {exc}"
+            fired.append(entry)
+        return fired
+
+    def settle(self, timeout: float = 900.0) -> bool:
+        """Wait for the session to genuinely go quiet, outside any turn.
+
+        The same layered drain a turn ends with — inbound queue empty, brain
+        idle, every in-flight action resolved or parked — run against a
+        synthetic already-delivered item, so a fire-series driver can wait
+        out the work a due tick started (and the detached reviews behind it)
+        without pretending there was an inbound message.
+        """
+        assert self._loop is not None, "call setup() first"
+        item = _Inbound("settle", self._turns, None, -1)
+        item.egress_start = len(self._egress_log)
+        item.clar_seen = item.egress_start
+        item.tools_start = len(self._tool_log)
+        item.done.set()
+        try:
+            return bool(
+                self._loop.run(self._drain(item, timeout), timeout=timeout + 60),
+            )
+        except Exception:  # noqa: BLE001 - a failed drain reports as unsettled
+            return False
+
+    def egress_marker(self) -> int:
+        """Current position in the egress log, for `owner_messages_since`."""
+        return len(self._egress_log)
+
+    def owner_messages_since(self, marker: int) -> list[dict[str, Any]]:
+        """Messages the assistant sent its boss since ``marker``.
+
+        The CM's boss channel is this arm's owner channel: a hold is the
+        assistant telling the owner why nothing was delivered, through its
+        own send tools. The fire-series scorer applies the same HOLD-marker
+        rule to these as to the fixture's ``/owner/notify`` channel.
+        """
+        try:
+            boss_id = self._M.SESSION_DETAILS.boss_contact_id
+        except AttributeError:
+            return []
+        return [
+            {"text": e["text"], "type": e["type"]}
+            for e in self._egress_log[marker:]
+            if e["type"] in _MESSAGE_SENT_TYPES and e["contact_id"] == boss_id
+        ]
 
     # ------------------------------------------------- voice (delimited hook)
     # The implementation lives in `unify_cm_voice.py`; this file carries only

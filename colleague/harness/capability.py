@@ -141,48 +141,6 @@ class ArmProfile:
 #: contestable it is stated in ``notes`` so a reader can check it rather than
 #: take it on trust.
 PROFILES: dict[str, ArmProfile] = {
-    "unify": ArmProfile(
-        name="unify",
-        clarification=True,
-        steering=Steering.LIVE_INTERJECT,
-        storage=Storage.SCOPED,
-        persistent_sessions=True,
-        multi_party=True,
-        accepts_images=True,
-        scheduler=True,
-        notes=(
-            "ConversationManager holds per-action interject/ask/pause/stop "
-            "tools; inner loops race generation against the interjection "
-            "queue. Knowledge is written to typed contexts that carry scope."
-        ),
-    ),
-    "hermes": ArmProfile(
-        name="hermes",
-        clarification=False,
-        steering=Steering.RESTART_ONLY,
-        storage=Storage.FLAT,
-        persistent_sessions=True,
-        multi_party=False,
-        accepts_images=False,
-        scheduler=True,
-        notes=(
-            "`hermes chat -Q -q` is one-shot per turn, but sessions persist "
-            "to SQLite and `--resume <id>` continues one — a documented "
-            "automation pattern the adapter now uses for continuations. "
-            "Still no mid-run address and no clarify channel headless; a "
-            "converged automation is a no_agent cron script with no loop to "
-            "address. Skills live in one directory readable by whoever runs "
-            "the agent. Voice: real surfaces exist — Discord voice with "
-            "per-SSRC attribution, a Google Meet plugin (v1 caption scrape, "
-            "v2 realtime duplex over BlackHole/PulseAudio) — but every one "
-            "joins a third-party room (Discord guild, meet.google.com) that "
-            "needs an account and system-audio devices this benchmark's "
-            "no-third-party-accounts methodology excludes, and none can join "
-            "a self-hosted LiveKit room. Voice scenarios resolve UNSUPPORTED "
-            "with that reason; a run with those accounts provisioned could "
-            "stand the Meet bot up."
-        ),
-    ),
     "hermes-tui": ArmProfile(
         name="hermes-tui",
         clarification=True,
@@ -201,40 +159,10 @@ PROFILES: dict[str, ArmProfile] = {
             "blocking question channel; session.resume/branch continue the "
             "same SQLite sessions the CLI writes. Senders are still text in "
             "one session — multi-person identity is a messaging-gateway "
-            "capability this surface does not carry."
-        ),
-    ),
-    "openclaw": ArmProfile(
-        name="openclaw",
-        clarification=False,
-        steering=Steering.QUEUED_FOLLOWUP,
-        storage=Storage.FLAT,
-        persistent_sessions=True,
-        multi_party=False,
-        accepts_images=True,
-        scheduler=True,
-        notes=(
-            "This profile describes the surface the arm drives — headless "
-            "`openclaw agent -m` turns against a private gateway — not the "
-            "product's ceiling. OpenClaw at HEAD (2026-08-17) documents a "
-            "blocking `ask_user` (1-3 questions, 900s default), `steer` as the "
-            "default queue mode with tool-launch-boundary semantics, "
-            "creator/owner/participant session ownership with per-sender "
-            "attribution in group envelopes, and memory with write-time "
-            "provenance and a supersession key. None of that reaches a "
-            "one-shot CLI turn, so this arm resolves UNSUPPORTED on the "
-            "clarification and multi-party scenarios and lands corrections "
-            "as the next turn. Under-declaring the product would flatter the "
-            "other arms; over-declaring the CLI would flatter this one. A "
-            "gateway-driven `openclaw-gateway` arm — the hermes-tui precedent — "
-            "is the fix, and is listed in DESIGN.md. Voice: the product has "
-            "Talk mode (macOS/iOS/Android/browser apps), Meet/Zoom/Teams "
-            "meeting extensions and a voice-call extension "
-            "(Twilio/Telnyx/Plivo) — every surface binds to a vendor app or "
-            "a third-party service and none can join a self-hosted "
-            "LiveKit/SIP room, so voice scenarios resolve UNSUPPORTED with "
-            "that reason. The voice-call extension's mock provider places no "
-            "call and would be the fixture supplying the capability."
+            "capability this surface does not carry. Voice: hermes's real "
+            "voice surfaces (Discord voice, the Meet plugin) do not reach "
+            "this text surface; the Discord substrate is its own arm, "
+            "`hermes-voice`."
         ),
     ),
     "openclaw-gateway": ArmProfile(
@@ -249,8 +177,8 @@ PROFILES: dict[str, ArmProfile] = {
         notes=(
             "OpenClaw's Gateway WebSocket protocol (docs/gateway/protocol.md), "
             "the control plane every product client speaks, driven from a "
-            "stdlib client with the same state dir, config and managed "
-            "Gateway as the CLI arm. chat.send acks before the model call and "
+            "stdlib client against a private managed Gateway with its own "
+            "state dir and config. chat.send acks before the model call and "
             "the reply is the run's terminal `chat` event; a correction is "
             "chat.send with queueMode=steer bound to the active run — the "
             "product's default queue mode, drained at the next model or "
@@ -263,42 +191,13 @@ PROFILES: dict[str, ArmProfile] = {
             "Gateway chat surface 'does not split messages by sender' and "
             "attributes turns best-effort (docs/concepts/multi-user.md) — so "
             "senders reach this arm as text, as they reach hermes-tui. "
-            "Voice: the CLI profile's reading applies unchanged — the "
-            "product's voice surfaces bind to vendor apps and third-party "
-            "services, and nothing on the Gateway chat surface joins a "
-            "room, so voice scenarios resolve UNSUPPORTED. "
-            "Results from this surface and the `openclaw` CLI surface are not "
-            "directly comparable: the CLI arm is one process per turn with "
-            "corrections landing as the next turn."
-        ),
-    ),
-    "prime-agent": ArmProfile(
-        name="prime-agent",
-        clarification=False,
-        steering=Steering.RESTART_ONLY,
-        storage=Storage.FLAT,
-        persistent_sessions=True,
-        multi_party=False,
-        accepts_images=True,
-        scheduler=True,
-        notes=(
-            "Driven through print mode (`pi -p`, one process per turn) with a "
-            "custom provider in a throwaway agent dir pointed at the recording "
-            "proxy; sessions saved to a run-local dir and continued with `-c` "
-            "(verified: a second turn recalls the first). Nothing can reach a "
-            "running turn on this surface, so steering is restart-only here; "
-            "the product has steering and follow-up lanes with an editable "
-            "queue on its interactive and JSONL-RPC surfaces "
-            "(session-action-store.ts), and an RPC-driven arm is the faithful "
-            "one — the hermes-tui precedent. No ask-the-user tool anywhere: "
-            "the only tools are bash/edit/ipython and `side-question` runs the "
-            "other way. Memory: `kind: memory` entries in the versioned "
-            "harness store, no retrieval index. Scheduler: cron/interval/once "
-            "plus heartbeat, every firing a prompt into an agent turn — no "
-            "script payload, no zero-token firing. Terminal-only, single-user. "
-            "Distinctive: Python skills pre-imported into a persistent IPython "
-            "kernel, versioned HarnessEntry with a refinements.jsonl audit. "
-            "The driver does not pass images; the product accepts them."
+            "Voice: the product has Talk mode (vendor apps), Meet/Zoom/Teams "
+            "meeting extensions and a voice-call extension "
+            "(Twilio/Telnyx/Plivo) — every surface binds to a vendor app or "
+            "a third-party service, and nothing on the Gateway chat surface "
+            "joins a room, so voice scenarios resolve UNSUPPORTED here; the "
+            "voice-call extension driven over a harness-played carrier is "
+            "its own arm, `openclaw-voice`."
         ),
     ),
     "prime-agent-rpc": ArmProfile(
@@ -312,25 +211,26 @@ PROFILES: dict[str, ArmProfile] = {
         scheduler=True,
         notes=(
             "prime-agent's JSONL-RPC mode (`--mode rpc`, docs/rpc.md), the "
-            "documented headless integration surface, one long-lived process "
-            "per session with the print-mode adapter's throwaway agent dir, "
-            "proxy-metered provider and run-local session dir. `prompt` acks "
-            "on acceptance and the turn ends at `agent_end`; a correction is "
-            "the `steer` command — the steering lane of "
+            "documented headless integration surface: one long-lived process "
+            "per session, a custom provider in a throwaway agent dir pointed "
+            "at the recording proxy, and a run-local session dir. `prompt` "
+            "acks on acceptance and the turn ends at `agent_end`; a "
+            "correction is the `steer` command — the steering lane of "
             "session-action-store.ts, delivery policy next_turn_boundary: "
             "delivered after the current assistant turn's tool calls, before "
             "the next model call, never an abort. Follow-ups queue on the "
             "follow-up lane (when_run_idle). Images travel on the prompt. "
-            "What print mode did not carry and this does: a way into a "
-            "running turn, and one process holding the session. Unchanged: "
-            "no ask-the-user tool exists anywhere in the product (the only "
+            "No ask-the-user tool exists anywhere in the product (the only "
             "tools are bash/edit/ipython; `side-question` runs the other "
             "way), so clarification stays false rather than faked; senders "
             "are text in one session — terminal-only, single-user. Voice: "
-            "none on any surface, so voice scenarios resolve UNSUPPORTED, as "
-            "for print mode. Scheduler: cron/interval/once plus heartbeat, "
-            "every firing a prompt into an agent turn. Results from this "
-            "surface and the print-mode surface are not directly comparable."
+            "none on any surface, so voice scenarios resolve UNSUPPORTED. "
+            "Scheduler: cron/interval/once plus heartbeat, every firing a "
+            "prompt into an agent turn — no script payload, no zero-token "
+            "firing. Memory: `kind: memory` entries in the versioned harness "
+            "store, no retrieval index. Distinctive: Python skills "
+            "pre-imported into a persistent IPython kernel, versioned "
+            "HarnessEntry with a refinements.jsonl audit."
         ),
     ),
     "unify-cm": ArmProfile(
@@ -344,13 +244,13 @@ PROFILES: dict[str, ArmProfile] = {
         scheduler=True,
         voice=True,
         notes=(
-            "The ConversationManager surface — DESIGN.md's 'faithful surface "
-            "for these tracks'. Senders are first-class contacts on every "
-            "inbound event; replies are Sent events addressed to a contact; "
-            "silence is the `wait` tool, detected exactly; each in-flight "
-            "action exposes its own interject/stop/ask tools and routing a "
-            "correction to the right one is a recorded brain decision. Adds "
-            "a slow-brain model axis the plain `act` arm never had. "
+            "The ConversationManager — the door a person talks to unify "
+            "through, and therefore the harness's one arm. Senders are "
+            "first-class contacts on every inbound event; replies are Sent "
+            "events addressed to a contact; silence is the `wait` tool, "
+            "detected exactly; each in-flight action exposes its own "
+            "interject/stop/ask tools and routing a correction to the right "
+            "one is a recorded brain decision. "
             "Clarification is the product's own channel, not a synthetic "
             "tool: a question the brain sends to a cast contact is answered "
             "by that persona, as an inbound message on the CM's own path, "
@@ -410,9 +310,9 @@ PROFILES: dict[str, ArmProfile] = {
             "PYTHONPATH repoints at the loopback server, and its one wss://-"
             "only path (the voice gateway) is rewritten to ws:// on loopback. "
             "Two assistants on one call is Unsupported by design — the bridge "
-            "fields one bot per call. This is the voice sibling of the text "
-            "`hermes`/`hermes-tui` arms; results carry transport=voice and "
-            "are never merged with a text cell."
+            "fields one bot per call. This is the voice transport of the "
+            "same harness the text `hermes-tui` arm drives; results carry "
+            "transport=voice and are never merged with a text cell."
         ),
     ),
     "openclaw-voice": ArmProfile(
@@ -446,9 +346,9 @@ PROFILES: dict[str, ArmProfile] = {
             "`completed` webhook, never the arm's hangup (which would POST to "
             "the real carrier API). No provider account: provider `twilio` "
             "with skipSignatureVerification and a fake public host; every "
-            "byte on the carrier side is the harness. Voice sibling of the "
-            "text `openclaw`/`openclaw-gateway` arms; results carry "
-            "transport=voice."
+            "byte on the carrier side is the harness. The voice transport of "
+            "the same harness the text `openclaw-gateway` arm drives; "
+            "results carry transport=voice."
         ),
     ),
 }

@@ -9,7 +9,7 @@ name: Benchmark
 run-name: >-
   ${{ format('{0} × {1} ×{2}',
       github.event.inputs.tracks || 'all',
-      github.event.inputs.arms || 'unify',
+      github.event.inputs.arms || 'unify-cm',
       github.event.inputs.repeat || '1') }}
 
 permissions:
@@ -24,10 +24,10 @@ on:
         type: string
         default: "all"
       arms:
-        description: "arms: 'all' or a comma list (unify,hermes,openclaw,opencode)"
+        description: "arms: 'all' or a comma list (unify-cm,hermes-tui,openclaw-gateway,prime-agent-rpc,opencode)"
         required: false
         type: string
-        default: "unify"
+        default: "unify-cm"
       repeat:
         description: "repeat: runs per shard, for distributions rather than single points"
         required: false
@@ -303,15 +303,16 @@ jobs:
       run: |
         set -euo pipefail
         ready=false
+        # One arm per harness — its person-shaped conversation surface. The
+        # voice arms (hermes-voice, openclaw-voice) need loopback audio
+        # substrates this runner does not provide, so they are absent here
+        # and stay local until CI carries them.
         case "$ARM" in
-          # `unify-cm`, `hermes-tui`, `openclaw-gateway` and `prime-agent-rpc`
-          # are the faithful surfaces of the same four harnesses; they
-          # install exactly as their v0 arms do.
-          unify|unify-cm)              [[ "${{ steps.unify_install.outcome }}"   == "success" ]] && ready=true ;;
-          openclaw|openclaw-gateway)   [[ "${{ steps.openclaw_build.outcome }}"  == "success" ]] && ready=true ;;
-          opencode)                    [[ "${{ steps.opencode_build.outcome }}"  == "success" ]] && ready=true ;;
-          hermes|hermes-tui)           [[ "${{ steps.hermes_install.outcome }}"  == "success" ]] && ready=true ;;
-          prime-agent|prime-agent-rpc) [[ "${{ steps.prime_build.outcome }}"     == "success" ]] && ready=true ;;
+          unify-cm)         [[ "${{ steps.unify_install.outcome }}"   == "success" ]] && ready=true ;;
+          openclaw-gateway) [[ "${{ steps.openclaw_build.outcome }}"  == "success" ]] && ready=true ;;
+          opencode)         [[ "${{ steps.opencode_build.outcome }}"  == "success" ]] && ready=true ;;
+          hermes-tui)       [[ "${{ steps.hermes_install.outcome }}"  == "success" ]] && ready=true ;;
+          prime-agent-rpc)  [[ "${{ steps.prime_build.outcome }}"     == "success" ]] && ready=true ;;
         esac
         echo "ready=$ready" >> "$GITHUB_OUTPUT"
         echo "$ARM ready=$ready" >> "$GITHUB_STEP_SUMMARY"

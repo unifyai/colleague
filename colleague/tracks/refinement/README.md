@@ -71,7 +71,7 @@ for everybody; an arm that passes it has told you its later weeks were
 inference, not retention.
 
 ```bash
-python -m colleague.run refinement --arm unify
+python -m colleague.run refinement --arm unify-cm
 ```
 
 ## Human protocol

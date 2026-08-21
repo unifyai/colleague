@@ -29,35 +29,36 @@ outlives the conversation, and several people sharing one assistant.
 
 ## Arms
 
+The benchmark interfaces with every harness as though it were a person:
+inputs and outputs are English, delivered through the surface closest to
+talking to it. Modes cannot be applied to a person, so each harness gets
+exactly **one arm** — its conversation surface where the product has one,
+its plain CLI where it does not. The voice arms are the same surfaces
+reached over audio; their results carry `transport=voice` and are never
+merged with a text cell.
+
 | Arm | What it is | Scheduler |
 |---|---|---|
-| `unify` | [unifyai/unify](https://github.com/unifyai/unify) — typed tasks + stored functions | first-class |
-| `hermes` | hermes-agent — skills, `no_agent` cron | first-class |
-| `openclaw` | OpenClaw — gateway + cron whose payload is an agent turn | first-class |
-| `opencode` | OpenCode — no scheduler; improvises scripts and host crontab | none |
-| `prime-agent` | Prime Intellect's prime-agent — Python skills in a persistent kernel; every firing is a prompt | first-class (agent turn) |
-| `openclaw-gateway` | OpenClaw through its Gateway WebSocket protocol — blocking `ask_user`, `steer` as the default queue mode, persisted sessions | first-class |
-| `prime-agent-rpc` | prime-agent through JSONL-RPC — steering and follow-up lanes, one resident process per session | first-class (agent turn) |
+| `unify-cm` | [unifyai/unify](https://github.com/unifyai/unify) through its ConversationManager — senders as first-class contacts, per-action steering, a blocking clarification channel; typed tasks + stored functions underneath | first-class |
+| `hermes-tui` | hermes-agent through its TUI gateway JSON-RPC protocol — blocking `clarify.request`, `steer`/`redirect` into a running turn, persistent SQLite sessions; skills + `no_agent` cron underneath | first-class |
+| `openclaw-gateway` | OpenClaw through its Gateway WebSocket protocol — blocking `ask_user`, `steer` as the default queue mode, persisted sessions; cron whose payload is an agent turn | first-class |
+| `prime-agent-rpc` | Prime Intellect's prime-agent through JSONL-RPC — steering and follow-up lanes, one resident process per session; Python skills in a persistent kernel; every firing is a prompt | first-class (agent turn) |
+| `opencode` | OpenCode — one-shot CLI, no conversation layer; improvises scripts and host crontab | none |
+| `hermes-voice` | The same hermes, joined by audio: its Discord voice substrate against a loopback Discord-protocol server | first-class |
+| `openclaw-voice` | The same OpenClaw, joined by audio: its voice-call extension over a harness-played phone carrier | first-class |
 | `human` | A person using the same fixture and exact scorer through the human workbench | participant; recurring work is performed directly each time |
 
-Two arms drive a second surface of the same product, the way `hermes-tui`
-pairs with `hermes` and `unify-cm` with `unify`. `openclaw` is the headless
-one-shot CLI turn; `openclaw-gateway` speaks the Gateway WebSocket protocol
-— the control plane every product client speaks — where the blocking
-`ask_user` surfaces as a `question.requested` event, a correction is
-`chat.send` with `queueMode: steer` (the product's default), and sessions
-persist. `prime-agent` is print mode (`pi -p`, sessions continued with
-`-c`), no way into a running turn; `prime-agent-rpc` speaks `--mode rpc`,
-the documented integration surface, where a correction rides the steering
-lane (delivered at the next turn boundary, never a restart). Each profile
-describes the surface actually driven, the CLI profiles stay as the v0
-they are, and results across surfaces of one product are not directly
-comparable. prime-agent has no ask-the-user tool on any surface, so its
-clarification cells stay UNSUPPORTED rather than faked.
+prime-agent has no ask-the-user tool on any surface, so its clarification
+cells stay UNSUPPORTED rather than faked. An earlier revision of the suite
+also registered "v0" arms — bare `CodeActActor.act` for unify, one-shot CLI
+turns for hermes, OpenClaw and prime-agent — as siblings of these surfaces.
+Those were modes of driving a harness, not ways of talking to it, and they
+are retired; results they produced are kept where published but labelled as
+old-regime, and are not comparable with the arms above.
 
-Non-unify arms are metered by a local recording proxy in front of OpenRouter
-(`colleague/arms/proxy.py`); the unify arm is metered in-process through a
-chained unillm hook. Both produce the same per-phase ledger.
+Arms other than `unify-cm` are metered by a local recording proxy in front
+of OpenRouter (`colleague/arms/proxy.py`); `unify-cm` is metered in-process
+through a chained unillm hook. Both produce the same per-phase ledger.
 
 The human arm records active labour time and converts it at a declared hourly
 rate. Every arm also records elapsed time; model arms record tokens and
@@ -69,7 +70,7 @@ benchmark mappings.
 
 | Topic | Track | Question | Status |
 |---|---|---|---|
-| Durable work | [`standing`](colleague/tracks/standing/) | What does firing N cost, and does the automation survive drift — loud, silent, or at the edges? | **run** — 4 experiments, 5 arms; 4 more built, hermes run |
+| Durable work | [`standing`](colleague/tracks/standing/) | What does firing N cost, and does the automation survive drift — loud, silent, or at the edges? | rebuilt person-shaped; published numbers are old-regime, reruns pending |
 | Durable knowledge | [`inheritance`](colleague/tracks/inheritance/) | Does the worker act on the right referent without a round-trip? | built |
 | | [`continuity`](colleague/tracks/continuity/) | Is a follow-up a warm turn or a cold restart? | built |
 | | [`recall`](colleague/tracks/recall/) | A week of messages, three facts replaced: is the newest value the one recalled? | built |
@@ -115,8 +116,20 @@ Full scope, scoring rules and the fairness constraints are in
 
 ## Results so far
 
-The `standing` track is complete across all five arms. Headlines, with full
-per-run detail and raw ledgers in each experiment's `results/`:
+**Every figure in this section is old-regime.** These runs predate the
+person-shaped restructure: their drivers planted the brief through the
+harness's internals (`actor.act()` for unify, one-shot CLI turns for the
+others) and fired the recurring mechanism deterministically from the
+harness, rather than delivering the brief in English through the
+conversation surface and letting the system decide how to make the work
+recur. The figures stand as published — each came from a committed summary —
+but they are not comparable with person-shaped runs, and convergence itself
+(whether the system distils recurring work at all, and what each fire costs
+if it does not) is exactly what the old regime pre-decided. Person-shaped
+reruns replace them experiment by experiment as they land in `results/`.
+
+Old-regime headlines, with full per-run detail and raw ledgers in each
+experiment's `results/`:
 
 - **Recurring report** — unify reaches a zero-LLM-token steady state (typed
   task bound to a stored function). hermes and OpenCode also reach zero-token
@@ -175,13 +188,14 @@ unfunded staging tenant and is not a result — see each README): hermes
 recovers after one operator turn on the units drift and the refunds rename,
 keeps the untouched report sections byte-identical, and adds a column
 without regressing — but it **cannot see** the page-cap drift at all: 4/10
-and every post-drift fire wrong even after the operator's fix. The
-verified-build unify runs, and the pre-verification loss they are meant to
-be read against, are the next commits to `results/`.
+and every post-drift fire wrong even after the operator's fix. The next
+commits to `results/` are person-shaped reruns, not further old-regime
+rows.
 
 ![distillation curve](colleague/tracks/standing/distillation_curve.svg)
 
-*Tokens per fire, by purpose, per arm, newest run of each experiment.
+*Tokens per fire, by purpose, per arm, newest run of each experiment —
+old-regime runs, kept until person-shaped reruns replace them.
 Shades split unify's spend into planning / verification / repair, read from
 its own client tags; proxy-metered arms report every token as planning.
 Regenerate with `python -m colleague.tracks.standing.plot_distillation_curve`;
@@ -250,7 +264,7 @@ arrived; the scenario resolves to `ERROR` when it did not.
 
 ## A stated conflict of interest
 
-This benchmark is authored by Unify, and `unify` is one of the arms. That is
+This benchmark is authored by Unify, and `unify-cm` is one of the arms. That is
 worth knowing when reading it. The protocol is built to survive it — pinned
 identical models, exact recomputed scoring with no LLM judges, committed raw
 ledgers for every run, and published failures — but design decisions were
@@ -264,9 +278,7 @@ launchers. Experiments run against staging Orchestra in an isolated context
 tree (`colleague/<experiment>/<run-id>/...`), never a real assistant.
 
 ```bash
-bash colleague/tracks/standing/recurring_report/run.sh   # standing track
-SD_VARIANT=units bash colleague/tracks/standing/silent_drift/run_unify.sh
-python -m colleague.run inheritance --arm unify          # everything else
+python -m colleague.run inheritance --arm unify-cm       # conversational tracks
 python -m colleague.run meeting --arm unify-cm --repeat 5  # role-played scenes: read the spread
 python -m colleague.run --list                           # tracks and scenarios
 python -m colleague.run inheritance --arm human          # human participant
@@ -275,8 +287,8 @@ python -m colleague.human standing silent_drift
 python -m colleague.human usecase agency_client_reporting
 ```
 
-Requires `OPENROUTER_API_KEY`, plus a `UNIFY_KEY` for the unify arm and local
-checkouts of whichever comparison harnesses you want to run.
+Requires `OPENROUTER_API_KEY`, plus a `UNIFY_KEY` for the unify-cm arm and
+local checkouts of whichever comparison harnesses you want to run.
 Human runs need neither key. Pass the participant's real compensated or loaded
 rate with `--human-hourly-rate-usd` / `--hourly-rate-usd`; the documented
 default is a reference assumption and is stored in the result.
@@ -309,7 +321,7 @@ A full sweep is dozens of shards making real, uncached LLM calls, and there
 is no reason to sit through it serially on a laptop.
 
 ```bash
-scripts/cloud_run.sh                                    # all tracks, unify arm
+scripts/cloud_run.sh                                    # all tracks, unify-cm arm
 scripts/cloud_run.sh --arms all --confirm               # all tracks, all arms
 scripts/cloud_run.sh --arms all --repeat 5 --confirm    # distributions, not points
 scripts/cloud_run.sh --tracks custody --arms all --dry-run
@@ -329,9 +341,9 @@ about it.
 
 | Sweep | Shards |
 |---|---|
-| all tracks, unify | 34 |
-| all tracks, all arms | 374 |
-| all tracks, all arms, repeat 5 | 1870 |
+| all tracks, unify-cm | 34 |
+| all tracks, all arms | 238 |
+| all tracks, all arms, repeat 5 | 1190 |
 
 Anything over 40 shards needs `--confirm`, enforced again inside the
 workflow. Repeats that disagree are shown as a spread rather than a majority

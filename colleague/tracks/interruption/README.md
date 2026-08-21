@@ -24,19 +24,19 @@ keyed to the second send, and every send is held a few seconds so the third
 cannot begin before the correction is in hand.
 
 ```bash
-python -m colleague.run interruption --arm unify
+python -m colleague.run interruption --arm unify-cm
 ```
 
-**What to expect, by mechanism.** When this track was designed the arms'
-steering capabilities differed sharply. They no longer do: hermes's TUI
-gateway has `steer`/`redirect`, OpenClaw's default queue mode is `steer` at
-tool-launch boundaries, and prime-agent has a steering lane — all of which
-preserve the in-flight run rather than restarting it. What remains
-architectural is which *surface* an arm is driven through (the `hermes` CLI
-arm still has nowhere to put a correction; `hermes-tui` does) and what the
-correction does to progress already made, which is what
-`resume_after_correction` isolates. Expect the timing scenarios to be close
-across faithful surfaces; read the progress scenario for the difference.
+**What to expect, by mechanism.** The person-shaped surfaces all steer:
+hermes's TUI gateway has `steer`/`redirect`, OpenClaw's default queue mode
+is `steer` at tool-launch boundaries, prime-agent has a steering lane, and
+the CM routes a correction into the in-flight action — all preserving the
+run rather than restarting it. OpenCode's one-shot CLI is the exception:
+there is nowhere to put a correction, and its cells resolve UNSUPPORTED.
+What differentiates the rest is what the correction does to progress
+already made, which is what `resume_after_correction` isolates. Expect the
+timing scenarios to be close; read the progress scenario for the
+difference.
 
 ## Human protocol
 

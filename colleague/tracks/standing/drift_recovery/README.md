@@ -61,12 +61,24 @@ climbing with a single cost blip; the other flatlines until a human pays
 for a full agent session.
 
 ```bash
-bash colleague/tracks/standing/drift_recovery/run_unify.sh
-bash colleague/tracks/standing/drift_recovery/run_hermes.sh
-bash colleague/tracks/standing/drift_recovery/run_openclaw.sh
-bash colleague/tracks/standing/drift_recovery/run_opencode.sh
+python -m colleague.tracks.standing.run drift_recovery --arm unify-cm
+python -m colleague.tracks.standing.run drift_recovery --arm hermes-tui
+python -m colleague.tracks.standing.run drift_recovery --arm openclaw-gateway
+python -m colleague.tracks.standing.run drift_recovery --arm opencode
 .venv/bin/python -m colleague.tracks.standing.drift_recovery.plot
 ```
+
+> **Old-regime results.** Every measured figure below was produced under
+> the retired installed-and-fired regime: the brief was planted through
+> harness internals (`actor.act()`, one-shot CLI turns) and the recurring
+> mechanism was fired deterministically by per-arm drivers that no longer
+> exist, under the retired arm names (`unify`, `hermes`, `openclaw`,
+> `prime-agent`). The figures stand as the committed record — each came
+> from a committed summary — but they are **not comparable** with
+> person-shaped runs, which deliver the brief through the arm's
+> conversation surface and let the system decide how the work recurs
+> (see `SCENARIO_CHANGES.md`, 2026-08-21). Person-shaped reruns replace
+> this table as they land in `results/`.
 
 ## Measured results (2026-07-31, gpt-5.6-sol@openrouter)
 

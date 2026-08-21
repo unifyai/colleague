@@ -14,10 +14,14 @@ The interesting method is `begin`. It returns before the work is done, which
 is what makes mid-task steering measurable at all. `RunHandle.interject`
 then does whatever the arm can actually do:
 
-    unify      pushes into the running loop; generation restarts with it
-    openclaw   queues a turn that lands after the current one finishes
-    hermes     raises Unsupported — there is no loop to address
-    opencode   raises Unsupported — same
+    unify-cm          another inbound event; routing it into the right
+                      in-flight action is the measured behaviour
+    hermes-tui        session.steer into the running tool batch
+    openclaw-gateway  chat.send with queueMode=steer, drained at the next
+                      model or tool-launch boundary
+    prime-agent-rpc   the steer command's next_turn_boundary lane
+    opencode          raises Unsupported — `opencode run` is one-shot,
+                      there is no loop to address
 
 Raising is deliberate. A silent no-op would let a scenario record a zero and
 imply the arm tried and failed, and that is not what happened.

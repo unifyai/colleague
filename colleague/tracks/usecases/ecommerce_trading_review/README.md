@@ -109,11 +109,14 @@ scheduling it at the wrong local time"* — and created nothing. That is the
 right instinct and it is worth recording as a finding about the page's own
 copy, not a defect.
 
-It is also not the situation the page describes: a Monday 07:00 wake nobody is
-watching. So setup runs with `clarification_enabled=False`, matching brain's
-guidance for unattended automation, and whatever timezone the system settles on
-by itself is part of what gets measured. Scoring is unaffected either way —
-the fixture's weeks are dates, not instants.
+Person-shaped, that instinct now has somewhere to go: the brief arrives
+through the ConversationManager from the owner, who is right there having
+just sent it, and a clarifying question is answered — with one scripted,
+information-free line ("use your judgment and go ahead"), because the brief
+is complete by construction and the owner must not become a second source
+of ground truth. Whatever the system settles on is part of what gets
+measured. Scoring is unaffected either way — the fixture's weeks are dates,
+not instants.
 
 ## Status
 

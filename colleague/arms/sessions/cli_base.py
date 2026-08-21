@@ -1,10 +1,10 @@
-"""Shared plumbing for the three CLI-driven arms.
+"""Shared plumbing for the process-driven arms.
 
-hermes, OpenClaw and OpenCode are all "spawn a process, wait, read stdout",
-metered by the same local recording proxy in front of OpenRouter. What
-differs is the command line, the isolation envelope, and — the part these
-tracks care about — whether anything can reach a run that has already
-started.
+The hermes, OpenClaw, prime-agent and OpenCode adapters all spawn their
+harness as a subprocess, metered by the same local recording proxy in front
+of OpenRouter. What differs is the command line, the isolation envelope,
+and — the part these tracks care about — whether anything can reach a run
+that has already started.
 """
 
 from __future__ import annotations

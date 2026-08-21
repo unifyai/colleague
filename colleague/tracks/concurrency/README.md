@@ -26,7 +26,7 @@ catch the failure where corrections are applied to whatever the loop happened
 to be holding.
 
 ```bash
-python -m colleague.run concurrency --arm unify
+python -m colleague.run concurrency --arm unify-cm
 ```
 
 **What to expect.** unify tracks each running action separately and exposes

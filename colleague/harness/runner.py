@@ -92,7 +92,7 @@ def _session_for(
             output=human_output,
             event_sink=human_event_sink,
         )
-    if arm in ("unify", "unify-cm"):
+    if arm == "unify-cm":
         return build_session(
             arm,
             run_id=run_id,

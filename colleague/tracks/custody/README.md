@@ -41,7 +41,7 @@ to *him* — and Daniel's persona says it has not moved. The scorer reads
 which time survives; whom the arm asked is recorded as evidence.
 
 ```bash
-python -m colleague.run custody --arm unify
+python -m colleague.run custody --arm unify-cm
 ```
 
 **The fair reading, stated plainly.** Every arm can pass this. Declining to

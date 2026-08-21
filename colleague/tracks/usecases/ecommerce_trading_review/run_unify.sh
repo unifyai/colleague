@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Launcher for the ecommerce-trading-review measurement, Unify arm.
+# Launcher for the ecommerce-trading-review measurement, unify-cm arm (person-shaped).
 #
 # Prepares the environment BEFORE Python starts (unify settings read env at
 # import time), probes staging Orchestra auth, then runs the driver.

@@ -58,7 +58,7 @@ threshold and the obvious one select identical invoices — a week that cannot
 distinguish remembering from guessing.
 
 ```bash
-python -m colleague.run teaching --arm unify
+python -m colleague.run teaching --arm unify-cm
 ```
 
 **The demonstration medium.** The original framing was learning from a

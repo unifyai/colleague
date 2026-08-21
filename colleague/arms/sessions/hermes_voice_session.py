@@ -249,7 +249,7 @@ class HermesVoiceSession(CliSession):
     def _spawn_gateway(self, shim_dir: Path) -> None:
         assert self._home is not None
         env = _hermes_env(
-            self._home, self.results_dir / "workspace", self.proxy_base_url
+            self._home, self.results_dir / "workspace", self.proxy_base_url,
         )
         (self.results_dir / "workspace").mkdir(parents=True, exist_ok=True)
         # PYTHONPATH carries the sitecustomize shim; the discord flags are set
@@ -377,7 +377,7 @@ class HermesVoiceSession(CliSession):
                         room.note_assistant_text(text)
 
         self._tap_thread = threading.Thread(
-            target=tail, name="hermes-tts-tap", daemon=True
+            target=tail, name="hermes-tts-tap", daemon=True,
         )
         self._tap_thread.start()
 

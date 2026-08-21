@@ -34,13 +34,25 @@ ledger / recording proxy, same pinned model), exact contract scoring plus
 per-item accuracy against golden labels.
 
 ```bash
-bash colleague/tracks/standing/semantic_triage/run_unify.sh
-ST_PORT=8129 bash colleague/tracks/standing/semantic_triage/run_hermes.sh
+python -m colleague.tracks.standing.run semantic_triage --arm unify-cm
+python -m colleague.tracks.standing.run semantic_triage --arm hermes-tui
 .venv/bin/python -m colleague.tracks.standing.semantic_triage.plot
 ```
 
 Headline graph: per-fire LLM tokens (log scale — the gap is orders of
 magnitude) and per-fire classification accuracy.
+
+> **Old-regime results.** Every measured figure below was produced under
+> the retired installed-and-fired regime: the brief was planted through
+> harness internals (`actor.act()`, one-shot CLI turns) and the recurring
+> mechanism was fired deterministically by per-arm drivers that no longer
+> exist, under the retired arm names (`unify`, `hermes`, `openclaw`,
+> `prime-agent`). The figures stand as the committed record — each came
+> from a committed summary — but they are **not comparable** with
+> person-shaped runs, which deliver the brief through the arm's
+> conversation surface and let the system decide how the work recurs
+> (see `SCENARIO_CHANGES.md`, 2026-08-21). Person-shaped reruns replace
+> this table as they land in `results/`.
 
 ## Measured results (2026-07-31, gpt-5.6-sol@openrouter)
 

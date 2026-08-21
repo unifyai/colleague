@@ -147,7 +147,9 @@ class Protocol:
         surface: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         self.session.bind_fixture(self.fixture, label)
-        request = f"The {key.replace('_', ' ')} work is due. Complete one occurrence now."
+        request = (
+            f"The {key.replace('_', ' ')} work is due. Complete one occurrence now."
+        )
         self._present(surface, request)
         reply = self.phase(
             label,
@@ -213,10 +215,12 @@ def recurring_report(
         expected_report,
         score_report,
     )
-    from colleague.tracks.standing.recurring_report.harness import (
-        EXPERIMENT_DIR,
+    from colleague.tracks.standing.recurring_report.protocol import (
         UTTERANCE_TEMPLATE,
+        RecurringReport,
     )
+
+    EXPERIMENT_DIR = RecurringReport.directory
 
     seed = int(os.environ.get("RWR_SEED", DEFAULT_SEED))
     port = int(os.environ.get("RWR_PORT", DEFAULT_PORT))
@@ -392,7 +396,9 @@ def policy_propagation(
         surfaces = policy_surfaces()
         p.session.setup()
         for automation in AUTOMATIONS:
-            p.setup_one(automation, utterances[automation], surface=surfaces[automation])
+            p.setup_one(
+                automation, utterances[automation], surface=surfaces[automation]
+            )
 
         round_no = 0
 

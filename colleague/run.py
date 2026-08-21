@@ -4,8 +4,8 @@ The `standing` experiments each ship their own `run_<arm>.sh`, which was
 sixteen launchers by the time the fourth arm landed. Every track added since
 goes through here instead.
 
-    python -m colleague.run inheritance --arm unify
-    python -m colleague.run interruption --arm openclaw --only wrong_recipients
+    python -m colleague.run inheritance --arm unify-cm
+    python -m colleague.run interruption --arm openclaw-gateway --only wrong_recipients
     python -m colleague.run --list
 """
 
@@ -41,7 +41,7 @@ ROOT = Path(__file__).resolve().parent
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="colleague.run")
     parser.add_argument("track", nargs="?", choices=TRACKS)
-    parser.add_argument("--arm", choices=[*ARMS, "mock"], default="unify")
+    parser.add_argument("--arm", choices=[*ARMS, "mock"], default="unify-cm")
     parser.add_argument(
         "--mode",
         choices=("ideal", "naive"),

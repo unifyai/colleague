@@ -162,7 +162,7 @@ loudly**:
 - The `livekit` import is lazy and confined to this package, so the
   stdlib-only checkout and `selftest` never import it. `colleague`'s
   `pyproject` stays `dependencies = []`; voice is a capability of the
-  environment the unify arm already runs in (its venv carries the SDK and the
+  environment the unify-cm arm already runs in (its venv carries the SDK and the
   keys), declared and checkable, not a new hard dependency of the benchmark.
 
 ## The `transport` field

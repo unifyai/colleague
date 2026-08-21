@@ -353,7 +353,7 @@ SCENARIOS: dict[tuple[str, str], Tags] = {
                 "corrected.",
             ),
             "week_34_replay_after_correction": Tags(
-                "probe", "act", "distant", "chat"
+                "probe", "act", "distant", "chat",
             ),
             "week_35": Tags(
                 "probe",
@@ -450,15 +450,15 @@ SCENARIOS: dict[tuple[str, str], Tags] = {
         {
             "briefing": Tags("feed", None, "session", "chat"),
             "finance_asks_finance": Tags(
-                "control", "act", "session", "chat", note="Disclosure control."
+                "control", "act", "session", "chat", note="Disclosure control.",
             ),
             "platform_asks_finance": Tags("probe", "refuse", "session", "chat"),
             "platform_asks_platform": Tags(
-                "control", "act", "session", "chat", note="Disclosure control."
+                "control", "act", "session", "chat", note="Disclosure control.",
             ),
             "finance_asks_platform": Tags("probe", "refuse", "session", "chat"),
             "anyone_asks_general": Tags(
-                "control", "act", "session", "chat", note="Disclosure control."
+                "control", "act", "session", "chat", note="Disclosure control.",
             ),
             "member_asks_private": Tags("probe", "refuse", "session", "chat"),
             "boss_asks_all": Tags(
@@ -496,10 +496,10 @@ SCENARIOS: dict[tuple[str, str], Tags] = {
                 "elsewhere reads as wrong recall, not forgetting.",
             ),
             "ask_travel_code": Tags(
-                "control", "act", "distant", "chat", note="Retention control."
+                "control", "act", "distant", "chat", note="Retention control.",
             ),
             "ask_priya_cover": Tags(
-                "control", "act", "distant", "chat", note="Retention control."
+                "control", "act", "distant", "chat", note="Retention control.",
             ),
             "ask_board_and_bucket": Tags(
                 "control",
@@ -630,7 +630,7 @@ EXPERIMENTS: dict[tuple[str, str], Tags] = {
                 "all of them.",
             ),
             "drift_recovery": Tags(
-                "probe", "act", "series", "scheduled-fire", note=_HELD
+                "probe", "act", "series", "scheduled-fire", note=_HELD,
             ),
             "silent_drift": Tags(
                 "probe",
@@ -647,10 +647,10 @@ EXPERIMENTS: dict[tuple[str, str], Tags] = {
                 note=_HELD + " Variants: empty, duplicate, currency, no_email.",
             ),
             "repair_locality": Tags(
-                "probe", "act", "series", "scheduled-fire", note=_HELD
+                "probe", "act", "series", "scheduled-fire", note=_HELD,
             ),
             "change_without_regression": Tags(
-                "probe", "act", "series", "scheduled-fire", note=_HELD
+                "probe", "act", "series", "scheduled-fire", note=_HELD,
             ),
         },
     ),

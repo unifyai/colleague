@@ -12,7 +12,7 @@ license = { file = "LICENSE" }
 dependencies = []
 
 [project.optional-dependencies]
-# Only the unify arm needs these; it is metered in-process through a registered
+# Only the unify-cm arm needs these; it is metered in-process through a registered
 # unillm event listener rather than through the recording proxy.
 unify = ["unify", "unillm"]
 
