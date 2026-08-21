@@ -74,7 +74,20 @@ inference, not retention.
 python -m colleague.run refinement --arm unify-cm
 ```
 
-## Human protocol
+## First person-shaped run (2026-08-21, unify-cm, local)
+
+Run `2026-08-21T21-18-56Z-unify-cm-ca088c`, unify staging `34c62f2c2`
+(verification master switch off by default), gpt-5.6-sol: **6/6 scoreable
+cells pass**, `unbriefed_control` UNSUPPORTED as designed. The amortisation
+curve is the finding: prompt tokens per week ran 534k → 796k → 1.09M →
+1.60M → 1.79M → 1.66M (8.1M total, 210 calls; the provider-USD column is
+null, not zero — 34 calls carried no provider price, and the void-cost
+rule refuses to sum a partial column) — correctness converged and cost did
+not, the same rising-trajectory shape the four-arm
+cloud run of 2026-08-21 showed for the retired bare-actor arm against
+prime-agent's ~106k. The conversational path does not yet distil a
+recurring report into a stored function; when it does, this curve is where
+it will show.
 
 Run `python -m colleague.run refinement --arm human`. The same participant
 receives the brief, the feedback and the amendment; notes persist, and the
