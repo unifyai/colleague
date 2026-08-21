@@ -166,7 +166,9 @@ jobs:
       id: unify_checkout
       with:
         repository: unifyai/unify
-        ref: main
+        # staging is unify's integration branch: main lags it by design, so a
+        # sweep pinned to main measures a runtime older than the one shipping.
+        ref: staging
         path: .harness/unify
         token: ${{ secrets.HARNESS_TOKEN || github.token }}
 
@@ -281,7 +283,7 @@ jobs:
       continue-on-error: true
       id: hermes_checkout
       with:
-        repository: ${{ vars.HERMES_REPO || 'unifyai/hermes-agent' }}
+        repository: ${{ vars.HERMES_REPO || 'NousResearch/hermes-agent' }}
         path: .harness/hermes
         token: ${{ secrets.HARNESS_TOKEN || github.token }}
 
