@@ -331,6 +331,16 @@ jobs:
         ORCHESTRA_URL: ${{ vars.ORCHESTRA_URL || 'https://api.staging.internal.saas.unify.ai/v0' }}
         COLLEAGUE_PROJECT: ${{ vars.COLLEAGUE_PROJECT || 'Benchmarks' }}
         UNILLM_CACHE: "false"
+        # The runner's filesystem dies with the job, so every decision log
+        # must land inside the uploaded results tree or it never existed.
+        # These give the unify arms full unillm/unify OTEL traces beside the
+        # results.json the scorer writes (2026-08-21: diagnosing why the
+        # storage check declined to distil required re-running locally
+        # because CI had discarded the only record of the decision).
+        UNIFY_OTEL: "true"
+        UNILLM_OTEL: "true"
+        UNIFY_OTEL_LOG_DIR: ${{ github.workspace }}/colleague/tracks/${{ matrix.track }}/results/otel
+        UNILLM_OTEL_LOG_DIR: ${{ github.workspace }}/colleague/tracks/${{ matrix.track }}/results/otel
         # The adapters read RWR_HERMES_REPO / OC_REPO (colleague/arms/hermes.py,
         # openclaw.py) — under the checkout-named vars both fell back to
         # $HOME/<repo> and recorded the arm's binary as missing.
@@ -381,7 +391,11 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: shard-${{ matrix.artifact }}
-        path: colleague/tracks/${{ matrix.track }}/results/**/results.json
+        # The whole per-run results tree, not just the scorer's verdicts:
+        # proxy_ledger.jsonl (CLI arms' per-call record), OTEL traces (unify
+        # arms' decision logs), gateway/arm homes. Anything not uploaded
+        # here is unrecoverable once the runner is reaped.
+        path: colleague/tracks/${{ matrix.track }}/results/**
         if-no-files-found: warn
         retention-days: 30
 
