@@ -1,0 +1,113 @@
+/*
+ * Unify brand layer for the human workbench.
+ *
+ * A snapshot of the tokens this app needs from the canonical brand repo
+ * (branding/packages/brand/tokens/tokens.css + semantic.css). The workbench
+ * lives in a public benchmark repo and cannot consume the brand package as a
+ * submodule, so the values are copied verbatim; when the brand tokens move,
+ * refresh this file from that source.
+ */
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("/fonts/SpaceGrotesk-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("/fonts/SpaceGrotesk-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Roboto Mono";
+  src: url("/fonts/RobotoMono-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  /* Brand primitives (tokens.css) */
+  --ink: #0a1410;
+  --ink-2: #1a2a23;
+  --paper: #f5f1ea;
+  --paper-2: #ebe6dc;
+  --rule: #d9d2c4;
+  --muted-ink: #6b6a64;
+  --role-green: #2f9d97;
+  --role-green-deep: #1c6460;
+  --role-blue: #c95f5a;
+  --role-orange: #cf9a3e;
+  --role-purple: #6e4a86;
+  --role-yellow: #ffb24a;
+  --alert-red: #d94a3d;
+  --soft-amber: #c47a00;
+  --cream-white: #fffaf1;
+
+  /* Semantic layer (semantic.css), light theme */
+  --paper-3: #e2dccf;
+  --rule-2: #cdc5b4;
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --primary: var(--role-green);
+  --primary-foreground: var(--cream-white);
+  --primary-shadow: var(--role-green-deep);
+  --accent-soft: #e7efe9;
+  --accent-soft-ink: var(--role-green-deep);
+  --secondary: var(--paper-2);
+  --muted-foreground: var(--muted-ink);
+  --destructive: var(--alert-red);
+  --destructive-foreground: var(--cream-white);
+  --border: var(--rule);
+  --input: var(--rule);
+  --card: color-mix(in srgb, var(--cream-white) 72%, var(--paper));
+  --card-2: var(--cream-white);
+  --card-foreground: var(--ink);
+  --ring: var(--role-green-deep);
+  --surface: rgba(10, 20, 16, 0.04);
+  --surface-hover: rgba(10, 20, 16, 0.08);
+  --shadow-soft: rgba(10, 20, 16, 0.1);
+  --shadow-pop: rgba(10, 20, 16, 0.3);
+  --status-success: var(--role-green-deep);
+  --status-success-bg: color-mix(in srgb, var(--role-green) 14%, transparent);
+  --status-warning: var(--soft-amber);
+  --status-warning-bg: color-mix(in srgb, var(--role-orange) 16%, transparent);
+  --status-danger: var(--alert-red);
+  --status-danger-bg: color-mix(in srgb, var(--alert-red) 12%, transparent);
+  --code-bg: color-mix(in srgb, var(--paper-2) 72%, white);
+  --code-border: rgba(10, 20, 16, 0.1);
+  --code-fg: var(--role-green-deep);
+  --radius: 0.625rem;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+  --radius-control: calc(var(--radius) - 7px);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Roboto Mono", "SFMono-Regular", Consolas, ui-monospace, monospace;
+}

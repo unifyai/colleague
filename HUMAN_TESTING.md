@@ -44,9 +44,21 @@ npm start
 Open <http://127.0.0.1:8765> if it does not open automatically. Choose a
 benchmark, an available scenario or full track, operator/builder mode where
 applicable, a pseudonymous participant id and the participant's compensated
-or loaded hourly rate. The live workbench presents the same request and
-fixture contract as the terminal arm; result JSON is available when scoring
-finishes. Local results live under `human-results/` and are not committed.
+or loaded hourly rate. Result JSON is available when scoring finishes. Local
+results live under `human-results/` and are not committed.
+
+The default participant surface is non-technical: the fixture's API block is
+parsed mechanically and rendered as labelled lookup and action forms, lookup
+results render as tables rather than JSON, and the ask/finish/notes channels
+are plain forms. The forms compose exactly the `/get`, `/post`, `/ask`,
+`/note` and `/done` commands a terminal participant would type, and they are
+derived only from the request text every arm receives — usability is added,
+information is not. A "Technical view" toggle restores the raw command
+surface (and is the default in builder mode). Scenario picker cards show
+titles only: per-scenario notes and taxonomy tags say what each cell
+measures, which a participant must not read before running it. Labour is
+metered exactly as before but is not displayed while the run is live; the
+recorded figure appears with the result.
 
 The server is deliberately loopback-only by default. `callflow` is listed but
 disabled until a microphone/speaker bridge can put the participant on the
@@ -108,9 +120,9 @@ delivered; the participant must choose a recipient/action or a direct reply.
 
 ## Coverage
 
-| Semantic family | Benchmark | Human role | Shared primary outcome |
+| Topic | Benchmark | Human role | Shared primary outcome |
 |---|---|---|---|
-| Durable automation | `recurring_report` | operator + builder | exact reports and schedule/wake fidelity |
+| Durable work | `recurring_report` | operator + builder | exact reports and schedule/wake fidelity |
 | | `semantic_triage` | operator + builder | exact batch contract and labels |
 | | `drift_recovery` | operator + builder | correct/held/wrong across visible drift |
 | | `silent_drift` | operator + builder | correct/held/wrong across semantic drift |
@@ -118,19 +130,19 @@ delivered; the participant must choose a recipient/action or a direct reply.
 | | `policy_propagation` | operator + builder | every automation follows the changed rule |
 | | `repair_locality` | operator + builder | recovery and unchanged-section shape |
 | | `change_without_regression` | operator + builder | new column correct, old bytes unchanged |
-| Context, memory and learning | `inheritance` | participant | referent/action and clarification route |
+| Durable knowledge | `inheritance` | participant | referent/action and clarification route |
 | | `continuity` | participant | correct follow-up and re-authentication cost |
 | | `recall` | participant | current value recalled, stale value rejected |
 | | `teaching` | participant | learned procedure survives correction/amendment |
-| In-flight work control | `interruption` | participant | correction lands before irreversible action |
+| Steering work in flight | `interruption` | participant | correction lands before irreversible action |
 | | `concurrency` | participant | corrections route to the right workstream |
-| Multi-party governance | `attribution` | participant | right recipient, no leak, correct silence |
+| Boundaries & governance | `attribution` | participant | right recipient, no leak, correct silence |
 | | `custody` | participant | disclosure, withholding and authority checks |
 | | `membership` | participant | channel/team provenance controls disclosure |
-| Collaborative presence | `meeting` | room participant | floor control, timing and commanded work |
+| Presence & transport | `meeting` | room participant | floor control, timing and commanded work |
 | | `screenshare` | participant | reproduce demonstrated state on own instance |
 | | `callflow` | caller (transport pending) | correct leaf, returned facts and no disclosure |
-| Applied workflow validation | `agency_client_reporting` | operator + builder | exact reports/flags and broken-client handling |
+| Applied validation | `agency_client_reporting` | operator + builder | exact reports/flags and broken-client handling |
 | | `ecommerce_trading_review` | operator + builder | exact metric flags and complete hand-over |
 
 For `callflow`, the participant must place a real call through the same

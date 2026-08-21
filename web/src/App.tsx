@@ -1,8 +1,17 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createRun, getRun, initialize, runFileUrl, sendAction } from "./api";
 import type { Benchmark, Catalog, RunEvent, RunSnapshot } from "./types";
+import {
+  BodyField,
+  Endpoint,
+  collectSuggestions,
+  describeCommand,
+  parseApiDoc,
+  parseRoster,
+  suggestionsFor,
+} from "./contract";
 
-type ActionKind = "request" | "ask" | "notes" | "builder" | "finish" | "console";
+type TechnicalTab = "request" | "ask" | "notes" | "builder" | "finish" | "console";
 
 const money = new Intl.NumberFormat("en-GB", {
   style: "currency",
@@ -10,13 +19,6 @@ const money = new Intl.NumberFormat("en-GB", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 4,
 });
-
-function formatDuration(seconds: number) {
-  const value = Math.max(0, Math.floor(seconds));
-  const minutes = Math.floor(value / 60);
-  const rest = value % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
-}
 
 function kindLabel(kind: Benchmark["kind"]) {
   return kind === "conversational" ? "Conversation" : kind === "standing" ? "Recurring" : "Use case";
@@ -153,8 +155,8 @@ function Header({ run, onExit }: { run: RunSnapshot | null; onExit: () => void }
     <header className="topbar">
       <div className="wordmark">
         <span className="brand-mark small">C</span>
-        <span>COLLEAGUE</span>
-        <span className="edition">HUMAN BENCH</span>
+        <span>Colleague</span>
+        <span className="edition">Human bench</span>
       </div>
       <div className="topbar-meta">
         <span className="local-pill"><i /> local only</span>
@@ -189,11 +191,7 @@ function Setup(props: SetupProps) {
     .map((family) => ({
       ...family,
       benchmarks: family.benchmarks.filter((item) =>
-        `${item.title} ${item.description} ${item.family} ${item.tags ?? ""} ${item.scenarios
-          .map((s) => `${s.title} ${s.tags}`)
-          .join(" ")}`
-          .toLowerCase()
-          .includes(query),
+        `${item.title} ${item.description} ${item.family}`.toLowerCase().includes(query),
       ),
     }))
     .filter((family) => family.benchmarks.length);
@@ -203,7 +201,7 @@ function Setup(props: SetupProps) {
       <section className="library-panel">
         <div className="section-kicker">Choose the work</div>
         <h1>How well does a person<br />handle the same job?</h1>
-        <p className="lede">Same facts. Same fixture. Same exact scorer. Your time and labour stay visible beside the outcome.</p>
+        <p className="lede">Same facts. Same fixture. Same exact scorer. Your time stays visible beside the outcome.</p>
         <label className="search-box">
           <span>⌕</span>
           <input value={props.search} onChange={(event) => props.onSearch(event.target.value)} placeholder="Find a benchmark" />
@@ -234,13 +232,11 @@ function Setup(props: SetupProps) {
       <section className="setup-detail">
         {props.selected && (
           <>
-            <div className="detail-number">{String(props.catalog.benchmarks.indexOf(props.selected) + 1).padStart(2, "0")}</div>
             <div className="detail-heading">
               <div>
                 <span className="eyebrow">{props.selected.family} / {kindLabel(props.selected.kind)}</span>
                 <h2>{props.selected.title}</h2>
                 <p>{props.selected.description}</p>
-                {props.selected.tags && <p className="scenario-tags">{props.selected.tags}</p>}
               </div>
               <span className={`availability ${props.selected.available ? "ready" : "pending"}`}>
                 {props.selected.available ? "Ready locally" : "Not yet runnable"}
@@ -253,12 +249,15 @@ function Setup(props: SetupProps) {
               {props.selected.scenarios.length > 0 && (
                 <fieldset className="config-block scenario-block">
                   <legend>Run scope</legend>
+                  {/* Scenario notes and tags are study-designer metadata: they
+                      say what each cell measures, which a participant must not
+                      read before running it. Titles only. */}
                   <label className={`choice-card ${props.scenario === "" ? "active" : ""}`}>
                     <input type="radio" name="scenario" checked={props.scenario === ""} onChange={() => props.onScenario("")} />
-                    <span><strong>Available track</strong><small>Run each browser-compatible scenario in sequence</small></span>
+                    <span><strong>Whole track</strong><small>Run each browser-compatible task in sequence — the standard protocol</small></span>
                   </label>
                   {props.selected.scenarios.map((item) => (
-                    <label className={`choice-card ${props.scenario === item.id ? "active" : ""} ${!item.available ? "disabled" : ""}`} key={item.id}>
+                    <label className={`choice-card compact ${props.scenario === item.id ? "active" : ""} ${!item.available ? "disabled" : ""}`} key={item.id}>
                       <input
                         type="radio"
                         name="scenario"
@@ -269,8 +268,7 @@ function Setup(props: SetupProps) {
                       />
                       <span>
                         <strong>{item.title}</strong>
-                        <small>{item.available ? item.description : item.limitation}</small>
-                        {item.tags && <small className="scenario-tags">{item.tags}</small>}
+                        {!item.available && <small>{item.limitation}</small>}
                       </span>
                     </label>
                   ))}
@@ -305,7 +303,7 @@ function Setup(props: SetupProps) {
                     <span>Loaded rate <em>USD / hour</em></span>
                     <input type="number" min="0" step="1" value={props.hourlyRate} onChange={(event) => props.onRate(Number(event.target.value))} />
                   </label>
-                  <p className="field-note">Use a pseudonym and the participant’s compensated or fully loaded rate.</p>
+                  <p className="field-note">Use a pseudonym and the participant’s compensated or fully loaded rate. Time is measured quietly in the background.</p>
                 </fieldset>
               </div>
             </div>
@@ -323,17 +321,49 @@ function Setup(props: SetupProps) {
   );
 }
 
+/** The API block is rendered as forms, so the prose brief hides its lines. */
+function stripApiBlock(request: string): string {
+  return request
+    .split("\n")
+    .filter((line) => !/^\s*(GET|POST)\s+\S+/.test(line) && !/API at http/.test(line))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/** Harness chrome that duplicates the brief panel or narrates the terminal. */
+function isHarnessChrome(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) return true;
+  return (
+    /^=+$/.test(trimmed) ||
+    trimmed.startsWith("SCENARIO:") ||
+    trimmed.startsWith("FROM:") ||
+    trimmed.startsWith("CONTEXT") ||
+    trimmed.startsWith("REQUEST") ||
+    trimmed.startsWith("IMAGES") ||
+    trimmed.startsWith("Human workbench ready.") ||
+    trimmed.startsWith("Enter actions; finish with") ||
+    trimmed.startsWith("Commands:") ||
+    /^\[[\w/]+\] scenario /.test(trimmed)
+  );
+}
+
 function RunWorkspace({ run, events, benchmark, onError }: { run: RunSnapshot; events: RunEvent[]; benchmark: Benchmark | null; onError: (value: string) => void }) {
-  const [tab, setTab] = useState<ActionKind>("request");
+  const builder = run.request.mode === "builder";
+  const [technical, setTechnical] = useState(builder);
   const [sending, setSending] = useState(false);
   const feedRef = useRef<HTMLDivElement>(null);
   const turn = [...events].reverse().find((event) => event.type === "turn");
   const finalCost = [...events].reverse().find((event) => event.type === "cost")?.cost;
-  const measuredActiveSeconds = Number(finalCost?.active_seconds || 0);
-  const activeSeconds = run.status === "running"
-    ? Math.max(measuredActiveSeconds, run.elapsedSeconds)
-    : measuredActiveSeconds || run.elapsedSeconds;
-  const labour = activeSeconds * Number(run.request.hourlyRateUsd) / 3600;
+  const labour = Number(finalCost?.active_seconds || 0) * Number(run.request.hourlyRateUsd) / 3600;
+
+  const endpoints = useMemo(() => parseApiDoc(turn?.request || ""), [turn?.request]);
+  const roster = useMemo(() => parseRoster(`${turn?.context || ""}\n${turn?.request || ""}`), [turn?.context, turn?.request]);
+  const pool = useMemo(
+    () => collectSuggestions(events.filter((e) => e.type === "output" && e.text).map((e) => e.text as string)),
+    [events],
+  );
 
   useEffect(() => {
     feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
@@ -351,6 +381,9 @@ function RunWorkspace({ run, events, benchmark, onError }: { run: RunSnapshot; e
   }
 
   const complete = run.status === "complete" || run.status === "error";
+  const disabled = !run.awaitingInput || sending || complete;
+  const briefRequest = technical ? turn?.request || "" : stripApiBlock(turn?.request || "");
+
   return (
     <main className="run-page">
       <section className="run-ribbon">
@@ -359,23 +392,22 @@ function RunWorkspace({ run, events, benchmark, onError }: { run: RunSnapshot; e
           <strong>{benchmark?.title || run.request.benchmark}</strong>
           <span>{turn?.scenario ? turn.scenario.replaceAll("_", " ") : "Preparing first task"}</span>
         </div>
-        <div className="live-metrics">
-          <Metric label="Elapsed" value={formatDuration(run.elapsedSeconds)} />
-          <Metric label="Labour estimate" value={money.format(labour)} />
-          <Metric label="Rate" value={`${money.format(run.request.hourlyRateUsd)}/h`} />
-        </div>
+        <label className="view-toggle">
+          <input type="checkbox" checked={technical} onChange={(event) => setTechnical(event.target.checked)} />
+          <span>Technical view</span>
+        </label>
       </section>
 
       {complete && <Completion run={run} labour={labour} />}
 
       <div className="run-grid">
         <section className="brief-panel">
-          <div className="panel-label">Current brief</div>
+          <div className="panel-label">Your brief</div>
           {turn ? (
             <>
               {turn.sender && <div className="sender-chip">From {turn.sender}</div>}
-              {turn.context && <TextBlock label="Context" text={turn.context} />}
-              <TextBlock label="Request" text={turn.request || ""} prominent />
+              {turn.context && <TextBlock label="What has been said" text={turn.context} />}
+              {briefRequest && <TextBlock label="What you are asked to do" text={briefRequest} prominent />}
               {!!turn.images?.length && (
                 <div className="image-list">
                   <h3>Attached frames</h3>
@@ -385,57 +417,134 @@ function RunWorkspace({ run, events, benchmark, onError }: { run: RunSnapshot; e
                 </div>
               )}
             </>
-          ) : <p className="empty-copy">The first task will appear here when its fixture is ready.</p>}
-          <div className="integrity-note"><span>◎</span><p><strong>Same scorer</strong>The browser adds controls, not answers. Only fixture-observed actions count.</p></div>
+          ) : <p className="empty-copy">Your first task will appear here in a moment.</p>}
+          <div className="integrity-note"><span>◎</span><p><strong>Same rules for everyone</strong>These controls only carry out what you decide. Only recorded actions count.</p></div>
         </section>
 
         <section className="activity-panel">
-          <div className="panel-heading"><span className="panel-label">Run activity</span><span>{events.length} events</span></div>
+          <div className="panel-heading"><span className="panel-label">What has happened</span>{technical && <span>{events.length} events</span>}</div>
           <div className="activity-feed" ref={feedRef} aria-live="polite">
-            {events.filter(displayEvent).slice(-120).map((event) => <EventItem event={event} key={event.seq} />)}
-            {!events.length && <div className="empty-feed"><span>·</span><p>Waiting for the fixture</p></div>}
+            {events.filter((event) => displayEvent(event, technical)).slice(-120).map((event) => (
+              <EventItem event={event} technical={technical} key={event.seq} />
+            ))}
+            {!events.length && <div className="empty-feed"><span>·</span><p>Getting ready…</p></div>}
           </div>
         </section>
 
         <section className="workbench-panel">
           <div className="panel-heading">
-            <span className="panel-label">Workbench</span>
-            <span className={`input-state ${run.awaitingInput ? "ready" : "busy"}`}>{run.awaitingInput ? "Your move" : complete ? "Closed" : "Processing"}</span>
+            <span className="panel-label">Your move</span>
+            <span className={`input-state ${run.awaitingInput ? "ready" : "busy"}`}>{run.awaitingInput ? "Ready for you" : complete ? "Finished" : "Working…"}</span>
           </div>
-          <nav className="action-tabs" aria-label="Workbench actions">
-            {(["request", "ask", "notes", ...(run.request.mode === "builder" ? ["builder"] : []), "finish", "console"] as ActionKind[]).map((item) => (
-              <button key={item} className={tab === item ? "active" : ""} onClick={() => setTab(item)}>{item}</button>
-            ))}
-          </nav>
-          <ActionPane kind={tab} disabled={!run.awaitingInput || sending || complete} onSubmit={submit} />
-          <div className="workbench-rule"><span>!</span><p>Plain text is never sent implicitly. Choose an action and a destination.</p></div>
+          {technical ? (
+            <TechnicalBench builder={builder} disabled={disabled} onSubmit={submit} />
+          ) : (
+            <FriendlyBench endpoints={endpoints} roster={roster} pool={pool} disabled={disabled} onSubmit={submit} />
+          )}
         </section>
       </div>
     </main>
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return <div className="metric"><span>{label}</span><strong>{value}</strong></div>;
-}
-
 function TextBlock({ label, text, prominent = false }: { label: string; text: string; prominent?: boolean }) {
   return <div className={`text-block ${prominent ? "prominent" : ""}`}><h3>{label}</h3><pre>{text}</pre></div>;
 }
 
-function displayEvent(event: RunEvent) {
+function displayEvent(event: RunEvent, technical: boolean) {
   if (event.type === "output" && !event.text?.trim()) return false;
+  if (!technical && ["output", "log", "status"].includes(event.type) && isHarnessChrome(event.text || "")) return false;
   return ["turn", "correction", "output", "action", "log", "status", "error", "input_required"].includes(event.type);
 }
 
-function EventItem({ event }: { event: RunEvent }) {
-  const time = new Date(event.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  if (event.type === "turn") return <article className="event-item turn-event"><div className="event-glyph">↳</div><div><header><strong>New task</strong><time>{time}</time></header><p>{event.scenario?.replaceAll("_", " ")}</p></div></article>;
-  if (event.type === "correction") return <article className="event-item correction-event"><div className="event-glyph">!</div><div><header><strong>Correction · {event.sender || "participant"}</strong><time>{time}</time></header><p>{event.text}</p></div></article>;
-  if (event.type === "action") return <article className="event-item action-event"><div className="event-glyph">→</div><div><header><strong>Your action</strong><time>{time}</time></header><code>{event.command}</code></div></article>;
-  if (event.type === "error") return <article className="event-item error-event"><div className="event-glyph">×</div><div><header><strong>Run error</strong><time>{time}</time></header><p>{event.text}</p></div></article>;
-  const text = event.text || (event.type === "input_required" ? "Workbench ready for your next action." : event.status || "Run updated");
-  return <article className={`event-item ${event.type}-event`}><div className="event-glyph">·</div><div><header><strong>{event.type === "input_required" ? "Ready" : event.type === "status" ? "Status" : "Harness"}</strong><time>{time}</time></header><pre>{text}</pre></div></article>;
+/** A lookup/action result: render JSON as a table or list, never as code. */
+function ResultView({ text }: { text: string }) {
+  let value: unknown;
+  try {
+    value = JSON.parse(text);
+  } catch {
+    return <pre>{text}</pre>;
+  }
+  return <JsonValue value={value} />;
+}
+
+function JsonValue({ value }: { value: unknown }) {
+  if (value === null || value === undefined) return <p className="quiet">Nothing there.</p>;
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return <p>{String(value)}</p>;
+  }
+  if (Array.isArray(value)) {
+    if (!value.length) return <p className="quiet">Nothing there.</p>;
+    if (value.every((item) => item && typeof item === "object" && !Array.isArray(item))) {
+      const columns = [...new Set(value.flatMap((item) => Object.keys(item as object)))];
+      return (
+        <div className="result-table-wrap">
+          <table className="result-table">
+            <thead><tr>{columns.map((c) => <th key={c}>{c.replace(/_/g, " ")}</th>)}</tr></thead>
+            <tbody>
+              {value.map((item, index) => (
+                <tr key={index}>{columns.map((c) => <td key={c}><JsonCell value={(item as Record<string, unknown>)[c]} /></td>)}</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+    return <ul className="result-list">{value.map((item, index) => <li key={index}><JsonValue value={item} /></li>)}</ul>;
+  }
+  const entries = Object.entries(value as Record<string, unknown>);
+  if (!entries.length) return <p className="quiet">Nothing there.</p>;
+  return (
+    <dl className="result-object">
+      {entries.map(([key, item]) => (
+        <div key={key}><dt>{key.replace(/_/g, " ")}</dt><dd><JsonCell value={item} /></dd></div>
+      ))}
+    </dl>
+  );
+}
+
+function JsonCell({ value }: { value: unknown }) {
+  if (value === null || value === undefined) return <span className="quiet">—</span>;
+  if (typeof value === "object") return <JsonValue value={value} />;
+  return <span>{String(value)}</span>;
+}
+
+function EventItem({ event, technical }: { event: RunEvent; technical: boolean }) {
+  const time = new Date(event.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  if (event.type === "turn") {
+    return <article className="event-item turn-event"><div className="event-glyph">↳</div><div><header><strong>New task</strong><time>{time}</time></header><p>{event.scenario?.replaceAll("_", " ")}</p></div></article>;
+  }
+  if (event.type === "correction") {
+    return <article className="event-item correction-event"><div className="event-glyph">!</div><div><header><strong>{event.sender ? `${event.sender} interrupts` : "Interruption"}</strong><time>{time}</time></header><p>{event.text}</p></div></article>;
+  }
+  if (event.type === "action") {
+    const label = technical ? undefined : describeCommand(event.command || "");
+    return (
+      <article className="event-item action-event">
+        <div className="event-glyph">→</div>
+        <div>
+          <header><strong>{technical ? "Your action" : "You"}</strong><time>{time}</time></header>
+          {technical ? <code>{event.command}</code> : <p>{label}</p>}
+        </div>
+      </article>
+    );
+  }
+  if (event.type === "error") {
+    return <article className="event-item error-event"><div className="event-glyph">×</div><div><header><strong>Run error</strong><time>{time}</time></header><p>{event.text}</p></div></article>;
+  }
+  if (event.type === "input_required") {
+    return <article className="event-item input_required-event"><div className="event-glyph">·</div><div><header><strong>Ready</strong><time>{time}</time></header><p>{technical ? "Workbench ready for your next action." : "Your turn."}</p></div></article>;
+  }
+  const text = event.text || event.status || "Run updated";
+  return (
+    <article className={`event-item ${event.type}-event`}>
+      <div className="event-glyph">·</div>
+      <div>
+        <header><strong>{event.type === "status" ? "Status" : technical ? "Harness" : "Result"}</strong><time>{time}</time></header>
+        {technical ? <pre>{text}</pre> : <ResultView text={text} />}
+      </div>
+    </article>
+  );
 }
 
 function Completion({ run, labour }: { run: RunSnapshot; labour: number }) {
@@ -448,13 +557,286 @@ function Completion({ run, labour }: { run: RunSnapshot; labour: number }) {
         <span>{measured ? "Run measured" : "Run stopped"}</span>
         <h2>{measured ? (credited ? "All scored work was credited." : "The run completed with one or more misses.") : run.error || "The harness could not measure this run."}</h2>
       </div>
-      <div className="completion-cost"><span>Estimated labour</span><strong>{money.format(labour)}</strong></div>
+      <div className="completion-cost"><span>Recorded labour</span><strong>{money.format(labour)}</strong></div>
       {run.resultPath && <a className="result-link" href={runFileUrl(run.id, run.resultPath)} target="_blank" rel="noreferrer">Open result JSON ↗</a>}
     </section>
   );
 }
 
-function ActionPane({ kind, disabled, onSubmit }: { kind: ActionKind; disabled: boolean; onSubmit: (command: string) => Promise<void> }) {
+/* ---------------------------------------------------------------------------
+ * Friendly workbench: the same commands, composed from labelled forms that
+ * are derived mechanically from the request text every arm receives.
+ * ------------------------------------------------------------------------- */
+
+type Pool = ReturnType<typeof collectSuggestions>;
+
+function FriendlyBench({ endpoints, roster, pool, disabled, onSubmit }: {
+  endpoints: Endpoint[];
+  roster: { id: string; label: string }[];
+  pool: Pool;
+  disabled: boolean;
+  onSubmit: (command: string) => Promise<void>;
+}) {
+  const lookups = endpoints.filter((e) => e.method === "GET");
+  const actions = endpoints.filter((e) => e.method === "POST");
+  return (
+    <div className="friendly-bench">
+      {lookups.length > 0 && (
+        <section className="bench-section">
+          <h3>Look things up</h3>
+          <p className="bench-hint">See the information in the workspace before you act.</p>
+          {lookups.map((endpoint) => <LookupCard key={endpoint.method + endpoint.path} endpoint={endpoint} disabled={disabled} onSubmit={onSubmit} />)}
+        </section>
+      )}
+      {actions.length > 0 && (
+        <section className="bench-section">
+          <h3>Take an action</h3>
+          <p className="bench-hint">These are the things you can actually do. Actions count — look before you leap.</p>
+          {actions.map((endpoint) => <ActionCard key={endpoint.method + endpoint.path} endpoint={endpoint} pool={pool} disabled={disabled} onSubmit={onSubmit} />)}
+        </section>
+      )}
+      <section className="bench-section">
+        <h3>Ask someone</h3>
+        <p className="bench-hint">Not sure what was meant? Ask the person who would know, and wait for their answer.</p>
+        <AskCard roster={roster} disabled={disabled} onSubmit={onSubmit} />
+      </section>
+      <section className="bench-section">
+        <h3>Notepad</h3>
+        <NotesCard disabled={disabled} onSubmit={onSubmit} />
+      </section>
+      <section className="bench-section finish-section">
+        <h3>Finish this task</h3>
+        <FinishCard disabled={disabled} onSubmit={onSubmit} />
+      </section>
+    </div>
+  );
+}
+
+function LookupCard({ endpoint, disabled, onSubmit }: { endpoint: Endpoint; disabled: boolean; onSubmit: (command: string) => Promise<void> }) {
+  const [values, setValues] = useState<Record<string, string>>({});
+  const params = [...endpoint.pathParams, ...endpoint.queryParams];
+  const missing = params.some((p) => !p.optional && !(values[p.name] || "").trim());
+
+  function buildPath(): string {
+    let path = endpoint.path;
+    for (const param of endpoint.pathParams) {
+      path = path.replace(`<${param.name}>`, encodeURIComponent((values[param.name] || "").trim()));
+    }
+    const query = endpoint.queryParams
+      .filter((p) => (values[p.name] || "").trim())
+      .map((p) => `${p.name}=${encodeURIComponent(values[p.name].trim())}`)
+      .join("&");
+    return query ? `${path}?${query}` : path;
+  }
+
+  return (
+    <form
+      className="bench-card"
+      onSubmit={(event) => { event.preventDefault(); onSubmit(`/get ${buildPath()}`); }}
+    >
+      <div className="bench-card-row">
+        <div className="bench-card-title">
+          <strong>{endpoint.label}</strong>
+          {endpoint.note && <small>{endpoint.note}</small>}
+        </div>
+        {params.map((param) => (
+          <label className="inline-field" key={param.name}>
+            <span>{param.name.replace(/_/g, " ")}</span>
+            <input
+              value={values[param.name] || ""}
+              onChange={(event) => setValues((v) => ({ ...v, [param.name]: event.target.value }))}
+              placeholder={param.hint}
+            />
+          </label>
+        ))}
+        <button className="bench-go" disabled={disabled || missing}>Look</button>
+      </div>
+    </form>
+  );
+}
+
+function ActionCard({ endpoint, pool, disabled, onSubmit }: { endpoint: Endpoint; pool: Pool; disabled: boolean; onSubmit: (command: string) => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [pathValues, setPathValues] = useState<Record<string, string>>({});
+  const missing =
+    endpoint.fields.some((f) => !f.optional && !(values[f.key] || "").trim()) ||
+    endpoint.pathParams.some((p) => !p.optional && !(pathValues[p.name] || "").trim());
+
+  function buildCommand(): string {
+    let path = endpoint.path;
+    for (const param of endpoint.pathParams) {
+      path = path.replace(`<${param.name}>`, encodeURIComponent((pathValues[param.name] || "").trim()));
+    }
+    const body: Record<string, unknown> = {};
+    for (const field of endpoint.fields) {
+      const raw = (values[field.key] || "").trim();
+      if (!raw && field.optional) continue;
+      body[field.key] = field.kind === "list" ? raw.split(",").map((s) => s.trim()).filter(Boolean) : raw;
+    }
+    return `/post ${path} ${JSON.stringify(body)}`;
+  }
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    await onSubmit(buildCommand());
+    setOpen(false);
+    setValues({});
+  }
+
+  if (!open) {
+    return (
+      <button className="bench-card bench-card-closed" type="button" disabled={disabled} onClick={() => setOpen(true)}>
+        <strong>{endpoint.label}</strong>
+        {endpoint.note && <small>{endpoint.note}</small>}
+        <span className="open-marker">＋</span>
+      </button>
+    );
+  }
+
+  return (
+    <form className="bench-card bench-card-open" onSubmit={submit}>
+      <div className="bench-card-title"><strong>{endpoint.label}</strong>{endpoint.note && <small>{endpoint.note}</small>}</div>
+      {endpoint.pathParams.map((param) => (
+        <label className="stacked-field" key={param.name}>
+          <span>{param.name.replace(/_/g, " ")}</span>
+          <input value={pathValues[param.name] || ""} onChange={(event) => setPathValues((v) => ({ ...v, [param.name]: event.target.value }))} placeholder={param.hint} />
+        </label>
+      ))}
+      {endpoint.fields.map((field) => (
+        <FieldInput key={field.key} field={field} value={values[field.key] || ""} pool={pool} onChange={(next) => setValues((v) => ({ ...v, [field.key]: next }))} />
+      ))}
+      <div className="bench-card-actions">
+        <button type="button" className="quiet-button" onClick={() => setOpen(false)}>Cancel</button>
+        <button className="bench-go" disabled={disabled || missing}>{endpoint.label}</button>
+      </div>
+    </form>
+  );
+}
+
+function FieldInput({ field, value, pool, onChange }: { field: BodyField; value: string; pool: Pool; onChange: (value: string) => void }) {
+  const label = field.label + (field.optional ? " (optional)" : "");
+  if (field.options) {
+    return (
+      <label className="stacked-field">
+        <span>{label}</span>
+        <select value={value} onChange={(event) => onChange(event.target.value)}>
+          <option value="">Choose…</option>
+          {field.options.map((option) => <option key={option} value={option}>{option.replace(/_/g, " ")}</option>)}
+        </select>
+      </label>
+    );
+  }
+  if (field.kind === "date") {
+    return (
+      <label className="stacked-field">
+        <span>{label}</span>
+        <input type="date" value={value} onChange={(event) => onChange(event.target.value)} />
+      </label>
+    );
+  }
+  const suggestions = suggestionsFor(field, pool);
+  const listId = suggestions.length ? `dl-${field.key}` : undefined;
+  if (field.kind === "long") {
+    return (
+      <label className="stacked-field">
+        <span>{label}</span>
+        <textarea rows={3} value={value} onChange={(event) => onChange(event.target.value)} placeholder={field.hint} />
+      </label>
+    );
+  }
+  return (
+    <label className="stacked-field">
+      <span>{label}</span>
+      <input value={value} onChange={(event) => onChange(event.target.value)} placeholder={field.hint} list={listId} />
+      {listId && (
+        <datalist id={listId}>
+          {suggestions.map((s) => <option key={s} value={s} />)}
+        </datalist>
+      )}
+    </label>
+  );
+}
+
+function AskCard({ roster, disabled, onSubmit }: { roster: { id: string; label: string }[]; disabled: boolean; onSubmit: (command: string) => Promise<void> }) {
+  const [who, setWho] = useState("");
+  const [other, setOther] = useState("");
+  const [question, setQuestion] = useState("");
+  const target = who === "__other__" ? other.trim().toLowerCase() : who;
+  return (
+    <form
+      className="bench-card bench-card-open"
+      onSubmit={(event) => { event.preventDefault(); onSubmit(`/ask ${target} ${question.trim()}`); setQuestion(""); }}
+    >
+      <label className="stacked-field">
+        <span>Who</span>
+        <select value={who} onChange={(event) => setWho(event.target.value)}>
+          <option value="">Choose a person…</option>
+          {roster.map((entry) => <option key={entry.id} value={entry.id}>{entry.label}</option>)}
+          <option value="__other__">Someone else…</option>
+        </select>
+      </label>
+      {who === "__other__" && (
+        <label className="stacked-field"><span>Their first name</span><input value={other} onChange={(event) => setOther(event.target.value)} /></label>
+      )}
+      <label className="stacked-field">
+        <span>Your question</span>
+        <textarea rows={3} value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Which Sarah did you mean?" />
+      </label>
+      <button className="bench-go" disabled={disabled || !target || !question.trim()}>Ask and wait for the answer</button>
+    </form>
+  );
+}
+
+function NotesCard({ disabled, onSubmit }: { disabled: boolean; onSubmit: (command: string) => Promise<void> }) {
+  const [note, setNote] = useState("");
+  return (
+    <form className="bench-card bench-card-open" onSubmit={(event) => { event.preventDefault(); onSubmit(`/note ${note.trim()}`); setNote(""); }}>
+      <label className="stacked-field">
+        <span>Write yourself a note (kept between tasks)</span>
+        <textarea rows={2} value={note} onChange={(event) => setNote(event.target.value)} placeholder="The deploy window moved to Wednesday 11:00" />
+      </label>
+      <div className="bench-card-actions">
+        <button type="button" className="quiet-button" disabled={disabled} onClick={() => onSubmit("/notes")}>Show my notes</button>
+        <button className="bench-go" disabled={disabled || !note.trim()}>Save note</button>
+      </div>
+    </form>
+  );
+}
+
+function FinishCard({ disabled, onSubmit }: { disabled: boolean; onSubmit: (command: string) => Promise<void> }) {
+  const [reply, setReply] = useState("");
+  return (
+    <form className="bench-card bench-card-open" onSubmit={(event) => { event.preventDefault(); onSubmit(`/done ${reply.trim()}`.trim()); setReply(""); }}>
+      <label className="stacked-field">
+        <span>Reply to send back (leave empty for none)</span>
+        <textarea rows={3} value={reply} onChange={(event) => setReply(event.target.value)} placeholder="It’s done — the report went to Sarah Chen." />
+      </label>
+      <button className="bench-go finish-go" disabled={disabled}>I’m finished with this task</button>
+    </form>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * Technical workbench: the original tabbed surface, unchanged in behaviour.
+ * ------------------------------------------------------------------------- */
+
+function TechnicalBench({ builder, disabled, onSubmit }: { builder: boolean; disabled: boolean; onSubmit: (command: string) => Promise<void> }) {
+  const [tab, setTab] = useState<TechnicalTab>("request");
+  return (
+    <>
+      <nav className="action-tabs" aria-label="Workbench actions">
+        {(["request", "ask", "notes", ...(builder ? ["builder"] : []), "finish", "console"] as TechnicalTab[]).map((item) => (
+          <button key={item} className={tab === item ? "active" : ""} onClick={() => setTab(item)}>{item}</button>
+        ))}
+      </nav>
+      <ActionPane kind={tab} disabled={disabled} onSubmit={onSubmit} />
+      <div className="workbench-rule"><span>!</span><p>Plain text is never sent implicitly. Choose an action and a destination.</p></div>
+    </>
+  );
+}
+
+function ActionPane({ kind, disabled, onSubmit }: { kind: TechnicalTab; disabled: boolean; onSubmit: (command: string) => Promise<void> }) {
   if (kind === "request") return <RequestAction disabled={disabled} onSubmit={onSubmit} />;
   if (kind === "ask") return <TwoFieldAction title="Ask a participant" firstLabel="Who" firstPlaceholder="priya" secondLabel="Question" secondPlaceholder="Which Sarah did you mean?" button="Ask and wait" build={(a, b) => `/ask ${a} ${b}`} disabled={disabled} onSubmit={onSubmit} />;
   if (kind === "notes") return <SingleAction title="Persistent private note" label="Note" placeholder="The portal manager is Leeds" button="Save note" build={(value) => `/note ${value}`} disabled={disabled} onSubmit={onSubmit} secondary={{ label: "Show saved notes", command: "/notes" }} />;
