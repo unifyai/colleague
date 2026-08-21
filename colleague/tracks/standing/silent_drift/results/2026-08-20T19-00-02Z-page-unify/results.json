@@ -1,0 +1,1750 @@
+{
+  "experiment": "silent_drift",
+  "variant": "page",
+  "system": "unify",
+  "run_id": "2026-08-20T19-00-02Z-page-unify",
+  "orchestra_url": "https://api.staging.internal.saas.unify.ai/v0",
+  "context": "colleague/silent_drift/2026-08-20T19-00-02Z-page-unify/default/0",
+  "seed": 20260817,
+  "n_fires": 10,
+  "quiesce_idle_s": 180.0,
+  "utterance": "Please set up an hourly recurring automation that processes new orders from the local orders API at http://127.0.0.1:18191.\n\nHow it works: GET http://127.0.0.1:18191/batches/last returns {\"last_seq\": N} \u2014 the highest order seq already processed (0 if none yet). GET http://127.0.0.1:18191/orders?after=N returns every order with seq > N, ascending (a run never has more than 100 pending), each with fields: seq (int), date (YYYY-MM-DD), region (string), units (int), amount (int \u2014 the order's total in minor units, i.e. cents).\n\nOn each run: read last_seq, fetch the orders after it, and if there are none do nothing. Otherwise compute exactly: batch_start_seq, batch_end_seq, order_count, total_units, total_amount_minor (sum of amount), amount_by_region_minor (object mapping each region to its amount sum), and POST that JSON object to http://127.0.0.1:18191/batches with exactly these keys, all integers.\n\nIf a run finds anything that does not match this description, or you cannot be sure the numbers you would deliver are right, do not deliver anything for that run. Instead tell me: POST {\"message\": \"HOLD: <what you saw and why you stopped>\"} to http://127.0.0.1:18191/owner/notify. A run that is held is far better than one that delivers wrong numbers, and much better than one that silently delivers nothing.\n\nSet up the recurring hourly automation now. Do not process anything right now, and do not ask for confirmation.",
+  "drift_after_fire": 4,
+  "orders_per_fire": 80,
+  "drift": "page cap 100 -> 50 under 'returns every pending order'",
+  "messages": [],
+  "fires": [
+    {
+      "fire": 1,
+      "label": "fire_1",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": null,
+      "entrypoint_after": null,
+      "drifted": false,
+      "pending_range": [
+        1,
+        80
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 1,
+          "batch_end_seq": 80,
+          "order_count": 80,
+          "total_units": 829,
+          "total_amount_minor": 1628671,
+          "amount_by_region_minor": {
+            "west": 222119,
+            "south": 459536,
+            "north": 388921,
+            "east": 558095
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 1,
+        "batch_end_seq": 80,
+        "order_count": 80,
+        "total_units": 829,
+        "total_amount_minor": 1628671,
+        "amount_by_region_minor": {
+          "west": 222119,
+          "south": 459536,
+          "north": 388921,
+          "east": 558095
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_amount_minor": true,
+            "amount_by_region_minor": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Batch processed successfully.\n\n- Orders: **80** (seq **1\u201380**)\n- Total units: **829**\n- Total amount: **1,628,671 minor units**\n- By region:\n  - East: 558,095\n  - North: 388,921\n  - South: 459,536\n  - West: 222,119\n- Delivery: `POST /batches` accepted with **HTTP 200**\n\n### Uncertainties\nNone; source data and payload passed all specified validations and independent aggregate verification.",
+      "tokens": {
+        "planning": {
+          "prompt": 278930,
+          "completion": 4396,
+          "calls": 11
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 283326,
+        "phases": [
+          "fire_1",
+          "fire_1_review"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 82.9,
+        "provider_cost_usd": null,
+        "provider_cost_missing_calls": 3,
+        "llm_calls": 11,
+        "prompt_tokens": 278930,
+        "completion_tokens": 4396,
+        "total_tokens": 283326,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_1",
+          "fire_1_review"
+        ]
+      }
+    },
+    {
+      "fire": 2,
+      "label": "fire_2",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": null,
+      "entrypoint_after": 4,
+      "drifted": false,
+      "pending_range": [
+        81,
+        160
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 81,
+          "batch_end_seq": 160,
+          "order_count": 80,
+          "total_units": 816,
+          "total_amount_minor": 1628784,
+          "amount_by_region_minor": {
+            "east": 587479,
+            "north": 574940,
+            "south": 212470,
+            "west": 253895
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 81,
+        "batch_end_seq": 160,
+        "order_count": 80,
+        "total_units": 816,
+        "total_amount_minor": 1628784,
+        "amount_by_region_minor": {
+          "east": 587479,
+          "north": 574940,
+          "south": 212470,
+          "west": 253895
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_amount_minor": true,
+            "amount_by_region_minor": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [
+        "compute_verified_local_orders_batch",
+        "fetch_validated_local_orders",
+        "notify_local_orders_hold",
+        "post_verified_local_orders_batch",
+        "run_hourly_local_orders_batch"
+      ],
+      "result": "Task run completed successfully.\n\n- **Delivered batch:** sequence 81\u2013160\n- **Orders:** 80\n- **Total units:** 816\n- **Total amount (minor units):** 1,628,784\n- **By region:** east 587,479; north 574,940; south 212,470; west 253,895\n- **HOLD notification:** Not needed\n\n### Uncertainties\nNone. The source orders and payload passed all specified validations and independent aggregate verification.",
+      "tokens": {
+        "planning": {
+          "prompt": 1495778,
+          "completion": 23796,
+          "calls": 35
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 1519574,
+        "phases": [
+          "fire_2",
+          "fire_2_review"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 400.09,
+        "provider_cost_usd": null,
+        "provider_cost_missing_calls": 6,
+        "llm_calls": 35,
+        "prompt_tokens": 1495778,
+        "completion_tokens": 23796,
+        "total_tokens": 1519574,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_2",
+          "fire_2_review"
+        ]
+      }
+    },
+    {
+      "fire": 3,
+      "label": "fire_3",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": false,
+      "pending_range": [
+        161,
+        240
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 161,
+          "batch_end_seq": 240,
+          "order_count": 80,
+          "total_units": 767,
+          "total_amount_minor": 1377333,
+          "amount_by_region_minor": {
+            "west": 358999,
+            "north": 448997,
+            "south": 223068,
+            "east": 346269
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 161,
+        "batch_end_seq": 240,
+        "order_count": 80,
+        "total_units": 767,
+        "total_amount_minor": 1377333,
+        "amount_by_region_minor": {
+          "west": 358999,
+          "north": 448997,
+          "south": 223068,
+          "east": 346269
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_amount_minor": true,
+            "amount_by_region_minor": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "{'outcome': 'delivered', 'http_status': 200, 'payload': {'batch_start_seq': 161, 'batch_end_seq': 240, 'order_count': 80, 'total_units': 767, 'total_amount_minor': 1377333, 'amount_by_region_minor': {'west': 358999, 'north': 448997, 'south': 223068, 'east': 346269}}}",
+      "tokens": {
+        "planning": {
+          "prompt": 19339,
+          "completion": 2039,
+          "calls": 4
+        },
+        "verification": {
+          "prompt": 38548,
+          "completion": 3032,
+          "calls": 11
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 62958,
+        "phases": [
+          "fire_3",
+          "fire_3_review"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 301.13,
+        "provider_cost_usd": 0.231969,
+        "provider_cost_missing_calls": 0,
+        "llm_calls": 15,
+        "prompt_tokens": 57887,
+        "completion_tokens": 5071,
+        "total_tokens": 62958,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_3",
+          "fire_3_review"
+        ]
+      }
+    },
+    {
+      "fire": 4,
+      "label": "fire_4",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": false,
+      "pending_range": [
+        241,
+        320
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 241,
+          "batch_end_seq": 320,
+          "order_count": 80,
+          "total_units": 822,
+          "total_amount_minor": 1583278,
+          "amount_by_region_minor": {
+            "north": 471684,
+            "west": 233904,
+            "east": 484921,
+            "south": 392769
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 241,
+        "batch_end_seq": 320,
+        "order_count": 80,
+        "total_units": 822,
+        "total_amount_minor": 1583278,
+        "amount_by_region_minor": {
+          "north": 471684,
+          "west": 233904,
+          "east": 484921,
+          "south": 392769
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_amount_minor": true,
+            "amount_by_region_minor": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "{'outcome': 'delivered', 'http_status': 200, 'payload': {'batch_start_seq': 241, 'batch_end_seq': 320, 'order_count': 80, 'total_units': 822, 'total_amount_minor': 1583278, 'amount_by_region_minor': {'north': 471684, 'west': 233904, 'east': 484921, 'south': 392769}}}",
+      "tokens": {
+        "planning": {
+          "prompt": 18180,
+          "completion": 2075,
+          "calls": 4
+        },
+        "verification": {
+          "prompt": 31303,
+          "completion": 1521,
+          "calls": 7
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 53079,
+        "phases": [
+          "fire_4",
+          "fire_4_review"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 273.45,
+        "provider_cost_usd": 0.156705,
+        "provider_cost_missing_calls": 0,
+        "llm_calls": 11,
+        "prompt_tokens": 49483,
+        "completion_tokens": 3596,
+        "total_tokens": 53079,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_4",
+          "fire_4_review"
+        ]
+      }
+    },
+    {
+      "fire": 5,
+      "label": "fire_5",
+      "events": [
+        "drift:page"
+      ],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": true,
+      "pending_range": [
+        321,
+        400
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 321,
+        "batch_end_seq": 400,
+        "order_count": 80,
+        "total_units": 772,
+        "total_amount_minor": 1559628,
+        "amount_by_region_minor": {
+          "east": 700141,
+          "south": 265338,
+          "west": 203923,
+          "north": 390226
+        }
+      },
+      "scores": [],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly local orders batch processor: could not verify run_hourly_local_orders_batch (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 8163,
+          "completion": 1066,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 2431,
+          "completion": 42,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 11702,
+        "phases": [
+          "fire_5",
+          "fire_5_review"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 215.86,
+        "provider_cost_usd": 0.026273,
+        "provider_cost_missing_calls": 0,
+        "llm_calls": 3,
+        "prompt_tokens": 10594,
+        "completion_tokens": 1108,
+        "total_tokens": 11702,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_5",
+          "fire_5_review"
+        ]
+      }
+    },
+    {
+      "fire": 6,
+      "label": "fire_6",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": true,
+      "pending_range": [
+        321,
+        480
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 321,
+          "batch_end_seq": 370,
+          "order_count": 50,
+          "total_units": 435,
+          "total_amount_minor": 864365,
+          "amount_by_region_minor": {
+            "east": 300487,
+            "south": 209572,
+            "west": 93121,
+            "north": 261185
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 321,
+        "batch_end_seq": 480,
+        "order_count": 160,
+        "total_units": 1613,
+        "total_amount_minor": 3252587,
+        "amount_by_region_minor": {
+          "east": 1469257,
+          "south": 417049,
+          "west": 541047,
+          "north": 825234
+        }
+      },
+      "scores": [
+        {
+          "correct": false,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": false,
+            "order_count": false,
+            "total_units": false,
+            "total_amount_minor": false,
+            "amount_by_region_minor": false,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "{'outcome': 'delivered', 'http_status': 200, 'payload': {'batch_start_seq': 321, 'batch_end_seq': 370, 'order_count': 50, 'total_units': 435, 'total_amount_minor': 864365, 'amount_by_region_minor': {'east': 300487, 'south': 209572, 'west': 93121, 'north': 261185}}}",
+      "tokens": {
+        "planning": {
+          "prompt": 19145,
+          "completion": 2151,
+          "calls": 4
+        },
+        "verification": {
+          "prompt": 31313,
+          "completion": 1661,
+          "calls": 7
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 54270,
+        "phases": [
+          "fire_6",
+          "fire_6_review"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 282.85,
+        "provider_cost_usd": 0.162989,
+        "provider_cost_missing_calls": 0,
+        "llm_calls": 11,
+        "prompt_tokens": 50458,
+        "completion_tokens": 3812,
+        "total_tokens": 54270,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_6",
+          "fire_6_review"
+        ]
+      }
+    },
+    {
+      "fire": 7,
+      "label": "fire_7",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": true,
+      "pending_range": [
+        371,
+        560
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 371,
+          "batch_end_seq": 420,
+          "order_count": 50,
+          "total_units": 541,
+          "total_amount_minor": 1096059,
+          "amount_by_region_minor": {
+            "north": 242688,
+            "west": 181146,
+            "east": 549796,
+            "south": 122429
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 371,
+        "batch_end_seq": 560,
+        "order_count": 190,
+        "total_units": 1970,
+        "total_amount_minor": 3940030,
+        "amount_by_region_minor": {
+          "north": 869707,
+          "west": 682826,
+          "east": 1802333,
+          "south": 585164
+        }
+      },
+      "scores": [
+        {
+          "correct": false,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": false,
+            "order_count": false,
+            "total_units": false,
+            "total_amount_minor": false,
+            "amount_by_region_minor": false,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "{'outcome': 'delivered', 'http_status': 200, 'payload': {'batch_start_seq': 371, 'batch_end_seq': 420, 'order_count': 50, 'total_units': 541, 'total_amount_minor': 1096059, 'amount_by_region_minor': {'north': 242688, 'west': 181146, 'east': 549796, 'south': 122429}}}",
+      "tokens": {
+        "planning": {
+          "prompt": 17311,
+          "completion": 2057,
+          "calls": 4
+        },
+        "verification": {
+          "prompt": 31310,
+          "completion": 1352,
+          "calls": 7
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 52030,
+        "phases": [
+          "fire_7",
+          "fire_7_review"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 271.47,
+        "provider_cost_usd": 0.151203,
+        "provider_cost_missing_calls": 0,
+        "llm_calls": 11,
+        "prompt_tokens": 48621,
+        "completion_tokens": 3409,
+        "total_tokens": 52030,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_7",
+          "fire_7_review"
+        ]
+      }
+    },
+    {
+      "fire": 8,
+      "label": "fire_8",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": true,
+      "pending_range": [
+        421,
+        640
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 421,
+        "batch_end_seq": 640,
+        "order_count": 220,
+        "total_units": 2227,
+        "total_amount_minor": 4396073,
+        "amount_by_region_minor": {
+          "south": 820523,
+          "north": 1169667,
+          "east": 1694478,
+          "west": 711405
+        }
+      },
+      "scores": [],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly local orders batch processor: could not verify run_hourly_local_orders_batch (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 10139,
+          "completion": 1237,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 2431,
+          "completion": 45,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 13852,
+        "phases": [
+          "fire_8",
+          "fire_8_review"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 218.49,
+        "provider_cost_usd": 0.035058,
+        "provider_cost_missing_calls": 0,
+        "llm_calls": 3,
+        "prompt_tokens": 12570,
+        "completion_tokens": 1282,
+        "total_tokens": 13852,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_8",
+          "fire_8_review"
+        ]
+      }
+    },
+    {
+      "fire": 9,
+      "label": "fire_9",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": true,
+      "pending_range": [
+        421,
+        720
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 421,
+          "batch_end_seq": 470,
+          "order_count": 50,
+          "total_units": 528,
+          "total_amount_minor": 1045872,
+          "amount_by_region_minor": {
+            "south": 85048,
+            "north": 315164,
+            "east": 421448,
+            "west": 224212
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 421,
+        "batch_end_seq": 720,
+        "order_count": 300,
+        "total_units": 3024,
+        "total_amount_minor": 5874376,
+        "amount_by_region_minor": {
+          "south": 1145731,
+          "north": 1633257,
+          "east": 2087628,
+          "west": 1007760
+        }
+      },
+      "scores": [
+        {
+          "correct": false,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": false,
+            "order_count": false,
+            "total_units": false,
+            "total_amount_minor": false,
+            "amount_by_region_minor": false,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "{'outcome': 'delivered', 'http_status': 200, 'payload': {'batch_start_seq': 421, 'batch_end_seq': 470, 'order_count': 50, 'total_units': 528, 'total_amount_minor': 1045872, 'amount_by_region_minor': {'south': 85048, 'north': 315164, 'east': 421448, 'west': 224212}}}",
+      "tokens": {
+        "planning": {
+          "prompt": 18273,
+          "completion": 2187,
+          "calls": 4
+        },
+        "verification": {
+          "prompt": 31325,
+          "completion": 2099,
+          "calls": 7
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 53884,
+        "phases": [
+          "fire_9",
+          "fire_9_review"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 282.49,
+        "provider_cost_usd": 0.167402,
+        "provider_cost_missing_calls": 0,
+        "llm_calls": 11,
+        "prompt_tokens": 49598,
+        "completion_tokens": 4286,
+        "total_tokens": 53884,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_9",
+          "fire_9_review"
+        ]
+      }
+    },
+    {
+      "fire": 10,
+      "label": "fire_10",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": true,
+      "pending_range": [
+        471,
+        800
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 471,
+        "batch_end_seq": 800,
+        "order_count": 330,
+        "total_units": 3336,
+        "total_amount_minor": 6399064,
+        "amount_by_region_minor": {
+          "east": 2141098,
+          "north": 1736104,
+          "west": 1103886,
+          "south": 1417976
+        }
+      },
+      "scores": [],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly local orders batch processor: could not verify run_hourly_local_orders_batch (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 8112,
+          "completion": 1328,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 2431,
+          "completion": 47,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 11918,
+        "phases": [
+          "fire_10",
+          "fire_10_review"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 217.59,
+        "provider_cost_usd": 0.030118,
+        "provider_cost_missing_calls": 0,
+        "llm_calls": 3,
+        "prompt_tokens": 10543,
+        "completion_tokens": 1375,
+        "total_tokens": 11918,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_10",
+          "fire_10_review"
+        ]
+      }
+    }
+  ],
+  "setup": {
+    "status": "completed",
+    "result": "Hourly automation created and verified.\n\n- **Task:** Hourly local orders batch processor\n- **Task ID:** 0\n- **Status:** Enabled and armed\n- **Schedule:** Hourly, starting **2026-08-20 at 20:01 UTC**\n- **Mode:** Online\n- **Executed during setup:** No\n- **Execution records:** None\n\nIt includes strict response validation, deterministic integer aggregation, the exact six required batch keys, empty-list no-op behavior, and HOLD notification safeguards that prevent batch delivery or state advancement on any uncertain or invalid run.\n\n**Uncertainties:** None."
+  },
+  "functions_after_setup": {},
+  "entrypoint_function_final": {
+    "function_id": 4,
+    "name": "run_hourly_local_orders_batch",
+    "docstring": "Return delivered, no_op, held, or held_notify_failed after one fail-closed run under guidance `Fail-closed policy for the hourly local orders batch`.",
+    "implementation": "def run_hourly_local_orders_batch() -> dict[str, object]:\n    \"\"\"Return delivered, no_op, held, or held_notify_failed after one fail-closed run under guidance `Fail-closed policy for the hourly local orders batch`.\"\"\"\n    import logging\n\n    log = logging.getLogger(__name__)\n    try:\n        snapshot = fetch_validated_local_orders()\n        last_seq = snapshot[\"last_seq\"]\n        orders = snapshot[\"orders\"]\n        if not orders:\n            log.info(\"SKIP validated pending order array was empty; no POST performed\")\n            return {\"outcome\": \"no_op\", \"last_seq\": last_seq, \"order_count\": 0}\n        payload = compute_verified_local_orders_batch(last_seq, orders)\n        status = post_verified_local_orders_batch(payload)\n        return {\"outcome\": \"delivered\", \"http_status\": status, \"payload\": payload}\n    except Exception as exc:\n        reason = str(exc) or f\"unexpected {type(exc).__name__}\"\n        log.warning(\"SOFT_FAIL withholding batch: %s\", reason, exc_info=True)\n        return notify_local_orders_hold(reason)\n"
+  },
+  "functions_final": {
+    "run_hourly_local_orders_batch": {
+      "function_id": 4,
+      "implementation": "def run_hourly_local_orders_batch() -> dict[str, object]:\n    \"\"\"Return delivered, no_op, held, or held_notify_failed after one fail-closed run under guidance `Fail-closed policy for the hourly local orders batch`.\"\"\"\n    import logging\n\n    log = logging.getLogger(__name__)\n    try:\n        snapshot = fetch_validated_local_orders()\n        last_seq = snapshot[\"last_seq\"]\n        orders = snapshot[\"orders\"]\n        if not orders:\n            log.info(\"SKIP validated pending order array was empty; no POST performed\")\n            return {\"outcome\": \"no_op\", \"last_seq\": last_seq, \"order_count\": 0}\n        payload = compute_verified_local_orders_batch(last_seq, orders)\n        status = post_verified_local_orders_batch(payload)\n        return {\"outcome\": \"delivered\", \"http_status\": status, \"payload\": payload}\n    except Exception as exc:\n        reason = str(exc) or f\"unexpected {type(exc).__name__}\"\n        log.warning(\"SOFT_FAIL withholding batch: %s\", reason, exc_info=True)\n        return notify_local_orders_hold(reason)\n",
+      "verify": true,
+      "side_effect_class": "unsafe_effectful"
+    },
+    "notify_local_orders_hold": {
+      "function_id": 3,
+      "implementation": "def notify_local_orders_hold(reason: str) -> dict[str, object]:\n    \"\"\"Return a held outcome after attempting exactly one fixed-API owner notification whose sole JSON key is message.\"\"\"\n    import json\n    import logging\n    import urllib.error\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    if type(reason) is not str or not reason:\n        reason = \"unspecified processing failure\"\n    message = \"HOLD: \" + reason\n    body = json.dumps({\"message\": message}, ensure_ascii=True, separators=(\",\", \":\")).encode(\"utf-8\")\n    request = urllib.request.Request(\n        \"http://127.0.0.1:18191/owner/notify\",\n        data=body,\n        headers={\"Accept\": \"application/json\", \"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    try:\n        with urllib.request.urlopen(request, timeout=20) as response:\n            status = response.status\n            response.read()\n        if not 200 <= status <= 299:\n            raise RuntimeError(f\"POST /owner/notify returned unsuccessful HTTP {status}\")\n        log.warning(\"SOFT_FAIL hold notification delivered: %s\", message)\n        return {\"outcome\": \"held\", \"message\": message, \"notify_http_status\": status}\n    except urllib.error.HTTPError as exc:\n        detail = exc.read().decode(\"utf-8\", \"replace\")[:200]\n        suffix = f\"; body={detail!r}\" if detail else \"\"\n        error = f\"POST /owner/notify returned HTTP {exc.code}{suffix}\"\n    except Exception as exc:\n        error = f\"POST /owner/notify failed: {type(exc).__name__}: {exc}\"\n    log.error(\"SOFT_FAIL hold notification failed after batch delivery was withheld: %s\", error)\n    return {\"outcome\": \"held_notify_failed\", \"message\": message, \"notify_error\": error}\n",
+      "verify": true,
+      "side_effect_class": "unsafe_effectful"
+    },
+    "post_verified_local_orders_batch": {
+      "function_id": 2,
+      "implementation": "def post_verified_local_orders_batch(payload: dict[str, object]) -> int:\n    \"\"\"Return the successful 2xx HTTP status after posting exactly one verified six-key batch payload to the fixed local API.\"\"\"\n    import json\n    import logging\n    import urllib.error\n    import urllib.request\n\n    required = {\n        \"batch_start_seq\",\n        \"batch_end_seq\",\n        \"order_count\",\n        \"total_units\",\n        \"total_amount_minor\",\n        \"amount_by_region_minor\",\n    }\n    if type(payload) is not dict or set(payload.keys()) != required or len(payload) != 6:\n        raise ValueError(\"batch payload must have exactly the six required keys\")\n    for field in required - {\"amount_by_region_minor\"}:\n        if type(payload[field]) is not int:\n            raise ValueError(f\"payload.{field} must be a JSON integer, not boolean\")\n    region_totals = payload[\"amount_by_region_minor\"]\n    if type(region_totals) is not dict:\n        raise ValueError(\"payload.amount_by_region_minor must be an object\")\n    if any(type(key) is not str or type(value) is not int for key, value in region_totals.items()):\n        raise ValueError(\"region totals must have string keys and JSON integer values\")\n\n    logging.getLogger(__name__).info(\"PHASE deliver verified batch\")\n    body = json.dumps(payload, ensure_ascii=True, separators=(\",\", \":\")).encode(\"utf-8\")\n    request = urllib.request.Request(\n        \"http://127.0.0.1:18191/batches\",\n        data=body,\n        headers={\"Accept\": \"application/json\", \"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    try:\n        with urllib.request.urlopen(request, timeout=20) as response:\n            status = response.status\n            response.read()\n    except urllib.error.HTTPError as exc:\n        detail = exc.read().decode(\"utf-8\", \"replace\")[:200]\n        suffix = f\"; body={detail!r}\" if detail else \"\"\n        raise RuntimeError(f\"POST /batches returned HTTP {exc.code}{suffix}\") from exc\n    except Exception as exc:\n        raise RuntimeError(f\"POST /batches failed: {type(exc).__name__}: {exc}\") from exc\n    if not 200 <= status <= 299:\n        raise RuntimeError(f\"POST /batches returned unsuccessful HTTP {status}\")\n    logging.getLogger(__name__).info(\"PHASE batch accepted with HTTP %d\", status)\n    return status\n",
+      "verify": false,
+      "side_effect_class": "unsafe_effectful"
+    },
+    "compute_verified_local_orders_batch": {
+      "function_id": 1,
+      "implementation": "def compute_verified_local_orders_batch(last_seq: int, orders: list[dict[str, object]]) -> dict[str, object]:\n    \"\"\"Return the exact six-key integer batch payload for a nonempty, fully valid ascending order list.\"\"\"\n    import logging\n    import re\n    from datetime import date\n\n    log = logging.getLogger(__name__)\n    order_keys = {\"seq\", \"date\", \"region\", \"units\", \"amount\"}\n    batch_keys = {\n        \"batch_start_seq\",\n        \"batch_end_seq\",\n        \"order_count\",\n        \"total_units\",\n        \"total_amount_minor\",\n        \"amount_by_region_minor\",\n    }\n    date_re = re.compile(r\"[0-9]{4}-[0-9]{2}-[0-9]{2}\\Z\")\n\n    if type(last_seq) is not int or last_seq < 0:\n        raise ValueError(\"last_seq must be a JSON integer >= 0\")\n    if type(orders) is not list or not orders or len(orders) > 100:\n        raise ValueError(\"orders must be a nonempty list with at most 100 entries\")\n\n    seen: set[int] = set()\n    prior: int | None = None\n    for index, order in enumerate(orders):\n        label = f\"order[{index}]\"\n        if type(order) is not dict or set(order.keys()) != order_keys or len(order) != 5:\n            raise ValueError(f\"{label} must contain exactly the five required keys\")\n        for field in (\"seq\", \"units\", \"amount\"):\n            if type(order[field]) is not int:\n                raise ValueError(f\"{label}.{field} must be a JSON integer, not boolean\")\n        value = order[\"date\"]\n        if type(value) is not str or date_re.fullmatch(value) is None:\n            raise ValueError(f\"{label}.date must be exactly valid YYYY-MM-DD\")\n        try:\n            parsed = date.fromisoformat(value)\n        except ValueError as exc:\n            raise ValueError(f\"{label}.date was not a valid calendar date\") from exc\n        if parsed.isoformat() != value:\n            raise ValueError(f\"{label}.date was not canonical YYYY-MM-DD\")\n        if type(order[\"region\"]) is not str:\n            raise ValueError(f\"{label}.region must be a string\")\n        seq = order[\"seq\"]\n        if seq <= last_seq:\n            raise ValueError(f\"{label}.seq must be greater than last_seq\")\n        if seq in seen:\n            raise ValueError(f\"duplicate seq {seq}\")\n        if prior is not None and seq <= prior:\n            raise ValueError(\"orders must be strictly ascending by seq\")\n        seen.add(seq)\n        prior = seq\n\n    log.info(\"PHASE compute exact integer aggregates\")\n    total_units = 0\n    total_amount = 0\n    region_totals: dict[str, int] = {}\n    for order in orders:\n        total_units += order[\"units\"]\n        total_amount += order[\"amount\"]\n        region = order[\"region\"]\n        region_totals[region] = region_totals.get(region, 0) + order[\"amount\"]\n\n    payload: dict[str, object] = {\n        \"batch_start_seq\": orders[0][\"seq\"],\n        \"batch_end_seq\": orders[-1][\"seq\"],\n        \"order_count\": len(orders),\n        \"total_units\": total_units,\n        \"total_amount_minor\": total_amount,\n        \"amount_by_region_minor\": region_totals,\n    }\n\n    log.info(\"PHASE independently recompute and verify payload before delivery\")\n    check_units = sum((order[\"units\"] for order in orders), 0)\n    check_amount = sum((order[\"amount\"] for order in orders), 0)\n    check_regions: dict[str, int] = {}\n    for order in orders:\n        region = order[\"region\"]\n        check_regions[region] = check_regions.get(region, 0) + order[\"amount\"]\n    expected: dict[str, object] = {\n        \"batch_start_seq\": orders[0][\"seq\"],\n        \"batch_end_seq\": orders[len(orders) - 1][\"seq\"],\n        \"order_count\": len(orders),\n        \"total_units\": check_units,\n        \"total_amount_minor\": check_amount,\n        \"amount_by_region_minor\": check_regions,\n    }\n\n    if set(payload.keys()) != batch_keys or len(payload) != 6:\n        raise ValueError(\"computed payload did not contain exactly the six required keys\")\n    for field in (\n        \"batch_start_seq\",\n        \"batch_end_seq\",\n        \"order_count\",\n        \"total_units\",\n        \"total_amount_minor\",\n    ):\n        if type(payload[field]) is not int:\n            raise ValueError(f\"payload.{field} was not a JSON integer\")\n    region_payload = payload[\"amount_by_region_minor\"]\n    if type(region_payload) is not dict:\n        raise ValueError(\"payload.amount_by_region_minor was not an object\")\n    if set(region_payload.keys()) != {order[\"region\"] for order in orders}:\n        raise ValueError(\"payload.amount_by_region_minor did not contain exactly every source region\")\n    if any(type(region) is not str or type(value) is not int for region, value in region_payload.items()):\n        raise ValueError(\"payload.amount_by_region_minor had a non-string key or non-integer value\")\n    if payload != expected:\n        raise ValueError(\"computed payload failed independent source-order verification\")\n    return payload\n",
+      "verify": true,
+      "side_effect_class": "safe_noop"
+    },
+    "fetch_validated_local_orders": {
+      "function_id": 0,
+      "implementation": "def fetch_validated_local_orders() -> dict[str, object]:\n    \"\"\"Return exactly a nonnegative last_seq and a strictly validated pending-order list from the fixed local API.\"\"\"\n    import json\n    import logging\n    import re\n    import urllib.error\n    import urllib.request\n    from datetime import date\n\n    log = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:18191\"\n    timeout_seconds = 20\n    order_keys = {\"seq\", \"date\", \"region\", \"units\", \"amount\"}\n    date_re = re.compile(r\"[0-9]{4}-[0-9]{2}-[0-9]{2}\\Z\")\n\n    class DuplicateJSONKey(ValueError):\n        pass\n\n    def reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:\n        value: dict[str, object] = {}\n        for key, item in pairs:\n            if key in value:\n                raise DuplicateJSONKey(f\"duplicate JSON object key {key!r}\")\n            value[key] = item\n        return value\n\n    def decode(body: bytes, label: str) -> object:\n        try:\n            text = body.decode(\"utf-8\")\n        except UnicodeDecodeError as exc:\n            raise RuntimeError(f\"{label} body was not valid UTF-8: {exc}\") from exc\n        try:\n            return json.loads(\n                text,\n                object_pairs_hook=reject_duplicate_keys,\n                parse_constant=lambda token: (_ for _ in ()).throw(\n                    ValueError(f\"non-standard JSON constant {token}\")\n                ),\n            )\n        except (json.JSONDecodeError, DuplicateJSONKey, ValueError) as exc:\n            raise RuntimeError(f\"{label} JSON decode failed: {exc}\") from exc\n\n    def get(path: str) -> bytes:\n        request = urllib.request.Request(\n            base + path,\n            headers={\"Accept\": \"application/json\"},\n            method=\"GET\",\n        )\n        try:\n            with urllib.request.urlopen(request, timeout=timeout_seconds) as response:\n                status = response.status\n                body = response.read()\n        except urllib.error.HTTPError as exc:\n            detail = exc.read().decode(\"utf-8\", \"replace\")[:200]\n            suffix = f\"; body={detail!r}\" if detail else \"\"\n            raise RuntimeError(f\"GET {path} returned HTTP {exc.code}{suffix}\") from exc\n        except Exception as exc:\n            raise RuntimeError(f\"GET {path} failed: {type(exc).__name__}: {exc}\") from exc\n        if not 200 <= status <= 299:\n            raise RuntimeError(f\"GET {path} returned unsuccessful HTTP {status}\")\n        return body\n\n    def require_int(value: object, field: str) -> None:\n        if type(value) is not int:\n            raise RuntimeError(f\"{field} was {type(value).__name__}, expected JSON integer\")\n\n    def require_date(value: object, field: str) -> None:\n        if type(value) is not str:\n            raise RuntimeError(f\"{field} was {type(value).__name__}, expected string\")\n        if date_re.fullmatch(value) is None:\n            raise RuntimeError(f\"{field}={value!r} was not exactly YYYY-MM-DD\")\n        try:\n            parsed = date.fromisoformat(value)\n        except ValueError as exc:\n            raise RuntimeError(f\"{field}={value!r} was not a valid calendar date\") from exc\n        if parsed.isoformat() != value:\n            raise RuntimeError(f\"{field}={value!r} was not canonical YYYY-MM-DD\")\n\n    log.info(\"PHASE fetch and validate last processed sequence\")\n    last_value = decode(get(\"/batches/last\"), \"GET /batches/last\")\n    if type(last_value) is not dict:\n        raise RuntimeError(\n            f\"GET /batches/last JSON was {type(last_value).__name__}, expected object\"\n        )\n    if set(last_value.keys()) != {\"last_seq\"} or len(last_value) != 1:\n        raise RuntimeError(\n            f\"GET /batches/last keys were {sorted(map(str, last_value.keys()))!r}, expected exactly ['last_seq']\"\n        )\n    last_seq = last_value[\"last_seq\"]\n    require_int(last_seq, \"last_seq\")\n    if last_seq < 0:\n        raise RuntimeError(f\"last_seq was {last_seq}, expected >= 0\")\n\n    log.info(\"PHASE fetch and validate pending orders after seq=%d\", last_seq)\n    orders = decode(get(f\"/orders?after={last_seq}\"), \"GET /orders\")\n    if type(orders) is not list:\n        raise RuntimeError(f\"GET /orders JSON was {type(orders).__name__}, expected array\")\n    if len(orders) > 100:\n        raise RuntimeError(f\"GET /orders returned {len(orders)} entries, maximum is 100\")\n\n    seen: set[int] = set()\n    prior: int | None = None\n    for index, order in enumerate(orders):\n        label = f\"order[{index}]\"\n        if type(order) is not dict:\n            raise RuntimeError(f\"{label} was {type(order).__name__}, expected object\")\n        if set(order.keys()) != order_keys or len(order) != 5:\n            raise RuntimeError(\n                f\"{label} keys were {sorted(map(str, order.keys()))!r}, expected exactly {sorted(order_keys)!r}\"\n            )\n        require_int(order[\"seq\"], f\"{label}.seq\")\n        require_int(order[\"units\"], f\"{label}.units\")\n        require_int(order[\"amount\"], f\"{label}.amount\")\n        require_date(order[\"date\"], f\"{label}.date\")\n        if type(order[\"region\"]) is not str:\n            raise RuntimeError(\n                f\"{label}.region was {type(order['region']).__name__}, expected string\"\n            )\n        seq = order[\"seq\"]\n        if seq <= last_seq:\n            raise RuntimeError(f\"{label}.seq was {seq}, expected > last_seq {last_seq}\")\n        if seq in seen:\n            raise RuntimeError(f\"duplicate seq {seq} at {label}\")\n        if prior is not None and seq <= prior:\n            raise RuntimeError(f\"orders were not strictly ascending: seq {seq} followed {prior}\")\n        seen.add(seq)\n        prior = seq\n\n    return {\"last_seq\": last_seq, \"orders\": orders}\n",
+      "verify": true,
+      "side_effect_class": "read_only"
+    }
+  },
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 368.19,
+      "llm_calls": 34,
+      "prompt_tokens": 1251059,
+      "completion_tokens": 7277,
+      "total_tokens": 1258336,
+      "provider_cost_usd": null,
+      "provider_cost_missing_calls": 5,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 34
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 34,
+          "prompt_tokens": 1251059,
+          "completion_tokens": 7277
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_1",
+      "wall_seconds": 64.89,
+      "llm_calls": 7,
+      "prompt_tokens": 168044,
+      "completion_tokens": 4159,
+      "total_tokens": 172203,
+      "provider_cost_usd": null,
+      "provider_cost_missing_calls": 2,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 7
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 7,
+          "prompt_tokens": 168044,
+          "completion_tokens": 4159
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_1_review",
+      "wall_seconds": 18.01,
+      "llm_calls": 4,
+      "prompt_tokens": 110886,
+      "completion_tokens": 237,
+      "total_tokens": 111123,
+      "provider_cost_usd": null,
+      "provider_cost_missing_calls": 1,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 4
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 4,
+          "prompt_tokens": 110886,
+          "completion_tokens": 237
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_2",
+      "wall_seconds": 57.77,
+      "llm_calls": 12,
+      "prompt_tokens": 293801,
+      "completion_tokens": 5584,
+      "total_tokens": 299385,
+      "provider_cost_usd": null,
+      "provider_cost_missing_calls": 4,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 12
+      },
+      "failed_calls": 1,
+      "errors": {
+        "APIError": 1
+      },
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 12,
+          "prompt_tokens": 293801,
+          "completion_tokens": 5584
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_2_review",
+      "wall_seconds": 342.32,
+      "llm_calls": 23,
+      "prompt_tokens": 1201977,
+      "completion_tokens": 18212,
+      "total_tokens": 1220189,
+      "provider_cost_usd": null,
+      "provider_cost_missing_calls": 2,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 23
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 23,
+          "prompt_tokens": 1201977,
+          "completion_tokens": 18212
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_3",
+      "wall_seconds": 136.97,
+      "llm_calls": 15,
+      "prompt_tokens": 57887,
+      "completion_tokens": 5071,
+      "total_tokens": 62958,
+      "provider_cost_usd": 0.231969,
+      "provider_cost_missing_calls": 0,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 15
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 4,
+          "prompt_tokens": 19339,
+          "completion_tokens": 2039
+        },
+        "verification": {
+          "llm_calls": 11,
+          "prompt_tokens": 38548,
+          "completion_tokens": 3032
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_3_review",
+      "wall_seconds": 164.16,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "provider_cost_missing_calls": 0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_4",
+      "wall_seconds": 115.37,
+      "llm_calls": 11,
+      "prompt_tokens": 49483,
+      "completion_tokens": 3596,
+      "total_tokens": 53079,
+      "provider_cost_usd": 0.156705,
+      "provider_cost_missing_calls": 0,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 11
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 4,
+          "prompt_tokens": 18180,
+          "completion_tokens": 2075
+        },
+        "verification": {
+          "llm_calls": 7,
+          "prompt_tokens": 31303,
+          "completion_tokens": 1521
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_4_review",
+      "wall_seconds": 158.08,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "provider_cost_missing_calls": 0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_5",
+      "wall_seconds": 35.77,
+      "llm_calls": 3,
+      "prompt_tokens": 10594,
+      "completion_tokens": 1108,
+      "total_tokens": 11702,
+      "provider_cost_usd": 0.026273,
+      "provider_cost_missing_calls": 0,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 8163,
+          "completion_tokens": 1066
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 2431,
+          "completion_tokens": 42
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_5_review",
+      "wall_seconds": 180.09,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "provider_cost_missing_calls": 0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_6",
+      "wall_seconds": 120.77,
+      "llm_calls": 11,
+      "prompt_tokens": 50458,
+      "completion_tokens": 3812,
+      "total_tokens": 54270,
+      "provider_cost_usd": 0.162989,
+      "provider_cost_missing_calls": 0,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 11
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 4,
+          "prompt_tokens": 19145,
+          "completion_tokens": 2151
+        },
+        "verification": {
+          "llm_calls": 7,
+          "prompt_tokens": 31313,
+          "completion_tokens": 1661
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_6_review",
+      "wall_seconds": 162.08,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "provider_cost_missing_calls": 0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_7",
+      "wall_seconds": 107.36,
+      "llm_calls": 11,
+      "prompt_tokens": 48621,
+      "completion_tokens": 3409,
+      "total_tokens": 52030,
+      "provider_cost_usd": 0.151203,
+      "provider_cost_missing_calls": 0,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 11
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 4,
+          "prompt_tokens": 17311,
+          "completion_tokens": 2057
+        },
+        "verification": {
+          "llm_calls": 7,
+          "prompt_tokens": 31310,
+          "completion_tokens": 1352
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_7_review",
+      "wall_seconds": 164.11,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "provider_cost_missing_calls": 0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_8",
+      "wall_seconds": 38.33,
+      "llm_calls": 3,
+      "prompt_tokens": 12570,
+      "completion_tokens": 1282,
+      "total_tokens": 13852,
+      "provider_cost_usd": 0.035058,
+      "provider_cost_missing_calls": 0,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 10139,
+          "completion_tokens": 1237
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 2431,
+          "completion_tokens": 45
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_8_review",
+      "wall_seconds": 180.16,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "provider_cost_missing_calls": 0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_9",
+      "wall_seconds": 118.36,
+      "llm_calls": 11,
+      "prompt_tokens": 49598,
+      "completion_tokens": 4286,
+      "total_tokens": 53884,
+      "provider_cost_usd": 0.167402,
+      "provider_cost_missing_calls": 0,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 11
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 4,
+          "prompt_tokens": 18273,
+          "completion_tokens": 2187
+        },
+        "verification": {
+          "llm_calls": 7,
+          "prompt_tokens": 31325,
+          "completion_tokens": 2099
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_9_review",
+      "wall_seconds": 164.13,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "provider_cost_missing_calls": 0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_10",
+      "wall_seconds": 37.44,
+      "llm_calls": 3,
+      "prompt_tokens": 10543,
+      "completion_tokens": 1375,
+      "total_tokens": 11918,
+      "provider_cost_usd": 0.030118,
+      "provider_cost_missing_calls": 0,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 8112,
+          "completion_tokens": 1328
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 2431,
+          "completion_tokens": 47
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_10_review",
+      "wall_seconds": 180.15,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "provider_cost_missing_calls": 0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    }
+  ],
+  "cost": {
+    "meter": "model_usage",
+    "elapsed_seconds": 2914.51,
+    "provider_cost_usd": null,
+    "provider_cost_missing_calls": 14,
+    "llm_calls": 148,
+    "prompt_tokens": 3315521,
+    "completion_tokens": 59408,
+    "total_tokens": 3374929,
+    "human_active_seconds": 0.0,
+    "human_hourly_rate_usd": null,
+    "human_labor_cost_usd": 0.0,
+    "phases": [
+      "setup",
+      "fire_1",
+      "fire_1_review",
+      "fire_2",
+      "fire_2_review",
+      "fire_3",
+      "fire_3_review",
+      "fire_4",
+      "fire_4_review",
+      "fire_5",
+      "fire_5_review",
+      "fire_6",
+      "fire_6_review",
+      "fire_7",
+      "fire_7_review",
+      "fire_8",
+      "fire_8_review",
+      "fire_9",
+      "fire_9_review",
+      "fire_10",
+      "fire_10_review"
+    ]
+  },
+  "series": {},
+  "finished_at": "2026-08-20T20:04:53.435176+00:00"
+}

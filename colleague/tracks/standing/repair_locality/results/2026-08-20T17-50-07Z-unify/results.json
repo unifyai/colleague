@@ -1,0 +1,1633 @@
+{
+  "experiment": "repair_locality",
+  "variant": null,
+  "system": "unify",
+  "run_id": "2026-08-20T17-50-07Z-unify",
+  "orchestra_url": "https://api.staging.internal.saas.unify.ai/v0",
+  "context": "colleague/repair_locality/2026-08-20T17-50-07Z-unify/default/0",
+  "seed": 20260817,
+  "n_fires": 10,
+  "quiesce_idle_s": 180.0,
+  "utterance": "Please set up an hourly recurring automation that posts an operations report from three local APIs at http://127.0.0.1:18183.\n\nCursors: GET http://127.0.0.1:18183/reports/last returns {\"orders_last_seq\": A, \"refunds_last_seq\": B, \"tickets_last_seq\": C} \u2014 the highest seq already reported for each stream (0 if none yet).\n\nStreams (each returns rows with seq > N, ascending, up to 200):\n- GET http://127.0.0.1:18183/orders?after=A \u2192 seq (int), region (string), units (int), unit_price_cents (int)\n- GET http://127.0.0.1:18183/refunds?after=B \u2192 seq (int), order_seq (int), amount_cents (int), reason (string)\n- GET http://127.0.0.1:18183/tickets?after=C \u2192 seq (int), priority (\"low\" | \"normal\" | \"high\"), channel (string)\n\nOn each run: read the cursors, fetch every new row from each stream, and if all three are empty do nothing. Otherwise POST one JSON object to http://127.0.0.1:18183/report with exactly these three keys, each an object with exactly these fields:\n- orders: start_seq, end_seq, count, total_units, total_revenue_cents (sum of units * unit_price_cents)\n- refunds: start_seq, end_seq, count, total_refunded_cents (sum of amount_cents)\n- tickets: start_seq, end_seq, count, by_priority (object with keys low, normal, high mapping to counts, all three always present)\n\nIf a run finds anything that does not match this description, or you cannot be sure the numbers you would deliver are right, do not deliver anything for that run. Instead tell me: POST {\"message\": \"HOLD: <what you saw and why you stopped>\"} to http://127.0.0.1:18183/owner/notify. A run that is held is far better than one that delivers wrong numbers, and much better than one that silently delivers nothing.\n\nSet up the recurring hourly automation now. Do not process anything right now, and do not ask for confirmation.",
+  "drift_after_fire": 4,
+  "release_per_fire": {
+    "orders": 24,
+    "refunds": 9,
+    "tickets": 15
+  },
+  "drift": "refunds.amount_cents -> amount_minor (orders, tickets unchanged)",
+  "messages": [],
+  "fires": [
+    {
+      "fire": 1,
+      "label": "fire_1",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "drifted": false,
+      "pending": {
+        "orders": [
+          1,
+          24
+        ],
+        "refunds": [
+          1,
+          9
+        ],
+        "tickets": [
+          1,
+          15
+        ]
+      },
+      "reports_delivered": 0,
+      "reports": [],
+      "expected": {
+        "orders": {
+          "start_seq": 1,
+          "end_seq": 24,
+          "count": 24,
+          "total_units": 269,
+          "total_revenue_cents": 496331
+        },
+        "refunds": {
+          "start_seq": 1,
+          "end_seq": 9,
+          "count": 9,
+          "total_refunded_cents": 52630
+        },
+        "tickets": {
+          "start_seq": 1,
+          "end_seq": 15,
+          "count": 15,
+          "by_priority": {
+            "low": 3,
+            "normal": 8,
+            "high": 4
+          }
+        }
+      },
+      "sections_correct": null,
+      "shapes": null,
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly operations report (local APIs 18183): could not verify hourly_operations_report_18183 (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 59567,
+          "completion": 4163,
+          "calls": 9
+        },
+        "verification": {
+          "prompt": 14992,
+          "completion": 1707,
+          "calls": 4
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 80429,
+        "phases": [
+          "fire_1",
+          "fire_1_review"
+        ]
+      }
+    },
+    {
+      "fire": 2,
+      "label": "fire_2",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "drifted": false,
+      "pending": {
+        "orders": [
+          1,
+          48
+        ],
+        "refunds": [
+          1,
+          18
+        ],
+        "tickets": [
+          1,
+          30
+        ]
+      },
+      "reports_delivered": 1,
+      "reports": [
+        {
+          "orders": {
+            "start_seq": 1,
+            "end_seq": 48,
+            "count": 48,
+            "total_units": 500,
+            "total_revenue_cents": 937300
+          },
+          "refunds": {
+            "start_seq": 1,
+            "end_seq": 18,
+            "count": 18,
+            "total_refunded_cents": 103335
+          },
+          "tickets": {
+            "start_seq": 1,
+            "end_seq": 30,
+            "count": 30,
+            "by_priority": {
+              "low": 6,
+              "normal": 18,
+              "high": 6
+            }
+          }
+        }
+      ],
+      "expected": {
+        "orders": {
+          "start_seq": 1,
+          "end_seq": 48,
+          "count": 48,
+          "total_units": 500,
+          "total_revenue_cents": 937300
+        },
+        "refunds": {
+          "start_seq": 1,
+          "end_seq": 18,
+          "count": 18,
+          "total_refunded_cents": 103335
+        },
+        "tickets": {
+          "start_seq": 1,
+          "end_seq": 30,
+          "count": 30,
+          "by_priority": {
+            "low": 6,
+            "normal": 18,
+            "high": 6
+          }
+        }
+      },
+      "sections_correct": {
+        "orders": true,
+        "refunds": true,
+        "tickets": true
+      },
+      "shapes": {
+        "orders": [
+          [
+            "start_seq",
+            "int"
+          ],
+          [
+            "end_seq",
+            "int"
+          ],
+          [
+            "count",
+            "int"
+          ],
+          [
+            "total_units",
+            "int"
+          ],
+          [
+            "total_revenue_cents",
+            "int"
+          ]
+        ],
+        "refunds": [
+          [
+            "start_seq",
+            "int"
+          ],
+          [
+            "end_seq",
+            "int"
+          ],
+          [
+            "count",
+            "int"
+          ],
+          [
+            "total_refunded_cents",
+            "int"
+          ]
+        ],
+        "tickets": [
+          [
+            "start_seq",
+            "int"
+          ],
+          [
+            "end_seq",
+            "int"
+          ],
+          [
+            "count",
+            "int"
+          ],
+          [
+            "by_priority",
+            "dict"
+          ]
+        ]
+      },
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "{'status': 'delivered', 'counts': {'orders': 48, 'refunds': 18, 'tickets': 30}}",
+      "tokens": {
+        "planning": {
+          "prompt": 12035,
+          "completion": 1011,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 7780,
+          "completion": 2181,
+          "calls": 2
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 23007,
+        "phases": [
+          "fire_2",
+          "fire_2_review"
+        ]
+      }
+    },
+    {
+      "fire": 3,
+      "label": "fire_3",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "drifted": false,
+      "pending": {
+        "orders": [
+          49,
+          72
+        ],
+        "refunds": [
+          19,
+          27
+        ],
+        "tickets": [
+          31,
+          45
+        ]
+      },
+      "reports_delivered": 0,
+      "reports": [],
+      "expected": {
+        "orders": {
+          "start_seq": 49,
+          "end_seq": 72,
+          "count": 24,
+          "total_units": 238,
+          "total_revenue_cents": 461862
+        },
+        "refunds": {
+          "start_seq": 19,
+          "end_seq": 27,
+          "count": 9,
+          "total_refunded_cents": 43200
+        },
+        "tickets": {
+          "start_seq": 31,
+          "end_seq": 45,
+          "count": 15,
+          "by_priority": {
+            "low": 2,
+            "normal": 5,
+            "high": 8
+          }
+        }
+      },
+      "sections_correct": null,
+      "shapes": null,
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly operations report (local APIs 18183): could not verify hourly_operations_report_18183 (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 9769,
+          "completion": 888,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 3882,
+          "completion": 50,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 14589,
+        "phases": [
+          "fire_3",
+          "fire_3_review"
+        ]
+      }
+    },
+    {
+      "fire": 4,
+      "label": "fire_4",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "drifted": false,
+      "pending": {
+        "orders": [
+          49,
+          96
+        ],
+        "refunds": [
+          19,
+          36
+        ],
+        "tickets": [
+          31,
+          60
+        ]
+      },
+      "reports_delivered": 0,
+      "reports": [],
+      "expected": {
+        "orders": {
+          "start_seq": 49,
+          "end_seq": 96,
+          "count": 48,
+          "total_units": 505,
+          "total_revenue_cents": 1020495
+        },
+        "refunds": {
+          "start_seq": 19,
+          "end_seq": 36,
+          "count": 18,
+          "total_refunded_cents": 80706
+        },
+        "tickets": {
+          "start_seq": 31,
+          "end_seq": 60,
+          "count": 30,
+          "by_priority": {
+            "low": 8,
+            "normal": 8,
+            "high": 14
+          }
+        }
+      },
+      "sections_correct": null,
+      "shapes": null,
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly operations report (local APIs 18183): could not verify hourly_operations_report_18183 (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 9651,
+          "completion": 2009,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 3882,
+          "completion": 55,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 15597,
+        "phases": [
+          "fire_4",
+          "fire_4_review"
+        ]
+      }
+    },
+    {
+      "fire": 5,
+      "label": "fire_5",
+      "events": [
+        "drift:refunds.amount_cents->amount_minor"
+      ],
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "drifted": true,
+      "pending": {
+        "orders": [
+          49,
+          120
+        ],
+        "refunds": [
+          19,
+          45
+        ],
+        "tickets": [
+          31,
+          75
+        ]
+      },
+      "reports_delivered": 0,
+      "reports": [],
+      "expected": {
+        "orders": {
+          "start_seq": 49,
+          "end_seq": 120,
+          "count": 72,
+          "total_units": 755,
+          "total_revenue_cents": 1512045
+        },
+        "refunds": {
+          "start_seq": 19,
+          "end_seq": 45,
+          "count": 27,
+          "total_refunded_cents": 127923
+        },
+        "tickets": {
+          "start_seq": 31,
+          "end_seq": 75,
+          "count": 45,
+          "by_priority": {
+            "low": 14,
+            "normal": 11,
+            "high": 20
+          }
+        }
+      },
+      "sections_correct": null,
+      "shapes": null,
+      "outcome": "held",
+      "score": 1,
+      "correct": false,
+      "held": true,
+      "owner_messages": [
+        {
+          "text": "HOLD: ValidationError: refunds row keys were ['amount_minor', 'order_seq', 'reason', 'seq'], expected exactly ['amount_cents', 'order_seq', 'reason', 'seq']",
+          "via": "fixture",
+          "at": "2026-08-20T18:30:11.217080+00:00"
+        }
+      ],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "{'status': 'held', 'reason': \"ValidationError: refunds row keys were ['amount_minor', 'order_seq', 'reason', 'seq'], expected exactly ['amount_cents', 'order_seq', 'reason', 'seq']\"}",
+      "tokens": {
+        "planning": {
+          "prompt": 9687,
+          "completion": 952,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 7818,
+          "completion": 310,
+          "calls": 2
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 18767,
+        "phases": [
+          "fire_5",
+          "fire_5_review"
+        ]
+      }
+    },
+    {
+      "fire": 6,
+      "label": "fire_6",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "drifted": true,
+      "pending": {
+        "orders": [
+          49,
+          144
+        ],
+        "refunds": [
+          19,
+          54
+        ],
+        "tickets": [
+          31,
+          90
+        ]
+      },
+      "reports_delivered": 0,
+      "reports": [],
+      "expected": {
+        "orders": {
+          "start_seq": 49,
+          "end_seq": 144,
+          "count": 96,
+          "total_units": 966,
+          "total_revenue_cents": 1955534
+        },
+        "refunds": {
+          "start_seq": 19,
+          "end_seq": 54,
+          "count": 36,
+          "total_refunded_cents": 161717
+        },
+        "tickets": {
+          "start_seq": 31,
+          "end_seq": 90,
+          "count": 60,
+          "by_priority": {
+            "low": 20,
+            "normal": 15,
+            "high": 25
+          }
+        }
+      },
+      "sections_correct": null,
+      "shapes": null,
+      "outcome": "held",
+      "score": 1,
+      "correct": false,
+      "held": true,
+      "owner_messages": [
+        {
+          "text": "HOLD: ValidationError: refunds row keys were ['amount_minor', 'order_seq', 'reason', 'seq'], expected exactly ['amount_cents', 'order_seq', 'reason', 'seq']",
+          "via": "fixture",
+          "at": "2026-08-20T18:33:50.950843+00:00"
+        }
+      ],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "{'status': 'held', 'reason': \"ValidationError: refunds row keys were ['amount_minor', 'order_seq', 'reason', 'seq'], expected exactly ['amount_cents', 'order_seq', 'reason', 'seq']\"}",
+      "tokens": {
+        "planning": {
+          "prompt": 10973,
+          "completion": 1138,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 7818,
+          "completion": 472,
+          "calls": 2
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 20401,
+        "phases": [
+          "fire_6",
+          "fire_6_review"
+        ]
+      }
+    },
+    {
+      "fire": 7,
+      "label": "fire_7",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "drifted": true,
+      "pending": {
+        "orders": [
+          49,
+          168
+        ],
+        "refunds": [
+          19,
+          63
+        ],
+        "tickets": [
+          31,
+          105
+        ]
+      },
+      "reports_delivered": 0,
+      "reports": [],
+      "expected": {
+        "orders": {
+          "start_seq": 49,
+          "end_seq": 168,
+          "count": 120,
+          "total_units": 1207,
+          "total_revenue_cents": 2418893
+        },
+        "refunds": {
+          "start_seq": 19,
+          "end_seq": 63,
+          "count": 45,
+          "total_refunded_cents": 209053
+        },
+        "tickets": {
+          "start_seq": 31,
+          "end_seq": 105,
+          "count": 75,
+          "by_priority": {
+            "low": 28,
+            "normal": 19,
+            "high": 28
+          }
+        }
+      },
+      "sections_correct": null,
+      "shapes": null,
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly operations report (local APIs 18183): could not verify hourly_operations_report_18183 (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 11623,
+          "completion": 976,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 3882,
+          "completion": 50,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 16531,
+        "phases": [
+          "fire_7",
+          "fire_7_review"
+        ]
+      }
+    },
+    {
+      "fire": 8,
+      "label": "fire_8",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "drifted": true,
+      "pending": {
+        "orders": [
+          49,
+          192
+        ],
+        "refunds": [
+          19,
+          72
+        ],
+        "tickets": [
+          31,
+          120
+        ]
+      },
+      "reports_delivered": 0,
+      "reports": [],
+      "expected": {
+        "orders": {
+          "start_seq": 49,
+          "end_seq": 192,
+          "count": 144,
+          "total_units": 1426,
+          "total_revenue_cents": 2785174
+        },
+        "refunds": {
+          "start_seq": 19,
+          "end_seq": 72,
+          "count": 54,
+          "total_refunded_cents": 252291
+        },
+        "tickets": {
+          "start_seq": 31,
+          "end_seq": 120,
+          "count": 90,
+          "by_priority": {
+            "low": 36,
+            "normal": 22,
+            "high": 32
+          }
+        }
+      },
+      "sections_correct": null,
+      "shapes": null,
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly operations report (local APIs 18183): could not verify hourly_operations_report_18183 (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 11022,
+          "completion": 1319,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 3882,
+          "completion": 48,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 16271,
+        "phases": [
+          "fire_8",
+          "fire_8_review"
+        ]
+      }
+    },
+    {
+      "fire": 9,
+      "label": "fire_9",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "drifted": true,
+      "pending": {
+        "orders": [
+          49,
+          216
+        ],
+        "refunds": [
+          19,
+          81
+        ],
+        "tickets": [
+          31,
+          135
+        ]
+      },
+      "reports_delivered": 0,
+      "reports": [],
+      "expected": {
+        "orders": {
+          "start_seq": 49,
+          "end_seq": 216,
+          "count": 168,
+          "total_units": 1668,
+          "total_revenue_cents": 3257332
+        },
+        "refunds": {
+          "start_seq": 19,
+          "end_seq": 81,
+          "count": 63,
+          "total_refunded_cents": 299442
+        },
+        "tickets": {
+          "start_seq": 31,
+          "end_seq": 135,
+          "count": 105,
+          "by_priority": {
+            "low": 44,
+            "normal": 28,
+            "high": 33
+          }
+        }
+      },
+      "sections_correct": null,
+      "shapes": null,
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly operations report (local APIs 18183): could not verify hourly_operations_report_18183 (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 16823,
+          "completion": 1415,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 3882,
+          "completion": 46,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 22166,
+        "phases": [
+          "fire_9",
+          "fire_9_review"
+        ]
+      }
+    },
+    {
+      "fire": 10,
+      "label": "fire_10",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 0,
+      "entrypoint_after": 0,
+      "drifted": true,
+      "pending": {
+        "orders": [
+          49,
+          240
+        ],
+        "refunds": [
+          19,
+          90
+        ],
+        "tickets": [
+          31,
+          150
+        ]
+      },
+      "reports_delivered": 0,
+      "reports": [],
+      "expected": {
+        "orders": {
+          "start_seq": 49,
+          "end_seq": 240,
+          "count": 192,
+          "total_units": 1912,
+          "total_revenue_cents": 3697488
+        },
+        "refunds": {
+          "start_seq": 19,
+          "end_seq": 90,
+          "count": 72,
+          "total_refunded_cents": 341542
+        },
+        "tickets": {
+          "start_seq": 31,
+          "end_seq": 150,
+          "count": 120,
+          "by_priority": {
+            "low": 48,
+            "normal": 34,
+            "high": 38
+          }
+        }
+      },
+      "sections_correct": null,
+      "shapes": null,
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly operations report (local APIs 18183): could not verify hourly_operations_report_18183 (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 14719,
+          "completion": 806,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 3882,
+          "completion": 47,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 19454,
+        "phases": [
+          "fire_10",
+          "fire_10_review"
+        ]
+      }
+    }
+  ],
+  "setup": {
+    "status": "completed",
+    "result": "Set up and verified the live automation:\n\n- **Task:** `Hourly operations report (local APIs 18183)`\n- **Task ID:** `0`\n- **Entrypoint:** `hourly_operations_report_18183` (function ID `0`)\n- **Cadence:** Every hour\n- **First scheduled run:** **2026-08-20 18:52 UTC**\n- **Status:** Enabled and armed with a resolved schedule\n- **Current data:** Not processed; the entrypoint was not run or tested\n\nThe automation strictly validates cursors, pagination, row schemas, ordering, and report structure. Invalid or uncertain runs send the required `HOLD:` notification instead of intentionally submitting a report.\n\n**Uncertainties**\n- Per your instruction, connectivity to the local APIs has not been tested.\n- If only some streams have new rows, the automation holds because `start_seq` and `end_seq` for an empty report section were not defined."
+  },
+  "functions_after_setup": {
+    "hourly_operations_report_18183": {
+      "function_id": 0,
+      "implementation": "async def hourly_operations_report_18183() -> dict[str, object]:\n    \"\"\"Fetch, strictly validate, aggregate, and deliver one cursor-based operations report, holding on any uncertainty.\"\"\"\n    import asyncio\n    import json\n    import logging\n    import urllib.error\n    import urllib.parse\n    import urllib.request\n\n    logger = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:18183\"\n    max_body_bytes = 4 * 1024 * 1024\n\n    class ValidationError(Exception):\n        pass\n\n    def _json_no_duplicate_keys(raw: bytes, label: str) -> object:\n        if len(raw) > max_body_bytes:\n            raise ValidationError(f\"{label} response exceeded {max_body_bytes} bytes\")\n        try:\n            text = raw.decode(\"utf-8\", errors=\"strict\")\n        except UnicodeDecodeError as exc:\n            raise ValidationError(f\"{label} response was not valid UTF-8: {exc}\") from exc\n\n        def hook(pairs: list[tuple[str, object]]) -> dict[str, object]:\n            out: dict[str, object] = {}\n            for key, value in pairs:\n                if key in out:\n                    raise ValidationError(f\"{label} JSON contained duplicate key {key!r}\")\n                out[key] = value\n            return out\n\n        try:\n            return json.loads(text, object_pairs_hook=hook)\n        except ValidationError:\n            raise\n        except Exception as exc:\n            raise ValidationError(f\"{label} response was not valid JSON: {exc}\") from exc\n\n    def _request_json(method: str, path: str, payload: dict[str, object] | None = None) -> tuple[int, object]:\n        url = base + path\n        data = None\n        headers = {\"Accept\": \"application/json\"}\n        if payload is not None:\n            data = json.dumps(payload, separators=(\",\", \":\"), ensure_ascii=False).encode(\"utf-8\")\n            headers[\"Content-Type\"] = \"application/json\"\n        request = urllib.request.Request(url, data=data, headers=headers, method=method)\n        try:\n            with urllib.request.urlopen(request, timeout=30) as response:\n                status = int(response.status)\n                raw = response.read(max_body_bytes + 1)\n        except urllib.error.HTTPError as exc:\n            status = int(exc.code)\n            raw = exc.read(max_body_bytes + 1)\n        except Exception as exc:\n            raise RuntimeError(f\"{method} {path} failed: {type(exc).__name__}: {exc}\") from exc\n        parsed = _json_no_duplicate_keys(raw, f\"{method} {path}\") if raw else None\n        return status, parsed\n\n    def _get_required_json(path: str) -> object:\n        status, payload = _request_json(\"GET\", path)\n        if status != 200:\n            raise ValidationError(f\"GET {path} returned HTTP {status}, expected 200\")\n        return payload\n\n    def _is_int(value: object) -> bool:\n        return isinstance(value, int) and not isinstance(value, bool)\n\n    stream_specs: dict[str, dict[str, object]] = {\n        \"orders\": {\n            \"cursor\": \"orders_last_seq\",\n            \"fields\": {\"seq\", \"region\", \"units\", \"unit_price_cents\"},\n        },\n        \"refunds\": {\n            \"cursor\": \"refunds_last_seq\",\n            \"fields\": {\"seq\", \"order_seq\", \"amount_cents\", \"reason\"},\n        },\n        \"tickets\": {\n            \"cursor\": \"tickets_last_seq\",\n            \"fields\": {\"seq\", \"priority\", \"channel\"},\n        },\n    }\n\n    def _validate_row(stream: str, row: object, requested_after: int) -> dict[str, object]:\n        spec = stream_specs[stream]\n        expected_fields = spec[\"fields\"]\n        if not isinstance(row, dict):\n            raise ValidationError(f\"{stream} row was {type(row).__name__}, expected object\")\n        if set(row) != expected_fields:\n            raise ValidationError(\n                f\"{stream} row keys were {sorted(row)}, expected exactly {sorted(expected_fields)}\"\n            )\n        seq = row[\"seq\"]\n        if not _is_int(seq):\n            raise ValidationError(f\"{stream} row seq was not an integer\")\n        if seq <= requested_after:\n            raise ValidationError(f\"{stream} row seq {seq} was not greater than requested after={requested_after}\")\n        if stream == \"orders\":\n            if not isinstance(row[\"region\"], str):\n                raise ValidationError(\"orders row region was not a string\")\n            if not _is_int(row[\"units\"]):\n                raise ValidationError(\"orders row units was not an integer\")\n            if not _is_int(row[\"unit_price_cents\"]):\n                raise ValidationError(\"orders row unit_price_cents was not an integer\")\n        elif stream == \"refunds\":\n            if not _is_int(row[\"order_seq\"]):\n                raise ValidationError(\"refunds row order_seq was not an integer\")\n            if not _is_int(row[\"amount_cents\"]):\n                raise ValidationError(\"refunds row amount_cents was not an integer\")\n            if not isinstance(row[\"reason\"], str):\n                raise ValidationError(\"refunds row reason was not a string\")\n        else:\n            if row[\"priority\"] not in {\"low\", \"normal\", \"high\"}:\n                raise ValidationError(f\"tickets row priority {row['priority']!r} was not low, normal, or high\")\n            if not isinstance(row[\"channel\"], str):\n                raise ValidationError(\"tickets row channel was not a string\")\n        return row\n\n    def _fetch_stream(stream: str, after: int) -> list[dict[str, object]]:\n        rows: list[dict[str, object]] = []\n        requested_after = after\n        while True:\n            path = f\"/{stream}?\" + urllib.parse.urlencode({\"after\": requested_after})\n            batch = _get_required_json(path)\n            if not isinstance(batch, list):\n                raise ValidationError(f\"GET {path} returned {type(batch).__name__}, expected array\")\n            if len(batch) > 200:\n                raise ValidationError(f\"GET {path} returned {len(batch)} rows, exceeding the limit of 200\")\n            previous = requested_after\n            validated_batch: list[dict[str, object]] = []\n            for raw_row in batch:\n                row = _validate_row(stream, raw_row, requested_after)\n                seq = row[\"seq\"]\n                if seq <= previous:\n                    raise ValidationError(f\"{stream} seq values were not strictly ascending: {seq} after {previous}\")\n                previous = seq\n                validated_batch.append(row)\n            if not validated_batch:\n                break\n            rows.extend(validated_batch)\n            requested_after = previous\n        return rows\n\n    def _notify_hold(reason: str) -> None:\n        message = \"HOLD: \" + reason.replace(\"\\n\", \" \").strip()\n        status, _ = _request_json(\"POST\", \"/owner/notify\", {\"message\": message})\n        if not 200 <= status < 300:\n            raise RuntimeError(f\"owner HOLD notification returned HTTP {status}\")\n\n    def _run() -> dict[str, object]:\n        logger.info(\"PHASE read cursors\")\n        try:\n            cursors = _get_required_json(\"/reports/last\")\n            expected_cursor_keys = {\"orders_last_seq\", \"refunds_last_seq\", \"tickets_last_seq\"}\n            if not isinstance(cursors, dict):\n                raise ValidationError(f\"cursor response was {type(cursors).__name__}, expected object\")\n            if set(cursors) != expected_cursor_keys:\n                raise ValidationError(\n                    f\"cursor keys were {sorted(cursors)}, expected exactly {sorted(expected_cursor_keys)}\"\n                )\n            for key in sorted(expected_cursor_keys):\n                value = cursors[key]\n                if not _is_int(value) or value < 0:\n                    raise ValidationError(f\"cursor {key} was {value!r}, expected a non-negative integer\")\n\n            logger.info(\"PHASE fetch and validate all stream pages\")\n            fetched: dict[str, list[dict[str, object]]] = {}\n            for stream, spec in stream_specs.items():\n                cursor_key = spec[\"cursor\"]\n                fetched[stream] = _fetch_stream(stream, cursors[cursor_key])\n\n            counts = {stream: len(rows) for stream, rows in fetched.items()}\n            if all(count == 0 for count in counts.values()):\n                logger.info(\"SKIP all three streams were empty\")\n                return {\"status\": \"skipped\", \"reason\": \"all streams empty\"}\n            if any(count == 0 for count in counts.values()):\n                empty = sorted(stream for stream, count in counts.items() if count == 0)\n                nonempty = sorted(stream for stream, count in counts.items() if count != 0)\n                raise ValidationError(\n                    \"only some streams had new rows \"\n                    f\"(empty={empty}, nonempty={nonempty}); the required start_seq/end_seq values \"\n                    \"for an empty report section are unspecified, so a correct payload cannot be guaranteed\"\n                )\n\n            logger.info(\"PHASE compute exact aggregates\")\n            order_rows = fetched[\"orders\"]\n            refund_rows = fetched[\"refunds\"]\n            ticket_rows = fetched[\"tickets\"]\n            by_priority = {\"low\": 0, \"normal\": 0, \"high\": 0}\n            for row in ticket_rows:\n                by_priority[row[\"priority\"]] += 1\n\n            report: dict[str, object] = {\n                \"orders\": {\n                    \"start_seq\": order_rows[0][\"seq\"],\n                    \"end_seq\": order_rows[-1][\"seq\"],\n                    \"count\": len(order_rows),\n                    \"total_units\": sum(row[\"units\"] for row in order_rows),\n                    \"total_revenue_cents\": sum(\n                        row[\"units\"] * row[\"unit_price_cents\"] for row in order_rows\n                    ),\n                },\n                \"refunds\": {\n                    \"start_seq\": refund_rows[0][\"seq\"],\n                    \"end_seq\": refund_rows[-1][\"seq\"],\n                    \"count\": len(refund_rows),\n                    \"total_refunded_cents\": sum(row[\"amount_cents\"] for row in refund_rows),\n                },\n                \"tickets\": {\n                    \"start_seq\": ticket_rows[0][\"seq\"],\n                    \"end_seq\": ticket_rows[-1][\"seq\"],\n                    \"count\": len(ticket_rows),\n                    \"by_priority\": by_priority,\n                },\n            }\n\n            logger.info(\"PHASE deliver one report\")\n            try:\n                status, _ = _request_json(\"POST\", \"/report\", report)\n            except Exception as exc:\n                raise ValidationError(\n                    \"report POST outcome was uncertain and was not retried to avoid a duplicate: \"\n                    f\"{type(exc).__name__}: {exc}\"\n                ) from exc\n            if not 200 <= status < 300:\n                raise ValidationError(f\"report POST returned HTTP {status}; delivery was not confirmed and was not retried\")\n            logger.info(\"PHASE report delivered\")\n            return {\"status\": \"delivered\", \"counts\": counts}\n        except Exception as exc:\n            reason = f\"{type(exc).__name__}: {exc}\"\n            logger.warning(\"SOFT_FAIL %s\", reason)\n            try:\n                _notify_hold(reason)\n            except Exception as notify_exc:\n                logger.exception(\"SOFT_FAIL HOLD notification also failed\")\n                raise RuntimeError(\n                    f\"run held because {reason}; HOLD notification failed: {type(notify_exc).__name__}: {notify_exc}\"\n                ) from notify_exc\n            return {\"status\": \"held\", \"reason\": reason}\n\n    return await asyncio.to_thread(_run)\n",
+      "verify": true,
+      "side_effect_class": "unsafe_effectful"
+    }
+  },
+  "entrypoint_function_final": {
+    "function_id": 0,
+    "name": "hourly_operations_report_18183",
+    "docstring": "Fetch, strictly validate, aggregate, and deliver one cursor-based operations report, holding on any uncertainty.",
+    "implementation": "async def hourly_operations_report_18183() -> dict[str, object]:\n    \"\"\"Fetch, strictly validate, aggregate, and deliver one cursor-based operations report, holding on any uncertainty.\"\"\"\n    import asyncio\n    import json\n    import logging\n    import urllib.error\n    import urllib.parse\n    import urllib.request\n\n    logger = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:18183\"\n    max_body_bytes = 4 * 1024 * 1024\n\n    class ValidationError(Exception):\n        pass\n\n    def _json_no_duplicate_keys(raw: bytes, label: str) -> object:\n        if len(raw) > max_body_bytes:\n            raise ValidationError(f\"{label} response exceeded {max_body_bytes} bytes\")\n        try:\n            text = raw.decode(\"utf-8\", errors=\"strict\")\n        except UnicodeDecodeError as exc:\n            raise ValidationError(f\"{label} response was not valid UTF-8: {exc}\") from exc\n\n        def hook(pairs: list[tuple[str, object]]) -> dict[str, object]:\n            out: dict[str, object] = {}\n            for key, value in pairs:\n                if key in out:\n                    raise ValidationError(f\"{label} JSON contained duplicate key {key!r}\")\n                out[key] = value\n            return out\n\n        try:\n            return json.loads(text, object_pairs_hook=hook)\n        except ValidationError:\n            raise\n        except Exception as exc:\n            raise ValidationError(f\"{label} response was not valid JSON: {exc}\") from exc\n\n    def _request_json(method: str, path: str, payload: dict[str, object] | None = None) -> tuple[int, object]:\n        url = base + path\n        data = None\n        headers = {\"Accept\": \"application/json\"}\n        if payload is not None:\n            data = json.dumps(payload, separators=(\",\", \":\"), ensure_ascii=False).encode(\"utf-8\")\n            headers[\"Content-Type\"] = \"application/json\"\n        request = urllib.request.Request(url, data=data, headers=headers, method=method)\n        try:\n            with urllib.request.urlopen(request, timeout=30) as response:\n                status = int(response.status)\n                raw = response.read(max_body_bytes + 1)\n        except urllib.error.HTTPError as exc:\n            status = int(exc.code)\n            raw = exc.read(max_body_bytes + 1)\n        except Exception as exc:\n            raise RuntimeError(f\"{method} {path} failed: {type(exc).__name__}: {exc}\") from exc\n        parsed = _json_no_duplicate_keys(raw, f\"{method} {path}\") if raw else None\n        return status, parsed\n\n    def _get_required_json(path: str) -> object:\n        status, payload = _request_json(\"GET\", path)\n        if status != 200:\n            raise ValidationError(f\"GET {path} returned HTTP {status}, expected 200\")\n        return payload\n\n    def _is_int(value: object) -> bool:\n        return isinstance(value, int) and not isinstance(value, bool)\n\n    stream_specs: dict[str, dict[str, object]] = {\n        \"orders\": {\n            \"cursor\": \"orders_last_seq\",\n            \"fields\": {\"seq\", \"region\", \"units\", \"unit_price_cents\"},\n        },\n        \"refunds\": {\n            \"cursor\": \"refunds_last_seq\",\n            \"fields\": {\"seq\", \"order_seq\", \"amount_cents\", \"reason\"},\n        },\n        \"tickets\": {\n            \"cursor\": \"tickets_last_seq\",\n            \"fields\": {\"seq\", \"priority\", \"channel\"},\n        },\n    }\n\n    def _validate_row(stream: str, row: object, requested_after: int) -> dict[str, object]:\n        spec = stream_specs[stream]\n        expected_fields = spec[\"fields\"]\n        if not isinstance(row, dict):\n            raise ValidationError(f\"{stream} row was {type(row).__name__}, expected object\")\n        if set(row) != expected_fields:\n            raise ValidationError(\n                f\"{stream} row keys were {sorted(row)}, expected exactly {sorted(expected_fields)}\"\n            )\n        seq = row[\"seq\"]\n        if not _is_int(seq):\n            raise ValidationError(f\"{stream} row seq was not an integer\")\n        if seq <= requested_after:\n            raise ValidationError(f\"{stream} row seq {seq} was not greater than requested after={requested_after}\")\n        if stream == \"orders\":\n            if not isinstance(row[\"region\"], str):\n                raise ValidationError(\"orders row region was not a string\")\n            if not _is_int(row[\"units\"]):\n                raise ValidationError(\"orders row units was not an integer\")\n            if not _is_int(row[\"unit_price_cents\"]):\n                raise ValidationError(\"orders row unit_price_cents was not an integer\")\n        elif stream == \"refunds\":\n            if not _is_int(row[\"order_seq\"]):\n                raise ValidationError(\"refunds row order_seq was not an integer\")\n            if not _is_int(row[\"amount_cents\"]):\n                raise ValidationError(\"refunds row amount_cents was not an integer\")\n            if not isinstance(row[\"reason\"], str):\n                raise ValidationError(\"refunds row reason was not a string\")\n        else:\n            if row[\"priority\"] not in {\"low\", \"normal\", \"high\"}:\n                raise ValidationError(f\"tickets row priority {row['priority']!r} was not low, normal, or high\")\n            if not isinstance(row[\"channel\"], str):\n                raise ValidationError(\"tickets row channel was not a string\")\n        return row\n\n    def _fetch_stream(stream: str, after: int) -> list[dict[str, object]]:\n        rows: list[dict[str, object]] = []\n        requested_after = after\n        while True:\n            path = f\"/{stream}?\" + urllib.parse.urlencode({\"after\": requested_after})\n            batch = _get_required_json(path)\n            if not isinstance(batch, list):\n                raise ValidationError(f\"GET {path} returned {type(batch).__name__}, expected array\")\n            if len(batch) > 200:\n                raise ValidationError(f\"GET {path} returned {len(batch)} rows, exceeding the limit of 200\")\n            previous = requested_after\n            validated_batch: list[dict[str, object]] = []\n            for raw_row in batch:\n                row = _validate_row(stream, raw_row, requested_after)\n                seq = row[\"seq\"]\n                if seq <= previous:\n                    raise ValidationError(f\"{stream} seq values were not strictly ascending: {seq} after {previous}\")\n                previous = seq\n                validated_batch.append(row)\n            if not validated_batch:\n                break\n            rows.extend(validated_batch)\n            requested_after = previous\n        return rows\n\n    def _notify_hold(reason: str) -> None:\n        message = \"HOLD: \" + reason.replace(\"\\n\", \" \").strip()\n        status, _ = _request_json(\"POST\", \"/owner/notify\", {\"message\": message})\n        if not 200 <= status < 300:\n            raise RuntimeError(f\"owner HOLD notification returned HTTP {status}\")\n\n    def _run() -> dict[str, object]:\n        logger.info(\"PHASE read cursors\")\n        try:\n            cursors = _get_required_json(\"/reports/last\")\n            expected_cursor_keys = {\"orders_last_seq\", \"refunds_last_seq\", \"tickets_last_seq\"}\n            if not isinstance(cursors, dict):\n                raise ValidationError(f\"cursor response was {type(cursors).__name__}, expected object\")\n            if set(cursors) != expected_cursor_keys:\n                raise ValidationError(\n                    f\"cursor keys were {sorted(cursors)}, expected exactly {sorted(expected_cursor_keys)}\"\n                )\n            for key in sorted(expected_cursor_keys):\n                value = cursors[key]\n                if not _is_int(value) or value < 0:\n                    raise ValidationError(f\"cursor {key} was {value!r}, expected a non-negative integer\")\n\n            logger.info(\"PHASE fetch and validate all stream pages\")\n            fetched: dict[str, list[dict[str, object]]] = {}\n            for stream, spec in stream_specs.items():\n                cursor_key = spec[\"cursor\"]\n                fetched[stream] = _fetch_stream(stream, cursors[cursor_key])\n\n            counts = {stream: len(rows) for stream, rows in fetched.items()}\n            if all(count == 0 for count in counts.values()):\n                logger.info(\"SKIP all three streams were empty\")\n                return {\"status\": \"skipped\", \"reason\": \"all streams empty\"}\n            if any(count == 0 for count in counts.values()):\n                empty = sorted(stream for stream, count in counts.items() if count == 0)\n                nonempty = sorted(stream for stream, count in counts.items() if count != 0)\n                raise ValidationError(\n                    \"only some streams had new rows \"\n                    f\"(empty={empty}, nonempty={nonempty}); the required start_seq/end_seq values \"\n                    \"for an empty report section are unspecified, so a correct payload cannot be guaranteed\"\n                )\n\n            logger.info(\"PHASE compute exact aggregates\")\n            order_rows = fetched[\"orders\"]\n            refund_rows = fetched[\"refunds\"]\n            ticket_rows = fetched[\"tickets\"]\n            by_priority = {\"low\": 0, \"normal\": 0, \"high\": 0}\n            for row in ticket_rows:\n                by_priority[row[\"priority\"]] += 1\n\n            report: dict[str, object] = {\n                \"orders\": {\n                    \"start_seq\": order_rows[0][\"seq\"],\n                    \"end_seq\": order_rows[-1][\"seq\"],\n                    \"count\": len(order_rows),\n                    \"total_units\": sum(row[\"units\"] for row in order_rows),\n                    \"total_revenue_cents\": sum(\n                        row[\"units\"] * row[\"unit_price_cents\"] for row in order_rows\n                    ),\n                },\n                \"refunds\": {\n                    \"start_seq\": refund_rows[0][\"seq\"],\n                    \"end_seq\": refund_rows[-1][\"seq\"],\n                    \"count\": len(refund_rows),\n                    \"total_refunded_cents\": sum(row[\"amount_cents\"] for row in refund_rows),\n                },\n                \"tickets\": {\n                    \"start_seq\": ticket_rows[0][\"seq\"],\n                    \"end_seq\": ticket_rows[-1][\"seq\"],\n                    \"count\": len(ticket_rows),\n                    \"by_priority\": by_priority,\n                },\n            }\n\n            logger.info(\"PHASE deliver one report\")\n            try:\n                status, _ = _request_json(\"POST\", \"/report\", report)\n            except Exception as exc:\n                raise ValidationError(\n                    \"report POST outcome was uncertain and was not retried to avoid a duplicate: \"\n                    f\"{type(exc).__name__}: {exc}\"\n                ) from exc\n            if not 200 <= status < 300:\n                raise ValidationError(f\"report POST returned HTTP {status}; delivery was not confirmed and was not retried\")\n            logger.info(\"PHASE report delivered\")\n            return {\"status\": \"delivered\", \"counts\": counts}\n        except Exception as exc:\n            reason = f\"{type(exc).__name__}: {exc}\"\n            logger.warning(\"SOFT_FAIL %s\", reason)\n            try:\n                _notify_hold(reason)\n            except Exception as notify_exc:\n                logger.exception(\"SOFT_FAIL HOLD notification also failed\")\n                raise RuntimeError(\n                    f\"run held because {reason}; HOLD notification failed: {type(notify_exc).__name__}: {notify_exc}\"\n                ) from notify_exc\n            return {\"status\": \"held\", \"reason\": reason}\n\n    return await asyncio.to_thread(_run)\n"
+  },
+  "functions_final": {
+    "hourly_operations_report_18183": {
+      "function_id": 0,
+      "implementation": "async def hourly_operations_report_18183() -> dict[str, object]:\n    \"\"\"Fetch, strictly validate, aggregate, and deliver one cursor-based operations report, holding on any uncertainty.\"\"\"\n    import asyncio\n    import json\n    import logging\n    import urllib.error\n    import urllib.parse\n    import urllib.request\n\n    logger = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:18183\"\n    max_body_bytes = 4 * 1024 * 1024\n\n    class ValidationError(Exception):\n        pass\n\n    def _json_no_duplicate_keys(raw: bytes, label: str) -> object:\n        if len(raw) > max_body_bytes:\n            raise ValidationError(f\"{label} response exceeded {max_body_bytes} bytes\")\n        try:\n            text = raw.decode(\"utf-8\", errors=\"strict\")\n        except UnicodeDecodeError as exc:\n            raise ValidationError(f\"{label} response was not valid UTF-8: {exc}\") from exc\n\n        def hook(pairs: list[tuple[str, object]]) -> dict[str, object]:\n            out: dict[str, object] = {}\n            for key, value in pairs:\n                if key in out:\n                    raise ValidationError(f\"{label} JSON contained duplicate key {key!r}\")\n                out[key] = value\n            return out\n\n        try:\n            return json.loads(text, object_pairs_hook=hook)\n        except ValidationError:\n            raise\n        except Exception as exc:\n            raise ValidationError(f\"{label} response was not valid JSON: {exc}\") from exc\n\n    def _request_json(method: str, path: str, payload: dict[str, object] | None = None) -> tuple[int, object]:\n        url = base + path\n        data = None\n        headers = {\"Accept\": \"application/json\"}\n        if payload is not None:\n            data = json.dumps(payload, separators=(\",\", \":\"), ensure_ascii=False).encode(\"utf-8\")\n            headers[\"Content-Type\"] = \"application/json\"\n        request = urllib.request.Request(url, data=data, headers=headers, method=method)\n        try:\n            with urllib.request.urlopen(request, timeout=30) as response:\n                status = int(response.status)\n                raw = response.read(max_body_bytes + 1)\n        except urllib.error.HTTPError as exc:\n            status = int(exc.code)\n            raw = exc.read(max_body_bytes + 1)\n        except Exception as exc:\n            raise RuntimeError(f\"{method} {path} failed: {type(exc).__name__}: {exc}\") from exc\n        parsed = _json_no_duplicate_keys(raw, f\"{method} {path}\") if raw else None\n        return status, parsed\n\n    def _get_required_json(path: str) -> object:\n        status, payload = _request_json(\"GET\", path)\n        if status != 200:\n            raise ValidationError(f\"GET {path} returned HTTP {status}, expected 200\")\n        return payload\n\n    def _is_int(value: object) -> bool:\n        return isinstance(value, int) and not isinstance(value, bool)\n\n    stream_specs: dict[str, dict[str, object]] = {\n        \"orders\": {\n            \"cursor\": \"orders_last_seq\",\n            \"fields\": {\"seq\", \"region\", \"units\", \"unit_price_cents\"},\n        },\n        \"refunds\": {\n            \"cursor\": \"refunds_last_seq\",\n            \"fields\": {\"seq\", \"order_seq\", \"amount_cents\", \"reason\"},\n        },\n        \"tickets\": {\n            \"cursor\": \"tickets_last_seq\",\n            \"fields\": {\"seq\", \"priority\", \"channel\"},\n        },\n    }\n\n    def _validate_row(stream: str, row: object, requested_after: int) -> dict[str, object]:\n        spec = stream_specs[stream]\n        expected_fields = spec[\"fields\"]\n        if not isinstance(row, dict):\n            raise ValidationError(f\"{stream} row was {type(row).__name__}, expected object\")\n        if set(row) != expected_fields:\n            raise ValidationError(\n                f\"{stream} row keys were {sorted(row)}, expected exactly {sorted(expected_fields)}\"\n            )\n        seq = row[\"seq\"]\n        if not _is_int(seq):\n            raise ValidationError(f\"{stream} row seq was not an integer\")\n        if seq <= requested_after:\n            raise ValidationError(f\"{stream} row seq {seq} was not greater than requested after={requested_after}\")\n        if stream == \"orders\":\n            if not isinstance(row[\"region\"], str):\n                raise ValidationError(\"orders row region was not a string\")\n            if not _is_int(row[\"units\"]):\n                raise ValidationError(\"orders row units was not an integer\")\n            if not _is_int(row[\"unit_price_cents\"]):\n                raise ValidationError(\"orders row unit_price_cents was not an integer\")\n        elif stream == \"refunds\":\n            if not _is_int(row[\"order_seq\"]):\n                raise ValidationError(\"refunds row order_seq was not an integer\")\n            if not _is_int(row[\"amount_cents\"]):\n                raise ValidationError(\"refunds row amount_cents was not an integer\")\n            if not isinstance(row[\"reason\"], str):\n                raise ValidationError(\"refunds row reason was not a string\")\n        else:\n            if row[\"priority\"] not in {\"low\", \"normal\", \"high\"}:\n                raise ValidationError(f\"tickets row priority {row['priority']!r} was not low, normal, or high\")\n            if not isinstance(row[\"channel\"], str):\n                raise ValidationError(\"tickets row channel was not a string\")\n        return row\n\n    def _fetch_stream(stream: str, after: int) -> list[dict[str, object]]:\n        rows: list[dict[str, object]] = []\n        requested_after = after\n        while True:\n            path = f\"/{stream}?\" + urllib.parse.urlencode({\"after\": requested_after})\n            batch = _get_required_json(path)\n            if not isinstance(batch, list):\n                raise ValidationError(f\"GET {path} returned {type(batch).__name__}, expected array\")\n            if len(batch) > 200:\n                raise ValidationError(f\"GET {path} returned {len(batch)} rows, exceeding the limit of 200\")\n            previous = requested_after\n            validated_batch: list[dict[str, object]] = []\n            for raw_row in batch:\n                row = _validate_row(stream, raw_row, requested_after)\n                seq = row[\"seq\"]\n                if seq <= previous:\n                    raise ValidationError(f\"{stream} seq values were not strictly ascending: {seq} after {previous}\")\n                previous = seq\n                validated_batch.append(row)\n            if not validated_batch:\n                break\n            rows.extend(validated_batch)\n            requested_after = previous\n        return rows\n\n    def _notify_hold(reason: str) -> None:\n        message = \"HOLD: \" + reason.replace(\"\\n\", \" \").strip()\n        status, _ = _request_json(\"POST\", \"/owner/notify\", {\"message\": message})\n        if not 200 <= status < 300:\n            raise RuntimeError(f\"owner HOLD notification returned HTTP {status}\")\n\n    def _run() -> dict[str, object]:\n        logger.info(\"PHASE read cursors\")\n        try:\n            cursors = _get_required_json(\"/reports/last\")\n            expected_cursor_keys = {\"orders_last_seq\", \"refunds_last_seq\", \"tickets_last_seq\"}\n            if not isinstance(cursors, dict):\n                raise ValidationError(f\"cursor response was {type(cursors).__name__}, expected object\")\n            if set(cursors) != expected_cursor_keys:\n                raise ValidationError(\n                    f\"cursor keys were {sorted(cursors)}, expected exactly {sorted(expected_cursor_keys)}\"\n                )\n            for key in sorted(expected_cursor_keys):\n                value = cursors[key]\n                if not _is_int(value) or value < 0:\n                    raise ValidationError(f\"cursor {key} was {value!r}, expected a non-negative integer\")\n\n            logger.info(\"PHASE fetch and validate all stream pages\")\n            fetched: dict[str, list[dict[str, object]]] = {}\n            for stream, spec in stream_specs.items():\n                cursor_key = spec[\"cursor\"]\n                fetched[stream] = _fetch_stream(stream, cursors[cursor_key])\n\n            counts = {stream: len(rows) for stream, rows in fetched.items()}\n            if all(count == 0 for count in counts.values()):\n                logger.info(\"SKIP all three streams were empty\")\n                return {\"status\": \"skipped\", \"reason\": \"all streams empty\"}\n            if any(count == 0 for count in counts.values()):\n                empty = sorted(stream for stream, count in counts.items() if count == 0)\n                nonempty = sorted(stream for stream, count in counts.items() if count != 0)\n                raise ValidationError(\n                    \"only some streams had new rows \"\n                    f\"(empty={empty}, nonempty={nonempty}); the required start_seq/end_seq values \"\n                    \"for an empty report section are unspecified, so a correct payload cannot be guaranteed\"\n                )\n\n            logger.info(\"PHASE compute exact aggregates\")\n            order_rows = fetched[\"orders\"]\n            refund_rows = fetched[\"refunds\"]\n            ticket_rows = fetched[\"tickets\"]\n            by_priority = {\"low\": 0, \"normal\": 0, \"high\": 0}\n            for row in ticket_rows:\n                by_priority[row[\"priority\"]] += 1\n\n            report: dict[str, object] = {\n                \"orders\": {\n                    \"start_seq\": order_rows[0][\"seq\"],\n                    \"end_seq\": order_rows[-1][\"seq\"],\n                    \"count\": len(order_rows),\n                    \"total_units\": sum(row[\"units\"] for row in order_rows),\n                    \"total_revenue_cents\": sum(\n                        row[\"units\"] * row[\"unit_price_cents\"] for row in order_rows\n                    ),\n                },\n                \"refunds\": {\n                    \"start_seq\": refund_rows[0][\"seq\"],\n                    \"end_seq\": refund_rows[-1][\"seq\"],\n                    \"count\": len(refund_rows),\n                    \"total_refunded_cents\": sum(row[\"amount_cents\"] for row in refund_rows),\n                },\n                \"tickets\": {\n                    \"start_seq\": ticket_rows[0][\"seq\"],\n                    \"end_seq\": ticket_rows[-1][\"seq\"],\n                    \"count\": len(ticket_rows),\n                    \"by_priority\": by_priority,\n                },\n            }\n\n            logger.info(\"PHASE deliver one report\")\n            try:\n                status, _ = _request_json(\"POST\", \"/report\", report)\n            except Exception as exc:\n                raise ValidationError(\n                    \"report POST outcome was uncertain and was not retried to avoid a duplicate: \"\n                    f\"{type(exc).__name__}: {exc}\"\n                ) from exc\n            if not 200 <= status < 300:\n                raise ValidationError(f\"report POST returned HTTP {status}; delivery was not confirmed and was not retried\")\n            logger.info(\"PHASE report delivered\")\n            return {\"status\": \"delivered\", \"counts\": counts}\n        except Exception as exc:\n            reason = f\"{type(exc).__name__}: {exc}\"\n            logger.warning(\"SOFT_FAIL %s\", reason)\n            try:\n                _notify_hold(reason)\n            except Exception as notify_exc:\n                logger.exception(\"SOFT_FAIL HOLD notification also failed\")\n                raise RuntimeError(\n                    f\"run held because {reason}; HOLD notification failed: {type(notify_exc).__name__}: {notify_exc}\"\n                ) from notify_exc\n            return {\"status\": \"held\", \"reason\": reason}\n\n    return await asyncio.to_thread(_run)\n",
+      "verify": true,
+      "side_effect_class": "unsafe_effectful"
+    }
+  },
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 498.95,
+      "llm_calls": 37,
+      "prompt_tokens": 1704777,
+      "completion_tokens": 15375,
+      "total_tokens": 1720152,
+      "provider_cost_usd": 3.470935,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 37
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 37,
+          "prompt_tokens": 1704777,
+          "completion_tokens": 15375
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_1",
+      "wall_seconds": 133.7,
+      "llm_calls": 13,
+      "prompt_tokens": 74559,
+      "completion_tokens": 5870,
+      "total_tokens": 80429,
+      "provider_cost_usd": 0.195591,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 13
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 9,
+          "prompt_tokens": 59567,
+          "completion_tokens": 4163
+        },
+        "verification": {
+          "llm_calls": 4,
+          "prompt_tokens": 14992,
+          "completion_tokens": 1707
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_1_review",
+      "wall_seconds": 180.09,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_2",
+      "wall_seconds": 69.3,
+      "llm_calls": 4,
+      "prompt_tokens": 19815,
+      "completion_tokens": 3192,
+      "total_tokens": 23007,
+      "provider_cost_usd": 0.073832,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 4
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 12035,
+          "completion_tokens": 1011
+        },
+        "verification": {
+          "llm_calls": 2,
+          "prompt_tokens": 7780,
+          "completion_tokens": 2181
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_2_review",
+      "wall_seconds": 178.08,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_3",
+      "wall_seconds": 24.1,
+      "llm_calls": 3,
+      "prompt_tokens": 13651,
+      "completion_tokens": 938,
+      "total_tokens": 14589,
+      "provider_cost_usd": 0.020761,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 9769,
+          "completion_tokens": 888
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 3882,
+          "completion_tokens": 50
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_3_review",
+      "wall_seconds": 180.14,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_4",
+      "wall_seconds": 31.66,
+      "llm_calls": 3,
+      "prompt_tokens": 13533,
+      "completion_tokens": 2064,
+      "total_tokens": 15597,
+      "provider_cost_usd": 0.037282,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 9651,
+          "completion_tokens": 2009
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 3882,
+          "completion_tokens": 55
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_4_review",
+      "wall_seconds": 86.06,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_5",
+      "wall_seconds": 39.75,
+      "llm_calls": 4,
+      "prompt_tokens": 17505,
+      "completion_tokens": 1262,
+      "total_tokens": 18767,
+      "provider_cost_usd": 0.037663,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 4
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 9687,
+          "completion_tokens": 952
+        },
+        "verification": {
+          "llm_calls": 2,
+          "prompt_tokens": 7818,
+          "completion_tokens": 310
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_5_review",
+      "wall_seconds": 178.15,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_6",
+      "wall_seconds": 37.31,
+      "llm_calls": 4,
+      "prompt_tokens": 18791,
+      "completion_tokens": 1610,
+      "total_tokens": 20401,
+      "provider_cost_usd": 0.035594,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 4
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 10973,
+          "completion_tokens": 1138
+        },
+        "verification": {
+          "llm_calls": 2,
+          "prompt_tokens": 7818,
+          "completion_tokens": 472
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_6_review",
+      "wall_seconds": 178.15,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_7",
+      "wall_seconds": 27.37,
+      "llm_calls": 3,
+      "prompt_tokens": 15505,
+      "completion_tokens": 1026,
+      "total_tokens": 16531,
+      "provider_cost_usd": 0.027875,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 11623,
+          "completion_tokens": 976
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 3882,
+          "completion_tokens": 50
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_7_review",
+      "wall_seconds": 180.15,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_8",
+      "wall_seconds": 31.49,
+      "llm_calls": 3,
+      "prompt_tokens": 14904,
+      "completion_tokens": 1367,
+      "total_tokens": 16271,
+      "provider_cost_usd": 0.031112,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 11022,
+          "completion_tokens": 1319
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 3882,
+          "completion_tokens": 48
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_8_review",
+      "wall_seconds": 180.13,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_9",
+      "wall_seconds": 32.06,
+      "llm_calls": 3,
+      "prompt_tokens": 20705,
+      "completion_tokens": 1461,
+      "total_tokens": 22166,
+      "provider_cost_usd": 0.05065,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 16823,
+          "completion_tokens": 1415
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 3882,
+          "completion_tokens": 46
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_9_review",
+      "wall_seconds": 180.15,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_10",
+      "wall_seconds": 33.18,
+      "llm_calls": 3,
+      "prompt_tokens": 18601,
+      "completion_tokens": 853,
+      "total_tokens": 19454,
+      "provider_cost_usd": 0.034955,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 14719,
+          "completion_tokens": 806
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 3882,
+          "completion_tokens": 47
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_10_review",
+      "wall_seconds": 180.14,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    }
+  ],
+  "series": {
+    "recovered": false,
+    "first_correct_after_drift": null,
+    "post_drift_correct": 0,
+    "post_drift_fires": 6,
+    "repair_tokens": 0,
+    "operator_fix_tokens": 0
+  },
+  "finished_at": "2026-08-20T18:51:28.855637+00:00"
+}

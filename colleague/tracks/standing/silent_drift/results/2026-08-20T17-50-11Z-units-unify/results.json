@@ -1,0 +1,1347 @@
+{
+  "experiment": "silent_drift",
+  "variant": "units",
+  "system": "unify",
+  "run_id": "2026-08-20T17-50-11Z-units-unify",
+  "orchestra_url": "https://api.staging.internal.saas.unify.ai/v0",
+  "context": "colleague/silent_drift/2026-08-20T17-50-11Z-units-unify/default/0",
+  "seed": 20260817,
+  "n_fires": 10,
+  "quiesce_idle_s": 180.0,
+  "utterance": "Please set up an hourly recurring automation that processes new orders from the local orders API at http://127.0.0.1:18181.\n\nHow it works: GET http://127.0.0.1:18181/batches/last returns {\"last_seq\": N} \u2014 the highest order seq already processed (0 if none yet). GET http://127.0.0.1:18181/orders?after=N returns every order with seq > N, ascending (a run never has more than 100 pending), each with fields: seq (int), date (YYYY-MM-DD), region (string), units (int), amount (int \u2014 the order's total in minor units, i.e. cents).\n\nOn each run: read last_seq, fetch the orders after it, and if there are none do nothing. Otherwise compute exactly: batch_start_seq, batch_end_seq, order_count, total_units, total_amount_minor (sum of amount), amount_by_region_minor (object mapping each region to its amount sum), and POST that JSON object to http://127.0.0.1:18181/batches with exactly these keys, all integers.\n\nIf a run finds anything that does not match this description, or you cannot be sure the numbers you would deliver are right, do not deliver anything for that run. Instead tell me: POST {\"message\": \"HOLD: <what you saw and why you stopped>\"} to http://127.0.0.1:18181/owner/notify. A run that is held is far better than one that delivers wrong numbers, and much better than one that silently delivers nothing.\n\nSet up the recurring hourly automation now. Do not process anything right now, and do not ask for confirmation.",
+  "drift_after_fire": 4,
+  "orders_per_fire": 80,
+  "drift": "amount: minor units (int) -> major units (float)",
+  "messages": [],
+  "fires": [
+    {
+      "fire": 1,
+      "label": "fire_1",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": null,
+      "entrypoint_after": 4,
+      "drifted": false,
+      "pending_range": [
+        1,
+        80
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 1,
+          "batch_end_seq": 80,
+          "order_count": 80,
+          "total_units": 829,
+          "total_amount_minor": 1628671,
+          "amount_by_region_minor": {
+            "west": 222119,
+            "south": 459536,
+            "north": 388921,
+            "east": 558095
+          }
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 1,
+        "batch_end_seq": 80,
+        "order_count": 80,
+        "total_units": 829,
+        "total_amount_minor": 1628671,
+        "amount_by_region_minor": {
+          "west": 222119,
+          "south": 459536,
+          "north": 388921,
+          "east": 558095
+        }
+      },
+      "scores": [
+        {
+          "correct": true,
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "order_count": true,
+            "total_units": true,
+            "total_amount_minor": true,
+            "amount_by_region_minor": true,
+            "no_extra_keys": true
+          },
+          "extra_keys": []
+        }
+      ],
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [
+        "post_local_orders_batch_once",
+        "post_local_orders_hold_once",
+        "prepare_local_orders_batch",
+        "run_hourly_local_orders_batch_processor",
+        "verify_local_orders_batch"
+      ],
+      "result": "Batch processed and delivered successfully (`HTTP 200`).\n\n- Sequence range: **1\u201380**\n- Orders: **80**\n- Total units: **829**\n- Total amount (minor units): **1,628,671**\n- By region: west **222,119**; south **459,536**; north **388,921**; east **558,095**\n\n**Uncertainties:** None material; validation and independent recomputation passed before delivery.",
+      "tokens": {
+        "planning": {
+          "prompt": 956846,
+          "completion": 20808,
+          "calls": 22
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 977654,
+        "phases": [
+          "fire_1",
+          "fire_1_review"
+        ]
+      }
+    },
+    {
+      "fire": 2,
+      "label": "fire_2",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": false,
+      "pending_range": [
+        81,
+        160
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 81,
+        "batch_end_seq": 160,
+        "order_count": 80,
+        "total_units": 816,
+        "total_amount_minor": 1628784,
+        "amount_by_region_minor": {
+          "east": 587479,
+          "north": 574940,
+          "south": 212470,
+          "west": 253895
+        }
+      },
+      "scores": [],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly local orders batch processor: could not verify run_hourly_local_orders_batch_processor (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 10588,
+          "completion": 1755,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 5135,
+          "completion": 1138,
+          "calls": 2
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 18616,
+        "phases": [
+          "fire_2",
+          "fire_2_review"
+        ]
+      }
+    },
+    {
+      "fire": 3,
+      "label": "fire_3",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": false,
+      "pending_range": [
+        81,
+        240
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 81,
+        "batch_end_seq": 240,
+        "order_count": 160,
+        "total_units": 1583,
+        "total_amount_minor": 3006117,
+        "amount_by_region_minor": {
+          "east": 933748,
+          "north": 1023937,
+          "south": 435538,
+          "west": 612894
+        }
+      },
+      "scores": [],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly local orders batch processor: could not verify run_hourly_local_orders_batch_processor (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 11042,
+          "completion": 1979,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 3362,
+          "completion": 42,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 16425,
+        "phases": [
+          "fire_3",
+          "fire_3_review"
+        ]
+      }
+    },
+    {
+      "fire": 4,
+      "label": "fire_4",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": false,
+      "pending_range": [
+        81,
+        320
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 81,
+        "batch_end_seq": 320,
+        "order_count": 240,
+        "total_units": 2405,
+        "total_amount_minor": 4589395,
+        "amount_by_region_minor": {
+          "east": 1418669,
+          "north": 1495621,
+          "south": 828307,
+          "west": 846798
+        }
+      },
+      "scores": [],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly local orders batch processor: could not verify run_hourly_local_orders_batch_processor (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 10105,
+          "completion": 1428,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 3362,
+          "completion": 52,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 14947,
+        "phases": [
+          "fire_4",
+          "fire_4_review"
+        ]
+      }
+    },
+    {
+      "fire": 5,
+      "label": "fire_5",
+      "events": [
+        "drift:units"
+      ],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": true,
+      "pending_range": [
+        81,
+        400
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 81,
+        "batch_end_seq": 400,
+        "order_count": 320,
+        "total_units": 3177,
+        "total_amount_minor": 6149023,
+        "amount_by_region_minor": {
+          "east": 2118810,
+          "north": 1885847,
+          "south": 1093645,
+          "west": 1050721
+        }
+      },
+      "scores": [],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [
+        "run_hourly_local_orders_batch_processor"
+      ],
+      "result": "Holding Hourly local orders batch processor: repairs to run_hourly_local_orders_batch_processor did not verify (The current time is 2026-08-20 18:33 UTC, before the first scheduled run at 18:51 UTC, so this task is not due to perform its effect yet.). Nothing further was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 124630,
+          "completion": 5929,
+          "calls": 16
+        },
+        "verification": {
+          "prompt": 12385,
+          "completion": 2622,
+          "calls": 4
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 145566,
+        "phases": [
+          "fire_5",
+          "fire_5_review"
+        ]
+      }
+    },
+    {
+      "fire": 6,
+      "label": "fire_6",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": true,
+      "pending_range": [
+        81,
+        480
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 81,
+        "batch_end_seq": 480,
+        "order_count": 400,
+        "total_units": 4018,
+        "total_amount_minor": 7841982,
+        "amount_by_region_minor": {
+          "east": 2887926,
+          "north": 2320855,
+          "south": 1245356,
+          "west": 1387845
+        }
+      },
+      "scores": [],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly local orders batch processor: repairs to run_hourly_local_orders_batch_processor did not verify (The current time is 2026-08-20 18:38:43 UTC, before the first scheduled run at 2026-08-20 18:51:00 UTC, so this task is not yet due to perform its effect.). Nothing further was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 71588,
+          "completion": 2777,
+          "calls": 11
+        },
+        "verification": {
+          "prompt": 10614,
+          "completion": 158,
+          "calls": 3
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 85137,
+        "phases": [
+          "fire_6",
+          "fire_6_review"
+        ]
+      }
+    },
+    {
+      "fire": 7,
+      "label": "fire_7",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": true,
+      "pending_range": [
+        81,
+        560
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 81,
+        "batch_end_seq": 560,
+        "order_count": 480,
+        "total_units": 4810,
+        "total_amount_minor": 9393790,
+        "amount_by_region_minor": {
+          "east": 3521489,
+          "north": 2626513,
+          "south": 1623043,
+          "west": 1622745
+        }
+      },
+      "scores": [],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly local orders batch processor: repairs to run_hourly_local_orders_batch_processor did not verify (The current time is 2026-08-20T18:44:09Z, while the first eligible run is 2026-08-20T18:51:00Z. The task is not due yet, so this effectful run should not proceed now.). Nothing further was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 73043,
+          "completion": 3287,
+          "calls": 11
+        },
+        "verification": {
+          "prompt": 10614,
+          "completion": 171,
+          "calls": 3
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 87115,
+        "phases": [
+          "fire_7",
+          "fire_7_review"
+        ]
+      }
+    },
+    {
+      "fire": 8,
+      "label": "fire_8",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": true,
+      "pending_range": [
+        81,
+        640
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 81,
+        "batch_end_seq": 640,
+        "order_count": 560,
+        "total_units": 5608,
+        "total_amount_minor": 10945892,
+        "amount_by_region_minor": {
+          "east": 3963430,
+          "north": 3169161,
+          "south": 1980831,
+          "west": 1832470
+        }
+      },
+      "scores": [],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly local orders batch processor: repairs to run_hourly_local_orders_batch_processor did not verify (The current time is 2026-08-20 18:49:24 UTC, before the first scheduled run at 2026-08-20 18:51:00 UTC, so the task is not yet due to perform its effect.). Nothing further was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 62351,
+          "completion": 2840,
+          "calls": 10
+        },
+        "verification": {
+          "prompt": 10614,
+          "completion": 126,
+          "calls": 3
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 75931,
+        "phases": [
+          "fire_8",
+          "fire_8_review"
+        ]
+      }
+    },
+    {
+      "fire": 9,
+      "label": "fire_9",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": true,
+      "pending_range": [
+        81,
+        720
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 81,
+        "batch_end_seq": 720,
+        "order_count": 640,
+        "total_units": 6405,
+        "total_amount_minor": 12424195,
+        "amount_by_region_minor": {
+          "east": 4356580,
+          "north": 3632751,
+          "south": 2306039,
+          "west": 2128825
+        }
+      },
+      "scores": [],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly local orders batch processor: could not verify run_hourly_local_orders_batch_processor (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 8321,
+          "completion": 975,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 3538,
+          "completion": 61,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 12895,
+        "phases": [
+          "fire_9",
+          "fire_9_review"
+        ]
+      }
+    },
+    {
+      "fire": 10,
+      "label": "fire_10",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "drifted": true,
+      "pending_range": [
+        81,
+        800
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 81,
+        "batch_end_seq": 800,
+        "order_count": 720,
+        "total_units": 7245,
+        "total_amount_minor": 13994755,
+        "amount_by_region_minor": {
+          "east": 4831498,
+          "north": 4050762,
+          "south": 2663332,
+          "west": 2449163
+        }
+      },
+      "scores": [],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly local orders batch processor: could not verify run_hourly_local_orders_batch_processor (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 8298,
+          "completion": 1094,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 3538,
+          "completion": 60,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 12990,
+        "phases": [
+          "fire_10",
+          "fire_10_review"
+        ]
+      }
+    }
+  ],
+  "setup": {
+    "status": "completed",
+    "result": "Set up and verified the live recurring automation.\n\n- **Task:** Hourly local orders batch processor\n- **Task ID:** 0\n- **Status:** Armed and enabled\n- **First run:** August 20, 2026 at 18:51 UTC\n- **Frequency:** Hourly\n- **Maximum runtime:** 10 minutes\n- **Execution:** Description-driven, not offline\n- **Processed during setup:** No; no runs have occurred\n\nThe stored task includes the strict validation, exact integer aggregation, fail-closed HOLD notification, delivery re-check, no-retry, empty-list, and overlap-safety requirements.\n\n**Uncertainties:** None material; the schedule and stored instructions were re-read and verified without executing the task."
+  },
+  "functions_after_setup": {},
+  "entrypoint_function_final": {
+    "function_id": 4,
+    "name": "run_hourly_local_orders_batch_processor",
+    "docstring": "Return a delivered, held, or empty no-op result after one fail-closed, due run of task 0, with no batch POST unless every validation passes. Follow the linked guidance \u201cFail-closed scheduled HTTP batch aggregation and delivery\u201d.",
+    "implementation": "def run_hourly_local_orders_batch_processor() -> dict[str, object]:\n    \"\"\"Return a delivered, held, or empty no-op result after one fail-closed, due run of task 0, with no batch POST unless every validation passes. Follow the linked guidance \u201cFail-closed scheduled HTTP batch aggregation and delivery\u201d.\"\"\"\n    import datetime\n    import fcntl\n    import logging\n    import os\n\n    log = logging.getLogger(__name__)\n\n    # The symbolic entrypoint has no scheduler-context parameter, so enforce the\n    # task's first eligible instant locally before any lock, HTTP read, or POST.\n    first_scheduled_for = datetime.datetime(\n        2026, 8, 20, 18, 51, 0, tzinfo=datetime.timezone.utc\n    )\n    now_utc = datetime.datetime.now(datetime.timezone.utc)\n    if now_utc < first_scheduled_for:\n        log.info(\n            \"SKIP not_due now=%s first_scheduled_for=%s\",\n            now_utc.isoformat(),\n            first_scheduled_for.isoformat(),\n        )\n        return {\n            \"status\": \"no_op\",\n            \"reason\": \"not_due\",\n            \"scheduled_for\": first_scheduled_for.isoformat(),\n        }\n\n    lock_dir = \"/Users/djl11/Unity/Local/.task_locks\"\n    lock_path = lock_dir + \"/task_0_hourly_local_orders_batch_processor.lock\"\n    lock_fd = None\n    lock_acquired = False\n\n    def concise(exc):\n        text = \" \".join(str(exc).split()) or type(exc).__name__\n        return text if len(text) <= 320 else text[:317] + \"...\"\n\n    def hold_result(original, context):\n        reason = concise(original)\n        log.error(\"SOFT_FAIL %s %s\", context, reason)\n        try:\n            hold_status = post_local_orders_hold_once(reason)\n        except Exception as hold_exc:\n            raise RuntimeError(f\"{context.replace('_', ' ')} and HOLD notification also failed; original={reason}; notification={concise(hold_exc)}\") from hold_exc\n        return {\"status\": \"held\", \"reason\": reason, \"hold_http_status\": hold_status}\n\n    try:\n        log.info(\"PHASE concurrency_guard\")\n        try:\n            os.makedirs(lock_dir, exist_ok=True)\n            lock_fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)\n            fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)\n            lock_acquired = True\n        except BlockingIOError:\n            return hold_result(RuntimeError(\"another active instance holds the task lock; exactly-once correctness is uncertain\"), \"hold_before_delivery\")\n        except Exception as exc:\n            return hold_result(RuntimeError(f\"could not establish the non-overlap guard: {type(exc).__name__}: {exc}\"), \"hold_before_delivery\")\n        try:\n            prepared = prepare_local_orders_batch()\n            if prepared.get(\"status\") == \"no_op\":\n                return prepared\n            payload = verify_local_orders_batch(prepared)\n        except Exception as exc:\n            return hold_result(exc, \"hold_before_delivery\")\n        try:\n            delivery_status = post_local_orders_batch_once(payload)\n        except Exception as exc:\n            return hold_result(exc, \"batch_delivery\")\n        return {\"status\": \"delivered\", \"http_status\": delivery_status, \"batch_start_seq\": payload[\"batch_start_seq\"], \"batch_end_seq\": payload[\"batch_end_seq\"], \"order_count\": payload[\"order_count\"], \"total_units\": payload[\"total_units\"], \"total_amount_minor\": payload[\"total_amount_minor\"], \"amount_by_region_minor\": payload[\"amount_by_region_minor\"]}\n    finally:\n        if lock_fd is not None:\n            if lock_acquired:\n                try:\n                    fcntl.flock(lock_fd, fcntl.LOCK_UN)\n                except Exception:\n                    log.exception(\"SOFT_FAIL lock_release\")\n            os.close(lock_fd)\n"
+  },
+  "functions_final": {
+    "run_hourly_local_orders_batch_processor": {
+      "function_id": 4,
+      "implementation": "def run_hourly_local_orders_batch_processor() -> dict[str, object]:\n    \"\"\"Return a delivered, held, or empty no-op result after one fail-closed, due run of task 0, with no batch POST unless every validation passes. Follow the linked guidance \u201cFail-closed scheduled HTTP batch aggregation and delivery\u201d.\"\"\"\n    import datetime\n    import fcntl\n    import logging\n    import os\n\n    log = logging.getLogger(__name__)\n\n    # The symbolic entrypoint has no scheduler-context parameter, so enforce the\n    # task's first eligible instant locally before any lock, HTTP read, or POST.\n    first_scheduled_for = datetime.datetime(\n        2026, 8, 20, 18, 51, 0, tzinfo=datetime.timezone.utc\n    )\n    now_utc = datetime.datetime.now(datetime.timezone.utc)\n    if now_utc < first_scheduled_for:\n        log.info(\n            \"SKIP not_due now=%s first_scheduled_for=%s\",\n            now_utc.isoformat(),\n            first_scheduled_for.isoformat(),\n        )\n        return {\n            \"status\": \"no_op\",\n            \"reason\": \"not_due\",\n            \"scheduled_for\": first_scheduled_for.isoformat(),\n        }\n\n    lock_dir = \"/Users/djl11/Unity/Local/.task_locks\"\n    lock_path = lock_dir + \"/task_0_hourly_local_orders_batch_processor.lock\"\n    lock_fd = None\n    lock_acquired = False\n\n    def concise(exc):\n        text = \" \".join(str(exc).split()) or type(exc).__name__\n        return text if len(text) <= 320 else text[:317] + \"...\"\n\n    def hold_result(original, context):\n        reason = concise(original)\n        log.error(\"SOFT_FAIL %s %s\", context, reason)\n        try:\n            hold_status = post_local_orders_hold_once(reason)\n        except Exception as hold_exc:\n            raise RuntimeError(f\"{context.replace('_', ' ')} and HOLD notification also failed; original={reason}; notification={concise(hold_exc)}\") from hold_exc\n        return {\"status\": \"held\", \"reason\": reason, \"hold_http_status\": hold_status}\n\n    try:\n        log.info(\"PHASE concurrency_guard\")\n        try:\n            os.makedirs(lock_dir, exist_ok=True)\n            lock_fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)\n            fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)\n            lock_acquired = True\n        except BlockingIOError:\n            return hold_result(RuntimeError(\"another active instance holds the task lock; exactly-once correctness is uncertain\"), \"hold_before_delivery\")\n        except Exception as exc:\n            return hold_result(RuntimeError(f\"could not establish the non-overlap guard: {type(exc).__name__}: {exc}\"), \"hold_before_delivery\")\n        try:\n            prepared = prepare_local_orders_batch()\n            if prepared.get(\"status\") == \"no_op\":\n                return prepared\n            payload = verify_local_orders_batch(prepared)\n        except Exception as exc:\n            return hold_result(exc, \"hold_before_delivery\")\n        try:\n            delivery_status = post_local_orders_batch_once(payload)\n        except Exception as exc:\n            return hold_result(exc, \"batch_delivery\")\n        return {\"status\": \"delivered\", \"http_status\": delivery_status, \"batch_start_seq\": payload[\"batch_start_seq\"], \"batch_end_seq\": payload[\"batch_end_seq\"], \"order_count\": payload[\"order_count\"], \"total_units\": payload[\"total_units\"], \"total_amount_minor\": payload[\"total_amount_minor\"], \"amount_by_region_minor\": payload[\"amount_by_region_minor\"]}\n    finally:\n        if lock_fd is not None:\n            if lock_acquired:\n                try:\n                    fcntl.flock(lock_fd, fcntl.LOCK_UN)\n                except Exception:\n                    log.exception(\"SOFT_FAIL lock_release\")\n            os.close(lock_fd)\n",
+      "verify": true,
+      "side_effect_class": "unsafe_effectful"
+    },
+    "post_local_orders_hold_once": {
+      "function_id": 3,
+      "implementation": "def post_local_orders_hold_once(reason: str) -> int:\n    \"\"\"Return the 2xx HTTP status after posting exactly one concise HOLD notification with the required one-key JSON shape. Follow the linked guidance \u201cFail-closed scheduled HTTP batch aggregation and delivery\u201d.\"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    if type(reason) is not str:\n        raise TypeError(\"reason must be a string\")\n    concise = \" \".join(reason.split()) or \"unspecified processing failure\"\n    if len(concise) > 320:\n        concise = concise[:317] + \"...\"\n    payload = {\"message\": \"HOLD: \" + concise}\n    body = json.dumps(\n        payload,\n        ensure_ascii=True,\n        allow_nan=False,\n        separators=(\",\", \":\"),\n    ).encode(\"utf-8\")\n\n    class NoRedirectHTTPErrorProcessor(urllib.request.HTTPErrorProcessor):\n        def http_response(self, request, response):\n            return response\n        https_response = http_response\n\n    logging.getLogger(__name__).info(\"PHASE owner_hold_notification\")\n    request = urllib.request.Request(\n        url=\"http://127.0.0.1:18181/owner/notify\",\n        data=body,\n        headers={\"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    opener = urllib.request.build_opener(NoRedirectHTTPErrorProcessor())\n    try:\n        with opener.open(request, timeout=5.0) as response:\n            status = response.getcode()\n    except Exception as exc:\n        raise RuntimeError(\n            f\"owner HOLD notification POST failed: {type(exc).__name__}: {exc}\"\n        ) from exc\n    if type(status) is not int or not 200 <= status <= 299:\n        raise RuntimeError(\n            f\"owner HOLD notification POST returned non-2xx status {status!r}\"\n        )\n    return status\n",
+      "verify": true,
+      "side_effect_class": "unsafe_effectful"
+    },
+    "post_local_orders_batch_once": {
+      "function_id": 2,
+      "implementation": "def post_local_orders_batch_once(payload: dict[str, object]) -> int:\n    \"\"\"Return the 2xx HTTP status after posting one structurally valid batch payload exactly once to the fixed local endpoint. Follow the linked guidance \u201cFail-closed scheduled HTTP batch aggregation and delivery\u201d; never retry this call after an ambiguous failure.\"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    expected = {\n        \"batch_start_seq\",\n        \"batch_end_seq\",\n        \"order_count\",\n        \"total_units\",\n        \"total_amount_minor\",\n        \"amount_by_region_minor\",\n    }\n    if type(payload) is not dict or set(payload) != expected:\n        raise ValueError(\"batch payload has unexpected top-level keys\")\n    for field in (\n        \"batch_start_seq\",\n        \"batch_end_seq\",\n        \"order_count\",\n        \"total_units\",\n        \"total_amount_minor\",\n    ):\n        if type(payload[field]) is not int:\n            raise ValueError(f\"batch payload field {field!r} is not an integer\")\n    grouped = payload[\"amount_by_region_minor\"]\n    if type(grouped) is not dict:\n        raise ValueError(\"amount_by_region_minor is not an object\")\n    if any(type(k) is not str or type(v) is not int for k, v in grouped.items()):\n        raise ValueError(\"regional amount keys must be strings and values integers\")\n    body = json.dumps(\n        payload,\n        ensure_ascii=True,\n        allow_nan=False,\n        separators=(\",\", \":\"),\n    ).encode(\"utf-8\")\n\n    class NoRedirectHTTPErrorProcessor(urllib.request.HTTPErrorProcessor):\n        def http_response(self, request, response):\n            return response\n        https_response = http_response\n\n    log.info(\n        \"PHASE deliver_batch start_seq=%d end_seq=%d count=%d\",\n        payload[\"batch_start_seq\"],\n        payload[\"batch_end_seq\"],\n        payload[\"order_count\"],\n    )\n    request = urllib.request.Request(\n        url=\"http://127.0.0.1:18181/batches\",\n        data=body,\n        headers={\"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    opener = urllib.request.build_opener(NoRedirectHTTPErrorProcessor())\n    try:\n        with opener.open(request, timeout=5.0) as response:\n            status = response.getcode()\n    except Exception as exc:\n        raise RuntimeError(\n            f\"batch delivery POST failed or was transport-ambiguous: {type(exc).__name__}: {exc}\"\n        ) from exc\n    if type(status) is not int or not 200 <= status <= 299:\n        raise RuntimeError(f\"batch delivery POST returned non-2xx status {status!r}\")\n    log.info(\"PHASE delivered http_status=%d\", status)\n    return status\n",
+      "verify": true,
+      "side_effect_class": "unsafe_effectful"
+    },
+    "verify_local_orders_batch": {
+      "function_id": 1,
+      "implementation": "def verify_local_orders_batch(prepared: dict[str, object]) -> dict[str, object]:\n    \"\"\"Return the exact six-key batch payload only if independently revalidating and recomputing the prepared orders reproduces it. Follow the linked guidance \u201cFail-closed scheduled HTTP batch aggregation and delivery\u201d.\"\"\"\n    import datetime\n    import json\n    import logging\n    import re\n\n    log = logging.getLogger(__name__)\n    log.info(\"PHASE independent_revalidation\")\n    expected_prepared_keys = {\"status\", \"last_seq\", \"orders\", \"payload\"}\n    order_keys = {\"seq\", \"date\", \"region\", \"units\", \"amount\"}\n    payload_keys = {\n        \"batch_start_seq\",\n        \"batch_end_seq\",\n        \"order_count\",\n        \"total_units\",\n        \"total_amount_minor\",\n        \"amount_by_region_minor\",\n    }\n    date_re = re.compile(r\"[0-9]{4}-[0-9]{2}-[0-9]{2}\\Z\")\n\n    if type(prepared) is not dict or set(prepared) != expected_prepared_keys:\n        raise ValueError(\"prepared result has unexpected keys\")\n    if prepared[\"status\"] != \"prepared\":\n        raise ValueError(\"prepared result status is not 'prepared'\")\n    last_seq = prepared[\"last_seq\"]\n    orders = prepared[\"orders\"]\n    candidate = prepared[\"payload\"]\n    if type(last_seq) is not int or last_seq < 0:\n        raise ValueError(\"prepared last_seq is not a nonnegative integer\")\n    if type(orders) is not list or not orders or len(orders) > 100:\n        raise ValueError(\"prepared orders must be a nonempty list of at most 100\")\n    if type(candidate) is not dict or set(candidate) != payload_keys:\n        raise ValueError(\"candidate batch payload has unexpected keys\")\n\n    previous = last_seq\n    seen = set()\n    checked = []\n    for index, order in enumerate(orders):\n        if type(order) is not dict or set(order) != order_keys:\n            raise ValueError(f\"prepared order index {index} has unexpected keys\")\n        for field in (\"seq\", \"units\", \"amount\"):\n            if type(order[field]) is not int:\n                raise ValueError(\n                    f\"prepared order index {index} field {field!r} is not an integer\"\n                )\n        seq = order[\"seq\"]\n        if seq <= last_seq or seq <= previous or seq in seen:\n            raise ValueError(f\"prepared sequence invariant failed at index {index}\")\n        date_text = order[\"date\"]\n        if type(date_text) is not str or date_re.fullmatch(date_text) is None:\n            raise ValueError(f\"prepared date invariant failed at index {index}\")\n        try:\n            datetime.date.fromisoformat(date_text)\n        except ValueError as exc:\n            raise ValueError(f\"prepared date is not real at index {index}\") from exc\n        if type(order[\"region\"]) is not str:\n            raise ValueError(f\"prepared region is not a string at index {index}\")\n        previous = seq\n        seen.add(seq)\n        checked.append(order)\n\n    for field in (\n        \"batch_start_seq\",\n        \"batch_end_seq\",\n        \"order_count\",\n        \"total_units\",\n        \"total_amount_minor\",\n    ):\n        if type(candidate[field]) is not int:\n            raise ValueError(f\"candidate payload field {field!r} is not an integer\")\n    grouped_candidate = candidate[\"amount_by_region_minor\"]\n    if type(grouped_candidate) is not dict:\n        raise ValueError(\"candidate amount_by_region_minor is not an object\")\n    if any(type(k) is not str or type(v) is not int for k, v in grouped_candidate.items()):\n        raise ValueError(\"candidate regional amounts have invalid key/value types\")\n\n    grouped_check = {}\n    for order in reversed(checked):\n        region = order[\"region\"]\n        grouped_check[region] = order[\"amount\"] + grouped_check.get(region, 0)\n    recomputed = {\n        \"batch_start_seq\": checked[0][\"seq\"],\n        \"batch_end_seq\": checked[len(checked) - 1][\"seq\"],\n        \"order_count\": sum(1 for _ in checked),\n        \"total_units\": sum(order[\"units\"] for order in checked),\n        \"total_amount_minor\": sum(order[\"amount\"] for order in checked),\n        \"amount_by_region_minor\": grouped_check,\n    }\n    if candidate != recomputed:\n        raise ValueError(\"candidate batch payload failed independent recomputation\")\n    json.dumps(recomputed, ensure_ascii=True, allow_nan=False, separators=(\",\", \":\"))\n    return recomputed\n",
+      "verify": true,
+      "side_effect_class": "safe_noop"
+    },
+    "prepare_local_orders_batch": {
+      "function_id": 0,
+      "implementation": "def prepare_local_orders_batch() -> dict[str, object]:\n    \"\"\"Return either a validated empty-batch result or validated orders plus a candidate payload from the fixed local API. Follow the linked guidance \u201cFail-closed scheduled HTTP batch aggregation and delivery\u201d.\"\"\"\n    import datetime\n    import json\n    import logging\n    import re\n    import urllib.parse\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:18181\"\n    timeout_s = 5.0\n    order_keys = {\"seq\", \"date\", \"region\", \"units\", \"amount\"}\n    date_re = re.compile(r\"[0-9]{4}-[0-9]{2}-[0-9]{2}\\Z\")\n\n    class ValidationError(Exception):\n        pass\n\n    class NoRedirectHTTPErrorProcessor(urllib.request.HTTPErrorProcessor):\n        def http_response(self, request, response):\n            return response\n        https_response = http_response\n\n    def strict_object(pairs):\n        obj = {}\n        for key, value in pairs:\n            if key in obj:\n                raise ValidationError(f\"duplicate JSON object key {key!r}\")\n            obj[key] = value\n        return obj\n\n    def reject_nonfinite(token):\n        raise ValidationError(f\"non-finite JSON number {token!r}\")\n\n    def get_json(url, label):\n        opener = urllib.request.build_opener(NoRedirectHTTPErrorProcessor())\n        request = urllib.request.Request(url=url, method=\"GET\")\n        try:\n            with opener.open(request, timeout=timeout_s) as response:\n                status = response.getcode()\n                body = response.read()\n        except Exception as exc:\n            raise RuntimeError(f\"{label} GET failed: {type(exc).__name__}: {exc}\") from exc\n        if type(status) is not int or not 200 <= status <= 299:\n            raise RuntimeError(f\"{label} GET returned non-2xx status {status!r}\")\n        try:\n            text = body.decode(\"utf-8\", errors=\"strict\")\n        except UnicodeDecodeError as exc:\n            raise ValidationError(f\"{label} body is not valid UTF-8: {exc}\") from exc\n        try:\n            return json.loads(\n                text,\n                object_pairs_hook=strict_object,\n                parse_constant=reject_nonfinite,\n            )\n        except (json.JSONDecodeError, ValidationError) as exc:\n            raise ValidationError(\n                f\"{label} body is not valid unambiguous JSON: {exc}\"\n            ) from exc\n\n    log.info(\"PHASE fetch_last_seq\")\n    last_raw = get_json(base + \"/batches/last\", \"batches/last\")\n    if type(last_raw) is not dict or set(last_raw) != {\"last_seq\"}:\n        raise ValidationError(\n            \"batches/last JSON must be an object with exactly key 'last_seq'\"\n        )\n    last_seq = last_raw[\"last_seq\"]\n    if type(last_seq) is not int:\n        raise ValidationError(\"last_seq must be a JSON integer and not a boolean\")\n    if last_seq < 0:\n        raise ValidationError(f\"last_seq must be >= 0, observed {last_seq}\")\n\n    log.info(\"PHASE fetch_orders after=%d\", last_seq)\n    query = urllib.parse.urlencode({\"after\": last_seq})\n    orders_raw = get_json(base + \"/orders?\" + query, \"orders\")\n    if type(orders_raw) is not list:\n        raise ValidationError(\"orders JSON must be an array\")\n    if len(orders_raw) > 100:\n        raise ValidationError(\n            f\"orders array exceeds 100 elements: observed {len(orders_raw)}\"\n        )\n\n    orders = []\n    previous = last_seq\n    seen = set()\n    for index, order in enumerate(orders_raw):\n        if type(order) is not dict or set(order) != order_keys:\n            raise ValidationError(\n                f\"order index {index} must have exactly keys {sorted(order_keys)}\"\n            )\n        for field in (\"seq\", \"units\", \"amount\"):\n            if type(order[field]) is not int:\n                raise ValidationError(\n                    f\"order index {index} field {field!r} must be a JSON integer and not a boolean\"\n                )\n        seq = order[\"seq\"]\n        if seq <= last_seq:\n            raise ValidationError(\n                f\"order index {index} seq {seq} is not greater than last_seq {last_seq}\"\n            )\n        if seq <= previous:\n            raise ValidationError(\n                f\"orders are not strictly ascending at index {index}: {seq} after {previous}\"\n            )\n        if seq in seen:\n            raise ValidationError(f\"duplicate seq {seq} at order index {index}\")\n        date_text = order[\"date\"]\n        if type(date_text) is not str or date_re.fullmatch(date_text) is None:\n            raise ValidationError(\n                f\"order index {index} date must be an exact YYYY-MM-DD string\"\n            )\n        try:\n            datetime.date.fromisoformat(date_text)\n        except ValueError as exc:\n            raise ValidationError(\n                f\"order index {index} date is not real: {date_text!r}\"\n            ) from exc\n        if type(order[\"region\"]) is not str:\n            raise ValidationError(f\"order index {index} region must be a JSON string\")\n        previous = seq\n        seen.add(seq)\n        orders.append(dict(order))\n\n    if not orders:\n        log.info(\"SKIP empty_batch last_seq=%d\", last_seq)\n        return {\"status\": \"no_op\", \"reason\": \"empty_batch\", \"last_seq\": last_seq}\n\n    log.info(\"PHASE compute_candidate order_count=%d\", len(orders))\n    total_units = 0\n    total_amount = 0\n    by_region = {}\n    for order in orders:\n        total_units += order[\"units\"]\n        total_amount += order[\"amount\"]\n        region = order[\"region\"]\n        by_region[region] = by_region.get(region, 0) + order[\"amount\"]\n    payload = {\n        \"batch_start_seq\": orders[0][\"seq\"],\n        \"batch_end_seq\": orders[-1][\"seq\"],\n        \"order_count\": len(orders),\n        \"total_units\": total_units,\n        \"total_amount_minor\": total_amount,\n        \"amount_by_region_minor\": by_region,\n    }\n    return {\n        \"status\": \"prepared\",\n        \"last_seq\": last_seq,\n        \"orders\": orders,\n        \"payload\": payload,\n    }\n",
+      "verify": true,
+      "side_effect_class": "read_only"
+    }
+  },
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 337.2,
+      "llm_calls": 22,
+      "prompt_tokens": 849959,
+      "completion_tokens": 6558,
+      "total_tokens": 856517,
+      "provider_cost_usd": 1.628964,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 22
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 22,
+          "prompt_tokens": 849959,
+          "completion_tokens": 6558
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_1",
+      "wall_seconds": 83.5,
+      "llm_calls": 7,
+      "prompt_tokens": 201996,
+      "completion_tokens": 5566,
+      "total_tokens": 207562,
+      "provider_cost_usd": 0.369208,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 7
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 7,
+          "prompt_tokens": 201996,
+          "completion_tokens": 5566
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_1_review",
+      "wall_seconds": 422.93,
+      "llm_calls": 15,
+      "prompt_tokens": 754850,
+      "completion_tokens": 15242,
+      "total_tokens": 770092,
+      "provider_cost_usd": 1.079112,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 15
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 15,
+          "prompt_tokens": 754850,
+          "completion_tokens": 15242
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_2",
+      "wall_seconds": 64.29,
+      "llm_calls": 4,
+      "prompt_tokens": 15723,
+      "completion_tokens": 2893,
+      "total_tokens": 18616,
+      "provider_cost_usd": 0.078271,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 4
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 10588,
+          "completion_tokens": 1755
+        },
+        "verification": {
+          "llm_calls": 2,
+          "prompt_tokens": 5135,
+          "completion_tokens": 1138
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_2_review",
+      "wall_seconds": 180.08,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_3",
+      "wall_seconds": 47.43,
+      "llm_calls": 3,
+      "prompt_tokens": 14404,
+      "completion_tokens": 2021,
+      "total_tokens": 16425,
+      "provider_cost_usd": 0.043844,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 11042,
+          "completion_tokens": 1979
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 3362,
+          "completion_tokens": 42
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_3_review",
+      "wall_seconds": 180.14,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_4",
+      "wall_seconds": 41.96,
+      "llm_calls": 3,
+      "prompt_tokens": 13467,
+      "completion_tokens": 1480,
+      "total_tokens": 14947,
+      "provider_cost_usd": 0.032801,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 10105,
+          "completion_tokens": 1428
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 3362,
+          "completion_tokens": 52
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_4_review",
+      "wall_seconds": 26.02,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_5",
+      "wall_seconds": 231.78,
+      "llm_calls": 20,
+      "prompt_tokens": 137015,
+      "completion_tokens": 8551,
+      "total_tokens": 145566,
+      "provider_cost_usd": 0.299617,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 20
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 16,
+          "prompt_tokens": 124630,
+          "completion_tokens": 5929
+        },
+        "verification": {
+          "llm_calls": 4,
+          "prompt_tokens": 12385,
+          "completion_tokens": 2622
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_5_review",
+      "wall_seconds": 180.16,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_6",
+      "wall_seconds": 129.92,
+      "llm_calls": 14,
+      "prompt_tokens": 82202,
+      "completion_tokens": 2935,
+      "total_tokens": 85137,
+      "provider_cost_usd": 0.096033,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 14
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 11,
+          "prompt_tokens": 71588,
+          "completion_tokens": 2777
+        },
+        "verification": {
+          "llm_calls": 3,
+          "prompt_tokens": 10614,
+          "completion_tokens": 158
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_6_review",
+      "wall_seconds": 180.14,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_7",
+      "wall_seconds": 140.36,
+      "llm_calls": 14,
+      "prompt_tokens": 83657,
+      "completion_tokens": 3458,
+      "total_tokens": 87115,
+      "provider_cost_usd": 0.104512,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 14
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 11,
+          "prompt_tokens": 73043,
+          "completion_tokens": 3287
+        },
+        "verification": {
+          "llm_calls": 3,
+          "prompt_tokens": 10614,
+          "completion_tokens": 171
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_7_review",
+      "wall_seconds": 180.15,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_8",
+      "wall_seconds": 130.3,
+      "llm_calls": 13,
+      "prompt_tokens": 72965,
+      "completion_tokens": 2966,
+      "total_tokens": 75931,
+      "provider_cost_usd": 0.093647,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 13
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 10,
+          "prompt_tokens": 62351,
+          "completion_tokens": 2840
+        },
+        "verification": {
+          "llm_calls": 3,
+          "prompt_tokens": 10614,
+          "completion_tokens": 126
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_8_review",
+      "wall_seconds": 180.15,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_9",
+      "wall_seconds": 38.81,
+      "llm_calls": 3,
+      "prompt_tokens": 11859,
+      "completion_tokens": 1036,
+      "total_tokens": 12895,
+      "provider_cost_usd": 0.019598,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 8321,
+          "completion_tokens": 975
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 3538,
+          "completion_tokens": 61
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_9_review",
+      "wall_seconds": 180.16,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_10",
+      "wall_seconds": 38.82,
+      "llm_calls": 3,
+      "prompt_tokens": 11836,
+      "completion_tokens": 1154,
+      "total_tokens": 12990,
+      "provider_cost_usd": 0.021296,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 8298,
+          "completion_tokens": 1094
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 3538,
+          "completion_tokens": 60
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_10_review",
+      "wall_seconds": 180.14,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    }
+  ],
+  "series": {},
+  "finished_at": "2026-08-20T19:00:01.624277+00:00"
+}

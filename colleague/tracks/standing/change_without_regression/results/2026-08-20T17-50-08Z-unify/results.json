@@ -1,0 +1,933 @@
+{
+  "experiment": "change_without_regression",
+  "variant": null,
+  "system": "unify",
+  "run_id": "2026-08-20T17-50-08Z-unify",
+  "orchestra_url": "https://api.staging.internal.saas.unify.ai/v0",
+  "context": "colleague/change_without_regression/2026-08-20T17-50-08Z-unify/default/0",
+  "seed": 20260817,
+  "n_fires": 6,
+  "quiesce_idle_s": 180.0,
+  "utterance": "Please set up an hourly recurring automation that processes new orders from the local orders API at http://127.0.0.1:18184.\n\nHow it works: GET http://127.0.0.1:18184/batches/last returns {\"last_seq\": N} \u2014 the highest order seq already processed (0 if none yet). GET http://127.0.0.1:18184/orders?after=N returns the next orders with seq > N (up to 200), each with fields: seq (int), date (YYYY-MM-DD), region, units (int), unit_price_cents (int).\n\nOn each run: read last_seq, fetch the orders after it, and if there are none do nothing. Otherwise compute exactly: batch_start_seq, batch_end_seq, order_count, total_units, total_revenue_cents (sum of units * unit_price_cents), and POST that JSON object to http://127.0.0.1:18184/batches with exactly these keys.\n\nIf a run finds anything that does not match this description, or you cannot be sure the numbers you would deliver are right, do not deliver anything for that run. Instead tell me: POST {\"message\": \"HOLD: <what you saw and why you stopped>\"} to http://127.0.0.1:18184/owner/notify. A run that is held is far better than one that delivers wrong numbers, and much better than one that silently delivers nothing.\n\nSet up the recurring hourly automation now. Do not process anything right now, and do not ask for confirmation.",
+  "steady_fires": 3,
+  "orders_per_fire": 40,
+  "change": "add total_refunded_cents; old columns ['batch_start_seq', 'batch_end_seq', 'order_count', 'total_units', 'total_revenue_cents'] byte-identical",
+  "messages": [
+    {
+      "before_fire": 4,
+      "phase": "message_4",
+      "text": "One change to the hourly order batches: add a column total_refunded_cents to each batch report \u2014 the sum of amount_cents over GET http://127.0.0.1:18184/refunds?start_seq=<batch_start_seq>&end_seq=<batch_end_seq> (each row: order_seq (int), amount_cents (int); 0 if there are none). Keep every other column exactly as it is, in the same format. Do not process anything right now, and do not ask for confirmation.",
+      "status": "completed",
+      "result": "Updated the hourly order batch processor:\n\n- Preserved the existing five report columns and format.\n- Added `total_refunded_cents` as the sixth column.\n- It sums `amount_cents` from the specified batch-range refunds GET; an empty array yields `0`.\n- Kept the hourly schedule, live status, name, and entrypoint unchanged.\n- Did **not** execute, test-run, trigger, or backfill any batch.\n\n### Uncertainties\n- The refunds endpoint was not exercised because you explicitly requested no processing; verification was limited to the stored implementation and task configuration."
+    }
+  ],
+  "fires": [
+    {
+      "fire": 1,
+      "label": "fire_1",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": null,
+      "entrypoint_after": 4,
+      "changed": false,
+      "pending_range": [
+        1,
+        40
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 1,
+          "batch_end_seq": 40,
+          "order_count": 40,
+          "total_units": 426,
+          "total_revenue_cents": 800174
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 1,
+        "batch_end_seq": 40,
+        "order_count": 40,
+        "total_units": 426,
+        "total_revenue_cents": 800174
+      },
+      "checks": {
+        "is_json_object": true,
+        "old:batch_start_seq": true,
+        "old:batch_end_seq": true,
+        "old:order_count": true,
+        "old:total_units": true,
+        "old:total_revenue_cents": true,
+        "old_columns_identical": true,
+        "new_column_absent": true,
+        "no_extra_keys": true
+      },
+      "old_columns_identical": true,
+      "new_column_correct": null,
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [
+        "post_local_orders_json_once",
+        "run_hourly_local_orders_batch",
+        "strict_local_orders_get_json",
+        "validate_and_compute_local_orders_page",
+        "validate_local_orders_cursor"
+      ],
+      "result": "Task run completed successfully.\n\n- Validated `last_seq`: **0**\n- Processed one page: **40 orders**\n- Delivered batch once; HTTP **200**\n- Sequence range: **1\u201340**\n- Total units: **426**\n- Total revenue: **800,174 cents**\n\n### Uncertainties\nNone. All validations and the independent recomputation passed.",
+      "tokens": {
+        "planning": {
+          "prompt": 899632,
+          "completion": 16959,
+          "calls": 25
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 916591,
+        "phases": [
+          "fire_1",
+          "fire_1_review"
+        ]
+      }
+    },
+    {
+      "fire": 2,
+      "label": "fire_2",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "changed": false,
+      "pending_range": [
+        41,
+        80
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 41,
+        "batch_end_seq": 80,
+        "order_count": 40,
+        "total_units": 403,
+        "total_revenue_cents": 828497
+      },
+      "checks": null,
+      "old_columns_identical": false,
+      "new_column_correct": null,
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly local orders batch processor: could not verify run_hourly_local_orders_batch (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 8616,
+          "completion": 1317,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 4650,
+          "completion": 559,
+          "calls": 2
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 15142,
+        "phases": [
+          "fire_2",
+          "fire_2_review"
+        ]
+      }
+    },
+    {
+      "fire": 3,
+      "label": "fire_3",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "changed": false,
+      "pending_range": [
+        41,
+        120
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 41,
+          "batch_end_seq": 120,
+          "order_count": 80,
+          "total_units": 829,
+          "total_revenue_cents": 1649171
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 41,
+        "batch_end_seq": 120,
+        "order_count": 80,
+        "total_units": 829,
+        "total_revenue_cents": 1649171
+      },
+      "checks": {
+        "is_json_object": true,
+        "old:batch_start_seq": true,
+        "old:batch_end_seq": true,
+        "old:order_count": true,
+        "old:total_units": true,
+        "old:total_revenue_cents": true,
+        "old_columns_identical": true,
+        "new_column_absent": true,
+        "no_extra_keys": true
+      },
+      "old_columns_identical": true,
+      "new_column_correct": null,
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [
+        "run_hourly_local_orders_batch"
+      ],
+      "result": "{'outcome': 'delivered', 'batch': {'batch_start_seq': 41, 'batch_end_seq': 120, 'order_count': 80, 'total_units': 829, 'total_revenue_cents': 1649171}, 'batch_status': 200}",
+      "tokens": {
+        "planning": {
+          "prompt": 91234,
+          "completion": 6332,
+          "calls": 11
+        },
+        "verification": {
+          "prompt": 59375,
+          "completion": 6069,
+          "calls": 17
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 163010,
+        "phases": [
+          "fire_3",
+          "fire_3_review"
+        ]
+      }
+    },
+    {
+      "fire": 4,
+      "label": "fire_4",
+      "events": [
+        "change_requested"
+      ],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "changed": true,
+      "pending_range": [
+        121,
+        160
+      ],
+      "batches_delivered": 0,
+      "batches": [],
+      "expected_batch": {
+        "batch_start_seq": 121,
+        "batch_end_seq": 160,
+        "order_count": 40,
+        "total_units": 390,
+        "total_revenue_cents": 808110,
+        "total_refunded_cents": 24712
+      },
+      "checks": null,
+      "old_columns_identical": false,
+      "new_column_correct": false,
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Hourly local orders batch processor: could not verify run_hourly_local_orders_batch (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 1240900,
+          "completion": 12968,
+          "calls": 32
+        },
+        "verification": {
+          "prompt": 7042,
+          "completion": 630,
+          "calls": 2
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 1261540,
+        "phases": [
+          "message_4",
+          "fire_4",
+          "fire_4_review"
+        ]
+      }
+    },
+    {
+      "fire": 5,
+      "label": "fire_5",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "changed": true,
+      "pending_range": [
+        121,
+        200
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 121,
+          "batch_end_seq": 200,
+          "order_count": 80,
+          "total_units": 732,
+          "total_revenue_cents": 1392268,
+          "total_refunded_cents": 54885
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 121,
+        "batch_end_seq": 200,
+        "order_count": 80,
+        "total_units": 732,
+        "total_revenue_cents": 1392268,
+        "total_refunded_cents": 54885
+      },
+      "checks": {
+        "is_json_object": true,
+        "old:batch_start_seq": true,
+        "old:batch_end_seq": true,
+        "old:order_count": true,
+        "old:total_units": true,
+        "old:total_revenue_cents": true,
+        "old_columns_identical": true,
+        "new_column_correct": true,
+        "no_extra_keys": true
+      },
+      "old_columns_identical": true,
+      "new_column_correct": true,
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "{'outcome': 'delivered', 'batch': {'batch_start_seq': 121, 'batch_end_seq': 200, 'order_count': 80, 'total_units': 732, 'total_revenue_cents': 1392268, 'total_refunded_cents': 54885}, 'batch_status': 200}",
+      "tokens": {
+        "planning": {
+          "prompt": 23013,
+          "completion": 1701,
+          "calls": 4
+        },
+        "verification": {
+          "prompt": 71260,
+          "completion": 5036,
+          "calls": 16
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 101010,
+        "phases": [
+          "fire_5",
+          "fire_5_review"
+        ]
+      }
+    },
+    {
+      "fire": 6,
+      "label": "fire_6",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 4,
+      "entrypoint_after": 4,
+      "changed": true,
+      "pending_range": [
+        201,
+        240
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 201,
+          "batch_end_seq": 240,
+          "order_count": 40,
+          "total_units": 425,
+          "total_revenue_cents": 793175,
+          "total_refunded_cents": 14307
+        }
+      ],
+      "expected_batch": {
+        "batch_start_seq": 201,
+        "batch_end_seq": 240,
+        "order_count": 40,
+        "total_units": 425,
+        "total_revenue_cents": 793175,
+        "total_refunded_cents": 14307
+      },
+      "checks": {
+        "is_json_object": true,
+        "old:batch_start_seq": true,
+        "old:batch_end_seq": true,
+        "old:order_count": true,
+        "old:total_units": true,
+        "old:total_revenue_cents": true,
+        "old_columns_identical": true,
+        "new_column_correct": true,
+        "no_extra_keys": true
+      },
+      "old_columns_identical": true,
+      "new_column_correct": true,
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "{'outcome': 'delivered', 'batch': {'batch_start_seq': 201, 'batch_end_seq': 240, 'order_count': 40, 'total_units': 425, 'total_revenue_cents': 793175, 'total_refunded_cents': 14307}, 'batch_status': 200}",
+      "tokens": {
+        "planning": {
+          "prompt": 24883,
+          "completion": 1868,
+          "calls": 4
+        },
+        "verification": {
+          "prompt": 20450,
+          "completion": 750,
+          "calls": 4
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 47951,
+        "phases": [
+          "fire_6",
+          "fire_6_review"
+        ]
+      }
+    }
+  ],
+  "setup": {
+    "status": "completed",
+    "result": "The hourly automation is set up and verified.\n\n- **Task:** Hourly local orders batch processor\n- **Task ID:** `0`\n- **Status:** Enabled and armed\n- **First run:** August 20, 2026 at 18:51 UTC\n- **Frequency:** Every hour\n- **Execution:** Description-driven; no desktop or filesystem required\n\nIt includes strict response validation, exact integer calculations, independent recomputation, and mandatory `HOLD` notification behavior for any discrepancy or uncertainty. Failed or uncertain batch posts will not be retried within the same run.\n\nNo HTTP requests were made, no orders were processed, and no run was started during setup.\n\n**Uncertainties:** None."
+  },
+  "functions_after_setup": {},
+  "entrypoint_function_final": {
+    "function_id": 4,
+    "name": "run_hourly_local_orders_batch",
+    "docstring": "Run one strict hourly local-orders batch, adding total_refunded_cents while preserving every existing report field. See guidance `Strict local orders batch delivery and HOLD protocol`.",
+    "implementation": "def run_hourly_local_orders_batch() -> dict[str, object]:\n    \"\"\"Run one strict hourly local-orders batch, adding total_refunded_cents while preserving every existing report field. See guidance `Strict local orders batch delivery and HOLD protocol`.\"\"\"\n    import logging\n\n    log = logging.getLogger(__name__)\n    baseline_batch_keys = {\n        \"batch_start_seq\",\n        \"batch_end_seq\",\n        \"order_count\",\n        \"total_units\",\n        \"total_revenue_cents\",\n    }\n    final_batch_keys = baseline_batch_keys | {\"total_refunded_cents\"}\n\n    def deliver_hold(reason: str) -> dict[str, object]:\n        message = f\"HOLD: {reason}\"\n        log.warning(\"SOFT_FAIL %s\", message)\n        log.info(\"SKIP POST /batches because the run is on HOLD\")\n        try:\n            status = post_local_orders_json_once(\"/owner/notify\", {\"message\": message})\n        except Exception as exc:\n            log.exception(\"SOFT_FAIL mandatory HOLD notification transport failure\")\n            raise RuntimeError(\n                f\"run failed: mandatory HOLD notification could not be delivered after: {reason}; \"\n                f\"notification error type={type(exc).__name__}\"\n            ) from exc\n        if not 200 <= status <= 299:\n            log.error(\"SOFT_FAIL mandatory HOLD notification returned HTTP %s\", status)\n            raise RuntimeError(\n                f\"run failed: mandatory HOLD notification returned HTTP {status} after: {reason}\"\n            )\n        log.info(\"PHASE mandatory HOLD notification delivered http_status=%s\", status)\n        return {\"outcome\": \"held\", \"reason\": reason, \"hold_notification_status\": status}\n\n    try:\n        cursor = strict_local_orders_get_json(\"/batches/last\", \"GET /batches/last\")\n        last_seq = validate_local_orders_cursor(cursor)\n        log.info(\"PHASE validated last_seq=%s\", last_seq)\n\n        orders = strict_local_orders_get_json(f\"/orders?after={last_seq}\", \"GET /orders\")\n        if type(orders) is not list:\n            raise ValueError(\"GET /orders top-level JSON value was not an array\")\n\n        prepared = validate_and_compute_local_orders_page(last_seq, orders)\n        if type(prepared) is not dict:\n            raise ValueError(\"validated orders result was not an object\")\n\n        if not orders:\n            if prepared.get(\"outcome\") != \"success_no_orders\":\n                raise ValueError(\"empty orders page did not produce the required no-orders outcome\")\n            log.info(\"SKIP empty orders page; no refunds GET and no batch POST are permitted\")\n            return prepared\n\n        if prepared.get(\"outcome\") != \"ready\" or set(prepared.keys()) != {\n            \"outcome\",\n            \"last_seq\",\n            \"batch\",\n        }:\n            raise ValueError(\"validated non-empty orders page did not produce the exact ready result\")\n        if prepared[\"last_seq\"] != last_seq:\n            raise ValueError(\"validated orders result did not preserve last_seq\")\n        baseline_payload = prepared[\"batch\"]\n        if type(baseline_payload) is not dict or set(baseline_payload.keys()) != baseline_batch_keys:\n            raise ValueError(\"candidate baseline batch was not exactly the required existing five-key object\")\n        if any(type(value) is not int for value in baseline_payload.values()):\n            raise ValueError(\"one or more candidate baseline batch values was not a JSON integer\")\n\n        recomputed_baseline = {\n            \"batch_start_seq\": orders[0][\"seq\"],\n            \"batch_end_seq\": orders[-1][\"seq\"],\n            \"order_count\": len(orders),\n            \"total_units\": sum(order[\"units\"] for order in orders),\n            \"total_revenue_cents\": sum(\n                order[\"units\"] * order[\"unit_price_cents\"] for order in orders\n            ),\n        }\n        if baseline_payload != recomputed_baseline:\n            raise ValueError(\"candidate baseline batch values differed from direct recomputation\")\n        log.info(\"PHASE caller-level recomputation matched all five existing output values\")\n\n        batch_start_seq = baseline_payload[\"batch_start_seq\"]\n        batch_end_seq = baseline_payload[\"batch_end_seq\"]\n        refunds_path = f\"/refunds?start_seq={batch_start_seq}&end_seq={batch_end_seq}\"\n        refunds = strict_local_orders_get_json(refunds_path, \"GET /refunds\")\n        if type(refunds) is not list:\n            raise ValueError(\"GET /refunds top-level JSON value was not an array\")\n        refund_keys = {\"order_seq\", \"amount_cents\"}\n        for index, refund in enumerate(refunds):\n            if type(refund) is not dict:\n                raise ValueError(f\"GET /refunds item {index} was not an object\")\n            if set(refund.keys()) != refund_keys:\n                raise ValueError(f\"GET /refunds item {index} did not contain exactly order_seq and amount_cents\")\n            if type(refund[\"order_seq\"]) is not int:\n                raise ValueError(f\"GET /refunds item {index} order_seq was not a JSON integer\")\n            if type(refund[\"amount_cents\"]) is not int:\n                raise ValueError(f\"GET /refunds item {index} amount_cents was not a JSON integer\")\n            if not batch_start_seq <= refund[\"order_seq\"] <= batch_end_seq:\n                raise ValueError(f\"GET /refunds item {index} order_seq was outside the requested batch range\")\n\n        total_refunded_cents = sum(refund[\"amount_cents\"] for refund in refunds)\n        independently_recomputed_refunds = 0\n        for refund in refunds:\n            independently_recomputed_refunds += refund[\"amount_cents\"]\n        if total_refunded_cents != independently_recomputed_refunds:\n            raise ValueError(\"refund sum differed from independent direct recomputation\")\n        if type(total_refunded_cents) is not int:\n            raise ValueError(\"total_refunded_cents was not a JSON integer\")\n\n        payload = dict(baseline_payload)\n        payload[\"total_refunded_cents\"] = total_refunded_cents\n        recomputed = dict(recomputed_baseline)\n        recomputed[\"total_refunded_cents\"] = independently_recomputed_refunds\n        if set(payload.keys()) != final_batch_keys or set(recomputed.keys()) != final_batch_keys:\n            raise ValueError(\"final batch output keys differed from the required six-key schema\")\n        if payload != recomputed:\n            raise ValueError(\"final batch values differed from direct recomputation\")\n        if any(type(value) is not int for value in payload.values()):\n            raise ValueError(\"one or more final batch values was not a JSON integer\")\n        log.info(\"PHASE independent recomputation matched all six output values\")\n    except Exception as exc:\n        return deliver_hold(str(exc))\n\n    try:\n        batch_status = post_local_orders_json_once(\"/batches\", payload)\n    except Exception as exc:\n        return deliver_hold(\n            f\"POST /batches delivery was unconfirmed due to {type(exc).__name__}; it was not retried\"\n        )\n    if not 200 <= batch_status <= 299:\n        return deliver_hold(\n            f\"POST /batches returned non-success HTTP status {batch_status}; it was not retried\"\n        )\n    log.info(\"PHASE POST /batches confirmed successful http_status=%s\", batch_status)\n    return {\"outcome\": \"delivered\", \"batch\": payload, \"batch_status\": batch_status}"
+  },
+  "functions_final": {
+    "run_hourly_local_orders_batch": {
+      "function_id": 4,
+      "implementation": "def run_hourly_local_orders_batch() -> dict[str, object]:\n    \"\"\"Run one strict hourly local-orders batch, adding total_refunded_cents while preserving every existing report field. See guidance `Strict local orders batch delivery and HOLD protocol`.\"\"\"\n    import logging\n\n    log = logging.getLogger(__name__)\n    baseline_batch_keys = {\n        \"batch_start_seq\",\n        \"batch_end_seq\",\n        \"order_count\",\n        \"total_units\",\n        \"total_revenue_cents\",\n    }\n    final_batch_keys = baseline_batch_keys | {\"total_refunded_cents\"}\n\n    def deliver_hold(reason: str) -> dict[str, object]:\n        message = f\"HOLD: {reason}\"\n        log.warning(\"SOFT_FAIL %s\", message)\n        log.info(\"SKIP POST /batches because the run is on HOLD\")\n        try:\n            status = post_local_orders_json_once(\"/owner/notify\", {\"message\": message})\n        except Exception as exc:\n            log.exception(\"SOFT_FAIL mandatory HOLD notification transport failure\")\n            raise RuntimeError(\n                f\"run failed: mandatory HOLD notification could not be delivered after: {reason}; \"\n                f\"notification error type={type(exc).__name__}\"\n            ) from exc\n        if not 200 <= status <= 299:\n            log.error(\"SOFT_FAIL mandatory HOLD notification returned HTTP %s\", status)\n            raise RuntimeError(\n                f\"run failed: mandatory HOLD notification returned HTTP {status} after: {reason}\"\n            )\n        log.info(\"PHASE mandatory HOLD notification delivered http_status=%s\", status)\n        return {\"outcome\": \"held\", \"reason\": reason, \"hold_notification_status\": status}\n\n    try:\n        cursor = strict_local_orders_get_json(\"/batches/last\", \"GET /batches/last\")\n        last_seq = validate_local_orders_cursor(cursor)\n        log.info(\"PHASE validated last_seq=%s\", last_seq)\n\n        orders = strict_local_orders_get_json(f\"/orders?after={last_seq}\", \"GET /orders\")\n        if type(orders) is not list:\n            raise ValueError(\"GET /orders top-level JSON value was not an array\")\n\n        prepared = validate_and_compute_local_orders_page(last_seq, orders)\n        if type(prepared) is not dict:\n            raise ValueError(\"validated orders result was not an object\")\n\n        if not orders:\n            if prepared.get(\"outcome\") != \"success_no_orders\":\n                raise ValueError(\"empty orders page did not produce the required no-orders outcome\")\n            log.info(\"SKIP empty orders page; no refunds GET and no batch POST are permitted\")\n            return prepared\n\n        if prepared.get(\"outcome\") != \"ready\" or set(prepared.keys()) != {\n            \"outcome\",\n            \"last_seq\",\n            \"batch\",\n        }:\n            raise ValueError(\"validated non-empty orders page did not produce the exact ready result\")\n        if prepared[\"last_seq\"] != last_seq:\n            raise ValueError(\"validated orders result did not preserve last_seq\")\n        baseline_payload = prepared[\"batch\"]\n        if type(baseline_payload) is not dict or set(baseline_payload.keys()) != baseline_batch_keys:\n            raise ValueError(\"candidate baseline batch was not exactly the required existing five-key object\")\n        if any(type(value) is not int for value in baseline_payload.values()):\n            raise ValueError(\"one or more candidate baseline batch values was not a JSON integer\")\n\n        recomputed_baseline = {\n            \"batch_start_seq\": orders[0][\"seq\"],\n            \"batch_end_seq\": orders[-1][\"seq\"],\n            \"order_count\": len(orders),\n            \"total_units\": sum(order[\"units\"] for order in orders),\n            \"total_revenue_cents\": sum(\n                order[\"units\"] * order[\"unit_price_cents\"] for order in orders\n            ),\n        }\n        if baseline_payload != recomputed_baseline:\n            raise ValueError(\"candidate baseline batch values differed from direct recomputation\")\n        log.info(\"PHASE caller-level recomputation matched all five existing output values\")\n\n        batch_start_seq = baseline_payload[\"batch_start_seq\"]\n        batch_end_seq = baseline_payload[\"batch_end_seq\"]\n        refunds_path = f\"/refunds?start_seq={batch_start_seq}&end_seq={batch_end_seq}\"\n        refunds = strict_local_orders_get_json(refunds_path, \"GET /refunds\")\n        if type(refunds) is not list:\n            raise ValueError(\"GET /refunds top-level JSON value was not an array\")\n        refund_keys = {\"order_seq\", \"amount_cents\"}\n        for index, refund in enumerate(refunds):\n            if type(refund) is not dict:\n                raise ValueError(f\"GET /refunds item {index} was not an object\")\n            if set(refund.keys()) != refund_keys:\n                raise ValueError(f\"GET /refunds item {index} did not contain exactly order_seq and amount_cents\")\n            if type(refund[\"order_seq\"]) is not int:\n                raise ValueError(f\"GET /refunds item {index} order_seq was not a JSON integer\")\n            if type(refund[\"amount_cents\"]) is not int:\n                raise ValueError(f\"GET /refunds item {index} amount_cents was not a JSON integer\")\n            if not batch_start_seq <= refund[\"order_seq\"] <= batch_end_seq:\n                raise ValueError(f\"GET /refunds item {index} order_seq was outside the requested batch range\")\n\n        total_refunded_cents = sum(refund[\"amount_cents\"] for refund in refunds)\n        independently_recomputed_refunds = 0\n        for refund in refunds:\n            independently_recomputed_refunds += refund[\"amount_cents\"]\n        if total_refunded_cents != independently_recomputed_refunds:\n            raise ValueError(\"refund sum differed from independent direct recomputation\")\n        if type(total_refunded_cents) is not int:\n            raise ValueError(\"total_refunded_cents was not a JSON integer\")\n\n        payload = dict(baseline_payload)\n        payload[\"total_refunded_cents\"] = total_refunded_cents\n        recomputed = dict(recomputed_baseline)\n        recomputed[\"total_refunded_cents\"] = independently_recomputed_refunds\n        if set(payload.keys()) != final_batch_keys or set(recomputed.keys()) != final_batch_keys:\n            raise ValueError(\"final batch output keys differed from the required six-key schema\")\n        if payload != recomputed:\n            raise ValueError(\"final batch values differed from direct recomputation\")\n        if any(type(value) is not int for value in payload.values()):\n            raise ValueError(\"one or more final batch values was not a JSON integer\")\n        log.info(\"PHASE independent recomputation matched all six output values\")\n    except Exception as exc:\n        return deliver_hold(str(exc))\n\n    try:\n        batch_status = post_local_orders_json_once(\"/batches\", payload)\n    except Exception as exc:\n        return deliver_hold(\n            f\"POST /batches delivery was unconfirmed due to {type(exc).__name__}; it was not retried\"\n        )\n    if not 200 <= batch_status <= 299:\n        return deliver_hold(\n            f\"POST /batches returned non-success HTTP status {batch_status}; it was not retried\"\n        )\n    log.info(\"PHASE POST /batches confirmed successful http_status=%s\", batch_status)\n    return {\"outcome\": \"delivered\", \"batch\": payload, \"batch_status\": batch_status}",
+      "verify": true,
+      "side_effect_class": "unsafe_effectful"
+    },
+    "post_local_orders_json_once": {
+      "function_id": 3,
+      "implementation": "def post_local_orders_json_once(path: str, payload: dict[str, object]) -> int:\n    \"\"\"Make exactly one bounded JSON POST to an allowed local orders endpoint and return its HTTP status. See guidance `Strict local orders batch delivery and HOLD protocol`.\"\"\"\n    import http.client\n    import json\n    import logging\n\n    batch_keys = {\n        \"batch_start_seq\",\n        \"batch_end_seq\",\n        \"order_count\",\n        \"total_units\",\n        \"total_revenue_cents\",\n        \"total_refunded_cents\",\n    }\n    if path == \"/batches\":\n        if set(payload.keys()) != batch_keys or any(type(value) is not int for value in payload.values()):\n            raise ValueError(\"batch POST payload was not exactly the required six-integer object\")\n    elif path == \"/owner/notify\":\n        if set(payload.keys()) != {\"message\"} or type(payload[\"message\"]) is not str:\n            raise ValueError(\"HOLD notification payload was not exactly a one-string-key object\")\n        if not payload[\"message\"].startswith(\"HOLD: \"):\n            raise ValueError(\"owner notification message did not start with HOLD\")\n    else:\n        raise ValueError(\"POST path was not an allowed local orders endpoint\")\n\n    body = json.dumps(payload, separators=(\",\", \":\"), ensure_ascii=False).encode(\"utf-8\")\n    headers = {\"Content-Type\": \"application/json\", \"Content-Length\": str(len(body))}\n    logging.getLogger(__name__).info(\"PHASE posting %s exactly once\", path)\n    connection = http.client.HTTPConnection(\"127.0.0.1\", 18184, timeout=5.0)\n    try:\n        connection.request(\"POST\", path, body=body, headers=headers)\n        response = connection.getresponse()\n        return response.status\n    finally:\n        connection.close()",
+      "verify": true,
+      "side_effect_class": "unsafe_effectful"
+    },
+    "validate_and_compute_local_orders_page": {
+      "function_id": 2,
+      "implementation": "def validate_and_compute_local_orders_page(last_seq: int, orders: object) -> dict[str, object]:\n    \"\"\"Validate one orders page and return either the empty outcome or the unchanged five existing batch fields, before refunds are added by the runner. See guidance `Strict local orders batch delivery and HOLD protocol`.\"\"\"\n    import logging\n    import re\n    from datetime import date as Date\n\n    log = logging.getLogger(__name__)\n    order_keys = {\"seq\", \"date\", \"region\", \"units\", \"unit_price_cents\"}\n    batch_keys = {\n        \"batch_start_seq\",\n        \"batch_end_seq\",\n        \"order_count\",\n        \"total_units\",\n        \"total_revenue_cents\",\n    }\n    date_re = re.compile(r\"\\d{4}-\\d{2}-\\d{2}\\Z\")\n\n    if type(last_seq) is not int or last_seq < 0:\n        raise ValueError(\"validated last_seq input was not a non-negative JSON integer\")\n    if type(orders) is not list:\n        raise ValueError(\"GET /orders top-level JSON value was not an array\")\n    if len(orders) > 200:\n        raise ValueError(f\"GET /orders returned {len(orders)} items, exceeding the 200-item limit\")\n\n    previous_seq = None\n    seen_seqs = set()\n    for index, order in enumerate(orders):\n        if type(order) is not dict:\n            raise ValueError(f\"GET /orders item {index} was not an object\")\n        if set(order.keys()) != order_keys:\n            raise ValueError(f\"GET /orders item {index} did not contain exactly the required five keys\")\n        for field in (\"seq\", \"units\", \"unit_price_cents\"):\n            if type(order[field]) is not int:\n                raise ValueError(f\"GET /orders item {index} field {field} was not a JSON integer\")\n        seq = order[\"seq\"]\n        if seq <= last_seq:\n            raise ValueError(f\"GET /orders item {index} seq was not greater than last_seq\")\n        if seq in seen_seqs:\n            raise ValueError(f\"GET /orders item {index} repeated a seq value\")\n        if previous_seq is not None and seq <= previous_seq:\n            raise ValueError(f\"GET /orders item {index} seq was not strictly increasing\")\n        seen_seqs.add(seq)\n        previous_seq = seq\n\n        if type(order[\"date\"]) is not str:\n            raise ValueError(f\"GET /orders item {index} date was not a string\")\n        date_text = order[\"date\"]\n        if date_re.fullmatch(date_text) is None:\n            raise ValueError(f\"GET /orders item {index} date was not in exact YYYY-MM-DD format\")\n        try:\n            parsed_date = Date.fromisoformat(date_text)\n        except ValueError as exc:\n            raise ValueError(f\"GET /orders item {index} date was not a real calendar date\") from exc\n        if parsed_date.isoformat() != date_text:\n            raise ValueError(f\"GET /orders item {index} date was not canonical YYYY-MM-DD\")\n        if type(order[\"region\"]) is not str:\n            raise ValueError(f\"GET /orders item {index} region was not a string\")\n\n    log.info(\"PHASE validated one orders page count=%s\", len(orders))\n    if not orders:\n        log.info(\"SKIP empty orders page; no refunds GET and no batch POST are permitted\")\n        return {\"outcome\": \"success_no_orders\", \"last_seq\": last_seq, \"order_count\": 0}\n\n    total_units = 0\n    total_revenue_cents = 0\n    order_count = 0\n    for order in orders:\n        order_count += 1\n        total_units += order[\"units\"]\n        total_revenue_cents += order[\"units\"] * order[\"unit_price_cents\"]\n    payload = {\n        \"batch_start_seq\": orders[0][\"seq\"],\n        \"batch_end_seq\": orders[-1][\"seq\"],\n        \"order_count\": order_count,\n        \"total_units\": total_units,\n        \"total_revenue_cents\": total_revenue_cents,\n    }\n    recomputed = {\n        \"batch_start_seq\": orders[0][\"seq\"],\n        \"batch_end_seq\": orders[len(orders) - 1][\"seq\"],\n        \"order_count\": sum(1 for _ in orders),\n        \"total_units\": sum([order[\"units\"] for order in orders]),\n        \"total_revenue_cents\": sum(\n            [order[\"units\"] * order[\"unit_price_cents\"] for order in orders]\n        ),\n    }\n    if set(payload.keys()) != batch_keys or set(recomputed.keys()) != batch_keys:\n        raise ValueError(\"candidate baseline batch keys differed from the required existing five-key schema\")\n    if payload != recomputed:\n        raise ValueError(\"candidate baseline batch values did not equal independent direct recomputation\")\n    if any(type(value) is not int for value in payload.values()):\n        raise ValueError(\"one or more candidate baseline batch values was not a JSON integer\")\n    log.info(\"PHASE independent recomputation matched all five existing output values\")\n    return {\"outcome\": \"ready\", \"last_seq\": last_seq, \"batch\": payload}",
+      "verify": false,
+      "side_effect_class": "safe_noop"
+    },
+    "validate_local_orders_cursor": {
+      "function_id": 1,
+      "implementation": "def validate_local_orders_cursor(cursor: object) -> int:\n    \"\"\"Return the non-negative JSON integer in an object containing exactly `last_seq`. See guidance `Strict local orders batch delivery and HOLD protocol`.\"\"\"\n    if type(cursor) is not dict:\n        raise ValueError(\"GET /batches/last top-level JSON value was not an object\")\n    if set(cursor.keys()) != {\"last_seq\"}:\n        raise ValueError(\"GET /batches/last object did not contain exactly the required last_seq key\")\n    last_seq = cursor[\"last_seq\"]\n    if type(last_seq) is not int:\n        raise ValueError(\"GET /batches/last last_seq was not a JSON integer\")\n    if last_seq < 0:\n        raise ValueError(\"GET /batches/last last_seq was negative\")\n    return last_seq",
+      "verify": false,
+      "side_effect_class": "safe_noop"
+    },
+    "strict_local_orders_get_json": {
+      "function_id": 0,
+      "implementation": "def strict_local_orders_get_json(path: str, label: str) -> object:\n    \"\"\"Return strict JSON from one successful bounded GET to the fixed local orders service, including orders and refunds reads. See guidance `Strict local orders batch delivery and HOLD protocol`.\"\"\"\n    import http.client\n    import json\n    import logging\n\n    host = \"127.0.0.1\"\n    port = 18184\n    timeout_seconds = 5.0\n    max_json_bytes = 2_000_000\n    log = logging.getLogger(__name__)\n\n    def no_duplicate_object(pairs):\n        result = {}\n        for key, value in pairs:\n            if key in result:\n                raise ValueError(f\"duplicate JSON object key {key!r}\")\n            result[key] = value\n        return result\n\n    log.info(\"PHASE requesting %s\", label)\n    connection = http.client.HTTPConnection(host, port, timeout=timeout_seconds)\n    try:\n        try:\n            connection.request(\"GET\", path)\n            response = connection.getresponse()\n            status = response.status\n            raw = response.read(max_json_bytes + 1)\n        except Exception as exc:\n            log.error(\"SOFT_FAIL %s transport_or_timeout type=%s\", label, type(exc).__name__)\n            raise RuntimeError(f\"{label} had a transport error or timeout ({type(exc).__name__})\") from exc\n    finally:\n        connection.close()\n\n    if len(raw) > max_json_bytes:\n        log.error(\"SOFT_FAIL %s response_body_too_large\", label)\n        raise RuntimeError(f\"{label} response exceeded the bounded body limit\")\n    if not 200 <= status <= 299:\n        log.error(\"SOFT_FAIL %s http_status=%s\", label, status)\n        raise RuntimeError(f\"{label} returned non-success HTTP status {status}\")\n\n    try:\n        text = raw.decode(\"utf-8\")\n    except UnicodeDecodeError as exc:\n        log.error(\"SOFT_FAIL %s invalid_utf8\", label)\n        raise RuntimeError(f\"{label} body was not valid UTF-8 JSON\") from exc\n    try:\n        value = json.loads(\n            text,\n            object_pairs_hook=no_duplicate_object,\n            parse_constant=lambda token: (_ for _ in ()).throw(\n                ValueError(f\"non-standard JSON constant {token}\")\n            ),\n        )\n    except (json.JSONDecodeError, ValueError) as exc:\n        log.error(\"SOFT_FAIL %s invalid_strict_json type=%s\", label, type(exc).__name__)\n        raise RuntimeError(f\"{label} body was not valid strict JSON ({type(exc).__name__})\") from exc\n    log.info(\"PHASE received valid strict JSON for %s\", label)\n    return value",
+      "verify": false,
+      "side_effect_class": "read_only"
+    }
+  },
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 350.64,
+      "llm_calls": 29,
+      "prompt_tokens": 1012118,
+      "completion_tokens": 7102,
+      "total_tokens": 1019220,
+      "provider_cost_usd": 2.03354,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 29
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 29,
+          "prompt_tokens": 1012118,
+          "completion_tokens": 7102
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_1",
+      "wall_seconds": 67.6,
+      "llm_calls": 7,
+      "prompt_tokens": 161260,
+      "completion_tokens": 4160,
+      "total_tokens": 165420,
+      "provider_cost_usd": 0.332862,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 7
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 7,
+          "prompt_tokens": 161260,
+          "completion_tokens": 4160
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_1_review",
+      "wall_seconds": 396.59,
+      "llm_calls": 18,
+      "prompt_tokens": 738372,
+      "completion_tokens": 12799,
+      "total_tokens": 751171,
+      "provider_cost_usd": 1.260032,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 18
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 18,
+          "prompt_tokens": 738372,
+          "completion_tokens": 12799
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_2",
+      "wall_seconds": 46.65,
+      "llm_calls": 4,
+      "prompt_tokens": 13266,
+      "completion_tokens": 1876,
+      "total_tokens": 15142,
+      "provider_cost_usd": 0.056402,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 4
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 8616,
+          "completion_tokens": 1317
+        },
+        "verification": {
+          "llm_calls": 2,
+          "prompt_tokens": 4650,
+          "completion_tokens": 559
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_2_review",
+      "wall_seconds": 180.07,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_3",
+      "wall_seconds": 297.96,
+      "llm_calls": 28,
+      "prompt_tokens": 150609,
+      "completion_tokens": 12401,
+      "total_tokens": 163010,
+      "provider_cost_usd": 0.445978,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 28
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 11,
+          "prompt_tokens": 91234,
+          "completion_tokens": 6332
+        },
+        "verification": {
+          "llm_calls": 17,
+          "prompt_tokens": 59375,
+          "completion_tokens": 6069
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_3_review",
+      "wall_seconds": 48.05,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "message_4",
+      "wall_seconds": 444.66,
+      "llm_calls": 30,
+      "prompt_tokens": 1229538,
+      "completion_tokens": 11047,
+      "total_tokens": 1240585,
+      "provider_cost_usd": 2.407295,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 30
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 30,
+          "prompt_tokens": 1229538,
+          "completion_tokens": 11047
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_4",
+      "wall_seconds": 53.7,
+      "llm_calls": 4,
+      "prompt_tokens": 18404,
+      "completion_tokens": 2551,
+      "total_tokens": 20955,
+      "provider_cost_usd": 0.078524,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 4
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 11362,
+          "completion_tokens": 1921
+        },
+        "verification": {
+          "llm_calls": 2,
+          "prompt_tokens": 7042,
+          "completion_tokens": 630
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_4_review",
+      "wall_seconds": 180.15,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_5",
+      "wall_seconds": 168.01,
+      "llm_calls": 20,
+      "prompt_tokens": 94273,
+      "completion_tokens": 6737,
+      "total_tokens": 101010,
+      "provider_cost_usd": 0.33471,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 20
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 4,
+          "prompt_tokens": 23013,
+          "completion_tokens": 1701
+        },
+        "verification": {
+          "llm_calls": 16,
+          "prompt_tokens": 71260,
+          "completion_tokens": 5036
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_5_review",
+      "wall_seconds": 164.13,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_6",
+      "wall_seconds": 99.34,
+      "llm_calls": 8,
+      "prompt_tokens": 45333,
+      "completion_tokens": 2618,
+      "total_tokens": 47951,
+      "provider_cost_usd": 0.120625,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 8
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 4,
+          "prompt_tokens": 24883,
+          "completion_tokens": 1868
+        },
+        "verification": {
+          "llm_calls": 4,
+          "prompt_tokens": 20450,
+          "completion_tokens": 750
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_6_review",
+      "wall_seconds": 162.13,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    }
+  ],
+  "series": {
+    "steady_state_reached": false,
+    "new_column_correct_fires": 2,
+    "old_columns_identical_fires": 2,
+    "post_change_fires": 3,
+    "regression_free": false
+  },
+  "finished_at": "2026-08-20T18:51:07.557470+00:00"
+}

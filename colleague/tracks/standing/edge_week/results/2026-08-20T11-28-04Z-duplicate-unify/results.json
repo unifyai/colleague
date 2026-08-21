@@ -1,0 +1,840 @@
+{
+  "experiment": "edge_week",
+  "variant": "duplicate",
+  "system": "unify",
+  "run_id": "2026-08-20T11-28-04Z-duplicate-unify",
+  "orchestra_url": "https://api.staging.internal.saas.unify.ai/v0",
+  "context": "colleague/edge_week/2026-08-20T11-28-04Z-duplicate-unify/default/0",
+  "seed": 20260817,
+  "n_fires": 5,
+  "quiesce_idle_s": 180.0,
+  "utterance": "Please set up a weekly recurring automation (every Monday at 09:00) that sends our overdue-invoice reminders and posts the weekly digest, using the local invoices API at http://127.0.0.1:18192.\n\nHow it works: GET http://127.0.0.1:18192/reports/last returns {\"last_week\": N} \u2014 the highest week already reported (0 if none yet). Each run handles week N + 1. GET http://127.0.0.1:18192/invoices?week=W returns the invoices that became overdue in week W, each with fields: id (string, unique), vendor (string), amount_cents (int \u2014 the amount in EUR cents; every invoice is in EUR), currency (string, always \"EUR\"), days_overdue (int), contact_email (string \u2014 every invoice has one).\n\nOn each run: send one reminder per invoice by POSTing {\"to\": <contact_email>, \"invoice_id\": <id>} to http://127.0.0.1:18192/remind, then POST the digest to http://127.0.0.1:18192/report as a JSON object with exactly these keys: week (int), invoice_count (int \u2014 the number of distinct invoices), total_amount_cents (int \u2014 the sum of amount_cents), reminders_sent (int), flagged_invoice_ids (list of ids of any invoice that did not match the description above \u2014 for example a duplicated id, a missing field or an unexpected value; handle every other invoice normally; this list is normally empty). Always post the digest, even when there is nothing to report.\n\nIf a run finds anything that does not match this description, or you cannot be sure the numbers you would deliver are right, do not deliver anything for that run. Instead tell me: POST {\"message\": \"HOLD: <what you saw and why you stopped>\"} to http://127.0.0.1:18192/owner/notify. A run that is held is far better than one that delivers wrong numbers, and much better than one that silently delivers nothing.\n\nSet up the recurring weekly automation now. Do not process anything right now, and do not ask for confirmation.",
+  "edge_week": 5,
+  "edge": "duplicate",
+  "messages": [],
+  "fires": [
+    {
+      "fire": 1,
+      "label": "week_1",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": null,
+      "entrypoint_after": 3,
+      "week": 1,
+      "edge": "",
+      "reports_delivered": 1,
+      "reports": [
+        {
+          "week": 1,
+          "invoice_count": 5,
+          "total_amount_cents": 652200,
+          "reminders_sent": 5,
+          "flagged_invoice_ids": []
+        }
+      ],
+      "reminders_sent": 5,
+      "expected_report": {
+        "week": 1,
+        "invoice_count": 5,
+        "total_amount_cents": 652200,
+        "reminders_sent": 5,
+        "flagged_invoice_ids": []
+      },
+      "checks": {
+        "one_report": true,
+        "week": true,
+        "invoice_count": true,
+        "total_amount_cents": true,
+        "reminders_sent": true,
+        "flagged_invoice_ids": true,
+        "no_extra_keys": true,
+        "exact_reminders": true
+      },
+      "reminders_got": [
+        [
+          "ap@bergen.example",
+          "INV-1-5"
+        ],
+        [
+          "ap@cardinal.example",
+          "INV-1-3"
+        ],
+        [
+          "ap@halden.example",
+          "INV-1-1"
+        ],
+        [
+          "ap@ostrava.example",
+          "INV-1-4"
+        ],
+        [
+          "ap@trellis.example",
+          "INV-1-2"
+        ]
+      ],
+      "reminders_expected": [
+        [
+          "ap@bergen.example",
+          "INV-1-5"
+        ],
+        [
+          "ap@cardinal.example",
+          "INV-1-3"
+        ],
+        [
+          "ap@halden.example",
+          "INV-1-1"
+        ],
+        [
+          "ap@ostrava.example",
+          "INV-1-4"
+        ],
+        [
+          "ap@trellis.example",
+          "INV-1-2"
+        ]
+      ],
+      "outcome": "correct",
+      "score": 2,
+      "correct": true,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [
+        "invoice_api_get_json",
+        "invoice_api_post_confirmed",
+        "run_weekly_overdue_invoice_reminders",
+        "validate_weekly_invoice_inputs"
+      ],
+      "result": "Task run completed successfully.\n\n- **Week:** 1\n- **Validated invoices:** 5\n- **Total amount:** 652,200 EUR cents\n- **Confirmed reminders sent:** 5\n- **Flagged invoice IDs:** `[]`\n- **Weekly report:** Confirmed received (`HTTP 200`)\n\n### Uncertainties\n- None material; all reminder and report responses explicitly confirmed success.",
+      "tokens": {
+        "planning": {
+          "prompt": 1098549,
+          "completion": 16606,
+          "calls": 29
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 1115155,
+        "phases": [
+          "week_1",
+          "week_1_review"
+        ]
+      }
+    },
+    {
+      "fire": 2,
+      "label": "week_2",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 3,
+      "entrypoint_after": 3,
+      "week": 2,
+      "edge": "",
+      "reports_delivered": 0,
+      "reports": [],
+      "reminders_sent": 0,
+      "expected_report": {
+        "week": 2,
+        "invoice_count": 5,
+        "total_amount_cents": 651300,
+        "reminders_sent": 5,
+        "flagged_invoice_ids": []
+      },
+      "checks": {
+        "one_report": false,
+        "report_is_object": false,
+        "exact_reminders": false
+      },
+      "reminders_got": [],
+      "reminders_expected": [
+        [
+          "ap@bergen.example",
+          "INV-2-5"
+        ],
+        [
+          "ap@cardinal.example",
+          "INV-2-3"
+        ],
+        [
+          "ap@halden.example",
+          "INV-2-1"
+        ],
+        [
+          "ap@ostrava.example",
+          "INV-2-4"
+        ],
+        [
+          "ap@trellis.example",
+          "INV-2-2"
+        ]
+      ],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Weekly overdue-invoice reminders and digest: could not verify run_weekly_overdue_invoice_reminders (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 8896,
+          "completion": 1357,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 5296,
+          "completion": 522,
+          "calls": 2
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 16071,
+        "phases": [
+          "week_2",
+          "week_2_review"
+        ]
+      }
+    },
+    {
+      "fire": 3,
+      "label": "week_3",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 3,
+      "entrypoint_after": 3,
+      "week": 3,
+      "edge": "",
+      "reports_delivered": 0,
+      "reports": [],
+      "reminders_sent": 0,
+      "expected_report": {
+        "week": 3,
+        "invoice_count": 5,
+        "total_amount_cents": 617300,
+        "reminders_sent": 5,
+        "flagged_invoice_ids": []
+      },
+      "checks": {
+        "one_report": false,
+        "report_is_object": false,
+        "exact_reminders": false
+      },
+      "reminders_got": [],
+      "reminders_expected": [
+        [
+          "ap@bergen.example",
+          "INV-3-5"
+        ],
+        [
+          "ap@cardinal.example",
+          "INV-3-3"
+        ],
+        [
+          "ap@halden.example",
+          "INV-3-1"
+        ],
+        [
+          "ap@ostrava.example",
+          "INV-3-4"
+        ],
+        [
+          "ap@trellis.example",
+          "INV-3-2"
+        ]
+      ],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Weekly overdue-invoice reminders and digest: could not verify run_weekly_overdue_invoice_reminders (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 8745,
+          "completion": 1579,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 3308,
+          "completion": 41,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 13673,
+        "phases": [
+          "week_3",
+          "week_3_review"
+        ]
+      }
+    },
+    {
+      "fire": 4,
+      "label": "week_4",
+      "events": [],
+      "status": "completed",
+      "entrypoint_before": 3,
+      "entrypoint_after": 3,
+      "week": 4,
+      "edge": "",
+      "reports_delivered": 0,
+      "reports": [],
+      "reminders_sent": 0,
+      "expected_report": {
+        "week": 4,
+        "invoice_count": 5,
+        "total_amount_cents": 664300,
+        "reminders_sent": 5,
+        "flagged_invoice_ids": []
+      },
+      "checks": {
+        "one_report": false,
+        "report_is_object": false,
+        "exact_reminders": false
+      },
+      "reminders_got": [],
+      "reminders_expected": [
+        [
+          "ap@bergen.example",
+          "INV-4-5"
+        ],
+        [
+          "ap@cardinal.example",
+          "INV-4-3"
+        ],
+        [
+          "ap@halden.example",
+          "INV-4-1"
+        ],
+        [
+          "ap@ostrava.example",
+          "INV-4-4"
+        ],
+        [
+          "ap@trellis.example",
+          "INV-4-2"
+        ]
+      ],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Weekly overdue-invoice reminders and digest: could not verify run_weekly_overdue_invoice_reminders (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 8680,
+          "completion": 941,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 3308,
+          "completion": 42,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 12971,
+        "phases": [
+          "week_4",
+          "week_4_review"
+        ]
+      }
+    },
+    {
+      "fire": 5,
+      "label": "week_5",
+      "events": [
+        "edge:duplicate"
+      ],
+      "status": "completed",
+      "entrypoint_before": 3,
+      "entrypoint_after": 3,
+      "week": 5,
+      "edge": "duplicate",
+      "reports_delivered": 0,
+      "reports": [],
+      "reminders_sent": 0,
+      "expected_report": {
+        "week": 5,
+        "invoice_count": 5,
+        "total_amount_cents": 583900,
+        "reminders_sent": 5,
+        "flagged_invoice_ids": [
+          "INV-5-2"
+        ]
+      },
+      "checks": {
+        "one_report": false,
+        "report_is_object": false,
+        "exact_reminders": false
+      },
+      "reminders_got": [],
+      "reminders_expected": [
+        [
+          "ap@bergen.example",
+          "INV-5-5"
+        ],
+        [
+          "ap@cardinal.example",
+          "INV-5-3"
+        ],
+        [
+          "ap@halden.example",
+          "INV-5-1"
+        ],
+        [
+          "ap@ostrava.example",
+          "INV-5-4"
+        ],
+        [
+          "ap@trellis.example",
+          "INV-5-2"
+        ]
+      ],
+      "outcome": "wrong",
+      "score": 0,
+      "correct": false,
+      "held": false,
+      "owner_messages": [],
+      "held_outcome": null,
+      "verdicts": null,
+      "rewinds": null,
+      "functions_changed": [],
+      "result": "Holding Weekly overdue-invoice reminders and digest: could not verify run_weekly_overdue_invoice_reminders (unparseable_verdict). Nothing was sent or changed. Payload retained on the execution row.",
+      "tokens": {
+        "planning": {
+          "prompt": 9276,
+          "completion": 1473,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 3308,
+          "completion": 47,
+          "calls": 1
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 14104,
+        "phases": [
+          "week_5",
+          "week_5_review"
+        ]
+      }
+    }
+  ],
+  "setup": {
+    "status": "completed",
+    "result": "Set up and verified the recurring automation.\n\n- **Task:** Weekly overdue-invoice reminders and digest\n- **Task ID:** `0`\n- **Status:** Live/armed\n- **Schedule:** Every Monday at 09:00\n- **Next run:** August 24, 2026 at 09:00 UTC\n- **Execution mode:** Description-driven, not offline\n- **Run now:** No\n- **Previous executions:** None\n\nThe task validates the complete API input before sending anything, issues one `HOLD` notification on anomalies, sends one reminder per validated invoice, and posts the exact five-key digest\u2014including when there are no invoices.\n\n### Uncertainties\n- No local timezone was available, so the schedule uses **UTC**."
+  },
+  "functions_after_setup": {},
+  "entrypoint_function_final": {
+    "function_id": 3,
+    "name": "run_weekly_overdue_invoice_reminders",
+    "docstring": "Return completed only after one fully validated week has every reminder and its exact digest confirmed; otherwise return HOLD after one owner-notification attempt.",
+    "implementation": "def run_weekly_overdue_invoice_reminders() -> dict[str, object]:\n    \"\"\"Return completed only after one fully validated week has every reminder and its exact digest confirmed; otherwise return HOLD after one owner-notification attempt.\"\"\"\n    import logging\n\n    logger = logging.getLogger(__name__)\n\n    def hold(reason: str, week: object = None, reminders_sent: int = 0) -> dict[str, object]:\n        message = \"HOLD: \" + reason.strip()\n        notified = False\n        notification_error = None\n        logger.error(\"SOFT_FAIL weekly_invoice_run hold reason=%s\", reason)\n        try:\n            invoice_api_post_confirmed(\"/owner/notify\", {\"message\": message})\n            notified = True\n            logger.info(\"PHASE weekly_invoice_run hold_notification_confirmed\")\n        except Exception as exc:\n            notification_error = f\"{type(exc).__name__}: {exc}\"\n            logger.exception(\n                \"SOFT_FAIL required HOLD owner notification failed or was ambiguous: %s\",\n                exc,\n            )\n        result = {\n            \"status\": \"hold\",\n            \"reason\": reason,\n            \"owner_notification_attempted\": True,\n            \"owner_notification_confirmed\": notified,\n            \"reminders_sent\": reminders_sent,\n        }\n        if week is not None:\n            result[\"week\"] = week\n        if notification_error is not None:\n            result[\"owner_notification_error\"] = notification_error\n        return result\n\n    logger.info(\"PHASE weekly_invoice_run read_last_report\")\n    try:\n        last_report = invoice_api_get_json(\"/reports/last\")\n        if not isinstance(last_report, dict):\n            raise ValueError(\n                f\"last-report JSON had unexpected shape {type(last_report).__name__}; expected object\"\n            )\n        last_week = last_report.get(\"last_week\")\n        if isinstance(last_week, bool) or not isinstance(last_week, int) or last_week < 0:\n            raise ValueError(\n                f\"last-report last_week was {last_week!r}; expected non-boolean integer >= 0\"\n            )\n        week = last_week + 1\n        logger.info(\"PHASE weekly_invoice_run read_invoice_collection week=%s\", week)\n        invoice_collection = invoice_api_get_json(f\"/invoices?week={week}\")\n        validated = validate_weekly_invoice_inputs(last_report, invoice_collection)\n    except Exception as exc:\n        logger.exception(\"SOFT_FAIL weekly_invoice_run input_gate_stopped_delivery: %s\", exc)\n        return hold(str(exc))\n\n    week = validated[\"week\"]\n    invoices = validated[\"invoices\"]\n    reminders_sent = 0\n    logger.info(\n        \"PHASE weekly_invoice_run delivery_start week=%s invoice_count=%s\",\n        week,\n        len(invoices),\n    )\n    for invoice in invoices:\n        invoice_id = invoice[\"id\"]\n        try:\n            invoice_api_post_confirmed(\n                \"/remind\",\n                {\"to\": invoice[\"contact_email\"], \"invoice_id\": invoice_id},\n            )\n            reminders_sent += 1\n            logger.info(\n                \"PHASE weekly_invoice_run reminder_confirmed invoice_id=%r count=%s\",\n                invoice_id,\n                reminders_sent,\n            )\n        except Exception as exc:\n            reason = (\n                f\"week {week} reminder for invoice {invoice_id!r} failed or was ambiguous \"\n                f\"after {reminders_sent} confirmed reminder(s); partial delivery may have occurred: {exc}\"\n            )\n            logger.exception(\"SOFT_FAIL weekly_invoice_run reminder_failure: %s\", reason)\n            return hold(reason, week=week, reminders_sent=reminders_sent)\n\n    digest = {\n        \"week\": week,\n        \"invoice_count\": validated[\"invoice_count\"],\n        \"total_amount_cents\": validated[\"total_amount_cents\"],\n        \"reminders_sent\": reminders_sent,\n        \"flagged_invoice_ids\": [],\n    }\n    try:\n        report_confirmation = invoice_api_post_confirmed(\"/report\", digest)\n    except Exception as exc:\n        reason = (\n            f\"week {week} report POST failed or was ambiguous after all {reminders_sent} \"\n            f\"reminder(s) were confirmed; weekly report was not confirmed: {exc}\"\n        )\n        logger.exception(\"SOFT_FAIL weekly_invoice_run report_failure: %s\", reason)\n        return hold(reason, week=week, reminders_sent=reminders_sent)\n\n    logger.info(\"PHASE weekly_invoice_run complete week=%s reminders_sent=%s\", week, reminders_sent)\n    return {\n        \"status\": \"completed\",\n        \"digest\": digest,\n        \"report_confirmation\": report_confirmation,\n    }\n"
+  },
+  "functions_final": {
+    "run_weekly_overdue_invoice_reminders": {
+      "function_id": 3,
+      "implementation": "def run_weekly_overdue_invoice_reminders() -> dict[str, object]:\n    \"\"\"Return completed only after one fully validated week has every reminder and its exact digest confirmed; otherwise return HOLD after one owner-notification attempt.\"\"\"\n    import logging\n\n    logger = logging.getLogger(__name__)\n\n    def hold(reason: str, week: object = None, reminders_sent: int = 0) -> dict[str, object]:\n        message = \"HOLD: \" + reason.strip()\n        notified = False\n        notification_error = None\n        logger.error(\"SOFT_FAIL weekly_invoice_run hold reason=%s\", reason)\n        try:\n            invoice_api_post_confirmed(\"/owner/notify\", {\"message\": message})\n            notified = True\n            logger.info(\"PHASE weekly_invoice_run hold_notification_confirmed\")\n        except Exception as exc:\n            notification_error = f\"{type(exc).__name__}: {exc}\"\n            logger.exception(\n                \"SOFT_FAIL required HOLD owner notification failed or was ambiguous: %s\",\n                exc,\n            )\n        result = {\n            \"status\": \"hold\",\n            \"reason\": reason,\n            \"owner_notification_attempted\": True,\n            \"owner_notification_confirmed\": notified,\n            \"reminders_sent\": reminders_sent,\n        }\n        if week is not None:\n            result[\"week\"] = week\n        if notification_error is not None:\n            result[\"owner_notification_error\"] = notification_error\n        return result\n\n    logger.info(\"PHASE weekly_invoice_run read_last_report\")\n    try:\n        last_report = invoice_api_get_json(\"/reports/last\")\n        if not isinstance(last_report, dict):\n            raise ValueError(\n                f\"last-report JSON had unexpected shape {type(last_report).__name__}; expected object\"\n            )\n        last_week = last_report.get(\"last_week\")\n        if isinstance(last_week, bool) or not isinstance(last_week, int) or last_week < 0:\n            raise ValueError(\n                f\"last-report last_week was {last_week!r}; expected non-boolean integer >= 0\"\n            )\n        week = last_week + 1\n        logger.info(\"PHASE weekly_invoice_run read_invoice_collection week=%s\", week)\n        invoice_collection = invoice_api_get_json(f\"/invoices?week={week}\")\n        validated = validate_weekly_invoice_inputs(last_report, invoice_collection)\n    except Exception as exc:\n        logger.exception(\"SOFT_FAIL weekly_invoice_run input_gate_stopped_delivery: %s\", exc)\n        return hold(str(exc))\n\n    week = validated[\"week\"]\n    invoices = validated[\"invoices\"]\n    reminders_sent = 0\n    logger.info(\n        \"PHASE weekly_invoice_run delivery_start week=%s invoice_count=%s\",\n        week,\n        len(invoices),\n    )\n    for invoice in invoices:\n        invoice_id = invoice[\"id\"]\n        try:\n            invoice_api_post_confirmed(\n                \"/remind\",\n                {\"to\": invoice[\"contact_email\"], \"invoice_id\": invoice_id},\n            )\n            reminders_sent += 1\n            logger.info(\n                \"PHASE weekly_invoice_run reminder_confirmed invoice_id=%r count=%s\",\n                invoice_id,\n                reminders_sent,\n            )\n        except Exception as exc:\n            reason = (\n                f\"week {week} reminder for invoice {invoice_id!r} failed or was ambiguous \"\n                f\"after {reminders_sent} confirmed reminder(s); partial delivery may have occurred: {exc}\"\n            )\n            logger.exception(\"SOFT_FAIL weekly_invoice_run reminder_failure: %s\", reason)\n            return hold(reason, week=week, reminders_sent=reminders_sent)\n\n    digest = {\n        \"week\": week,\n        \"invoice_count\": validated[\"invoice_count\"],\n        \"total_amount_cents\": validated[\"total_amount_cents\"],\n        \"reminders_sent\": reminders_sent,\n        \"flagged_invoice_ids\": [],\n    }\n    try:\n        report_confirmation = invoice_api_post_confirmed(\"/report\", digest)\n    except Exception as exc:\n        reason = (\n            f\"week {week} report POST failed or was ambiguous after all {reminders_sent} \"\n            f\"reminder(s) were confirmed; weekly report was not confirmed: {exc}\"\n        )\n        logger.exception(\"SOFT_FAIL weekly_invoice_run report_failure: %s\", reason)\n        return hold(reason, week=week, reminders_sent=reminders_sent)\n\n    logger.info(\"PHASE weekly_invoice_run complete week=%s reminders_sent=%s\", week, reminders_sent)\n    return {\n        \"status\": \"completed\",\n        \"digest\": digest,\n        \"report_confirmation\": report_confirmation,\n    }\n",
+      "verify": true,
+      "side_effect_class": "unsafe_effectful"
+    },
+    "invoice_api_post_confirmed": {
+      "function_id": 2,
+      "implementation": "def invoice_api_post_confirmed(path: str, payload: dict[str, object]) -> dict[str, object]:\n    \"\"\"Return status and body only after an unambiguous invoices-API POST success under \u201cFail-closed policy for the weekly overdue-invoice workflow\u201d.\"\"\"\n    import json\n    import logging\n    import socket\n    import urllib.error\n    import urllib.request\n\n    logger = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:18192\"\n    allowed_paths = {\"/remind\", \"/report\", \"/owner/notify\"}\n    if path not in allowed_paths:\n        raise ValueError(f\"unsupported invoices API POST path {path!r}\")\n    if not isinstance(payload, dict):\n        raise TypeError(\"payload must be a dict\")\n\n    if path == \"/remind\" and set(payload) != {\"to\", \"invoice_id\"}:\n        raise ValueError(\"reminder payload must contain exactly 'to' and 'invoice_id'\")\n    if path == \"/owner/notify\" and set(payload) != {\"message\"}:\n        raise ValueError(\"owner notification payload must contain exactly 'message'\")\n    report_keys = {\n        \"week\",\n        \"invoice_count\",\n        \"total_amount_cents\",\n        \"reminders_sent\",\n        \"flagged_invoice_ids\",\n    }\n    if path == \"/report\" and set(payload) != report_keys:\n        raise ValueError(\"report payload did not contain exactly the required five keys\")\n\n    def reject_duplicate_keys(pairs):\n        value = {}\n        for key, item in pairs:\n            if key in value:\n                raise ValueError(f\"duplicate JSON key {key!r}\")\n            value[key] = item\n        return value\n\n    def reject_constant(value):\n        raise ValueError(f\"non-standard JSON constant {value}\")\n\n    data = json.dumps(payload, ensure_ascii=False, separators=(\",\", \":\")).encode(\"utf-8\")\n    request = urllib.request.Request(\n        base + path,\n        data=data,\n        headers={\"Accept\": \"application/json\", \"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    logger.info(\"PHASE invoice_api_post start path=%s\", path)\n    try:\n        with urllib.request.urlopen(request, timeout=15) as response:\n            status = response.status\n            raw = response.read()\n    except urllib.error.HTTPError as exc:\n        excerpt = exc.read().decode(\"utf-8\", errors=\"replace\").replace(\"\\n\", \" \")[:180]\n        logger.error(\"SOFT_FAIL invoice_api_post http_error path=%s status=%s body=%r\", path, exc.code, excerpt)\n        raise RuntimeError(f\"POST {path} returned HTTP {exc.code} with body {excerpt!r}\") from exc\n    except (urllib.error.URLError, TimeoutError, socket.timeout, ConnectionError, OSError) as exc:\n        logger.error(\"SOFT_FAIL invoice_api_post transport_ambiguity path=%s error=%s\", path, exc)\n        raise RuntimeError(\n            f\"POST {path} had a network/transport ambiguity: {type(exc).__name__}: {exc}\"\n        ) from exc\n\n    if not 200 <= status < 300:\n        excerpt = raw.decode(\"utf-8\", errors=\"replace\").replace(\"\\n\", \" \")[:180]\n        logger.error(\"SOFT_FAIL invoice_api_post non_success path=%s status=%s body=%r\", path, status, excerpt)\n        raise RuntimeError(f\"POST {path} returned HTTP {status} with body {excerpt!r}\")\n\n    parsed = None\n    if raw.strip():\n        try:\n            parsed = json.loads(\n                raw.decode(\"utf-8\"),\n                object_pairs_hook=reject_duplicate_keys,\n                parse_constant=reject_constant,\n            )\n        except (UnicodeDecodeError, json.JSONDecodeError, ValueError):\n            token = raw.decode(\"utf-8\", errors=\"replace\").strip().lower()\n            if token not in {\"ok\", \"success\", \"sent\", \"created\", \"received\", \"notified\", \"accepted\", \"queued\"}:\n                logger.error(\"SOFT_FAIL invoice_api_post ambiguous_body path=%s body=%r\", path, token[:180])\n                raise RuntimeError(f\"POST {path} had 2xx status but an ambiguous body {token[:180]!r}\")\n            parsed = token\n        if isinstance(parsed, dict):\n            if parsed.get(\"success\") is False or parsed.get(\"ok\") is False:\n                raise RuntimeError(f\"POST {path} returned explicit failure body {parsed!r}\")\n            if \"error\" in parsed and parsed[\"error\"] not in (None, \"\", False, []):\n                raise RuntimeError(f\"POST {path} returned explicit error body {parsed!r}\")\n            status_value = parsed.get(\"status\")\n            positive = (\n                parsed.get(\"success\") is True\n                or parsed.get(\"ok\") is True\n                or (\n                    isinstance(status_value, str)\n                    and status_value.lower()\n                    in {\"ok\", \"success\", \"sent\", \"created\", \"received\", \"notified\", \"accepted\", \"queued\"}\n                )\n            )\n            if not positive:\n                raise RuntimeError(f\"POST {path} had 2xx status but ambiguous JSON body {parsed!r}\")\n        elif not isinstance(parsed, str):\n            raise RuntimeError(f\"POST {path} had 2xx status but ambiguous JSON body {parsed!r}\")\n\n    result = {\"http_status\": status, \"body\": parsed}\n    logger.info(\"PHASE invoice_api_post confirmed path=%s status=%s\", path, status)\n    return result\n",
+      "verify": true,
+      "side_effect_class": "unsafe_effectful"
+    },
+    "validate_weekly_invoice_inputs": {
+      "function_id": 1,
+      "implementation": "def validate_weekly_invoice_inputs(last_report: object, invoice_collection: object) -> dict[str, object]:\n    \"\"\"Return one fully validated week, its invoices, count, and exact EUR-cent total, or raise before delivery.\"\"\"\n    import logging\n\n    logger = logging.getLogger(__name__)\n    logger.info(\"PHASE weekly_invoice_validation start\")\n    if not isinstance(last_report, dict):\n        raise ValueError(\n            f\"last-report JSON had unexpected shape {type(last_report).__name__}; expected object\"\n        )\n    if \"last_week\" not in last_report:\n        raise ValueError(\"last-report object was missing required field 'last_week'\")\n    last_week = last_report[\"last_week\"]\n    if isinstance(last_week, bool) or not isinstance(last_week, int) or last_week < 0:\n        raise ValueError(\n            f\"last-report last_week was {last_week!r}; expected non-boolean integer >= 0\"\n        )\n    week = last_week + 1\n\n    if not isinstance(invoice_collection, list):\n        raise ValueError(\n            f\"week {week} invoice collection had unexpected shape \"\n            f\"{type(invoice_collection).__name__}; expected array\"\n        )\n\n    required = {\n        \"id\",\n        \"vendor\",\n        \"amount_cents\",\n        \"currency\",\n        \"days_overdue\",\n        \"contact_email\",\n    }\n    seen_ids = set()\n    validated = []\n    anomalies = []\n    for index, invoice in enumerate(invoice_collection):\n        location = f\"invoice[{index}]\"\n        if not isinstance(invoice, dict):\n            anomalies.append(f\"{location} was {type(invoice).__name__}, not object\")\n            continue\n        missing = sorted(required - set(invoice))\n        if missing:\n            anomalies.append(f\"{location} missing fields {missing}\")\n\n        invoice_id = invoice.get(\"id\")\n        if not isinstance(invoice_id, str) or invoice_id == \"\":\n            anomalies.append(f\"{location}.id was not a non-empty string\")\n        elif invoice_id in seen_ids:\n            anomalies.append(f\"duplicate invoice id {invoice_id!r}\")\n        else:\n            seen_ids.add(invoice_id)\n\n        if \"vendor\" in invoice and not isinstance(invoice[\"vendor\"], str):\n            anomalies.append(f\"{location}.vendor was not a string\")\n        if \"amount_cents\" in invoice:\n            amount = invoice[\"amount_cents\"]\n            if isinstance(amount, bool) or not isinstance(amount, int):\n                anomalies.append(f\"{location}.amount_cents was not a non-boolean integer\")\n        if \"currency\" in invoice:\n            currency = invoice[\"currency\"]\n            if not isinstance(currency, str) or currency != \"EUR\":\n                anomalies.append(\n                    f\"{location}.currency was {currency!r}, expected exactly 'EUR'\"\n                )\n        if \"days_overdue\" in invoice:\n            days = invoice[\"days_overdue\"]\n            if isinstance(days, bool) or not isinstance(days, int):\n                anomalies.append(f\"{location}.days_overdue was not a non-boolean integer\")\n        if \"contact_email\" in invoice:\n            email = invoice[\"contact_email\"]\n            if not isinstance(email, str) or email == \"\":\n                anomalies.append(f\"{location}.contact_email was not a non-empty string\")\n\n        if not missing:\n            validated.append(invoice)\n\n    if anomalies:\n        preview = \"; \".join(anomalies[:4])\n        if len(anomalies) > 4:\n            preview += f\"; plus {len(anomalies) - 4} more anomaly/anomalies\"\n        logger.error(\n            \"SOFT_FAIL weekly_invoice_validation week=%s anomalies=%s\",\n            week,\n            len(anomalies),\n        )\n        raise ValueError(\n            f\"week {week} invoice validation found {len(anomalies)} anomaly/anomalies: {preview}\"\n        )\n\n    total = sum(invoice[\"amount_cents\"] for invoice in validated)\n    result = {\n        \"week\": week,\n        \"invoices\": validated,\n        \"invoice_count\": len(validated),\n        \"total_amount_cents\": total,\n    }\n    logger.info(\n        \"PHASE weekly_invoice_validation complete week=%s invoice_count=%s total_amount_cents=%s\",\n        week,\n        len(validated),\n        total,\n    )\n    return result\n",
+      "verify": true,
+      "side_effect_class": "safe_noop"
+    },
+    "invoice_api_get_json": {
+      "function_id": 0,
+      "implementation": "def invoice_api_get_json(path: str) -> object:\n    \"\"\"Return the strictly parsed JSON body from one successful GET to the fixed local invoices API.\"\"\"\n    import json\n    import logging\n    import socket\n    import urllib.error\n    import urllib.request\n\n    logger = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:18192\"\n    if not isinstance(path, str) or not path.startswith(\"/\") or \"://\" in path:\n        raise ValueError(\"path must be an absolute API path without a scheme\")\n\n    def reject_duplicate_keys(pairs):\n        value = {}\n        for key, item in pairs:\n            if key in value:\n                raise ValueError(f\"duplicate JSON key {key!r}\")\n            value[key] = item\n        return value\n\n    def reject_constant(value):\n        raise ValueError(f\"non-standard JSON constant {value}\")\n\n    logger.info(\"PHASE invoice_api_get start path=%s\", path)\n    request = urllib.request.Request(\n        base + path,\n        headers={\"Accept\": \"application/json\"},\n        method=\"GET\",\n    )\n    try:\n        with urllib.request.urlopen(request, timeout=15) as response:\n            status = response.status\n            raw = response.read()\n    except urllib.error.HTTPError as exc:\n        excerpt = exc.read().decode(\"utf-8\", errors=\"replace\").replace(\"\\n\", \" \")[:180]\n        logger.error(\"SOFT_FAIL invoice_api_get http_error path=%s status=%s body=%r\", path, exc.code, excerpt)\n        raise RuntimeError(f\"GET {path} returned HTTP {exc.code} with body {excerpt!r}\") from exc\n    except (urllib.error.URLError, TimeoutError, socket.timeout, ConnectionError, OSError) as exc:\n        logger.error(\"SOFT_FAIL invoice_api_get transport_ambiguity path=%s error=%s\", path, exc)\n        raise RuntimeError(\n            f\"GET {path} had a network/transport ambiguity: {type(exc).__name__}: {exc}\"\n        ) from exc\n\n    if not 200 <= status < 300:\n        excerpt = raw.decode(\"utf-8\", errors=\"replace\").replace(\"\\n\", \" \")[:180]\n        logger.error(\"SOFT_FAIL invoice_api_get non_success path=%s status=%s body=%r\", path, status, excerpt)\n        raise RuntimeError(f\"GET {path} returned HTTP {status} with body {excerpt!r}\")\n    try:\n        text = raw.decode(\"utf-8\")\n        result = json.loads(\n            text,\n            object_pairs_hook=reject_duplicate_keys,\n            parse_constant=reject_constant,\n        )\n    except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:\n        logger.error(\"SOFT_FAIL invoice_api_get invalid_json path=%s error=%s\", path, exc)\n        raise RuntimeError(f\"GET {path} returned malformed or ambiguous JSON: {exc}\") from exc\n    logger.info(\"PHASE invoice_api_get complete path=%s status=%s\", path, status)\n    return result\n",
+      "verify": true,
+      "side_effect_class": "read_only"
+    }
+  },
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 324.54,
+      "llm_calls": 21,
+      "prompt_tokens": 663624,
+      "completion_tokens": 5410,
+      "total_tokens": 669034,
+      "provider_cost_usd": 1.441643,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 21
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 21,
+          "prompt_tokens": 663624,
+          "completion_tokens": 5410
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_1",
+      "wall_seconds": 71.87,
+      "llm_calls": 8,
+      "prompt_tokens": 248511,
+      "completion_tokens": 4506,
+      "total_tokens": 253017,
+      "provider_cost_usd": 0.49003,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 8
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 8,
+          "prompt_tokens": 248511,
+          "completion_tokens": 4506
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_1_review",
+      "wall_seconds": 448.03,
+      "llm_calls": 21,
+      "prompt_tokens": 850038,
+      "completion_tokens": 12100,
+      "total_tokens": 862138,
+      "provider_cost_usd": 1.207363,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 21
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 21,
+          "prompt_tokens": 850038,
+          "completion_tokens": 12100
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_2",
+      "wall_seconds": 68.36,
+      "llm_calls": 4,
+      "prompt_tokens": 14192,
+      "completion_tokens": 1879,
+      "total_tokens": 16071,
+      "provider_cost_usd": 0.058432,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 4
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 8896,
+          "completion_tokens": 1357
+        },
+        "verification": {
+          "llm_calls": 2,
+          "prompt_tokens": 5296,
+          "completion_tokens": 522
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_2_review",
+      "wall_seconds": 180.09,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_3",
+      "wall_seconds": 44.09,
+      "llm_calls": 3,
+      "prompt_tokens": 12053,
+      "completion_tokens": 1620,
+      "total_tokens": 13673,
+      "provider_cost_usd": 0.030948,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 8745,
+          "completion_tokens": 1579
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 3308,
+          "completion_tokens": 41
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_3_review",
+      "wall_seconds": 180.09,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_4",
+      "wall_seconds": 41.09,
+      "llm_calls": 3,
+      "prompt_tokens": 11988,
+      "completion_tokens": 983,
+      "total_tokens": 12971,
+      "provider_cost_usd": 0.02119,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 8680,
+          "completion_tokens": 941
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 3308,
+          "completion_tokens": 42
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_4_review",
+      "wall_seconds": 180.09,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_5",
+      "wall_seconds": 41.92,
+      "llm_calls": 3,
+      "prompt_tokens": 12584,
+      "completion_tokens": 1520,
+      "total_tokens": 14104,
+      "provider_cost_usd": 0.031107,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 3
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 9276,
+          "completion_tokens": 1473
+        },
+        "verification": {
+          "llm_calls": 1,
+          "prompt_tokens": 3308,
+          "completion_tokens": 47
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "week_5_review",
+      "wall_seconds": 180.09,
+      "llm_calls": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "provider_cost_usd": 0.0,
+      "models": {},
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    }
+  ],
+  "series": {
+    "regular_weeks_correct": 1,
+    "regular_weeks": 4,
+    "edge_week_outcome": "wrong",
+    "tokens_regular_weeks_mean": 289467.5,
+    "tokens_edge_week": 14104
+  },
+  "finished_at": "2026-08-20T11:58:42.342754+00:00"
+}
