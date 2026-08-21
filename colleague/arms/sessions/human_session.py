@@ -108,6 +108,11 @@ class HumanSession(ArmSession):
         self.fixture: Any = None
         self.scenario = ""
         self.images: list[str] = []
+        #: Optional participant surface for the current turn(s): an
+        #: office-language brief plus labelled lookup/action forms (see
+        #: ``colleague/tracks/standing/human_brief.py``). Carried on the turn
+        #: event for the browser workbench; the terminal ignores it.
+        self.surface: dict[str, Any] | None = None
         self._responder = None
         self._clarifications: list[dict[str, Any]] = []
         self._active_seconds = 0.0
@@ -116,10 +121,7 @@ class HumanSession(ArmSession):
         self._interjections: list[dict[str, Any]] = []
 
     def setup(self) -> None:
-        self._write(
-            "\nHuman workbench ready. Use /help for commands. "
-            f"Labour is metered at ${self.hourly_rate_usd:.2f}/hour.",
-        )
+        self._write("\nHuman workbench ready. Use /help for commands.")
 
     def bind_fixture(self, fixture: Any, scenario: str) -> None:
         self.fixture = fixture
@@ -147,13 +149,16 @@ class HumanSession(ArmSession):
             "turns": self._turns,
         }
 
-    def artifacts(self) -> dict[str, Any]:
+    def participant_record(self) -> dict[str, Any]:
         return {
-            "workspace": str(self.workspace),
             "notes": self.notes_path.read_text() if self.notes_path.exists() else "",
             "interjections": list(self._interjections),
             "cost": self.cost_snapshot(),
         }
+
+    def artifacts(self) -> dict[str, Any]:
+        """Compatibility alias for callers reading the previous result shape."""
+        return self.participant_record()
 
     def deliver_interjection(self, text: str, *, sender: str | None = None) -> None:
         entry = {"sender": sender, "text": text, "at": time.time()}
@@ -192,6 +197,7 @@ class HumanSession(ArmSession):
                 "request": text,
                 "images": list(self.images),
                 "turn": self._turns,
+                "surface": self.surface,
             },
         )
         try:
@@ -234,8 +240,6 @@ class HumanSession(ArmSession):
                     self._write("\n".join(self.images) or "(none)")
                 elif raw.startswith("/open "):
                     self._open_image(raw[6:].strip())
-                elif raw.startswith("/shell "):
-                    self._shell(raw[7:].strip())
                 elif raw.startswith("/done"):
                     final = raw[5:].strip()
                     break
@@ -262,7 +266,6 @@ class HumanSession(ArmSession):
   /notes                     show persistent notes
   /images                    list attached frames
   /open N                    open attached image N with the OS viewer
-  /shell COMMAND             run a command in the persistent human workspace
   /done [TEXT]               finish; TEXT becomes the direct reply
 
 Use /post for fixture-observed actions. Nothing is sent by plain text.""",
@@ -339,26 +342,6 @@ Use /post for fixture-observed actions. Nothing is sent by plain text.""",
             self._write(f"Opened {path}")
         except OSError as exc:
             self._write(f"Could not open image: {exc}")
-
-    def _shell(self, command: str) -> None:
-        """Run a participant-authored command in the isolated run workspace."""
-        if not command:
-            self._write("Usage: /shell COMMAND")
-            return
-        try:
-            completed = subprocess.run(
-                command,
-                cwd=self.workspace,
-                shell=True,
-                text=True,
-                capture_output=True,
-                timeout=300,
-                check=False,
-            )
-            output = (completed.stdout + completed.stderr).strip()
-            self._write(output or f"exit {completed.returncode}")
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            self._write(f"Command failed: {exc}")
 
     def _write(self, text: str) -> None:
         self._emit({"type": "output", "text": text})

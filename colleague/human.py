@@ -1,10 +1,10 @@
 """One entrypoint for all human-testable Colleague protocols.
 
 Conversational tracks use ``python -m colleague.run TRACK --arm human``.
-This module supplies the recurring automation half:
+This module supplies direct human protocols for recurring and applied work:
 
-    python -m colleague.human standing edge_week --mode operator
-    python -m colleague.human standing silent_drift --mode builder
+    python -m colleague.human standing edge_week
+    python -m colleague.human usecase agency_client_reporting
 """
 
 from __future__ import annotations
@@ -41,26 +41,22 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="kind", required=True)
     standing = sub.add_parser("standing")
     standing.add_argument("experiment", choices=sorted({*SERIES, *LEGACY_RUNNERS}))
-    standing.add_argument("--mode", choices=("operator", "builder"), default="builder")
     standing.add_argument("--hourly-rate-usd", type=float, default=30.0)
     standing.add_argument("--participant-id", default="anonymous")
     usecase = sub.add_parser("usecase")
     usecase.add_argument("name", choices=sorted(USECASE_RUNNERS))
-    usecase.add_argument("--mode", choices=("operator", "builder"), default="operator")
     usecase.add_argument("--hourly-rate-usd", type=float, default=30.0)
     usecase.add_argument("--participant-id", default="anonymous")
     args = parser.parse_args(argv)
 
     if args.kind == "usecase":
         return USECASE_RUNNERS[args.name](
-            mode=args.mode,
             hourly_rate_usd=args.hourly_rate_usd,
             participant_id=args.participant_id,
         )
 
     if args.experiment in LEGACY_RUNNERS:
         return LEGACY_RUNNERS[args.experiment](
-            mode=args.mode,
             hourly_rate_usd=args.hourly_rate_usd,
             participant_id=args.participant_id,
         )
@@ -73,7 +69,6 @@ def main(argv: list[str] | None = None) -> int:
 
     return run(
         experiment,
-        mode=args.mode,
         hourly_rate_usd=args.hourly_rate_usd,
         participant_id=args.participant_id,
     )

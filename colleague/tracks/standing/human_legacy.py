@@ -1,15 +1,14 @@
-"""Human protocols for the three standing experiments predating ``series``.
+"""Direct human protocols for the three standing experiments predating ``series``.
 
-These use the experiments' existing fixtures and exact scorers. They share
-the same operator/builder distinction as ``series.human_arm``; this module is
-compatibility glue, not a second scoring implementation.
+These use the experiments' existing fixtures and exact scorers. The participant
+performs every occurrence directly; this module is compatibility glue, not a
+second scoring implementation.
 """
 
 from __future__ import annotations
 
 import json
 import os
-import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -18,6 +17,12 @@ from typing import Any, Callable, TextIO
 from colleague.arms.sessions.human_session import HumanSession
 from colleague.harness.cost import delta as cost_delta
 from colleague.harness.cost import total as total_cost
+from colleague.tracks.standing.human_brief import (
+    REQUEST_SETUP,
+    direct_work_brief,
+    policy_surfaces,
+    standing_surface,
+)
 
 
 class Protocol:
@@ -27,7 +32,6 @@ class Protocol:
         name: str,
         directory: Path,
         fixture: Any,
-        mode: str,
         participant_id: str,
         hourly_rate_usd: float,
         timeout_s: float,
@@ -37,11 +41,10 @@ class Protocol:
         results_root: Path | None = None,
     ) -> None:
         self.name = name
-        self.mode = mode
         self.fixture = fixture
         self.timeout_s = timeout_s
         self.run_id = (
-            datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ") + f"-human-{mode}"
+            datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ") + "-human"
         )
         self.results_dir = (results_root or directory / "results") / self.run_id
         self.results_dir.mkdir(parents=True, exist_ok=True)
@@ -53,12 +56,10 @@ class Protocol:
             output=output,
             event_sink=event_sink,
         )
-        self.commands: dict[str, str] = {}
         self.phases: list[dict[str, Any]] = []
         self.results: dict[str, Any] = {
             "experiment": name,
             "system": "human",
-            "human_mode": mode,
             "participant_id": participant_id,
             "human_hourly_rate_usd": hourly_rate_usd,
             "run_id": self.run_id,
@@ -95,85 +96,76 @@ class Protocol:
     def latest_cost(self) -> dict[str, Any]:
         return dict(self.phases[-1]["cost"])
 
-    def setup_one(self, key: str, utterance: str) -> None:
+    def _present(self, surface: dict[str, Any] | None, request: str) -> None:
+        self.session.surface = {**surface, "request": request} if surface else None
+
+    def setup_one(
+        self,
+        key: str,
+        utterance: str,
+        *,
+        surface: dict[str, Any] | None = None,
+    ) -> None:
         self.session.bind_fixture(self.fixture, f"setup_{key}")
         context = (
-            "Build this automation in the persistent workspace with /shell. "
-            "Finish with /done COMMAND, the command to run at each wake."
-            if self.mode == "builder"
-            else "Read this brief. You will manually perform it at each simulated wake."
+            "Read this recurring-work brief. Each time the work becomes due, "
+            "you will complete it yourself. You may retain notes and use what "
+            "you learn from earlier occurrences."
         )
-        reply = self.phase(
+        self._present(surface, REQUEST_SETUP)
+        self.phase(
             f"setup_{key}",
-            lambda: self.session.send(utterance, context=context, persist=True),
+            lambda: self.session.send(
+                direct_work_brief(utterance),
+                context=context,
+                persist=True,
+            ),
         )
-        if self.mode == "builder":
-            command = reply.text.strip()
-            if not command:
-                raise RuntimeError(f"no fire command supplied for {key}")
-            self.commands[key] = command
 
-    def owner_message(self, text: str) -> None:
+    def owner_message(
+        self,
+        text: str,
+        *,
+        surface: dict[str, Any] | None = None,
+    ) -> None:
         self.session.bind_fixture(self.fixture, "policy_change")
-        context = (
-            "Update every affected artifact in the persistent workspace. Keep "
-            "the existing fire commands unless necessary; finish with /done."
-            if self.mode == "builder"
-            else "Apply this update to all subsequent manual work."
-        )
+        self._present(surface, direct_work_brief(text))
         self.phase(
             "policy_change",
-            lambda: self.session.send(text, context=context, persist=True),
+            lambda: self.session.send(
+                direct_work_brief(text),
+                context="Apply this update to all later occurrences of the work.",
+                persist=True,
+            ),
         )
 
-    def fire(self, key: str, label: str) -> dict[str, Any]:
+    def fire(
+        self,
+        key: str,
+        label: str,
+        *,
+        surface: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         self.session.bind_fixture(self.fixture, label)
-        if self.mode == "operator":
-            reply = self.phase(
-                label,
-                lambda: self.session.send(
-                    f"The {key} recurring work is due. Complete exactly one run now.",
-                    context="SIMULATED WAKE",
-                    persist=True,
-                    timeout=self.timeout_s,
-                ),
-            )
-            return {
-                "label": label,
-                "fire_mode": "human_operator",
-                "ok": reply.ok,
-                "cost": self.latest_cost(),
-            }
-
-        def execute() -> dict[str, Any]:
-            env = dict(os.environ)
-            env["COLLEAGUE_FIXTURE_URL"] = self.fixture.base_url
-            try:
-                done = subprocess.run(
-                    self.commands[key],
-                    cwd=self.session.workspace,
-                    env=env,
-                    shell=True,
-                    text=True,
-                    capture_output=True,
-                    timeout=self.timeout_s,
-                    check=False,
-                )
-                return {
-                    "fire_mode": "human_built_artifact",
-                    "exit_code": done.returncode,
-                    "stdout_tail": done.stdout[-2000:],
-                    "stderr_tail": done.stderr[-2000:],
-                }
-            except subprocess.TimeoutExpired as exc:
-                return {"fire_mode": "human_built_artifact", "error": str(exc)}
-
-        value = self.phase(label, execute)
-        return {"label": label, **value, "cost": self.latest_cost()}
+        request = f"The {key.replace('_', ' ')} work is due. Complete one occurrence now."
+        self._present(surface, request)
+        reply = self.phase(
+            label,
+            lambda: self.session.send(
+                request,
+                context="WORK DUE",
+                persist=True,
+                timeout=self.timeout_s,
+            ),
+        )
+        return {
+            "label": label,
+            "ok": reply.ok,
+            "cost": self.latest_cost(),
+        }
 
     def finish(self) -> None:
-        self.results["commands"] = dict(self.commands)
-        self.results["artifacts"] = self.session.artifacts()
+        self.results["participant_session"] = self.session.participant_record()
         self.results["cost"] = total_cost([p["cost"] for p in self.phases])
         self.results["finished_at"] = datetime.now(timezone.utc).isoformat()
         (self.results_dir / "results.json").write_text(
@@ -181,7 +173,7 @@ class Protocol:
             encoding="utf-8",
         )
         lines = [
-            f"# {self.name} (human-{self.mode}) — {self.run_id}",
+            f"# {self.name} (human) — {self.run_id}",
             "",
             "| phase | wall (s) | human active (s) | labour USD |",
             "|---|---:|---:|---:|",
@@ -207,7 +199,6 @@ class Protocol:
 
 def recurring_report(
     *,
-    mode: str,
     hourly_rate_usd: float,
     participant_id: str,
     input_fn: Callable[[str], str] = input,
@@ -236,7 +227,6 @@ def recurring_report(
         name="recurring_report",
         directory=EXPERIMENT_DIR,
         fixture=fixture,
-        mode=mode,
         participant_id=participant_id,
         hourly_rate_usd=hourly_rate_usd,
         timeout_s=timeout,
@@ -247,13 +237,16 @@ def recurring_report(
     )
     try:
         utterance = UTTERANCE_TEMPLATE.format(base_url=fixture.base_url)
-        p.results.update({"seed": seed, "n_runs": runs, "utterance": utterance})
+        p.results.update(
+            {"seed": seed, "n_runs": runs, "brief": direct_work_brief(utterance)},
+        )
+        surface = standing_surface("recurring_report")
         p.session.setup()
-        p.setup_one("report", utterance)
+        p.setup_one("report", utterance, surface=surface)
         seen = 0
         for i in range(1, runs + 1):
             run_date = datetime.now(timezone.utc).date()
-            fired = p.fire("report", f"run_{i}")
+            fired = p.fire("report", f"run_{i}", surface=surface)
             delivered = fixture.sink.snapshot()[seen:]
             seen += len(delivered)
             expected = expected_report(seed, run_date)
@@ -274,7 +267,6 @@ def recurring_report(
 
 def semantic_triage(
     *,
-    mode: str,
     hourly_rate_usd: float,
     participant_id: str,
     input_fn: Callable[[str], str] = input,
@@ -303,7 +295,6 @@ def semantic_triage(
         name="semantic_triage",
         directory=directory,
         fixture=fixture,
-        mode=mode,
         participant_id=participant_id,
         hourly_rate_usd=hourly_rate_usd,
         timeout_s=timeout,
@@ -314,12 +305,19 @@ def semantic_triage(
     )
     try:
         utterance = UTTERANCE_TEMPLATE.format(base_url=fixture.base_url)
-        p.results.update({"seed": seed, "n_fires": N_FIRES, "utterance": utterance})
+        p.results.update(
+            {
+                "seed": seed,
+                "n_fires": N_FIRES,
+                "brief": direct_work_brief(utterance),
+            },
+        )
+        surface = standing_surface("semantic_triage")
         p.session.setup()
-        p.setup_one("triage", utterance)
+        p.setup_one("triage", utterance, surface=surface)
         for i in range(1, N_FIRES + 1):
             cursor, released, before = prepare_fire(fixture)
-            fired = p.fire("triage", f"fire_{i}")
+            fired = p.fire("triage", f"fire_{i}", surface=surface)
             p.results["fires"].append(
                 {
                     "fire": i,
@@ -339,7 +337,6 @@ def semantic_triage(
 
 def policy_propagation(
     *,
-    mode: str,
     hourly_rate_usd: float,
     participant_id: str,
     input_fn: Callable[[str], str] = input,
@@ -374,7 +371,6 @@ def policy_propagation(
         name="policy_propagation",
         directory=directory,
         fixture=fixture,
-        mode=mode,
         participant_id=participant_id,
         hourly_rate_usd=hourly_rate_usd,
         timeout_s=timeout,
@@ -385,10 +381,18 @@ def policy_propagation(
     )
     try:
         utterances = {a: build_utterance(a, fixture.base_url) for a in AUTOMATIONS}
-        p.results.update({"seed": seed, "utterances": utterances})
+        p.results.update(
+            {
+                "seed": seed,
+                "briefs": {
+                    key: direct_work_brief(value) for key, value in utterances.items()
+                },
+            },
+        )
+        surfaces = policy_surfaces()
         p.session.setup()
         for automation in AUTOMATIONS:
-            p.setup_one(automation, utterances[automation])
+            p.setup_one(automation, utterances[automation], surface=surfaces[automation])
 
         round_no = 0
 
@@ -398,11 +402,15 @@ def policy_propagation(
             release_round(fixture)
             for automation in AUTOMATIONS:
                 cursor, released, before = prepare_fire(fixture, automation)
-                fired = p.fire(automation, f"round{round_no}_{automation}")
+                fired = p.fire(
+                    automation,
+                    f"round{round_no}_{automation}",
+                    surface=surfaces[automation],
+                )
                 p.results["fires"].append(
                     {
                         "round": round_no,
-                        "automation": automation,
+                        "task": automation,
                         "threshold": threshold,
                         **fired,
                         **score_fire(

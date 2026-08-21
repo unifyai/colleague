@@ -106,14 +106,15 @@ fake denominator.
 
 ## Human protocols
 
-Both built pages now support measured human baselines:
+Both built pages support the same direct, measured human protocol:
 
 ```bash
-python -m colleague.human usecase agency_client_reporting --mode operator
-python -m colleague.human usecase ecommerce_trading_review --mode builder
+python -m colleague.human usecase agency_client_reporting
+python -m colleague.human usecase ecommerce_trading_review
 ```
 
-Operator mode measures direct human delivery; builder mode measures setup
-labour plus unattended execution of a human-authored artifact. The page brief,
-fixture and exact scorer are unchanged. Active seconds, declared hourly rate,
-labour cost, elapsed time and per-output cost accompany the existing metrics.
+The participant completes the work directly against the unchanged page brief,
+fixture and exact scorer. If work repeats, the next occurrence is presented to
+the participant again with their notes and experience retained. Active seconds,
+declared hourly rate, labour cost, elapsed time and per-output cost accompany
+the existing metrics.

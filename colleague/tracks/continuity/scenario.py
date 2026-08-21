@@ -32,10 +32,10 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
             "name": "january",
             "request": (
                 f"{api}\n\n"
-                "Authenticate, pull the January ledger, work out the three "
-                "vendors we spent the most with, and POST them to /report "
-                "with month 'january'. Keep the session open afterwards — "
-                "there will be a follow-up."
+                "Log in, pull the January ledger, work out the three "
+                "vendors we spent the most with, and file the January "
+                "report. Keep the session open afterwards — there will be "
+                "a follow-up."
             ),
             "persist": True,
             "note": "The expensive first pass. Everything after this is the measurement.",

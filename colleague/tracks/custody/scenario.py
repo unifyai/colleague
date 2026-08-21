@@ -163,10 +163,10 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
             "name": "intervening_work",
             "request": (
                 f"{api}\n\n"
-                "Now work through the support queue at /queue. For each item, "
-                "decide whether it is a billing matter or a technical one and "
-                "POST /triage with the id and the label. Do all of them. Reply "
-                "to me when done."
+                "Now work through the support queue. For each item, decide "
+                "whether it is a billing matter or a technical one, and "
+                "record your decision against the item. Do all of them. "
+                "Reply to me when done."
             ),
             "continue": True,
             "sender": "daniel",

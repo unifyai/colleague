@@ -3,8 +3,9 @@
 The JavaScript package in ``web/`` is deliberately a client: fixtures,
 ground truth and scoring remain in Python.  This module serves the built UI
 and translates browser actions into the exact commands understood by
-``HumanSession``.  It binds to loopback by default because builder mode can
-execute participant-authored shell commands in its run-local workspace.
+``HumanSession``.  It binds to loopback by default because results contain
+participant identifiers and the fixtures are intended only for local
+benchmark runs.
 
     cd web && npm run build && npm start
 """
@@ -16,7 +17,6 @@ import contextlib
 import importlib
 import io
 import json
-import math
 import mimetypes
 import queue
 import re
@@ -36,17 +36,20 @@ from urllib.parse import parse_qs, unquote, urlsplit
 from colleague import taxonomy
 from colleague.human import SERIES
 from colleague.run import TRACKS
+from colleague.tracks.standing.human_brief import SUMMARIES as STANDING_SUMMARIES
 from colleague.tracks.standing.human_legacy import RUNNERS as LEGACY_RUNNERS
 from colleague.tracks.usecases.human import RUNNERS as USECASE_RUNNERS
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 WEB_ROOT = REPO_ROOT / "web" / "dist"
 RESULTS_ROOT = REPO_ROOT / "human-results"
+REFERENCE_HOURLY_RATE_USD = 30.0
 
 
 def _family(track: str) -> str:
     """Family headings come from the taxonomy, not a second copy of it."""
     return taxonomy.topic_title(taxonomy.TRACK_TOPICS.get(track))
+
 
 QUESTIONS = {
     "inheritance": "Act on the right referent and ask the right person.",
@@ -75,13 +78,15 @@ def catalog() -> dict[str, Any]:
         scenarios = []
         for item in scenario_module.scenarios("http://browser-fixture.invalid"):
             voice_only = bool(item.get("voice_only"))
-            tags = taxonomy.tags_for(track, item["name"])
             scenarios.append(
                 {
                     "id": item["name"],
                     "title": _title(item["name"]),
-                    "description": item.get("note", ""),
-                    "tags": tags.compact() if tags else "",
+                    "description": item.get("participant_preview")
+                    or (
+                        f"A workplace scenario about how well you can "
+                        f"{QUESTIONS.get(track, 'complete the requested work').lower()}"
+                    ),
                     "available": not voice_only,
                     "limitation": (
                         "Requires a human audio bridge; browser text would invalidate it."
@@ -98,7 +103,6 @@ def catalog() -> dict[str, Any]:
                 "title": _title(track),
                 "family": _family(track),
                 "description": QUESTIONS.get(track, ""),
-                "modes": ["participant"],
                 "scenarios": scenarios,
                 "available": available,
                 "limitation": (
@@ -109,32 +113,33 @@ def catalog() -> dict[str, Any]:
             },
         )
     for name in sorted({*SERIES, *LEGACY_RUNNERS}):
-        tags = taxonomy.tags_for("standing", name)
         entries.append(
             {
                 "kind": "standing",
                 "id": name,
                 "title": _title(name),
                 "family": _family("standing"),
-                "description": "Recurring work scored over compressed wakes and changes.",
-                "tags": tags.compact() if tags else "",
-                "modes": ["operator", "builder"],
+                "description": STANDING_SUMMARIES.get(
+                    name,
+                    "Complete recurring workplace responsibilities across several "
+                    "simulated work periods.",
+                ),
                 "scenarios": [],
                 "available": True,
                 "limitation": None,
             },
         )
     for name in sorted(USECASE_RUNNERS):
-        tags = taxonomy.tags_for("usecases", name)
         entries.append(
             {
                 "kind": "usecase",
                 "id": name,
                 "title": _title(name),
                 "family": _family("usecases"),
-                "description": "Validate an applied workflow with its exact page scorer.",
-                "tags": tags.compact() if tags else "",
-                "modes": ["operator", "builder"],
+                "description": (
+                    "Complete an end-to-end workplace workflow using realistic "
+                    "records and tools."
+                ),
                 "scenarios": [],
                 "available": True,
                 "limitation": None,
@@ -237,7 +242,11 @@ class BrowserRun:
 
     def snapshot(self, after: int = 0) -> dict[str, Any]:
         with self._lock:
-            events = [dict(e) for e in self.events if int(e["seq"]) > after]
+            events = [
+                dict(e)
+                for e in self.events
+                if int(e["seq"]) > after and e.get("type") != "cost"
+            ]
             elapsed = self._elapsed_seconds
             if self._started_monotonic and self.status == "running":
                 elapsed = time.monotonic() - self._started_monotonic
@@ -288,9 +297,8 @@ class BrowserRun:
     def _execute(self, _output: BrowserOutput) -> int:
         kind = str(self.request["kind"])
         name = str(self.request["benchmark"])
-        mode = str(self.request.get("mode") or "participant")
-        rate = float(self.request.get("hourlyRateUsd") or 30.0)
-        participant = str(self.request.get("participantId") or "anonymous")
+        rate = REFERENCE_HOURLY_RATE_USD
+        participant = str(self.request["participantEmail"])
         results_root = RESULTS_ROOT / kind / name
         results_root.mkdir(parents=True, exist_ok=True)
         common = {
@@ -323,15 +331,15 @@ class BrowserRun:
                 human_event_sink=self.emit,
             )
         if kind == "standing" and name in LEGACY_RUNNERS:
-            return LEGACY_RUNNERS[name](mode=mode, **common)
+            return LEGACY_RUNNERS[name](**common)
         if kind == "standing" and name in SERIES:
             module_name, factory = SERIES[name]
             experiment = getattr(importlib.import_module(module_name), factory)()
             from colleague.tracks.standing.series.human_arm import run
 
-            return run(experiment, mode=mode, **common)
+            return run(experiment, **common)
         if kind == "usecase" and name in USECASE_RUNNERS:
-            return USECASE_RUNNERS[name](mode=mode, **common)
+            return USECASE_RUNNERS[name](**common)
         raise ValueError(f"unknown benchmark {kind}/{name}")
 
     def _latest_result(self) -> str | None:
@@ -397,18 +405,20 @@ def _validate_request(value: dict[str, Any]) -> None:
             raise ValueError("unknown scenario")
         if not scenario_match["available"]:
             raise ValueError(scenario_match.get("limitation") or "scenario unavailable")
-    mode = value.get("mode") or match["modes"][0]
-    if mode not in match["modes"]:
-        raise ValueError("invalid human mode")
-    try:
-        rate = float(value.get("hourlyRateUsd") or 30.0)
-    except (TypeError, ValueError) as exc:
-        raise ValueError("hourly rate must be a number") from exc
-    if not math.isfinite(rate) or rate < 0 or rate > 100_000:
-        raise ValueError("hourly rate is outside the accepted range")
-    participant = str(value.get("participantId") or "anonymous")
-    if not re.fullmatch(r"[A-Za-z0-9_.-]{1,64}", participant):
-        raise ValueError("participant id must be pseudonymous and URL-safe")
+    participant_email = str(value.get("participantEmail") or "").strip().lower()
+    if len(participant_email) > 254 or not re.fullmatch(
+        r"[^\s@]+@[^\s@]+\.[^\s@]+",
+        participant_email,
+    ):
+        raise ValueError("a valid participant email address is required")
+
+    # Browser studies use one internal reference rate for every participant.
+    # Discard client-supplied values; the participant API does not expose the
+    # meter configuration.
+    value["participantEmail"] = participant_email
+    value.pop("hourlyRateUsd", None)
+    value.pop("participantId", None)
+    value.pop("mode", None)
 
 
 class AppServer(ThreadingHTTPServer):
@@ -425,7 +435,12 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API
         parsed = urlsplit(self.path)
         if parsed.path == "/api/config":
-            self._json(200, {"mutationToken": self.server.mutation_token})
+            self._json(
+                200,
+                {
+                    "mutationToken": self.server.mutation_token,
+                },
+            )
             return
         if parsed.path == "/api/catalog":
             self._json(200, catalog())

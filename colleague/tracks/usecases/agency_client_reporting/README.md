@@ -227,8 +227,7 @@ Outputs land in `results/<run-id>/`:
 
 ## Human protocol
 
-Run `python -m colleague.human usecase agency_client_reporting --mode operator`
-for direct account-manager work, or `--mode builder` for human-authored
-automation. The verbatim page brief, fixture anchor and exact campaign-set
-scorer are reused. Results include total active labour, labour USD, and time
-and cost per drafted client report.
+Run `python -m colleague.human usecase agency_client_reporting` for direct
+account-manager work. The verbatim page brief, fixture anchor and exact
+campaign-set scorer are reused. Results include total active labour, labour
+USD, and time and cost per drafted client report.

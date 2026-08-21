@@ -17,6 +17,8 @@ from colleague.harness.ledger import PhaseLedger
 from colleague.harness.llm_ledger import LLMCallRecord, PhaseStats
 from colleague.plan import _resolve_arms
 from colleague.tracks.attribution.fixture import build
+from colleague.tracks.standing.drift_recovery.protocol import UTTERANCE_TEMPLATE
+from colleague.tracks.standing.human_brief import direct_work_brief
 
 
 def scripted(*lines: str):
@@ -65,6 +67,111 @@ def test_human_notes_persist_between_turns(tmp_path):
     reply = session.resume("Where is it?")
     assert reply.text == "Leeds"
     assert session.notes_path.read_text().strip() == "Leeds"
+
+
+def test_human_workbench_has_no_code_execution_command(tmp_path):
+    output = io.StringIO()
+    marker = tmp_path / "must-not-exist"
+    session = HumanSession(
+        results_dir=tmp_path,
+        input_fn=scripted(f"/shell touch {marker}", "/done"),
+        output=output,
+    )
+
+    session.send("Complete the task.")
+
+    assert not marker.exists()
+    assert "Unknown command" in output.getvalue()
+
+
+def test_participant_surfaces_speak_office_language():
+    import json
+    import re
+
+    from colleague.tracks.standing.human_brief import (
+        SUMMARIES,
+        policy_surfaces,
+        standing_surface,
+    )
+    from colleague.tracks.usecases.human import _agency_surface, _ecommerce_surface
+
+    surfaces = {
+        name: standing_surface(name)
+        for name in (
+            "recurring_report",
+            "semantic_triage",
+            "drift_recovery",
+            "silent_drift",
+            "edge_week",
+            "repair_locality",
+            "change_without_regression",
+        )
+    }
+    surfaces.update(policy_surfaces())
+    surfaces["agency"] = _agency_surface("A marketing brief.")
+    surfaces["ecommerce"] = _ecommerce_surface("A trading brief.")
+
+    for name, surface in surfaces.items():
+        assert surface, name
+        json.dumps(surface)  # must reach the browser as-is
+        brief = surface["brief"]
+        for term in ("http", "GET ", "POST", "JSON", "endpoint", "API"):
+            assert term not in brief, (name, term)
+        # Machine field names stay in the form definitions, never the prose.
+        assert not re.search(r"\b\w+_\w+\b", brief), name
+    assert set(SUMMARIES) >= {
+        n for n in surfaces if n not in ("triage", "digests", "audits", "agency", "ecommerce")
+    }
+
+
+def test_change_request_widens_the_surface_without_leaking_it_early():
+    from colleague.tracks.standing.change_without_regression.protocol import (
+        CHANGE_REQUEST_TEMPLATE,
+    )
+    from colleague.tracks.standing.human_brief import (
+        human_update_request,
+        standing_surface,
+    )
+
+    def keys(surface):
+        return {f["key"] for f in surface["actions"][0]["fields"]}
+
+    before = standing_surface("change_without_regression", updates=0)
+    after = standing_surface("change_without_regression", updates=1)
+    assert "total_refunded_cents" not in keys(before)
+    assert "total_refunded_cents" in keys(after)
+    assert len(after["lookups"]) == len(before["lookups"]) + 1
+
+    rendered = human_update_request(
+        "change_without_regression",
+        CHANGE_REQUEST_TEMPLATE.format(base_url="http://fixture.invalid"),
+    )
+    assert "http" not in rendered
+    assert "total_refunded_cents" not in rendered
+
+
+def test_operator_fix_message_reads_naturally():
+    from colleague.tracks.standing.series.spec import Experiment
+
+    fixed = direct_work_brief(Experiment.operator_fix_message)
+    assert "recurring recurring" not in fixed
+    assert "automation" not in fixed.lower()
+
+
+def test_recurring_brief_describes_direct_work_without_technical_setup():
+    brief = direct_work_brief(
+        UTTERANCE_TEMPLATE.format(
+            base_url="http://fixture.invalid",
+            owner_channel="Use /owner/notify if the work must be held.",
+        ),
+    )
+
+    for term in ("automation", "function", "/shell", "command"):
+        assert term not in brief.lower()
+    assert "This work recurs hourly" in brief
+    assert "/orders?after=N" in brief
+    assert "total_revenue_cents" in brief
+    assert "the first occurrence will be presented separately" in brief
 
 
 def test_cost_delta_prices_only_measured_human_time():
@@ -200,3 +307,19 @@ def test_aggregate_reads_standing_outcomes_and_old_phase_costs():
     assert merged["costs"]["unify"][0]["provider_cost_usd"] is None
     markdown = to_markdown(merged)
     assert "| human-operator | 1 | 60.0s |" in markdown
+
+
+def test_aggregate_uses_one_human_arm_for_new_results():
+    merged = merge(
+        [
+            {
+                "experiment": "policy_propagation",
+                "system": "human",
+                "run_id": "human-direct-1",
+                "fires": [{"task": "orders", "correct": True}],
+            },
+        ],
+    )
+
+    assert merged["arms"] == ["human"]
+    assert merged["grid"]["policy_propagation|human"]["orders"] == ["pass"]

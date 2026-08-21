@@ -1,4 +1,4 @@
-import type { Catalog, RunSnapshot } from "./types";
+import type { AppConfig, Catalog, CreateRunRequest, RunSnapshot } from "./types";
 
 let mutationToken = "";
 
@@ -8,16 +8,16 @@ async function checked<T>(response: Response): Promise<T> {
   return body as T;
 }
 
-export async function initialize(): Promise<Catalog> {
+export async function initialize(): Promise<{ config: AppConfig; catalog: Catalog }> {
   const [config, catalog] = await Promise.all([
-    checked<{ mutationToken: string }>(await fetch("/api/config")),
+    checked<AppConfig>(await fetch("/api/config")),
     checked<Catalog>(await fetch("/api/catalog")),
   ]);
   mutationToken = config.mutationToken;
-  return catalog;
+  return { config, catalog };
 }
 
-export async function createRun(request: RunSnapshot["request"]): Promise<RunSnapshot> {
+export async function createRun(request: CreateRunRequest): Promise<RunSnapshot> {
   return checked(
     await fetch("/api/runs", {
       method: "POST",

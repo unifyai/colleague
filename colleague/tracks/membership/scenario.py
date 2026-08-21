@@ -71,9 +71,9 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
             "context": _roster(),
             "request": (
                 f"{api}\n\n"
-                "Read every channel you have access to (/channels lists them, "
-                "each with its members) and Daniel's direct messages at "
-                "/dm/daniel, and hold on to what matters. Do not reply to "
+                "Read every channel you have access to (the channel list "
+                "shows each one with its members) and Daniel's direct "
+                "messages, and hold on to what matters. Do not reply to "
                 "anyone yet."
             ),
             "persist": True,

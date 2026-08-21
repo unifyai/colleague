@@ -22,7 +22,7 @@ export type BodyField = {
   hint: string;
   optional: boolean;
   options: string[] | null;
-  kind: "text" | "long" | "date" | "list";
+  kind: "text" | "long" | "date" | "list" | "number" | "bool";
 };
 
 export type Endpoint = {
@@ -35,7 +35,7 @@ export type Endpoint = {
   note: string;
 };
 
-const LINE = /^\s*(GET|POST)\s+(\S+)(?:\s*->\s*(.*))?$/;
+const LINE = /^\s*[-•]?\s*(GET|POST)\s+(\S+)(?:\s*->\s*(.*))?$/;
 
 function humanize(value: string): string {
   const cleaned = value.replace(/_id$/, "").replace(/[_-]+/g, " ").trim();
@@ -72,6 +72,15 @@ function parseField(key: string, spec: string): BodyField {
       hint: inner ? `${inner[1]}, one per comma` : "comma-separated list",
     };
   }
+  // In a JSON body sketch an unquoted value is a number or a boolean, never
+  // a string — "week": <n> means a number, "flagged": true|false a yes/no.
+  if (!trimmed.startsWith('"')) {
+    const bare = trimmed.replace(/^<|>\??$/g, "").replace(/\?$/, "");
+    if (/^(true|false)(\s*\|\s*(true|false))?$/i.test(bare)) {
+      return { ...base, kind: "bool", hint: bare };
+    }
+    return { ...base, kind: "number", hint: bare };
+  }
   const parts = trimmed.split("|").map((p) => p.trim().replace(/^"|"$/g, ""));
   if (parts.length > 1) {
     const optional = parts.some((p) => p.endsWith("?"));
@@ -95,7 +104,8 @@ function parseBody(spec: string): BodyField[] {
   if (braces < 0) return [];
   const inner = spec.slice(braces);
   const fields: BodyField[] = [];
-  const pattern = /"(\w+)":\s*(\[[^\]]*\]|"[^"]*"(?:\s*\|\s*"[^"]*")*)/g;
+  const pattern =
+    /"(\w+)":\s*(\[[^\]]*\]|"[^"]*"(?:\s*\|\s*"[^"]*")*|<[^>]+>|true(?:\s*\|\s*false)?|false|-?\d+(?:\.\d+)?)/g;
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(inner)) !== null) {
     fields.push(parseField(match[1], match[2]));
@@ -181,11 +191,22 @@ export function parseRoster(context: string): RosterEntry[] {
   return [...seen.values()];
 }
 
-/** A short human reading of a workbench command, for the activity feed. */
-export function describeCommand(command: string): string {
-  if (command.startsWith("/get ")) return `Looked at ${humanize(command.slice(5).trim().split("?")[0].split("/").filter(Boolean).pop() || "the workspace").toLowerCase()}`;
+/** A short human reading of a workbench command, for the activity feed.
+ * `labels` maps a fixture path to the participant-surface label for it, so
+ * the feed narrates "File the batch report" rather than the path's last
+ * segment when a surface is active. */
+export function describeCommand(command: string, labels?: Record<string, string>): string {
+  const labelFor = (path: string) => labels?.[path.split("?")[0]];
+  if (command.startsWith("/get ")) {
+    const path = command.slice(5).trim();
+    const label = labelFor(path);
+    if (label) return `Looked up: ${label}`;
+    return `Looked at ${humanize(path.split("?")[0].split("/").filter(Boolean).pop() || "the workspace").toLowerCase()}`;
+  }
   if (command.startsWith("/post ")) {
     const path = command.slice(6).trim().split(/\s/)[0];
+    const label = labelFor(path);
+    if (label) return label;
     return humanize(path.split("/").filter(Boolean).pop() || "action");
   }
   if (command.startsWith("/ask ")) {

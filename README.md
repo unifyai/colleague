@@ -38,7 +38,7 @@ outlives the conversation, and several people sharing one assistant.
 | `prime-agent` | Prime Intellect's prime-agent — Python skills in a persistent kernel; every firing is a prompt | first-class (agent turn) |
 | `openclaw-gateway` | OpenClaw through its Gateway WebSocket protocol — blocking `ask_user`, `steer` as the default queue mode, persisted sessions | first-class |
 | `prime-agent-rpc` | prime-agent through JSONL-RPC — steering and follow-up lanes, one resident process per session | first-class (agent turn) |
-| `human` | A person using the same fixture and exact scorer through the human workbench | participant; builder protocol for schedules |
+| `human` | A person using the same fixture and exact scorer through the human workbench | participant; recurring work is performed directly each time |
 
 Two arms drive a second surface of the same product, the way `hermes-tui`
 pairs with `hermes` and `unify-cm` with `unify`. `openclaw` is the headless
@@ -270,9 +270,9 @@ python -m colleague.run inheritance --arm unify          # everything else
 python -m colleague.run meeting --arm unify-cm --repeat 5  # role-played scenes: read the spread
 python -m colleague.run --list                           # tracks and scenarios
 python -m colleague.run inheritance --arm human          # human participant
-python -m colleague.human standing edge_week --mode operator
-python -m colleague.human standing silent_drift --mode builder
-python -m colleague.human usecase agency_client_reporting --mode operator
+python -m colleague.human standing edge_week
+python -m colleague.human standing silent_drift
+python -m colleague.human usecase agency_client_reporting
 ```
 
 Requires `OPENROUTER_API_KEY`, plus a `UNIFY_KEY` for the unify arm and local
@@ -293,7 +293,13 @@ npm start
 
 This opens <http://127.0.0.1:8765>. The React client adds no answer-bearing
 API: fixtures, ground truth, scoring and result creation remain in Python.
-Runs are written to the git-ignored `human-results/` directory. See
+The participant supplies an email address once before the benchmark library
+opens. It identifies all runs in that browser session. They then choose a
+benchmark or individual task from the category → benchmark → task tree. The
+tree marks tasks completed during the session; selecting a benchmark runs all
+of its available tasks. Browser cost uses a fixed internal reference rate that
+is neither shown nor participant-configurable. Runs are written to the
+git-ignored `human-results/` directory. See
 [`web/README.md`](web/README.md) for the development workflow and local safety
 boundary.
 

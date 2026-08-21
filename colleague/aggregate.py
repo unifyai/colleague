@@ -140,6 +140,7 @@ def merge(runs: list[dict[str, Any]]) -> dict[str, Any]:
         for fire in fires:
             name = str(
                 fire.get("label")
+                or fire.get("task")
                 or fire.get("automation")
                 or f"fire_{fire.get('fire', '?')}",
             )

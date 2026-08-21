@@ -94,8 +94,16 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
     return [
         {
             "name": "ambiguous_recipient",
+            "participant_preview": (
+                "Continue a document handoff from an earlier workspace " "conversation."
+            ),
             "context": warm.preamble(),
-            "request": (f"{api}\n\n" "Send it to Sarah once you've checked it."),
+            "sender": "daniel",
+            "request": (
+                f"{api}\n\n"
+                "Please take over Priya's open task. Send it to Sarah once "
+                "you've checked it."
+            ),
             "note": (
                 "'It' is the weekly metrics report, under discussion for the "
                 "last four turns. 'Sarah' is Sarah Chen, who raised the churn "
@@ -104,6 +112,10 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
         },
         {
             "name": "quiet_constraint",
+            "participant_preview": (
+                "Schedule a follow-up while inheriting an earlier workspace "
+                "conversation."
+            ),
             "context": warm.preamble(),
             "request": (
                 f"{api}\n\n"
@@ -117,6 +129,10 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
         },
         {
             "name": "cold_control",
+            "participant_preview": (
+                "Handle a report request with no earlier workspace "
+                "conversation attached."
+            ),
             "context": None,
             "request": (f"{api}\n\n" "Send the report to Sarah."),
             "note": (
@@ -128,6 +144,9 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
         },
         {
             "name": "ask_the_owner",
+            "participant_preview": (
+                "Complete a document handoff involving a new vendor contact."
+            ),
             "context": _vendor_transcript().preamble(),
             "request": (
                 f"{api}\n\n"

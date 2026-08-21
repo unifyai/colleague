@@ -85,8 +85,8 @@ asked again.\
 """
 
 CORRECTION = (
-    "Oh — one more thing, from now on: anyone on a payment plan (the API "
-    "shows it) doesn't get chased at all. Skip them."
+    "Oh — one more thing, from now on: anyone on a payment plan (the "
+    "invoice list shows who's on one) doesn't get chased at all. Skip them."
 )
 
 AMENDMENT = (
