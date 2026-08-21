@@ -320,6 +320,9 @@ jobs:
 
     - name: Run shard
       if: steps.arm.outputs.ready == 'true'
+      id: run_shard
+      # continue-on-error so partial results still upload; the step after the
+      # upload turns a failed run back into a failed job.
       continue-on-error: true
       env:
         OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
@@ -327,8 +330,11 @@ jobs:
         ORCHESTRA_URL: ${{ vars.ORCHESTRA_URL || 'https://api.staging.internal.saas.unify.ai/v0' }}
         COLLEAGUE_PROJECT: ${{ vars.COLLEAGUE_PROJECT || 'Benchmarks' }}
         UNILLM_CACHE: "false"
-        HERMES_REPO: ${{ github.workspace }}/.harness/hermes
-        OPENCLAW_REPO: ${{ github.workspace }}/.harness/openclaw
+        # The adapters read RWR_HERMES_REPO / OC_REPO (colleague/arms/hermes.py,
+        # openclaw.py) — under the checkout-named vars both fell back to
+        # $HOME/<repo> and recorded the arm's binary as missing.
+        RWR_HERMES_REPO: ${{ github.workspace }}/.harness/hermes
+        OC_REPO: ${{ github.workspace }}/.harness/openclaw
         OCODE_REPO: ${{ github.workspace }}/.harness/opencode
         PRIME_AGENT_REPO: ${{ github.workspace }}/.harness/prime-agent
       run: |
@@ -376,6 +382,14 @@ jobs:
         name: shard-${{ matrix.artifact }}
         path: colleague/tracks/${{ matrix.track }}/results/**/results.json
         if-no-files-found: warn
+
+    # A run-step crash must not read as a green shard: continue-on-error lets
+    # the upload happen, and this step then fails the job the way the
+    # unavailable-arm step does for install failures (2026-08-21: a hermes
+    # shard died at boot and the sweep reported it green with no artifact).
+    - name: Surface a failed run
+      if: steps.run_shard.outcome == 'failure'
+      run: exit 1
         retention-days: 30
 
   aggregate:
