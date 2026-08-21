@@ -53,6 +53,8 @@ export type SurfaceField = {
   value_label?: string;
   value_kind?: string;
   allow_empty?: boolean;
+  /** rows only: send each row as a list in cell order, not an object. */
+  as_lists?: boolean;
 };
 
 export type SurfaceLookup = {

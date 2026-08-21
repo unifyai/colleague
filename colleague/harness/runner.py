@@ -272,6 +272,14 @@ def run_track(
                 if hasattr(session, "bind_fixture"):
                     session.bind_fixture(fixture, name)
 
+                # A scenario may author a participant surface — the same ask
+                # in office language plus typed forms (see the track's
+                # human.py). Only the human workbench carries the attribute;
+                # assigning every scenario means a shared session cannot leak
+                # one scenario's surface into the next.
+                if hasattr(session, "surface"):
+                    session.surface = live.get("surface")
+
                 # An arm whose product delivers through its own channel (the
                 # CM arm sends to contact Bob rather than calling the
                 # fixture's API) declares a delivery bridge: messages to a

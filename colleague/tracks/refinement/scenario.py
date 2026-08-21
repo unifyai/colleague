@@ -47,6 +47,7 @@ from colleague.tracks.refinement.fixture import (
     expected_title,
     personal_ids,
 )
+from colleague.tracks.refinement.human import surface_for
 
 SESSION_SCOPE = "track"
 
@@ -92,6 +93,15 @@ AMENDMENT = (
     "exactly as it is. File week 6."
 )
 
+CONTROL_REQUEST = (
+    "File the weekly client spend report for week 3 "
+    "— pull the expenses and file it through the API."
+)
+
+
+def _file_week(week: int) -> str:
+    return f"File the spend report for week {week}."
+
 
 def _week_of(name: str) -> int:
     if name == "unbriefed_control":
@@ -109,8 +119,13 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
     return [
         {
             "name": "week_1_briefed",
+            "participant_title": "Week 1",
+            "participant_preview": (
+                "Take on a weekly client spend report and file its first week."
+            ),
             "context": roster,
             "request": f"{api}\n\n{BRIEF}",
+            "surface": surface_for(BRIEF),
             "persist": True,
             "sender": "daniel",
             "clarify_persona": "daniel",
@@ -122,7 +137,12 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
         },
         {
             "name": "week_2_columns",
+            "participant_title": "Week 2",
+            "participant_preview": (
+                "File the next week of the client spend report."
+            ),
             "request": COLUMNS_FEEDBACK,
+            "surface": surface_for(COLUMNS_FEEDBACK),
             "continue": True,
             "sender": "daniel",
             "note": (
@@ -133,7 +153,12 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
         },
         {
             "name": "week_3_replay",
-            "request": "File the spend report for week 3.",
+            "participant_title": "Week 3",
+            "participant_preview": (
+                "File another week of the client spend report."
+            ),
+            "request": _file_week(3),
+            "surface": surface_for(_file_week(3)),
             "continue": True,
             "sender": "daniel",
             "note": (
@@ -143,7 +168,12 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
         },
         {
             "name": "week_4_paraphrase",
-            "request": "File the spend report for week 4.",
+            "participant_title": "Week 4",
+            "participant_preview": (
+                "File another week of the client spend report."
+            ),
+            "request": _file_week(4),
+            "surface": surface_for(_file_week(4)),
             "continue": True,
             "sender": "daniel",
             "note": (
@@ -154,7 +184,12 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
         },
         {
             "name": "week_5_offcycle",
-            "request": "File the spend report for week 5.",
+            "participant_title": "Week 5",
+            "participant_preview": (
+                "File another week of the client spend report."
+            ),
+            "request": _file_week(5),
+            "surface": surface_for(_file_week(5)),
             "continue": True,
             "sender": "daniel",
             "note": (
@@ -165,7 +200,12 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
         },
         {
             "name": "week_6_amendment",
+            "participant_title": "Week 6",
+            "participant_preview": (
+                "File another week of the client spend report."
+            ),
             "request": AMENDMENT,
+            "surface": surface_for(AMENDMENT),
             "continue": True,
             "sender": "daniel",
             "note": (
@@ -176,10 +216,12 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
         },
         {
             "name": "unbriefed_control",
-            "request": (
-                f"{api}\n\nFile the weekly client spend report for week 3 "
-                "— pull the expenses and file it through the API."
+            "participant_title": "Fresh Start",
+            "participant_preview": (
+                "File one week of a client spend report in a fresh workspace."
             ),
+            "request": f"{api}\n\n{CONTROL_REQUEST}",
+            "surface": surface_for(CONTROL_REQUEST),
             "fresh_session": True,
             "note": (
                 "The control: no brief, ever, in a session that never saw "

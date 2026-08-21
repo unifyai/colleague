@@ -65,8 +65,15 @@ brief fact-for-fact (asserted by `colleague/tests/test_human_arm.py`), and
 the machine field names ride inside the form definitions, so submitting a
 form composes exactly the typed `/get`/`/post` command a terminal
 participant would type — whole numbers stay whole numbers, sections nest,
-row lists become lists. Conversational tracks keep the second route: the
-fixture's API block is parsed mechanically and rendered as labelled lookup
+row lists become lists. A conversational scenario may author the same kind
+of surface on its scenario entry (`refinement` does, in
+`colleague/tracks/refinement/human.py`, because its report contract wants
+rows as nested lists in column order — a payload the mechanical parser
+cannot compose); the runner hands it to the human session per turn, and a
+drip-fed track's forms stay identical every week so the surface never
+answers the retention question for the participant. Conversational tracks
+otherwise keep the second route: the fixture's API block is parsed
+mechanically and rendered as labelled lookup
 and action forms, lookup results render as tables rather than JSON, and the
 ask/finish/notes channels are plain forms; when the parser finds no forms in
 a request that carries an API block, the request is shown verbatim rather

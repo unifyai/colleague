@@ -93,6 +93,7 @@ def test_participant_surfaces_speak_office_language():
         policy_surfaces,
         standing_surface,
     )
+    from colleague.tracks.refinement.human import surface_for
     from colleague.tracks.usecases.human import _agency_surface, _ecommerce_surface
 
     surfaces = {
@@ -110,6 +111,7 @@ def test_participant_surfaces_speak_office_language():
     surfaces.update(policy_surfaces())
     surfaces["agency"] = _agency_surface("A marketing brief.")
     surfaces["ecommerce"] = _ecommerce_surface("A trading brief.")
+    surfaces["refinement"] = surface_for("A message from Daniel.")
 
     for name, surface in surfaces.items():
         assert surface, name
@@ -120,7 +122,9 @@ def test_participant_surfaces_speak_office_language():
         # Machine field names stay in the form definitions, never the prose.
         assert not re.search(r"\b\w+_\w+\b", brief), name
     assert set(SUMMARIES) >= {
-        n for n in surfaces if n not in ("triage", "digests", "audits", "agency", "ecommerce")
+        n
+        for n in surfaces
+        if n not in ("triage", "digests", "audits", "agency", "ecommerce", "refinement")
     }
 
 
@@ -148,6 +152,55 @@ def test_change_request_widens_the_surface_without_leaking_it_early():
     )
     assert "http" not in rendered
     assert "total_refunded_cents" not in rendered
+
+
+def test_refinement_surface_adds_mechanics_without_adding_memory():
+    """The drip-fed track's forms are pinned and say nothing the messages say.
+
+    Every scenario carries the same forms; only the office-language request
+    varies, and each request is a verbatim slice of the machine utterance —
+    so the browser participant reads exactly what every other arm reads,
+    plus typed controls, minus nothing.
+    """
+    import json
+
+    from colleague.tracks.refinement.scenario import scenarios
+
+    specs = scenarios("http://fixture.invalid")
+    assert all(spec.get("surface") for spec in specs)
+    forms = [
+        {k: v for k, v in spec["surface"].items() if k != "request"}
+        for spec in specs
+    ]
+    assert all(form == forms[0] for form in forms[1:])
+    for spec in specs:
+        assert spec["surface"]["request"] in spec["request"], spec["name"]
+        assert "http" not in spec["surface"]["request"], spec["name"]
+
+    # The measured facts — exact title, machine column names, amount format —
+    # live only in Daniel's messages, never in the pinned forms.
+    pinned = json.dumps(forms[0])
+    assert "amount_eur" not in pinned
+    assert "Northwind" not in pinned
+    assert "decimal" not in pinned.lower()
+
+    # The filing form composes the exact contract: a whole-number week, the
+    # column names as a list, and rows as lists in cell order with a real
+    # boolean flag — the shapes the generic parser cannot compose.
+    action = forms[0]["actions"][0]
+    assert action["path"] == "/report"
+    fields = {f["key"]: f for f in action["fields"]}
+    assert fields["week"]["kind"] == "int"
+    assert fields["columns"]["kind"] == "list"
+    assert fields["rows"]["kind"] == "rows"
+    assert fields["rows"]["as_lists"] is True
+    cells = [(c["key"], c["kind"]) for c in fields["rows"]["columns"]]
+    assert cells == [
+        ("vendor", "text"),
+        ("category", "text"),
+        ("amount", "text"),
+        ("flagged", "bool"),
+    ]
 
 
 def test_operator_fix_message_reads_naturally():

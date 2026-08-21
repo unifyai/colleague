@@ -729,7 +729,8 @@ function RunWorkspace({ run, events, benchmark, onError }: { run: RunSnapshot; e
             <>
               {surface ? (
                 <>
-                  <SurfaceRequest surface={surface} />
+                  {turn.context && <ConversationBrief text={turn.context} />}
+                  <SurfaceRequest surface={surface} from={requester} />
                   <SurfaceBrief surface={surface} />
                 </>
               ) : (

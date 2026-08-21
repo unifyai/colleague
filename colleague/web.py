@@ -59,6 +59,7 @@ QUESTIONS = {
     "concurrency": "Keep simultaneous workstreams and corrections separate.",
     "custody": "Disclose, withhold and verify authority from fact provenance.",
     "teaching": "Learn a procedure and preserve it through later amendments.",
+    "refinement": "Keep a recurring report exactly as its owner asked, week after week.",
     "membership": "Use team and channel provenance to control disclosure.",
     "recall": "Recall the current fact and reject the value it replaced.",
     "screenshare": "Reproduce demonstrated state on your own instance.",
@@ -81,7 +82,9 @@ def catalog() -> dict[str, Any]:
             scenarios.append(
                 {
                     "id": item["name"],
-                    "title": _title(item["name"]),
+                    # Scenario names can describe the trap they set; a
+                    # participant-facing title never should.
+                    "title": item.get("participant_title") or _title(item["name"]),
                     "description": item.get("participant_preview")
                     or (
                         f"A workplace scenario about how well you can "

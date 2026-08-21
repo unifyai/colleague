@@ -86,19 +86,31 @@ function buildField(field: SurfaceField, state: FieldState): Built {
   if (field.kind === "rows") {
     const rows = (state || []) as RowState[];
     if (!rows.length) return field.allow_empty ? { ok: true, value: [] } : { ok: false };
-    const value: Record<string, unknown>[] = [];
+    const value: unknown[] = [];
     for (const row of rows) {
+      const cells: unknown[] = [];
       const out: Record<string, unknown> = {};
       for (const column of field.columns || []) {
-        const built = buildScalar(column.kind, row[column.key] || "", false);
+        const built = buildCell(column, row[column.key] || "");
         if (!built.ok) return { ok: false };
+        cells.push(built.value);
         out[column.key] = built.value;
       }
-      value.push(out);
+      // A task contract that wants rows as lists in cell order gets exactly
+      // that; the default stays one object per row keyed by column.
+      value.push(field.as_lists ? cells : out);
     }
     return { ok: true, value };
   }
   return buildScalar(field.kind, String(state ?? ""), Boolean(field.allow_empty));
+}
+
+function buildCell(column: SurfaceField, raw: string): Built {
+  if (column.kind === "bool") {
+    if (raw !== "yes" && raw !== "no") return { ok: false };
+    return { ok: true, value: raw === "yes" };
+  }
+  return buildScalar(column.kind, raw, false);
 }
 
 function buildBody(action: SurfaceAction, state: GroupState): Built {
@@ -201,10 +213,10 @@ function FieldControl({ field, state, onChange }: { field: SurfaceField; state: 
         {rows.map((row, index) => (
           <div className="surface-row" key={index}>
             {columns.map((column) =>
-              column.kind === "choice" ? (
+              column.kind === "choice" || column.kind === "bool" ? (
                 <select key={column.key} value={row[column.key] || ""} onChange={(e) => update(index, column.key, e.target.value)} aria-label={column.label}>
                   <option value="">{column.label}…</option>
-                  {(column.options || []).map((option) => (
+                  {(column.kind === "bool" ? ["yes", "no"] : column.options || []).map((option) => (
                     <option key={option} value={option}>{option.replace(/_/g, " ")}</option>
                   ))}
                 </select>
@@ -345,15 +357,17 @@ export function SurfaceBrief({ surface }: { surface: Surface }) {
   );
 }
 
-export function SurfaceRequest({ surface }: { surface: Surface }) {
+export function SurfaceRequest({ surface, from }: { surface: Surface; from?: string }) {
   if (!surface.request) return null;
   return (
     <section className="task-brief" aria-labelledby="surface-request-heading">
       <div className="task-brief-meta">
         <span className="task-icon">→</span>
-        <span><strong id="surface-request-heading">Right now</strong></span>
+        <span><strong id="surface-request-heading">Right now</strong>{from && <small>From {from}</small>}</span>
       </div>
-      <p>{surface.request}</p>
+      {surface.request.split(/\n{2,}/).map((paragraph, index) => (
+        <p key={index}>{paragraph}</p>
+      ))}
     </section>
   );
 }

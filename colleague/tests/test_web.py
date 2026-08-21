@@ -191,3 +191,55 @@ def test_browser_run_reaches_the_existing_fixture_and_exact_scorer(
     assert result["scenarios"][0]["result"]["outcome"] == "pass"
     assert result["cost"]["human_hourly_rate_usd"] == REFERENCE_HOURLY_RATE_USD
     assert result["cost"]["participant_id"] == "browser@example.com"
+
+
+def test_refinement_turn_carries_the_surface_and_scores_an_exact_filing(
+    tmp_path,
+    monkeypatch,
+):
+    """The runner hands the scenario's surface to the human session, and the
+    command its filing form composes — typed week, column list, rows as lists
+    in cell order with a real boolean — satisfies the unchanged scorer."""
+    from colleague.tracks.refinement.fixture import (
+        DEFAULT_SEED,
+        expected_columns,
+        expected_rows,
+        expected_title,
+    )
+
+    monkeypatch.setattr("colleague.web.RESULTS_ROOT", tmp_path)
+    run = BrowserRun(
+        request={
+            "kind": "conversational",
+            "benchmark": "refinement",
+            "scenario": "week_2_columns",
+            "participantEmail": "browser@example.com",
+        },
+    )
+    run.start()
+    filing = json.dumps(
+        {
+            "week": 2,
+            "title": expected_title(2),
+            "columns": expected_columns(2),
+            "rows": expected_rows(DEFAULT_SEED, 2),
+        },
+    )
+    actions = iter([f"/post /report {filing}", "/done"])
+    deadline = time.monotonic() + 10
+    while run.status in {"queued", "running"} and time.monotonic() < deadline:
+        if run.awaiting_input:
+            run.submit(next(actions))
+        time.sleep(0.005)
+
+    assert run.status == "complete"
+    assert run.exit_code == 0
+    turn = next(e for e in run.events if e.get("type") == "turn")
+    surface = turn["surface"]
+    assert surface and surface["actions"][0]["path"] == "/report"
+    result = json.loads(Path(run.result_path).read_text())
+    scored = next(
+        s for s in result["scenarios"] if s["name"] == "week_2_columns"
+    )
+    assert scored["result"]["outcome"] == "pass"
+    assert scored["result"]["detail"]["checks"]["rows_exact"] is True

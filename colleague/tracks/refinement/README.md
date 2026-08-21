@@ -81,3 +81,21 @@ receives the brief, the feedback and the amendment; notes persist, and the
 unbriefed control gets a fresh workspace. Every week records active labour
 and cost beside the exact structural score — the human curve is the
 baseline the drip-fed amortisation claim is measured against.
+
+In the browser workbench each week carries a participant surface
+(`human.py`), because the report contract — a whole-number week, a column
+list, rows as lists in column order with string amounts and boolean flags —
+is a payload the workbench's generic form parser cannot compose. The
+surface adds mechanics without adding memory: the forms are byte-identical
+every week, the office-language request is a verbatim slice of the machine
+utterance, and nothing pinned states the title, the machine column names,
+the amount format or the flag rule — those stay in Daniel's messages, where
+keeping hold of them is the thing being measured. The row cells are
+labelled with what the expenses lookup itself shows; the participant still
+types the week, the title and the column names, makes the flag call per
+row, and does their own conversion in the amount cell — so every scored
+check remains theirs. The unbriefed control shares the surface: it gains
+the row shape a terminal participant would improvise and keeps measuring
+what it exists to measure, since the exact title and column names are typed
+or not at all. `test_refinement_surface_adds_mechanics_without_adding_memory`
+pins all of this.
