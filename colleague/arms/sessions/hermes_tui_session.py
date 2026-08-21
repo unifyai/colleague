@@ -198,14 +198,44 @@ class HermesTuiSession(CliSession):
                 f"gateway.ready never arrived within {_READY_TIMEOUT_S}s "
                 f"(see {self.log_path})",
             )
-        created = self._rpc(
-            "session.create",
-            {"cols": 120, "cwd": str(self.workdir)},
-        )
-        self._session_id = str(created.get("session_id") or "")
-        self._stored_session_id = str(created.get("stored_session_id") or "")
-        if not self._session_id:
-            raise GatewayError(f"session.create returned no session_id: {created}")
+        # A home that already holds a session marker is a rebooted world
+        # (the runner's `sleep`): the gateway process died, the SQLite rows
+        # under this home did not. Resuming them is exactly what the
+        # production TUI does when a user reopens yesterday's session, so a
+        # reboot continues the same conversation rather than starting an
+        # amnesiac one. A failed resume falls through to create — the
+        # protocol log shows the attempt.
+        stored = ""
+        marker = self.home / "stored_session_id"
+        if marker.exists():
+            stored = marker.read_text(encoding="utf-8").strip()
+        if stored:
+            try:
+                resumed = self._rpc(
+                    "session.resume",
+                    {"session_id": stored, "cols": 120},
+                )
+                self._session_id = str(resumed.get("session_id") or "")
+                self._stored_session_id = str(
+                    resumed.get("session_key") or stored,
+                )
+            except GatewayError as exc:
+                self._prompt_events.append(
+                    {"kind": "resume_error", "target": stored, "error": str(exc)},
+                )
+                stored = ""
+        if not stored or not self._session_id:
+            created = self._rpc(
+                "session.create",
+                {"cols": 120, "cwd": str(self.workdir)},
+            )
+            self._session_id = str(created.get("session_id") or "")
+            self._stored_session_id = str(created.get("stored_session_id") or "")
+            if not self._session_id:
+                raise GatewayError(
+                    f"session.create returned no session_id: {created}",
+                )
+        self._persist_session_marker()
 
     def close(self) -> None:
         proc = self._proc
@@ -312,6 +342,16 @@ class HermesTuiSession(CliSession):
         record["mode"] = "none"
         return record
 
+    def _persist_session_marker(self) -> None:
+        """The stored session key must survive the process: a runner-driven
+        reboot (`sleep`) builds a fresh adapter over the same home, and the
+        marker is how it finds the conversation the SQLite rows continue."""
+        if self._stored_session_id:
+            (self.home / "stored_session_id").write_text(
+                self._stored_session_id,
+                encoding="utf-8",
+            )
+
     def resume(self, text: str, *, sender: str | None = None) -> Reply:
         """Continue the stored session through the gateway's own resume."""
         target = self._stored_session_id
@@ -323,6 +363,7 @@ class HermesTuiSession(CliSession):
                 )
                 self._session_id = str(resumed.get("session_id") or self._session_id)
                 self._stored_session_id = str(resumed.get("session_key") or target)
+                self._persist_session_marker()
             except GatewayError as exc:
                 # A failed resume falls through to a turn on the live session
                 # — the protocol log shows the attempt and the failure.

@@ -20,6 +20,18 @@ fixture eventually turns hostile to shortcuts.
 | `week_6_amendment` | One column renamed in one sentence (`amount_eur` → `amount`). The flags, the conversion, the order and the title are not mentioned and must not move — week 6's rows replay both traps, so the amendment week is a regression test for every earlier rule at once. |
 | `unbriefed_control` | No brief, ever, in a session that never saw one. Establishes what the API alone yields. |
 
+## The weeks sleep between requests
+
+Requests that arrive weeks apart never find a warm process — the CM
+retires its pod after ten idle minutes, gateways exit, laptops close.
+Weeks 2–6 therefore declare `sleep`: between weeks the runner kills the
+arm's process and boots a fresh one over the same durable world. The disk
+survives (the CM's context tree, hermes's SQLite session rows, OpenClaw's
+state dir, prime-agent's session files — each resumed through the
+product's own reopen-yesterday's-chat path); process memory does not. An
+arm that leaned on a warm in-context trajectory instead of its durable
+stores loses exactly what it would lose in production.
+
 ## What the trap weeks measure
 
 The suite already measured drip-fed retention (`teaching`) and exact

@@ -803,3 +803,22 @@ must never supply the move the check measures. Her beat intent now says
 the alternative is the caller's to offer, and her knowledge says she has
 no reason to guess it — she can only search a name she is given. Ground
 truth and the scorer are unchanged.
+
+**`[gap]` refinement — the weeks slept between requests.** The track's
+six weeks ran inside one warm process: the shared session held an open
+in-process CM (and, before the person-shaping, an open act run) from
+week 1 to week 6, so a trajectory that happened to stay in RAM could
+stand in for the durable retention the track measures. No deployment
+works that way — the CM retires its pod after ten idle minutes
+(conversation_manager.py, `inactivity_timeout = 600`), and requests
+weeks apart always land on a cold boot over durable state. Weeks 2–6
+now declare `sleep`: the runner kills the session's process between
+weeks and boots a fresh one over the same durable world — the run keeps
+its id so the CM's context tree reattaches, and the run root keeps its
+results_dir so each arm's own on-disk continuity (hermes's SQLite
+session rows via the gateway's `session.resume`, OpenClaw's state dir,
+prime-agent's session files via `--continue`) resumes exactly as it
+would for a user reopening yesterday's chat. Ground truth and the
+scorers are unchanged; what changed is that surviving the gap now
+requires durable memory, which is what the weeks were always meant to
+mean.

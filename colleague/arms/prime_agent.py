@@ -295,6 +295,13 @@ class PrimeAgentRpc:
             str(self._daemon_socket),
             "--offline",
         ]
+        # A session dir that already holds session files is a rebooted world
+        # (the runner's `sleep`): the daemon died, its session .jsonl did
+        # not. `--continue` reopens the most recent one — the same move a
+        # user makes with `pi -c` after closing the terminal — so the new
+        # process carries yesterday's conversation instead of starting cold.
+        if any(self.session_dir.rglob("*.jsonl")):
+            cmd.append("--continue")
         if not self.load_resources:
             cmd += [
                 "--no-extensions",

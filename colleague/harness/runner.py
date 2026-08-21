@@ -160,6 +160,7 @@ def run_track(
     }
 
     shared_session: ArmSession | None = None
+    world_rebooted = False
     if session_scope == "track":
         shared_session = _session_for(
             arm,
@@ -226,12 +227,43 @@ def run_track(
             # its prompt has nothing. A restart scenario belongs after the
             # turns it must remember, and nothing may use the shared
             # session once the restart has booted over it.
-            own_session = bool(live.get("fresh_session") or live.get("restart"))
+            #
+            # `sleep` is the shape between them: the idle shutdown every
+            # real deployment performs between requests that arrive days
+            # apart (the CM retires its pod after ten idle minutes;
+            # a laptop closes; a gateway process exits). The process dies,
+            # the DISK survives: unlike `restart`, a sleep session keeps
+            # the run root's results_dir, so an arm's own on-disk
+            # continuity — hermes's SQLite session rows, OpenClaw's state
+            # dir, prime-agent's session files, the CM's context tree —
+            # reattaches exactly as it would for a user reopening
+            # yesterday's chat. What does NOT survive is process memory:
+            # an open act run, a warm transcript in RAM, a trajectory the
+            # model was leaning on instead of its durable stores.
+            wants_reboot = bool(live.get("restart") or live.get("sleep"))
+            if wants_reboot and shared_session is not None:
+                # Two live sessions over one world corrupt each other (two
+                # CMs share context roots; two gateways race one state
+                # dir), so the shared session dies before the reboot boots.
+                results["artifacts"] = shared_session.artifacts()
+                shared_session.close()
+                shared_session = None
+            if wants_reboot:
+                world_rebooted = True
+            elif world_rebooted and not live.get("fresh_session"):
+                raise RuntimeError(
+                    f"scenario {name!r} would reuse the shared session, but "
+                    "an earlier sleep/restart scenario already booted over "
+                    "its world — every scenario after the first sleep or "
+                    "restart must itself declare sleep, restart, or "
+                    "fresh_session",
+                )
+            own_session = bool(live.get("fresh_session") or wants_reboot)
             session = (None if own_session else shared_session) or _session_for(
                 arm,
                 track=track,
-                run_id=run_id if live.get("restart") else f"{run_id}-{name}",
-                results_dir=results_dir / name,
+                run_id=run_id if wants_reboot else f"{run_id}-{name}",
+                results_dir=results_dir if live.get("sleep") else results_dir / name,
                 timeout_s=timeout_s,
                 mode=mode,
                 transport=transport,

@@ -114,6 +114,15 @@ def _norm(text: Any) -> str:
 
 
 def scenarios(base_url: str) -> list[dict[str, Any]]:
+    # Weeks arrive weeks apart, and no deployed system stays warm across
+    # that gap: the CM retires its pod after ten idle minutes, a gateway
+    # process exits, a laptop closes. Every week after the first therefore
+    # declares `sleep` — the runner kills the process and boots a fresh one
+    # over the same durable world (same stores, same on-disk session rows),
+    # so what an arm carries between weeks is exactly what it durably
+    # persisted, never a trajectory that happened to stay warm in RAM.
+    # Without this, one open in-process session across six "weeks" let
+    # in-context memory stand in for the retention the track measures.
     api = API_DOC.format(base_url=base_url)
     roster = Transcript(participants=[DANIEL]).roster()
     return [
@@ -144,6 +153,7 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
             "request": COLUMNS_FEEDBACK,
             "surface": surface_for(COLUMNS_FEEDBACK),
             "continue": True,
+            "sleep": True,
             "sender": "daniel",
             "note": (
                 "The format feedback on the first draft: exact title, "
@@ -160,6 +170,7 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
             "request": _file_week(3),
             "surface": surface_for(_file_week(3)),
             "continue": True,
+            "sleep": True,
             "sender": "daniel",
             "note": (
                 "Nothing restated — not the columns, not the title, not "
@@ -175,6 +186,7 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
             "request": _file_week(4),
             "surface": surface_for(_file_week(4)),
             "continue": True,
+            "sleep": True,
             "sender": "daniel",
             "note": (
                 "The personal items stop sharing tokens with the earlier "
@@ -191,6 +203,7 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
             "request": _file_week(5),
             "surface": surface_for(_file_week(5)),
             "continue": True,
+            "sleep": True,
             "sender": "daniel",
             "note": (
                 "The dormant rule fires: the first foreign-currency rows. "
@@ -207,6 +220,7 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
             "request": AMENDMENT,
             "surface": surface_for(AMENDMENT),
             "continue": True,
+            "sleep": True,
             "sender": "daniel",
             "note": (
                 "One column renamed in one sentence. The flags, the "
