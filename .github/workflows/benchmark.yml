@@ -382,6 +382,7 @@ jobs:
         name: shard-${{ matrix.artifact }}
         path: colleague/tracks/${{ matrix.track }}/results/**/results.json
         if-no-files-found: warn
+        retention-days: 30
 
     # A run-step crash must not read as a green shard: continue-on-error lets
     # the upload happen, and this step then fails the job the way the
@@ -390,7 +391,6 @@ jobs:
     - name: Surface a failed run
       if: steps.run_shard.outcome == 'failure'
       run: exit 1
-        retention-days: 30
 
   aggregate:
     needs: [plan, run]
