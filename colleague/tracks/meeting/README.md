@@ -119,6 +119,58 @@ verdict):
 | `answered_in_time` | FAIL | got the answer out but spoke before being addressed and in several lines; the 8-second patience is exactly what the defer shape cannot make |
 | `two_assistants` | UNSUPPORTED | the bridge fields one CM instance per call, by design — the floor protocol goes unmeasured rather than falsely kept |
 
+**`hermes-voice`, local, live roles, `--transport voice`, first full-track
+pass** (2026-08-20, n = 1 — a shape, not a verdict). hermes joins a **Discord
+voice channel** the harness serves on loopback (a Discord-protocol server the
+real `hermes gateway` connects to): the personas are separate Discord users,
+each on its own SSRC, and hermes attributes them by voice op-5, transcribes
+with its local Whisper, and speaks Opus back. Its words are its own, tapped at
+its TTS input.
+
+| Scene | Result | Reading |
+|---|---|---|
+| `addressed_by_name` | PASS | one line, "Thursday, at two P. M. UTC", silent until addressed and in time — where the CM's whole-turn latency ran DEGRADED, hermes answered at chat speed |
+| `humans_talking` | FAIL | given five lines nobody aimed at it, it joined in — asked the humans questions and summarised them back; the recurring shape across every arm |
+| `commanded_work` | DEGRADED | the Monday schedule correct (weekly, Monday, to Priya) and Bob answered, but after the room had moved on |
+| `interrupted_mid_answer` | PASS | dropped the abandoned budget and answered the deploy window, over audio |
+| `answered_in_time` | FAIL | the answer was there ("Thursday at 14:00 UTC — that's 3 PM British Summer") but it spoke before being addressed and in several lines; the 8-second patience is what the over-talk cannot make |
+| `two_assistants` | UNSUPPORTED | one Discord bot per call, by design |
+
+The recurring loss is the mechanism under test — whether to speak now among
+several humans, for which hermes has no arbiter, so it engages with cross-talk
+(in one run it TTS-spoke its own stage directions aloud, "Hermes stays quiet
+to let Priya answer"). Scored on the arm's own utterance text; "two P. M." is
+`14:00` said aloud (a TTS text-normalizer spells the p.m. form out with
+periods), declared beside the fixture's ground truth.
+
+**`openclaw-voice`, local, live roles, `--transport voice`, first full-track
+pass** (2026-08-20, n = 1 — a shape, not a verdict). OpenClaw fields an
+**inbound phone call** the harness plays the carrier for (a Twilio-shaped
+webhook and media stream on loopback): its own Deepgram STT hears the call,
+each caller turn drives a full agent turn pinned to the bench model, and it
+speaks its own TTS back down the µ-law stream. Its words are its own, tapped
+at its TTS input.
+
+| Scene | Result | Reading |
+|---|---|---|
+| `addressed_by_name` | FAIL | answered correctly ("Thursday at two p.m. UTC, which is three p.m. London") but over-talked the venue chat first and in several lines. An isolated repeat ran DEGRADED — right answer, late, silent until addressed — so read it as a distribution |
+| `humans_talking` | FAIL | joined the humans' cross-talk, the same shape as every other arm |
+| `commanded_work` | FAIL | answered Bob and stayed silent until addressed, but never created the Monday schedule — on a call it did not reach for the `/schedule` reference API |
+| `interrupted_mid_answer` | PASS | one line, dropped the abandoned budget, gave the deploy window |
+| `answered_in_time` | FAIL | the answer was there ("Thursday at 2 p.m. UTC") but not in one line and not silent first |
+| `two_assistants` | UNSUPPORTED | one call, one assistant per bridge |
+
+The standing signature is whole-turn latency: an inbound voice response is a
+full embedded agent turn (tens of seconds), so the harness holds the call open
+a drain after the scene to capture the arm's audio rather than score a
+correct-but-late answer as silence — even so it answers late and over-talks.
+It renders `14:00` as "2 p.m. UTC / 3 p.m. London", both spoken, so the UTC
+form is what the scorer reads.
+
+Both voice passes carry `transport: voice` and are never merged with a text
+cell; `results/` holds the runs (a CI artifact, gitignored — these tables are
+the committed record).
+
 **`openclaw-gateway`, local, live roles, `--repeat 3`:**
 
 | Scene | Spread | Reading |
@@ -161,16 +213,32 @@ yet wired in the adapter, so the arm reasons about the room from the words
 rather than from structure. Wire `group_id` before reading a unify result
 here as the product's room behaviour.
 
-## Voice — the next transport
+## Voice — the transport, per substrate
 
-The scenes do not change. Needed, per arm: a room the arm can join as a
-participant with its own identity (LiveKit for `unify_meet`; hermes's
-Discord voice or Meet bot; OpenClaw's Talk session or Meet extension — never
-a harness-supplied audio path, which is the capability under test); persona
-voices as separate audio tracks so speaker attribution is a real problem;
-utterance start/end per participant from the transport, so in-time and
-overlap are timestamps; and the assistant's utterance text from the arm
-where it speaks from text, otherwise a declared transcription model.
+The scenes do not change; the transport does, and each capable arm now runs
+over the room its product actually ships:
+
+- **`unify-cm`** — LiveKit, because `unify_meet` *is* a LiveKit room and its
+  fast brain already speaks it (`arms/sessions/unify_cm_voice.py`).
+- **`hermes-voice`** — a **Discord voice channel** the harness serves on
+  loopback (`harness/voice/discord_room.py`): a Discord-protocol server (REST,
+  gateway WS, voice WS, UDP media, faithful to discord.py 2.7.1) the real
+  `hermes gateway` connects to. Nothing in hermes is patched; a `sitecustomize`
+  shim repoints its REST base and gateway URL and rewrites the one wss://-only
+  path to ws:// on loopback.
+- **`openclaw-voice`** — an **inbound phone call** the harness plays the
+  carrier for (`harness/voice/phone_room.py`): a Twilio-shaped webhook and
+  media stream on loopback into OpenClaw's voice-call extension, G.711 µ-law
+  both ways, no provider account.
+
+The invariants hold across all three (the contract is `harness/voice/README.md`
+§"Why LiveKit…"): the arm joins its own substrate's room with its own identity;
+the harness owns the persona voices (separate speakers, so attribution is a
+real problem) and the capture; the assistant's words are the arm's own, taken
+where it speaks from text — for every arm, the exact string it fed its TTS,
+never a harness-supplied audio path (the capability under test). A non-LiveKit
+substrate implements only how audio moves, over the shared
+`harness/voice/substrate.py`.
 
 What not to measure here: barge-in latency in milliseconds, disfluency,
 prosody. The purpose-built rigs measure those better and would invite the
