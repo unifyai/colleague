@@ -85,9 +85,10 @@ null, not zero — 34 calls carried no provider price, and the void-cost
 rule refuses to sum a partial column) — correctness converged and cost did
 not, the same rising-trajectory shape the four-arm
 cloud run of 2026-08-21 showed for the retired bare-actor arm against
-prime-agent's ~106k. The conversational path does not yet distil a
-recurring report into a stored function; when it does, this curve is where
-it will show.
+prime-agent's ~106k. The conversational path does not yet bring stored
+work back into later weeks — each round re-derives the procedure with the
+previous trajectory in context — and whenever reuse lands in the product,
+this curve is where it will show.
 
 Run `python -m colleague.run refinement --arm human`. The same participant
 receives the brief, the feedback and the amendment; notes persist, and the

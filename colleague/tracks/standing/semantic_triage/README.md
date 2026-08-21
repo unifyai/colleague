@@ -54,6 +54,29 @@ magnitude) and per-fire classification accuracy.
 > (see `SCENARIO_CHANGES.md`, 2026-08-21). Person-shaped reruns replace
 > this table as they land in `results/`.
 
+## Person-shaped rerun (2026-08-21, unify-cm, gpt-5.6-sol@openrouter)
+
+From [`results/2026-08-21T21-36-07Z-unify-cm`](results/2026-08-21T21-36-07Z-unify-cm/),
+unify staging `34c62f2c2` (verification master switch off by default —
+stored functions run untrusted): the brief was one owner message through
+the ConversationManager; the system bound **one recurring task** to the
+clock, unprompted and without a clarifying question, and every fire was
+the CM's own due-task path.
+
+**16/16 — 8 of 8 fires correct, 100% accuracy on all 96 inquiries.** The
+cliff, now measured instead of pre-decided: an entrypoint was attached by
+setup's own storage review, and per-fire tokens fell
+**1.13M → 196k → 27k → ~28–31k steady** (the tail is the twelve scoped
+`query_llm` judgment calls plus the CM's own per-fire reaction — the
+conversation layer's overhead is now part of the fire, because in
+production it *is* part of the fire). Setup cost 811k prompt tokens over
+31 calls. The provider-USD column is null, not zero: some calls carried no
+provider price and the void-cost rule refuses a partial sum. Against the
+old-regime row below, the steady state moved from ~645 tokens (a bare
+`TaskScheduler.execute` with nothing listening) to ~29k (the same stored
+function, plus the CM hearing about and reacting to each completed run) —
+that difference is the door, and the door is what a customer has.
+
 ## Measured results (2026-07-31, gpt-5.6-sol@openrouter)
 
 ![semantic triage](results/semantic_triage.svg)

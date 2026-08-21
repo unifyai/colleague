@@ -1,0 +1,1663 @@
+{
+  "experiment": "semantic_triage",
+  "variant": null,
+  "system": "unify-cm",
+  "regime": "person",
+  "run_id": "2026-08-21T21-36-07Z-unify-cm",
+  "seed": 20260731,
+  "n_fires": 8,
+  "operator_fix_after_failures": null,
+  "operator_fix_message": "The recurring automation you set up has not been delivering correctly on its recent runs. Please investigate and fix it so it resumes working unattended, including catching up on anything it missed. Do not ask for confirmation.",
+  "utterance": "Please set up an hourly recurring automation that triages new customer inquiries from the local support API at http://127.0.0.1:8128.\n\nHow it works: GET http://127.0.0.1:8128/batches/last returns {\"last_seq\": N} \u2014 the highest inquiry seq already triaged (0 if none yet). GET http://127.0.0.1:8128/inquiries?after=N returns the next inquiries with seq > N (up to 200), each with fields: seq (int) and text (str).\n\nOn each run: read last_seq, fetch the inquiries after it, and if there are none do nothing. Otherwise classify each inquiry into exactly one category based on what the customer needs: \"refund\" (they want money back for something they were charged), \"bug\" (something in the product is broken or not working correctly), \"sales\" (they want to buy, upgrade, get a quote, or discuss pricing), or \"other\" (anything else). Classification must be based on understanding the request, not on keyword matching \u2014 inquiries are worded in many different ways.\n\nPOST the result to http://127.0.0.1:8128/batches as a JSON object with exactly these keys: batch_start_seq (int), batch_end_seq (int), and classifications \u2014 a list of {\"seq\": int, \"category\": str} covering every fetched inquiry exactly once.\n\nSet up the recurring hourly automation now. Do not triage anything right now, and do not ask for confirmation.",
+  "context": "colleague/standing/semantic_triage/2026-08-21T21-36-07Z-unify-cm/default/0",
+  "project": "Benchmarks",
+  "items_per_fire": 12,
+  "messages": [],
+  "fires": [
+    {
+      "fire": 1,
+      "label": "fire_1",
+      "events": [],
+      "fired": [
+        {
+          "task_id": 0,
+          "name": "Hourly support inquiry classifier (local API)",
+          "entrypoint": null,
+          "handle_id": 1
+        }
+      ],
+      "settled": true,
+      "pending_range": [
+        1,
+        12
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 1,
+          "batch_end_seq": 12,
+          "classifications": [
+            {
+              "seq": 1,
+              "category": "sales"
+            },
+            {
+              "seq": 2,
+              "category": "refund"
+            },
+            {
+              "seq": 3,
+              "category": "other"
+            },
+            {
+              "seq": 4,
+              "category": "sales"
+            },
+            {
+              "seq": 5,
+              "category": "other"
+            },
+            {
+              "seq": 6,
+              "category": "bug"
+            },
+            {
+              "seq": 7,
+              "category": "other"
+            },
+            {
+              "seq": 8,
+              "category": "other"
+            },
+            {
+              "seq": 9,
+              "category": "bug"
+            },
+            {
+              "seq": 10,
+              "category": "sales"
+            },
+            {
+              "seq": 11,
+              "category": "refund"
+            },
+            {
+              "seq": 12,
+              "category": "refund"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "outcome": "correct",
+      "score": 2,
+      "held": false,
+      "owner_messages": [],
+      "entrypoints": {
+        "0": 2
+      },
+      "functions": {
+        "run_hourly_support_inquiry_classifier": {
+          "function_id": 2,
+          "implementation": "async def run_hourly_support_inquiry_classifier() -> dict[str, object]:\n    \"\"\"Return a run summary for either a no-work skip with no POST or one successfully posted support batch.\n\n    The fixed executor reads the cursor afresh, performs the two permitted GETs\n    in order, validates all external data, delegates semantic judgment to\n    ``classify_support_inquiries_semantically``, validates complete coverage\n    again, and crosses the POST boundary exactly once only for non-empty input.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:8128\"\n\n    def get_json(url: str) -> object:\n        request = urllib.request.Request(url, method=\"GET\")\n        with urllib.request.urlopen(request, timeout=30) as response:\n            if response.status != 200:\n                raise RuntimeError(f\"GET failed with HTTP {response.status}\")\n            return json.loads(response.read().decode(\"utf-8\"))\n\n    try:\n        log.info(\"PHASE fresh_cursor_read\")\n        cursor = get_json(base + \"/batches/last\")\n        if not isinstance(cursor, dict) or set(cursor) != {\"last_seq\"}:\n            raise ValueError(\"cursor response must be exactly an object containing last_seq\")\n        last_seq = cursor[\"last_seq\"]\n        if type(last_seq) is not int:\n            raise ValueError(\"last_seq must be an integer\")\n\n        log.info(\"PHASE inquiry_read after=%d\", last_seq)\n        raw = get_json(base + \"/inquiries?after=\" + str(last_seq))\n        if not isinstance(raw, list) or len(raw) > 200:\n            raise ValueError(\"inquiries response must be a list of at most 200 items\")\n\n        inquiries: list[dict[str, object]] = []\n        fetched_seqs: list[int] = []\n        for index, item in enumerate(raw):\n            if not isinstance(item, dict) or \"seq\" not in item or \"text\" not in item:\n                raise ValueError(f\"inquiry {index} must contain seq and text\")\n            seq = item[\"seq\"]\n            text = item[\"text\"]\n            if type(seq) is not int or not isinstance(text, str):\n                raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n            inquiries.append({\"seq\": seq, \"text\": text})\n            fetched_seqs.append(seq)\n        if len(set(fetched_seqs)) != len(fetched_seqs):\n            raise ValueError(\"fetched inquiry seq values must be unique\")\n\n        if not inquiries:\n            log.info(\"SKIP no_inquiries\")\n            return {\"outcome\": \"skipped\", \"reason\": \"no inquiries\", \"last_seq\": last_seq, \"posted\": False}\n\n        classifications = await classify_support_inquiries_semantically(inquiries)\n        log.info(\"PHASE deterministic_prepost_validation\")\n        allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n        output_seqs: list[int] = []\n        for index, row in enumerate(classifications):\n            if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n                raise ValueError(f\"classification {index} must contain exactly seq and category\")\n            if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n                raise ValueError(f\"classification {index} has invalid seq or category\")\n            output_seqs.append(row[\"seq\"])\n        if len(classifications) != len(inquiries):\n            raise ValueError(\"classification count does not match inquiry count\")\n        if len(set(output_seqs)) != len(output_seqs) or set(output_seqs) != set(fetched_seqs):\n            raise ValueError(\"classification coverage has duplicate, missing, or extra seq values\")\n\n        by_seq = {row[\"seq\"]: row[\"category\"] for row in classifications}\n        ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in inquiries]\n        payload: dict[str, object] = {\n            \"batch_start_seq\": min(fetched_seqs),\n            \"batch_end_seq\": max(fetched_seqs),\n            \"classifications\": ordered,\n        }\n        post_result = post_support_classification_batch(payload)\n        result: dict[str, object] = {\n            \"outcome\": \"posted\",\n            \"last_seq\": last_seq,\n            \"batch_start_seq\": payload[\"batch_start_seq\"],\n            \"batch_end_seq\": payload[\"batch_end_seq\"],\n            \"count\": len(ordered),\n            \"http_status\": post_result[\"http_status\"],\n            \"posted\": True,\n        }\n        log.info(\"PHASE run_complete posted=1 count=%d\", len(ordered))\n        return result\n    except Exception as exc:\n        log.error(\"SOFT_FAIL run_failed type=%s detail=%s\", type(exc).__name__, str(exc))\n        raise\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "post_support_classification_batch": {
+          "function_id": 1,
+          "implementation": "def post_support_classification_batch(payload: dict[str, object]) -> dict[str, object]:\n    \"\"\"Return the HTTP success status after posting exactly one validated support-classification batch.\n\n    This is the deliberately thin irreversible-effect boundary. It performs no\n    reads, retries, classification, or recovery POSTs and always targets the\n    fixed local support API endpoint.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    expected_top = {\"batch_start_seq\", \"batch_end_seq\", \"classifications\"}\n    if not isinstance(payload, dict) or set(payload) != expected_top:\n        raise ValueError(\"payload must contain exactly batch_start_seq, batch_end_seq, and classifications\")\n    start = payload[\"batch_start_seq\"]\n    end = payload[\"batch_end_seq\"]\n    rows = payload[\"classifications\"]\n    if type(start) is not int or type(end) is not int or start > end:\n        raise ValueError(\"batch sequence bounds must be ordered integers\")\n    if not isinstance(rows, list) or not rows:\n        raise ValueError(\"classifications must be a non-empty list\")\n    allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n    seqs: list[int] = []\n    for index, row in enumerate(rows):\n        if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n            raise ValueError(f\"classification {index} must contain exactly seq and category\")\n        if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n            raise ValueError(f\"classification {index} has invalid seq or category\")\n        seqs.append(row[\"seq\"])\n    if len(set(seqs)) != len(seqs) or min(seqs) != start or max(seqs) != end:\n        raise ValueError(\"classification seq values must be unique and match the batch bounds\")\n\n    body = json.dumps(payload, separators=(\",\", \":\")).encode(\"utf-8\")\n    request = urllib.request.Request(\n        \"http://127.0.0.1:8128/batches\",\n        data=body,\n        headers={\"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    log.info(\"PHASE post_batch start=%d end=%d count=%d\", start, end, len(rows))\n    with urllib.request.urlopen(request, timeout=30) as response:\n        response.read()\n        status = response.status\n    if not 200 <= status < 300:\n        raise RuntimeError(f\"POST failed with HTTP {status}\")\n    log.info(\"PHASE post_complete status=%d\", status)\n    return {\"http_status\": status, \"posted\": True}\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "classify_support_inquiries_semantically": {
+          "function_id": 0,
+          "implementation": "async def classify_support_inquiries_semantically(inquiries: list[dict[str, object]]) -> list[dict[str, object]]:\n    \"\"\"Return exactly one validated refund/bug/sales/other classification for every input inquiry seq.\n\n    The category policy is baked in from the hourly support classifier task. The\n    semantic joint remains a strict structured LLM call; keyword and regex\n    approximations are intentionally forbidden. The explicit\n    ``openrouter/openai/gpt-5.6-sol`` model is the model validated by the\n    successful trajectory; no cheaper candidate was evidenced in that run.\n    \"\"\"\n    import json\n    import logging\n    from typing import Literal\n    from pydantic import BaseModel, ConfigDict\n\n    log = logging.getLogger(__name__)\n    log.info(\"PHASE validate_inquiries count=%s\", len(inquiries) if isinstance(inquiries, list) else \"invalid\")\n    if not isinstance(inquiries, list) or not 1 <= len(inquiries) <= 200:\n        raise ValueError(\"inquiries must be a non-empty list of at most 200 items\")\n\n    normalized: list[dict[str, object]] = []\n    seen: set[int] = set()\n    for index, item in enumerate(inquiries):\n        if not isinstance(item, dict) or set(item) != {\"seq\", \"text\"}:\n            raise ValueError(f\"inquiry {index} must contain exactly seq and text\")\n        seq = item[\"seq\"]\n        text = item[\"text\"]\n        if type(seq) is not int or not isinstance(text, str):\n            raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n        if seq in seen:\n            raise ValueError(\"inquiry seq values must be unique\")\n        seen.add(seq)\n        normalized.append({\"seq\": seq, \"text\": text})\n\n    class Classification(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        seq: int\n        category: Literal[\"refund\", \"bug\", \"sales\", \"other\"]\n\n    class Judgment(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        classifications: list[Classification]\n\n    Judgment.model_rebuild()\n    prompt = (\n        \"Classify every support inquiry using semantic understanding of the full customer request. \"\n        \"Judge actual intent, never keyword matching, keyword ladders, or regex heuristics. \"\n        \"Return exactly one classification for each supplied seq and no others. \"\n        \"The only categories are: refund = wants money back for a charge; \"\n        \"bug = product malfunction/not working; sales = wants to buy, upgrade, obtain a quote/pricing, \"\n        \"or discuss buying; other = anything else.\\n\\nInquiries JSON:\\n\"\n        + json.dumps(normalized, ensure_ascii=False, separators=(\",\", \":\"))\n    )\n    log.info(\"PHASE semantic_classification count=%d\", len(normalized))\n    judgment = await query_llm(\n        prompt,\n        response_format=Judgment,\n        temperature=0.0,\n        model=\"openrouter/openai/gpt-5.6-sol\",\n    )\n    if not isinstance(judgment, Judgment):\n        judgment = Judgment.model_validate(judgment)\n\n    result = [row.model_dump() for row in judgment.classifications]\n    result_seqs = [row[\"seq\"] for row in result]\n    if len(result) != len(normalized):\n        raise ValueError(\"classification count does not match inquiry count\")\n    if len(set(result_seqs)) != len(result_seqs) or set(result_seqs) != seen:\n        raise ValueError(\"classifications have duplicate, missing, or extra seq values\")\n    if any(set(row) != {\"seq\", \"category\"} for row in result):\n        raise ValueError(\"classification objects must contain exactly seq and category\")\n\n    by_seq = {row[\"seq\"]: row[\"category\"] for row in result}\n    ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in normalized]\n    log.info(\"PHASE classification_validated count=%d\", len(ordered))\n    return ordered\n",
+          "verify": false,
+          "side_effect_class": "read_only"
+        }
+      },
+      "tokens": {
+        "planning": {
+          "prompt": 1118735,
+          "completion": 10942,
+          "calls": 31
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 1129677,
+        "phases": [
+          "fire_1"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 441.6,
+        "provider_cost_usd": null,
+        "provider_cost_missing_calls": 7,
+        "llm_calls": 31,
+        "prompt_tokens": 1118735,
+        "completion_tokens": 10942,
+        "total_tokens": 1129677,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_1"
+        ]
+      }
+    },
+    {
+      "fire": 2,
+      "label": "fire_2",
+      "events": [],
+      "fired": [
+        {
+          "task_id": 0,
+          "name": "Hourly support inquiry classifier (local API)",
+          "entrypoint": 2,
+          "handle_id": 2
+        }
+      ],
+      "settled": true,
+      "pending_range": [
+        13,
+        24
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 13,
+          "batch_end_seq": 24,
+          "classifications": [
+            {
+              "seq": 13,
+              "category": "sales"
+            },
+            {
+              "seq": 14,
+              "category": "sales"
+            },
+            {
+              "seq": 15,
+              "category": "other"
+            },
+            {
+              "seq": 16,
+              "category": "sales"
+            },
+            {
+              "seq": 17,
+              "category": "bug"
+            },
+            {
+              "seq": 18,
+              "category": "bug"
+            },
+            {
+              "seq": 19,
+              "category": "other"
+            },
+            {
+              "seq": 20,
+              "category": "sales"
+            },
+            {
+              "seq": 21,
+              "category": "sales"
+            },
+            {
+              "seq": 22,
+              "category": "bug"
+            },
+            {
+              "seq": 23,
+              "category": "bug"
+            },
+            {
+              "seq": 24,
+              "category": "refund"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "outcome": "correct",
+      "score": 2,
+      "held": false,
+      "owner_messages": [],
+      "entrypoints": {
+        "0": 2
+      },
+      "functions": {
+        "run_hourly_support_inquiry_classifier": {
+          "function_id": 2,
+          "implementation": "async def run_hourly_support_inquiry_classifier() -> dict[str, object]:\n    \"\"\"Return a run summary for either a no-work skip with no POST or one successfully posted support batch.\n\n    The fixed executor reads the cursor afresh, performs the two permitted GETs\n    in order, validates all external data, delegates semantic judgment to\n    ``classify_support_inquiries_semantically``, validates complete coverage\n    again, and crosses the POST boundary exactly once only for non-empty input.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:8128\"\n\n    def get_json(url: str) -> object:\n        request = urllib.request.Request(url, method=\"GET\")\n        with urllib.request.urlopen(request, timeout=30) as response:\n            if response.status != 200:\n                raise RuntimeError(f\"GET failed with HTTP {response.status}\")\n            return json.loads(response.read().decode(\"utf-8\"))\n\n    try:\n        log.info(\"PHASE fresh_cursor_read\")\n        cursor = get_json(base + \"/batches/last\")\n        if not isinstance(cursor, dict) or set(cursor) != {\"last_seq\"}:\n            raise ValueError(\"cursor response must be exactly an object containing last_seq\")\n        last_seq = cursor[\"last_seq\"]\n        if type(last_seq) is not int:\n            raise ValueError(\"last_seq must be an integer\")\n\n        log.info(\"PHASE inquiry_read after=%d\", last_seq)\n        raw = get_json(base + \"/inquiries?after=\" + str(last_seq))\n        if not isinstance(raw, list) or len(raw) > 200:\n            raise ValueError(\"inquiries response must be a list of at most 200 items\")\n\n        inquiries: list[dict[str, object]] = []\n        fetched_seqs: list[int] = []\n        for index, item in enumerate(raw):\n            if not isinstance(item, dict) or \"seq\" not in item or \"text\" not in item:\n                raise ValueError(f\"inquiry {index} must contain seq and text\")\n            seq = item[\"seq\"]\n            text = item[\"text\"]\n            if type(seq) is not int or not isinstance(text, str):\n                raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n            inquiries.append({\"seq\": seq, \"text\": text})\n            fetched_seqs.append(seq)\n        if len(set(fetched_seqs)) != len(fetched_seqs):\n            raise ValueError(\"fetched inquiry seq values must be unique\")\n\n        if not inquiries:\n            log.info(\"SKIP no_inquiries\")\n            return {\"outcome\": \"skipped\", \"reason\": \"no inquiries\", \"last_seq\": last_seq, \"posted\": False}\n\n        classifications = await classify_support_inquiries_semantically(inquiries)\n        log.info(\"PHASE deterministic_prepost_validation\")\n        allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n        output_seqs: list[int] = []\n        for index, row in enumerate(classifications):\n            if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n                raise ValueError(f\"classification {index} must contain exactly seq and category\")\n            if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n                raise ValueError(f\"classification {index} has invalid seq or category\")\n            output_seqs.append(row[\"seq\"])\n        if len(classifications) != len(inquiries):\n            raise ValueError(\"classification count does not match inquiry count\")\n        if len(set(output_seqs)) != len(output_seqs) or set(output_seqs) != set(fetched_seqs):\n            raise ValueError(\"classification coverage has duplicate, missing, or extra seq values\")\n\n        by_seq = {row[\"seq\"]: row[\"category\"] for row in classifications}\n        ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in inquiries]\n        payload: dict[str, object] = {\n            \"batch_start_seq\": min(fetched_seqs),\n            \"batch_end_seq\": max(fetched_seqs),\n            \"classifications\": ordered,\n        }\n        post_result = post_support_classification_batch(payload)\n        result: dict[str, object] = {\n            \"outcome\": \"posted\",\n            \"last_seq\": last_seq,\n            \"batch_start_seq\": payload[\"batch_start_seq\"],\n            \"batch_end_seq\": payload[\"batch_end_seq\"],\n            \"count\": len(ordered),\n            \"http_status\": post_result[\"http_status\"],\n            \"posted\": True,\n        }\n        log.info(\"PHASE run_complete posted=1 count=%d\", len(ordered))\n        return result\n    except Exception as exc:\n        log.error(\"SOFT_FAIL run_failed type=%s detail=%s\", type(exc).__name__, str(exc))\n        raise\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "post_support_classification_batch": {
+          "function_id": 1,
+          "implementation": "def post_support_classification_batch(payload: dict[str, object]) -> dict[str, object]:\n    \"\"\"Return the HTTP success status after posting exactly one validated support-classification batch.\n\n    This is the deliberately thin irreversible-effect boundary. It performs no\n    reads, retries, classification, or recovery POSTs and always targets the\n    fixed local support API endpoint.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    expected_top = {\"batch_start_seq\", \"batch_end_seq\", \"classifications\"}\n    if not isinstance(payload, dict) or set(payload) != expected_top:\n        raise ValueError(\"payload must contain exactly batch_start_seq, batch_end_seq, and classifications\")\n    start = payload[\"batch_start_seq\"]\n    end = payload[\"batch_end_seq\"]\n    rows = payload[\"classifications\"]\n    if type(start) is not int or type(end) is not int or start > end:\n        raise ValueError(\"batch sequence bounds must be ordered integers\")\n    if not isinstance(rows, list) or not rows:\n        raise ValueError(\"classifications must be a non-empty list\")\n    allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n    seqs: list[int] = []\n    for index, row in enumerate(rows):\n        if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n            raise ValueError(f\"classification {index} must contain exactly seq and category\")\n        if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n            raise ValueError(f\"classification {index} has invalid seq or category\")\n        seqs.append(row[\"seq\"])\n    if len(set(seqs)) != len(seqs) or min(seqs) != start or max(seqs) != end:\n        raise ValueError(\"classification seq values must be unique and match the batch bounds\")\n\n    body = json.dumps(payload, separators=(\",\", \":\")).encode(\"utf-8\")\n    request = urllib.request.Request(\n        \"http://127.0.0.1:8128/batches\",\n        data=body,\n        headers={\"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    log.info(\"PHASE post_batch start=%d end=%d count=%d\", start, end, len(rows))\n    with urllib.request.urlopen(request, timeout=30) as response:\n        response.read()\n        status = response.status\n    if not 200 <= status < 300:\n        raise RuntimeError(f\"POST failed with HTTP {status}\")\n    log.info(\"PHASE post_complete status=%d\", status)\n    return {\"http_status\": status, \"posted\": True}\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "classify_support_inquiries_semantically": {
+          "function_id": 0,
+          "implementation": "async def classify_support_inquiries_semantically(inquiries: list[dict[str, object]]) -> list[dict[str, object]]:\n    \"\"\"Return exactly one validated refund/bug/sales/other classification for every input inquiry seq.\n\n    The category policy is baked in from the hourly support classifier task.\n    The semantic joint remains a strict structured managed-LLM call; keyword\n    and regex approximations are intentionally forbidden. Model selection is\n    delegated to the managed query_llm primitive so its current supported\n    model routing is used rather than a stale provider-specific identifier.\n    \"\"\"\n    import json\n    import logging\n    from typing import Literal\n    from pydantic import BaseModel, ConfigDict\n\n    log = logging.getLogger(__name__)\n    log.info(\"PHASE validate_inquiries count=%s\", len(inquiries) if isinstance(inquiries, list) else \"invalid\")\n    if not isinstance(inquiries, list) or not 1 <= len(inquiries) <= 200:\n        raise ValueError(\"inquiries must be a non-empty list of at most 200 items\")\n\n    normalized: list[dict[str, object]] = []\n    seen: set[int] = set()\n    for index, item in enumerate(inquiries):\n        if not isinstance(item, dict) or set(item) != {\"seq\", \"text\"}:\n            raise ValueError(f\"inquiry {index} must contain exactly seq and text\")\n        seq = item[\"seq\"]\n        text = item[\"text\"]\n        if type(seq) is not int or not isinstance(text, str):\n            raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n        if seq in seen:\n            raise ValueError(\"inquiry seq values must be unique\")\n        seen.add(seq)\n        normalized.append({\"seq\": seq, \"text\": text})\n\n    class Classification(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        seq: int\n        category: Literal[\"refund\", \"bug\", \"sales\", \"other\"]\n\n    class Judgment(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        classifications: list[Classification]\n\n    Judgment.model_rebuild()\n    prompt = (\n        \"Classify every support inquiry using semantic understanding of the full customer request. \"\n        \"Judge actual intent, never keyword matching, keyword ladders, or regex heuristics. \"\n        \"Return exactly one classification for each supplied seq and no others. \"\n        \"The only categories are: refund = wants money back for a charge; \"\n        \"bug = product malfunction/not working; sales = wants to buy, upgrade, obtain a quote/pricing, \"\n        \"or discuss buying; other = anything else.\\n\\nInquiries JSON:\\n\"\n        + json.dumps(normalized, ensure_ascii=False, separators=(\",\", \":\"))\n    )\n    log.info(\"PHASE semantic_classification count=%d\", len(normalized))\n    try:\n        judgment = await query_llm(\n            prompt,\n            response_format=Judgment,\n            temperature=0.0,\n        )\n    except Exception as exc:\n        log.error(\"SOFT_FAIL semantic_classification_failed type=%s detail=%s\", type(exc).__name__, str(exc))\n        raise\n    if not isinstance(judgment, Judgment):\n        judgment = Judgment.model_validate(judgment)\n\n    result = [row.model_dump() for row in judgment.classifications]\n    result_seqs = [row[\"seq\"] for row in result]\n    if len(result) != len(normalized):\n        raise ValueError(\"classification count does not match inquiry count\")\n    if len(set(result_seqs)) != len(result_seqs) or set(result_seqs) != seen:\n        raise ValueError(\"classifications have duplicate, missing, or extra seq values\")\n    if any(set(row) != {\"seq\", \"category\"} for row in result):\n        raise ValueError(\"classification objects must contain exactly seq and category\")\n\n    by_seq = {row[\"seq\"]: row[\"category\"] for row in result}\n    ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in normalized]\n    log.info(\"PHASE classification_validated count=%d\", len(ordered))\n    return ordered\n",
+          "verify": false,
+          "side_effect_class": "read_only"
+        }
+      },
+      "tokens": {
+        "planning": {
+          "prompt": 191504,
+          "completion": 4586,
+          "calls": 12
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 196090,
+        "phases": [
+          "fire_2"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 368.5,
+        "provider_cost_usd": 0.178403,
+        "provider_cost_missing_calls": 0,
+        "llm_calls": 12,
+        "prompt_tokens": 191504,
+        "completion_tokens": 4586,
+        "total_tokens": 196090,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_2"
+        ]
+      }
+    },
+    {
+      "fire": 3,
+      "label": "fire_3",
+      "events": [],
+      "fired": [
+        {
+          "task_id": 0,
+          "name": "Hourly support inquiry classifier (local API)",
+          "entrypoint": 2,
+          "handle_id": 3
+        }
+      ],
+      "settled": true,
+      "pending_range": [
+        25,
+        36
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 25,
+          "batch_end_seq": 36,
+          "classifications": [
+            {
+              "seq": 25,
+              "category": "other"
+            },
+            {
+              "seq": 26,
+              "category": "other"
+            },
+            {
+              "seq": 27,
+              "category": "refund"
+            },
+            {
+              "seq": 28,
+              "category": "other"
+            },
+            {
+              "seq": 29,
+              "category": "sales"
+            },
+            {
+              "seq": 30,
+              "category": "bug"
+            },
+            {
+              "seq": 31,
+              "category": "other"
+            },
+            {
+              "seq": 32,
+              "category": "sales"
+            },
+            {
+              "seq": 33,
+              "category": "other"
+            },
+            {
+              "seq": 34,
+              "category": "refund"
+            },
+            {
+              "seq": 35,
+              "category": "bug"
+            },
+            {
+              "seq": 36,
+              "category": "refund"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "outcome": "correct",
+      "score": 2,
+      "held": false,
+      "owner_messages": [],
+      "entrypoints": {
+        "0": 2
+      },
+      "functions": {
+        "run_hourly_support_inquiry_classifier": {
+          "function_id": 2,
+          "implementation": "async def run_hourly_support_inquiry_classifier() -> dict[str, object]:\n    \"\"\"Return a run summary for either a no-work skip with no POST or one successfully posted support batch.\n\n    The fixed executor reads the cursor afresh, performs the two permitted GETs\n    in order, validates all external data, delegates semantic judgment to\n    ``classify_support_inquiries_semantically``, validates complete coverage\n    again, and crosses the POST boundary exactly once only for non-empty input.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:8128\"\n\n    def get_json(url: str) -> object:\n        request = urllib.request.Request(url, method=\"GET\")\n        with urllib.request.urlopen(request, timeout=30) as response:\n            if response.status != 200:\n                raise RuntimeError(f\"GET failed with HTTP {response.status}\")\n            return json.loads(response.read().decode(\"utf-8\"))\n\n    try:\n        log.info(\"PHASE fresh_cursor_read\")\n        cursor = get_json(base + \"/batches/last\")\n        if not isinstance(cursor, dict) or set(cursor) != {\"last_seq\"}:\n            raise ValueError(\"cursor response must be exactly an object containing last_seq\")\n        last_seq = cursor[\"last_seq\"]\n        if type(last_seq) is not int:\n            raise ValueError(\"last_seq must be an integer\")\n\n        log.info(\"PHASE inquiry_read after=%d\", last_seq)\n        raw = get_json(base + \"/inquiries?after=\" + str(last_seq))\n        if not isinstance(raw, list) or len(raw) > 200:\n            raise ValueError(\"inquiries response must be a list of at most 200 items\")\n\n        inquiries: list[dict[str, object]] = []\n        fetched_seqs: list[int] = []\n        for index, item in enumerate(raw):\n            if not isinstance(item, dict) or \"seq\" not in item or \"text\" not in item:\n                raise ValueError(f\"inquiry {index} must contain seq and text\")\n            seq = item[\"seq\"]\n            text = item[\"text\"]\n            if type(seq) is not int or not isinstance(text, str):\n                raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n            inquiries.append({\"seq\": seq, \"text\": text})\n            fetched_seqs.append(seq)\n        if len(set(fetched_seqs)) != len(fetched_seqs):\n            raise ValueError(\"fetched inquiry seq values must be unique\")\n\n        if not inquiries:\n            log.info(\"SKIP no_inquiries\")\n            return {\"outcome\": \"skipped\", \"reason\": \"no inquiries\", \"last_seq\": last_seq, \"posted\": False}\n\n        classifications = await classify_support_inquiries_semantically(inquiries)\n        log.info(\"PHASE deterministic_prepost_validation\")\n        allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n        output_seqs: list[int] = []\n        for index, row in enumerate(classifications):\n            if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n                raise ValueError(f\"classification {index} must contain exactly seq and category\")\n            if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n                raise ValueError(f\"classification {index} has invalid seq or category\")\n            output_seqs.append(row[\"seq\"])\n        if len(classifications) != len(inquiries):\n            raise ValueError(\"classification count does not match inquiry count\")\n        if len(set(output_seqs)) != len(output_seqs) or set(output_seqs) != set(fetched_seqs):\n            raise ValueError(\"classification coverage has duplicate, missing, or extra seq values\")\n\n        by_seq = {row[\"seq\"]: row[\"category\"] for row in classifications}\n        ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in inquiries]\n        payload: dict[str, object] = {\n            \"batch_start_seq\": min(fetched_seqs),\n            \"batch_end_seq\": max(fetched_seqs),\n            \"classifications\": ordered,\n        }\n        post_result = post_support_classification_batch(payload)\n        result: dict[str, object] = {\n            \"outcome\": \"posted\",\n            \"last_seq\": last_seq,\n            \"batch_start_seq\": payload[\"batch_start_seq\"],\n            \"batch_end_seq\": payload[\"batch_end_seq\"],\n            \"count\": len(ordered),\n            \"http_status\": post_result[\"http_status\"],\n            \"posted\": True,\n        }\n        log.info(\"PHASE run_complete posted=1 count=%d\", len(ordered))\n        return result\n    except Exception as exc:\n        log.error(\"SOFT_FAIL run_failed type=%s detail=%s\", type(exc).__name__, str(exc))\n        raise\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "post_support_classification_batch": {
+          "function_id": 1,
+          "implementation": "def post_support_classification_batch(payload: dict[str, object]) -> dict[str, object]:\n    \"\"\"Return the HTTP success status after posting exactly one validated support-classification batch.\n\n    This is the deliberately thin irreversible-effect boundary. It performs no\n    reads, retries, classification, or recovery POSTs and always targets the\n    fixed local support API endpoint.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    expected_top = {\"batch_start_seq\", \"batch_end_seq\", \"classifications\"}\n    if not isinstance(payload, dict) or set(payload) != expected_top:\n        raise ValueError(\"payload must contain exactly batch_start_seq, batch_end_seq, and classifications\")\n    start = payload[\"batch_start_seq\"]\n    end = payload[\"batch_end_seq\"]\n    rows = payload[\"classifications\"]\n    if type(start) is not int or type(end) is not int or start > end:\n        raise ValueError(\"batch sequence bounds must be ordered integers\")\n    if not isinstance(rows, list) or not rows:\n        raise ValueError(\"classifications must be a non-empty list\")\n    allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n    seqs: list[int] = []\n    for index, row in enumerate(rows):\n        if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n            raise ValueError(f\"classification {index} must contain exactly seq and category\")\n        if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n            raise ValueError(f\"classification {index} has invalid seq or category\")\n        seqs.append(row[\"seq\"])\n    if len(set(seqs)) != len(seqs) or min(seqs) != start or max(seqs) != end:\n        raise ValueError(\"classification seq values must be unique and match the batch bounds\")\n\n    body = json.dumps(payload, separators=(\",\", \":\")).encode(\"utf-8\")\n    request = urllib.request.Request(\n        \"http://127.0.0.1:8128/batches\",\n        data=body,\n        headers={\"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    log.info(\"PHASE post_batch start=%d end=%d count=%d\", start, end, len(rows))\n    with urllib.request.urlopen(request, timeout=30) as response:\n        response.read()\n        status = response.status\n    if not 200 <= status < 300:\n        raise RuntimeError(f\"POST failed with HTTP {status}\")\n    log.info(\"PHASE post_complete status=%d\", status)\n    return {\"http_status\": status, \"posted\": True}\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "classify_support_inquiries_semantically": {
+          "function_id": 0,
+          "implementation": "async def classify_support_inquiries_semantically(inquiries: list[dict[str, object]]) -> list[dict[str, object]]:\n    \"\"\"Return exactly one validated refund/bug/sales/other classification for every input inquiry seq.\n\n    The category policy is baked in from the hourly support classifier task.\n    The semantic joint remains a strict structured managed-LLM call; keyword\n    and regex approximations are intentionally forbidden. Model selection is\n    delegated to the managed query_llm primitive so its current supported\n    model routing is used rather than a stale provider-specific identifier.\n    \"\"\"\n    import json\n    import logging\n    from typing import Literal\n    from pydantic import BaseModel, ConfigDict\n\n    log = logging.getLogger(__name__)\n    log.info(\"PHASE validate_inquiries count=%s\", len(inquiries) if isinstance(inquiries, list) else \"invalid\")\n    if not isinstance(inquiries, list) or not 1 <= len(inquiries) <= 200:\n        raise ValueError(\"inquiries must be a non-empty list of at most 200 items\")\n\n    normalized: list[dict[str, object]] = []\n    seen: set[int] = set()\n    for index, item in enumerate(inquiries):\n        if not isinstance(item, dict) or set(item) != {\"seq\", \"text\"}:\n            raise ValueError(f\"inquiry {index} must contain exactly seq and text\")\n        seq = item[\"seq\"]\n        text = item[\"text\"]\n        if type(seq) is not int or not isinstance(text, str):\n            raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n        if seq in seen:\n            raise ValueError(\"inquiry seq values must be unique\")\n        seen.add(seq)\n        normalized.append({\"seq\": seq, \"text\": text})\n\n    class Classification(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        seq: int\n        category: Literal[\"refund\", \"bug\", \"sales\", \"other\"]\n\n    class Judgment(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        classifications: list[Classification]\n\n    Judgment.model_rebuild()\n    prompt = (\n        \"Classify every support inquiry using semantic understanding of the full customer request. \"\n        \"Judge actual intent, never keyword matching, keyword ladders, or regex heuristics. \"\n        \"Return exactly one classification for each supplied seq and no others. \"\n        \"The only categories are: refund = wants money back for a charge; \"\n        \"bug = product malfunction/not working; sales = wants to buy, upgrade, obtain a quote/pricing, \"\n        \"or discuss buying; other = anything else.\\n\\nInquiries JSON:\\n\"\n        + json.dumps(normalized, ensure_ascii=False, separators=(\",\", \":\"))\n    )\n    log.info(\"PHASE semantic_classification count=%d\", len(normalized))\n    try:\n        judgment = await query_llm(\n            prompt,\n            response_format=Judgment,\n            temperature=0.0,\n        )\n    except Exception as exc:\n        log.error(\"SOFT_FAIL semantic_classification_failed type=%s detail=%s\", type(exc).__name__, str(exc))\n        raise\n    if not isinstance(judgment, Judgment):\n        judgment = Judgment.model_validate(judgment)\n\n    result = [row.model_dump() for row in judgment.classifications]\n    result_seqs = [row[\"seq\"] for row in result]\n    if len(result) != len(normalized):\n        raise ValueError(\"classification count does not match inquiry count\")\n    if len(set(result_seqs)) != len(result_seqs) or set(result_seqs) != seen:\n        raise ValueError(\"classifications have duplicate, missing, or extra seq values\")\n    if any(set(row) != {\"seq\", \"category\"} for row in result):\n        raise ValueError(\"classification objects must contain exactly seq and category\")\n\n    by_seq = {row[\"seq\"]: row[\"category\"] for row in result}\n    ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in normalized]\n    log.info(\"PHASE classification_validated count=%d\", len(ordered))\n    return ordered\n",
+          "verify": false,
+          "side_effect_class": "read_only"
+        }
+      },
+      "tokens": {
+        "planning": {
+          "prompt": 26757,
+          "completion": 256,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 27013,
+        "phases": [
+          "fire_3"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 212.39,
+        "provider_cost_usd": 0.021878,
+        "provider_cost_missing_calls": 0,
+        "llm_calls": 2,
+        "prompt_tokens": 26757,
+        "completion_tokens": 256,
+        "total_tokens": 27013,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_3"
+        ]
+      }
+    },
+    {
+      "fire": 4,
+      "label": "fire_4",
+      "events": [],
+      "fired": [
+        {
+          "task_id": 0,
+          "name": "Hourly support inquiry classifier (local API)",
+          "entrypoint": 2,
+          "handle_id": 4
+        }
+      ],
+      "settled": true,
+      "pending_range": [
+        37,
+        48
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 37,
+          "batch_end_seq": 48,
+          "classifications": [
+            {
+              "seq": 37,
+              "category": "sales"
+            },
+            {
+              "seq": 38,
+              "category": "sales"
+            },
+            {
+              "seq": 39,
+              "category": "sales"
+            },
+            {
+              "seq": 40,
+              "category": "bug"
+            },
+            {
+              "seq": 41,
+              "category": "refund"
+            },
+            {
+              "seq": 42,
+              "category": "bug"
+            },
+            {
+              "seq": 43,
+              "category": "refund"
+            },
+            {
+              "seq": 44,
+              "category": "refund"
+            },
+            {
+              "seq": 45,
+              "category": "sales"
+            },
+            {
+              "seq": 46,
+              "category": "other"
+            },
+            {
+              "seq": 47,
+              "category": "other"
+            },
+            {
+              "seq": 48,
+              "category": "refund"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "outcome": "correct",
+      "score": 2,
+      "held": false,
+      "owner_messages": [],
+      "entrypoints": {
+        "0": 2
+      },
+      "functions": {
+        "run_hourly_support_inquiry_classifier": {
+          "function_id": 2,
+          "implementation": "async def run_hourly_support_inquiry_classifier() -> dict[str, object]:\n    \"\"\"Return a run summary for either a no-work skip with no POST or one successfully posted support batch.\n\n    The fixed executor reads the cursor afresh, performs the two permitted GETs\n    in order, validates all external data, delegates semantic judgment to\n    ``classify_support_inquiries_semantically``, validates complete coverage\n    again, and crosses the POST boundary exactly once only for non-empty input.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:8128\"\n\n    def get_json(url: str) -> object:\n        request = urllib.request.Request(url, method=\"GET\")\n        with urllib.request.urlopen(request, timeout=30) as response:\n            if response.status != 200:\n                raise RuntimeError(f\"GET failed with HTTP {response.status}\")\n            return json.loads(response.read().decode(\"utf-8\"))\n\n    try:\n        log.info(\"PHASE fresh_cursor_read\")\n        cursor = get_json(base + \"/batches/last\")\n        if not isinstance(cursor, dict) or set(cursor) != {\"last_seq\"}:\n            raise ValueError(\"cursor response must be exactly an object containing last_seq\")\n        last_seq = cursor[\"last_seq\"]\n        if type(last_seq) is not int:\n            raise ValueError(\"last_seq must be an integer\")\n\n        log.info(\"PHASE inquiry_read after=%d\", last_seq)\n        raw = get_json(base + \"/inquiries?after=\" + str(last_seq))\n        if not isinstance(raw, list) or len(raw) > 200:\n            raise ValueError(\"inquiries response must be a list of at most 200 items\")\n\n        inquiries: list[dict[str, object]] = []\n        fetched_seqs: list[int] = []\n        for index, item in enumerate(raw):\n            if not isinstance(item, dict) or \"seq\" not in item or \"text\" not in item:\n                raise ValueError(f\"inquiry {index} must contain seq and text\")\n            seq = item[\"seq\"]\n            text = item[\"text\"]\n            if type(seq) is not int or not isinstance(text, str):\n                raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n            inquiries.append({\"seq\": seq, \"text\": text})\n            fetched_seqs.append(seq)\n        if len(set(fetched_seqs)) != len(fetched_seqs):\n            raise ValueError(\"fetched inquiry seq values must be unique\")\n\n        if not inquiries:\n            log.info(\"SKIP no_inquiries\")\n            return {\"outcome\": \"skipped\", \"reason\": \"no inquiries\", \"last_seq\": last_seq, \"posted\": False}\n\n        classifications = await classify_support_inquiries_semantically(inquiries)\n        log.info(\"PHASE deterministic_prepost_validation\")\n        allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n        output_seqs: list[int] = []\n        for index, row in enumerate(classifications):\n            if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n                raise ValueError(f\"classification {index} must contain exactly seq and category\")\n            if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n                raise ValueError(f\"classification {index} has invalid seq or category\")\n            output_seqs.append(row[\"seq\"])\n        if len(classifications) != len(inquiries):\n            raise ValueError(\"classification count does not match inquiry count\")\n        if len(set(output_seqs)) != len(output_seqs) or set(output_seqs) != set(fetched_seqs):\n            raise ValueError(\"classification coverage has duplicate, missing, or extra seq values\")\n\n        by_seq = {row[\"seq\"]: row[\"category\"] for row in classifications}\n        ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in inquiries]\n        payload: dict[str, object] = {\n            \"batch_start_seq\": min(fetched_seqs),\n            \"batch_end_seq\": max(fetched_seqs),\n            \"classifications\": ordered,\n        }\n        post_result = post_support_classification_batch(payload)\n        result: dict[str, object] = {\n            \"outcome\": \"posted\",\n            \"last_seq\": last_seq,\n            \"batch_start_seq\": payload[\"batch_start_seq\"],\n            \"batch_end_seq\": payload[\"batch_end_seq\"],\n            \"count\": len(ordered),\n            \"http_status\": post_result[\"http_status\"],\n            \"posted\": True,\n        }\n        log.info(\"PHASE run_complete posted=1 count=%d\", len(ordered))\n        return result\n    except Exception as exc:\n        log.error(\"SOFT_FAIL run_failed type=%s detail=%s\", type(exc).__name__, str(exc))\n        raise\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "post_support_classification_batch": {
+          "function_id": 1,
+          "implementation": "def post_support_classification_batch(payload: dict[str, object]) -> dict[str, object]:\n    \"\"\"Return the HTTP success status after posting exactly one validated support-classification batch.\n\n    This is the deliberately thin irreversible-effect boundary. It performs no\n    reads, retries, classification, or recovery POSTs and always targets the\n    fixed local support API endpoint.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    expected_top = {\"batch_start_seq\", \"batch_end_seq\", \"classifications\"}\n    if not isinstance(payload, dict) or set(payload) != expected_top:\n        raise ValueError(\"payload must contain exactly batch_start_seq, batch_end_seq, and classifications\")\n    start = payload[\"batch_start_seq\"]\n    end = payload[\"batch_end_seq\"]\n    rows = payload[\"classifications\"]\n    if type(start) is not int or type(end) is not int or start > end:\n        raise ValueError(\"batch sequence bounds must be ordered integers\")\n    if not isinstance(rows, list) or not rows:\n        raise ValueError(\"classifications must be a non-empty list\")\n    allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n    seqs: list[int] = []\n    for index, row in enumerate(rows):\n        if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n            raise ValueError(f\"classification {index} must contain exactly seq and category\")\n        if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n            raise ValueError(f\"classification {index} has invalid seq or category\")\n        seqs.append(row[\"seq\"])\n    if len(set(seqs)) != len(seqs) or min(seqs) != start or max(seqs) != end:\n        raise ValueError(\"classification seq values must be unique and match the batch bounds\")\n\n    body = json.dumps(payload, separators=(\",\", \":\")).encode(\"utf-8\")\n    request = urllib.request.Request(\n        \"http://127.0.0.1:8128/batches\",\n        data=body,\n        headers={\"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    log.info(\"PHASE post_batch start=%d end=%d count=%d\", start, end, len(rows))\n    with urllib.request.urlopen(request, timeout=30) as response:\n        response.read()\n        status = response.status\n    if not 200 <= status < 300:\n        raise RuntimeError(f\"POST failed with HTTP {status}\")\n    log.info(\"PHASE post_complete status=%d\", status)\n    return {\"http_status\": status, \"posted\": True}\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "classify_support_inquiries_semantically": {
+          "function_id": 0,
+          "implementation": "async def classify_support_inquiries_semantically(inquiries: list[dict[str, object]]) -> list[dict[str, object]]:\n    \"\"\"Return exactly one validated refund/bug/sales/other classification for every input inquiry seq.\n\n    The category policy is baked in from the hourly support classifier task.\n    The semantic joint remains a strict structured managed-LLM call; keyword\n    and regex approximations are intentionally forbidden. Model selection is\n    delegated to the managed query_llm primitive so its current supported\n    model routing is used rather than a stale provider-specific identifier.\n    \"\"\"\n    import json\n    import logging\n    from typing import Literal\n    from pydantic import BaseModel, ConfigDict\n\n    log = logging.getLogger(__name__)\n    log.info(\"PHASE validate_inquiries count=%s\", len(inquiries) if isinstance(inquiries, list) else \"invalid\")\n    if not isinstance(inquiries, list) or not 1 <= len(inquiries) <= 200:\n        raise ValueError(\"inquiries must be a non-empty list of at most 200 items\")\n\n    normalized: list[dict[str, object]] = []\n    seen: set[int] = set()\n    for index, item in enumerate(inquiries):\n        if not isinstance(item, dict) or set(item) != {\"seq\", \"text\"}:\n            raise ValueError(f\"inquiry {index} must contain exactly seq and text\")\n        seq = item[\"seq\"]\n        text = item[\"text\"]\n        if type(seq) is not int or not isinstance(text, str):\n            raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n        if seq in seen:\n            raise ValueError(\"inquiry seq values must be unique\")\n        seen.add(seq)\n        normalized.append({\"seq\": seq, \"text\": text})\n\n    class Classification(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        seq: int\n        category: Literal[\"refund\", \"bug\", \"sales\", \"other\"]\n\n    class Judgment(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        classifications: list[Classification]\n\n    Judgment.model_rebuild()\n    prompt = (\n        \"Classify every support inquiry using semantic understanding of the full customer request. \"\n        \"Judge actual intent, never keyword matching, keyword ladders, or regex heuristics. \"\n        \"Return exactly one classification for each supplied seq and no others. \"\n        \"The only categories are: refund = wants money back for a charge; \"\n        \"bug = product malfunction/not working; sales = wants to buy, upgrade, obtain a quote/pricing, \"\n        \"or discuss buying; other = anything else.\\n\\nInquiries JSON:\\n\"\n        + json.dumps(normalized, ensure_ascii=False, separators=(\",\", \":\"))\n    )\n    log.info(\"PHASE semantic_classification count=%d\", len(normalized))\n    try:\n        judgment = await query_llm(\n            prompt,\n            response_format=Judgment,\n            temperature=0.0,\n        )\n    except Exception as exc:\n        log.error(\"SOFT_FAIL semantic_classification_failed type=%s detail=%s\", type(exc).__name__, str(exc))\n        raise\n    if not isinstance(judgment, Judgment):\n        judgment = Judgment.model_validate(judgment)\n\n    result = [row.model_dump() for row in judgment.classifications]\n    result_seqs = [row[\"seq\"] for row in result]\n    if len(result) != len(normalized):\n        raise ValueError(\"classification count does not match inquiry count\")\n    if len(set(result_seqs)) != len(result_seqs) or set(result_seqs) != seen:\n        raise ValueError(\"classifications have duplicate, missing, or extra seq values\")\n    if any(set(row) != {\"seq\", \"category\"} for row in result):\n        raise ValueError(\"classification objects must contain exactly seq and category\")\n\n    by_seq = {row[\"seq\"]: row[\"category\"] for row in result}\n    ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in normalized]\n    log.info(\"PHASE classification_validated count=%d\", len(ordered))\n    return ordered\n",
+          "verify": false,
+          "side_effect_class": "read_only"
+        }
+      },
+      "tokens": {
+        "planning": {
+          "prompt": 27623,
+          "completion": 206,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 27829,
+        "phases": [
+          "fire_4"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 211.94,
+        "provider_cost_usd": 0.0236,
+        "provider_cost_missing_calls": 0,
+        "llm_calls": 2,
+        "prompt_tokens": 27623,
+        "completion_tokens": 206,
+        "total_tokens": 27829,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_4"
+        ]
+      }
+    },
+    {
+      "fire": 5,
+      "label": "fire_5",
+      "events": [],
+      "fired": [
+        {
+          "task_id": 0,
+          "name": "Hourly support inquiry classifier (local API)",
+          "entrypoint": 2,
+          "handle_id": 5
+        }
+      ],
+      "settled": true,
+      "pending_range": [
+        49,
+        60
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 49,
+          "batch_end_seq": 60,
+          "classifications": [
+            {
+              "seq": 49,
+              "category": "sales"
+            },
+            {
+              "seq": 50,
+              "category": "sales"
+            },
+            {
+              "seq": 51,
+              "category": "bug"
+            },
+            {
+              "seq": 52,
+              "category": "bug"
+            },
+            {
+              "seq": 53,
+              "category": "other"
+            },
+            {
+              "seq": 54,
+              "category": "sales"
+            },
+            {
+              "seq": 55,
+              "category": "bug"
+            },
+            {
+              "seq": 56,
+              "category": "sales"
+            },
+            {
+              "seq": 57,
+              "category": "refund"
+            },
+            {
+              "seq": 58,
+              "category": "other"
+            },
+            {
+              "seq": 59,
+              "category": "refund"
+            },
+            {
+              "seq": 60,
+              "category": "other"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "outcome": "correct",
+      "score": 2,
+      "held": false,
+      "owner_messages": [],
+      "entrypoints": {
+        "0": 2
+      },
+      "functions": {
+        "run_hourly_support_inquiry_classifier": {
+          "function_id": 2,
+          "implementation": "async def run_hourly_support_inquiry_classifier() -> dict[str, object]:\n    \"\"\"Return a run summary for either a no-work skip with no POST or one successfully posted support batch.\n\n    The fixed executor reads the cursor afresh, performs the two permitted GETs\n    in order, validates all external data, delegates semantic judgment to\n    ``classify_support_inquiries_semantically``, validates complete coverage\n    again, and crosses the POST boundary exactly once only for non-empty input.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:8128\"\n\n    def get_json(url: str) -> object:\n        request = urllib.request.Request(url, method=\"GET\")\n        with urllib.request.urlopen(request, timeout=30) as response:\n            if response.status != 200:\n                raise RuntimeError(f\"GET failed with HTTP {response.status}\")\n            return json.loads(response.read().decode(\"utf-8\"))\n\n    try:\n        log.info(\"PHASE fresh_cursor_read\")\n        cursor = get_json(base + \"/batches/last\")\n        if not isinstance(cursor, dict) or set(cursor) != {\"last_seq\"}:\n            raise ValueError(\"cursor response must be exactly an object containing last_seq\")\n        last_seq = cursor[\"last_seq\"]\n        if type(last_seq) is not int:\n            raise ValueError(\"last_seq must be an integer\")\n\n        log.info(\"PHASE inquiry_read after=%d\", last_seq)\n        raw = get_json(base + \"/inquiries?after=\" + str(last_seq))\n        if not isinstance(raw, list) or len(raw) > 200:\n            raise ValueError(\"inquiries response must be a list of at most 200 items\")\n\n        inquiries: list[dict[str, object]] = []\n        fetched_seqs: list[int] = []\n        for index, item in enumerate(raw):\n            if not isinstance(item, dict) or \"seq\" not in item or \"text\" not in item:\n                raise ValueError(f\"inquiry {index} must contain seq and text\")\n            seq = item[\"seq\"]\n            text = item[\"text\"]\n            if type(seq) is not int or not isinstance(text, str):\n                raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n            inquiries.append({\"seq\": seq, \"text\": text})\n            fetched_seqs.append(seq)\n        if len(set(fetched_seqs)) != len(fetched_seqs):\n            raise ValueError(\"fetched inquiry seq values must be unique\")\n\n        if not inquiries:\n            log.info(\"SKIP no_inquiries\")\n            return {\"outcome\": \"skipped\", \"reason\": \"no inquiries\", \"last_seq\": last_seq, \"posted\": False}\n\n        classifications = await classify_support_inquiries_semantically(inquiries)\n        log.info(\"PHASE deterministic_prepost_validation\")\n        allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n        output_seqs: list[int] = []\n        for index, row in enumerate(classifications):\n            if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n                raise ValueError(f\"classification {index} must contain exactly seq and category\")\n            if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n                raise ValueError(f\"classification {index} has invalid seq or category\")\n            output_seqs.append(row[\"seq\"])\n        if len(classifications) != len(inquiries):\n            raise ValueError(\"classification count does not match inquiry count\")\n        if len(set(output_seqs)) != len(output_seqs) or set(output_seqs) != set(fetched_seqs):\n            raise ValueError(\"classification coverage has duplicate, missing, or extra seq values\")\n\n        by_seq = {row[\"seq\"]: row[\"category\"] for row in classifications}\n        ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in inquiries]\n        payload: dict[str, object] = {\n            \"batch_start_seq\": min(fetched_seqs),\n            \"batch_end_seq\": max(fetched_seqs),\n            \"classifications\": ordered,\n        }\n        post_result = post_support_classification_batch(payload)\n        result: dict[str, object] = {\n            \"outcome\": \"posted\",\n            \"last_seq\": last_seq,\n            \"batch_start_seq\": payload[\"batch_start_seq\"],\n            \"batch_end_seq\": payload[\"batch_end_seq\"],\n            \"count\": len(ordered),\n            \"http_status\": post_result[\"http_status\"],\n            \"posted\": True,\n        }\n        log.info(\"PHASE run_complete posted=1 count=%d\", len(ordered))\n        return result\n    except Exception as exc:\n        log.error(\"SOFT_FAIL run_failed type=%s detail=%s\", type(exc).__name__, str(exc))\n        raise\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "post_support_classification_batch": {
+          "function_id": 1,
+          "implementation": "def post_support_classification_batch(payload: dict[str, object]) -> dict[str, object]:\n    \"\"\"Return the HTTP success status after posting exactly one validated support-classification batch.\n\n    This is the deliberately thin irreversible-effect boundary. It performs no\n    reads, retries, classification, or recovery POSTs and always targets the\n    fixed local support API endpoint.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    expected_top = {\"batch_start_seq\", \"batch_end_seq\", \"classifications\"}\n    if not isinstance(payload, dict) or set(payload) != expected_top:\n        raise ValueError(\"payload must contain exactly batch_start_seq, batch_end_seq, and classifications\")\n    start = payload[\"batch_start_seq\"]\n    end = payload[\"batch_end_seq\"]\n    rows = payload[\"classifications\"]\n    if type(start) is not int or type(end) is not int or start > end:\n        raise ValueError(\"batch sequence bounds must be ordered integers\")\n    if not isinstance(rows, list) or not rows:\n        raise ValueError(\"classifications must be a non-empty list\")\n    allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n    seqs: list[int] = []\n    for index, row in enumerate(rows):\n        if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n            raise ValueError(f\"classification {index} must contain exactly seq and category\")\n        if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n            raise ValueError(f\"classification {index} has invalid seq or category\")\n        seqs.append(row[\"seq\"])\n    if len(set(seqs)) != len(seqs) or min(seqs) != start or max(seqs) != end:\n        raise ValueError(\"classification seq values must be unique and match the batch bounds\")\n\n    body = json.dumps(payload, separators=(\",\", \":\")).encode(\"utf-8\")\n    request = urllib.request.Request(\n        \"http://127.0.0.1:8128/batches\",\n        data=body,\n        headers={\"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    log.info(\"PHASE post_batch start=%d end=%d count=%d\", start, end, len(rows))\n    with urllib.request.urlopen(request, timeout=30) as response:\n        response.read()\n        status = response.status\n    if not 200 <= status < 300:\n        raise RuntimeError(f\"POST failed with HTTP {status}\")\n    log.info(\"PHASE post_complete status=%d\", status)\n    return {\"http_status\": status, \"posted\": True}\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "classify_support_inquiries_semantically": {
+          "function_id": 0,
+          "implementation": "async def classify_support_inquiries_semantically(inquiries: list[dict[str, object]]) -> list[dict[str, object]]:\n    \"\"\"Return exactly one validated refund/bug/sales/other classification for every input inquiry seq.\n\n    The category policy is baked in from the hourly support classifier task.\n    The semantic joint remains a strict structured managed-LLM call; keyword\n    and regex approximations are intentionally forbidden. Model selection is\n    delegated to the managed query_llm primitive so its current supported\n    model routing is used rather than a stale provider-specific identifier.\n    \"\"\"\n    import json\n    import logging\n    from typing import Literal\n    from pydantic import BaseModel, ConfigDict\n\n    log = logging.getLogger(__name__)\n    log.info(\"PHASE validate_inquiries count=%s\", len(inquiries) if isinstance(inquiries, list) else \"invalid\")\n    if not isinstance(inquiries, list) or not 1 <= len(inquiries) <= 200:\n        raise ValueError(\"inquiries must be a non-empty list of at most 200 items\")\n\n    normalized: list[dict[str, object]] = []\n    seen: set[int] = set()\n    for index, item in enumerate(inquiries):\n        if not isinstance(item, dict) or set(item) != {\"seq\", \"text\"}:\n            raise ValueError(f\"inquiry {index} must contain exactly seq and text\")\n        seq = item[\"seq\"]\n        text = item[\"text\"]\n        if type(seq) is not int or not isinstance(text, str):\n            raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n        if seq in seen:\n            raise ValueError(\"inquiry seq values must be unique\")\n        seen.add(seq)\n        normalized.append({\"seq\": seq, \"text\": text})\n\n    class Classification(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        seq: int\n        category: Literal[\"refund\", \"bug\", \"sales\", \"other\"]\n\n    class Judgment(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        classifications: list[Classification]\n\n    Judgment.model_rebuild()\n    prompt = (\n        \"Classify every support inquiry using semantic understanding of the full customer request. \"\n        \"Judge actual intent, never keyword matching, keyword ladders, or regex heuristics. \"\n        \"Return exactly one classification for each supplied seq and no others. \"\n        \"The only categories are: refund = wants money back for a charge; \"\n        \"bug = product malfunction/not working; sales = wants to buy, upgrade, obtain a quote/pricing, \"\n        \"or discuss buying; other = anything else.\\n\\nInquiries JSON:\\n\"\n        + json.dumps(normalized, ensure_ascii=False, separators=(\",\", \":\"))\n    )\n    log.info(\"PHASE semantic_classification count=%d\", len(normalized))\n    try:\n        judgment = await query_llm(\n            prompt,\n            response_format=Judgment,\n            temperature=0.0,\n        )\n    except Exception as exc:\n        log.error(\"SOFT_FAIL semantic_classification_failed type=%s detail=%s\", type(exc).__name__, str(exc))\n        raise\n    if not isinstance(judgment, Judgment):\n        judgment = Judgment.model_validate(judgment)\n\n    result = [row.model_dump() for row in judgment.classifications]\n    result_seqs = [row[\"seq\"] for row in result]\n    if len(result) != len(normalized):\n        raise ValueError(\"classification count does not match inquiry count\")\n    if len(set(result_seqs)) != len(result_seqs) or set(result_seqs) != seen:\n        raise ValueError(\"classifications have duplicate, missing, or extra seq values\")\n    if any(set(row) != {\"seq\", \"category\"} for row in result):\n        raise ValueError(\"classification objects must contain exactly seq and category\")\n\n    by_seq = {row[\"seq\"]: row[\"category\"] for row in result}\n    ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in normalized]\n    log.info(\"PHASE classification_validated count=%d\", len(ordered))\n    return ordered\n",
+          "verify": false,
+          "side_effect_class": "read_only"
+        }
+      },
+      "tokens": {
+        "planning": {
+          "prompt": 28496,
+          "completion": 251,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 28747,
+        "phases": [
+          "fire_5"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 216.5,
+        "provider_cost_usd": 0.026325,
+        "provider_cost_missing_calls": 0,
+        "llm_calls": 2,
+        "prompt_tokens": 28496,
+        "completion_tokens": 251,
+        "total_tokens": 28747,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_5"
+        ]
+      }
+    },
+    {
+      "fire": 6,
+      "label": "fire_6",
+      "events": [],
+      "fired": [
+        {
+          "task_id": 0,
+          "name": "Hourly support inquiry classifier (local API)",
+          "entrypoint": 2,
+          "handle_id": 6
+        }
+      ],
+      "settled": true,
+      "pending_range": [
+        61,
+        72
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 61,
+          "batch_end_seq": 72,
+          "classifications": [
+            {
+              "seq": 61,
+              "category": "other"
+            },
+            {
+              "seq": 62,
+              "category": "refund"
+            },
+            {
+              "seq": 63,
+              "category": "bug"
+            },
+            {
+              "seq": 64,
+              "category": "refund"
+            },
+            {
+              "seq": 65,
+              "category": "sales"
+            },
+            {
+              "seq": 66,
+              "category": "bug"
+            },
+            {
+              "seq": 67,
+              "category": "bug"
+            },
+            {
+              "seq": 68,
+              "category": "other"
+            },
+            {
+              "seq": 69,
+              "category": "other"
+            },
+            {
+              "seq": 70,
+              "category": "other"
+            },
+            {
+              "seq": 71,
+              "category": "bug"
+            },
+            {
+              "seq": 72,
+              "category": "other"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "outcome": "correct",
+      "score": 2,
+      "held": false,
+      "owner_messages": [],
+      "entrypoints": {
+        "0": 2
+      },
+      "functions": {
+        "run_hourly_support_inquiry_classifier": {
+          "function_id": 2,
+          "implementation": "async def run_hourly_support_inquiry_classifier() -> dict[str, object]:\n    \"\"\"Return a run summary for either a no-work skip with no POST or one successfully posted support batch.\n\n    The fixed executor reads the cursor afresh, performs the two permitted GETs\n    in order, validates all external data, delegates semantic judgment to\n    ``classify_support_inquiries_semantically``, validates complete coverage\n    again, and crosses the POST boundary exactly once only for non-empty input.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:8128\"\n\n    def get_json(url: str) -> object:\n        request = urllib.request.Request(url, method=\"GET\")\n        with urllib.request.urlopen(request, timeout=30) as response:\n            if response.status != 200:\n                raise RuntimeError(f\"GET failed with HTTP {response.status}\")\n            return json.loads(response.read().decode(\"utf-8\"))\n\n    try:\n        log.info(\"PHASE fresh_cursor_read\")\n        cursor = get_json(base + \"/batches/last\")\n        if not isinstance(cursor, dict) or set(cursor) != {\"last_seq\"}:\n            raise ValueError(\"cursor response must be exactly an object containing last_seq\")\n        last_seq = cursor[\"last_seq\"]\n        if type(last_seq) is not int:\n            raise ValueError(\"last_seq must be an integer\")\n\n        log.info(\"PHASE inquiry_read after=%d\", last_seq)\n        raw = get_json(base + \"/inquiries?after=\" + str(last_seq))\n        if not isinstance(raw, list) or len(raw) > 200:\n            raise ValueError(\"inquiries response must be a list of at most 200 items\")\n\n        inquiries: list[dict[str, object]] = []\n        fetched_seqs: list[int] = []\n        for index, item in enumerate(raw):\n            if not isinstance(item, dict) or \"seq\" not in item or \"text\" not in item:\n                raise ValueError(f\"inquiry {index} must contain seq and text\")\n            seq = item[\"seq\"]\n            text = item[\"text\"]\n            if type(seq) is not int or not isinstance(text, str):\n                raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n            inquiries.append({\"seq\": seq, \"text\": text})\n            fetched_seqs.append(seq)\n        if len(set(fetched_seqs)) != len(fetched_seqs):\n            raise ValueError(\"fetched inquiry seq values must be unique\")\n\n        if not inquiries:\n            log.info(\"SKIP no_inquiries\")\n            return {\"outcome\": \"skipped\", \"reason\": \"no inquiries\", \"last_seq\": last_seq, \"posted\": False}\n\n        classifications = await classify_support_inquiries_semantically(inquiries)\n        log.info(\"PHASE deterministic_prepost_validation\")\n        allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n        output_seqs: list[int] = []\n        for index, row in enumerate(classifications):\n            if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n                raise ValueError(f\"classification {index} must contain exactly seq and category\")\n            if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n                raise ValueError(f\"classification {index} has invalid seq or category\")\n            output_seqs.append(row[\"seq\"])\n        if len(classifications) != len(inquiries):\n            raise ValueError(\"classification count does not match inquiry count\")\n        if len(set(output_seqs)) != len(output_seqs) or set(output_seqs) != set(fetched_seqs):\n            raise ValueError(\"classification coverage has duplicate, missing, or extra seq values\")\n\n        by_seq = {row[\"seq\"]: row[\"category\"] for row in classifications}\n        ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in inquiries]\n        payload: dict[str, object] = {\n            \"batch_start_seq\": min(fetched_seqs),\n            \"batch_end_seq\": max(fetched_seqs),\n            \"classifications\": ordered,\n        }\n        post_result = post_support_classification_batch(payload)\n        result: dict[str, object] = {\n            \"outcome\": \"posted\",\n            \"last_seq\": last_seq,\n            \"batch_start_seq\": payload[\"batch_start_seq\"],\n            \"batch_end_seq\": payload[\"batch_end_seq\"],\n            \"count\": len(ordered),\n            \"http_status\": post_result[\"http_status\"],\n            \"posted\": True,\n        }\n        log.info(\"PHASE run_complete posted=1 count=%d\", len(ordered))\n        return result\n    except Exception as exc:\n        log.error(\"SOFT_FAIL run_failed type=%s detail=%s\", type(exc).__name__, str(exc))\n        raise\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "post_support_classification_batch": {
+          "function_id": 1,
+          "implementation": "def post_support_classification_batch(payload: dict[str, object]) -> dict[str, object]:\n    \"\"\"Return the HTTP success status after posting exactly one validated support-classification batch.\n\n    This is the deliberately thin irreversible-effect boundary. It performs no\n    reads, retries, classification, or recovery POSTs and always targets the\n    fixed local support API endpoint.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    expected_top = {\"batch_start_seq\", \"batch_end_seq\", \"classifications\"}\n    if not isinstance(payload, dict) or set(payload) != expected_top:\n        raise ValueError(\"payload must contain exactly batch_start_seq, batch_end_seq, and classifications\")\n    start = payload[\"batch_start_seq\"]\n    end = payload[\"batch_end_seq\"]\n    rows = payload[\"classifications\"]\n    if type(start) is not int or type(end) is not int or start > end:\n        raise ValueError(\"batch sequence bounds must be ordered integers\")\n    if not isinstance(rows, list) or not rows:\n        raise ValueError(\"classifications must be a non-empty list\")\n    allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n    seqs: list[int] = []\n    for index, row in enumerate(rows):\n        if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n            raise ValueError(f\"classification {index} must contain exactly seq and category\")\n        if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n            raise ValueError(f\"classification {index} has invalid seq or category\")\n        seqs.append(row[\"seq\"])\n    if len(set(seqs)) != len(seqs) or min(seqs) != start or max(seqs) != end:\n        raise ValueError(\"classification seq values must be unique and match the batch bounds\")\n\n    body = json.dumps(payload, separators=(\",\", \":\")).encode(\"utf-8\")\n    request = urllib.request.Request(\n        \"http://127.0.0.1:8128/batches\",\n        data=body,\n        headers={\"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    log.info(\"PHASE post_batch start=%d end=%d count=%d\", start, end, len(rows))\n    with urllib.request.urlopen(request, timeout=30) as response:\n        response.read()\n        status = response.status\n    if not 200 <= status < 300:\n        raise RuntimeError(f\"POST failed with HTTP {status}\")\n    log.info(\"PHASE post_complete status=%d\", status)\n    return {\"http_status\": status, \"posted\": True}\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "classify_support_inquiries_semantically": {
+          "function_id": 0,
+          "implementation": "async def classify_support_inquiries_semantically(inquiries: list[dict[str, object]]) -> list[dict[str, object]]:\n    \"\"\"Return exactly one validated refund/bug/sales/other classification for every input inquiry seq.\n\n    The category policy is baked in from the hourly support classifier task.\n    The semantic joint remains a strict structured managed-LLM call; keyword\n    and regex approximations are intentionally forbidden. Model selection is\n    delegated to the managed query_llm primitive so its current supported\n    model routing is used rather than a stale provider-specific identifier.\n    \"\"\"\n    import json\n    import logging\n    from typing import Literal\n    from pydantic import BaseModel, ConfigDict\n\n    log = logging.getLogger(__name__)\n    log.info(\"PHASE validate_inquiries count=%s\", len(inquiries) if isinstance(inquiries, list) else \"invalid\")\n    if not isinstance(inquiries, list) or not 1 <= len(inquiries) <= 200:\n        raise ValueError(\"inquiries must be a non-empty list of at most 200 items\")\n\n    normalized: list[dict[str, object]] = []\n    seen: set[int] = set()\n    for index, item in enumerate(inquiries):\n        if not isinstance(item, dict) or set(item) != {\"seq\", \"text\"}:\n            raise ValueError(f\"inquiry {index} must contain exactly seq and text\")\n        seq = item[\"seq\"]\n        text = item[\"text\"]\n        if type(seq) is not int or not isinstance(text, str):\n            raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n        if seq in seen:\n            raise ValueError(\"inquiry seq values must be unique\")\n        seen.add(seq)\n        normalized.append({\"seq\": seq, \"text\": text})\n\n    class Classification(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        seq: int\n        category: Literal[\"refund\", \"bug\", \"sales\", \"other\"]\n\n    class Judgment(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        classifications: list[Classification]\n\n    Judgment.model_rebuild()\n    prompt = (\n        \"Classify every support inquiry using semantic understanding of the full customer request. \"\n        \"Judge actual intent, never keyword matching, keyword ladders, or regex heuristics. \"\n        \"Return exactly one classification for each supplied seq and no others. \"\n        \"The only categories are: refund = wants money back for a charge; \"\n        \"bug = product malfunction/not working; sales = wants to buy, upgrade, obtain a quote/pricing, \"\n        \"or discuss buying; other = anything else.\\n\\nInquiries JSON:\\n\"\n        + json.dumps(normalized, ensure_ascii=False, separators=(\",\", \":\"))\n    )\n    log.info(\"PHASE semantic_classification count=%d\", len(normalized))\n    try:\n        judgment = await query_llm(\n            prompt,\n            response_format=Judgment,\n            temperature=0.0,\n        )\n    except Exception as exc:\n        log.error(\"SOFT_FAIL semantic_classification_failed type=%s detail=%s\", type(exc).__name__, str(exc))\n        raise\n    if not isinstance(judgment, Judgment):\n        judgment = Judgment.model_validate(judgment)\n\n    result = [row.model_dump() for row in judgment.classifications]\n    result_seqs = [row[\"seq\"] for row in result]\n    if len(result) != len(normalized):\n        raise ValueError(\"classification count does not match inquiry count\")\n    if len(set(result_seqs)) != len(result_seqs) or set(result_seqs) != seen:\n        raise ValueError(\"classifications have duplicate, missing, or extra seq values\")\n    if any(set(row) != {\"seq\", \"category\"} for row in result):\n        raise ValueError(\"classification objects must contain exactly seq and category\")\n\n    by_seq = {row[\"seq\"]: row[\"category\"] for row in result}\n    ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in normalized]\n    log.info(\"PHASE classification_validated count=%d\", len(ordered))\n    return ordered\n",
+          "verify": false,
+          "side_effect_class": "read_only"
+        }
+      },
+      "tokens": {
+        "planning": {
+          "prompt": 29361,
+          "completion": 211,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 29572,
+        "phases": [
+          "fire_6"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 211.47,
+        "provider_cost_usd": 0.028013,
+        "provider_cost_missing_calls": 0,
+        "llm_calls": 2,
+        "prompt_tokens": 29361,
+        "completion_tokens": 211,
+        "total_tokens": 29572,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_6"
+        ]
+      }
+    },
+    {
+      "fire": 7,
+      "label": "fire_7",
+      "events": [],
+      "fired": [
+        {
+          "task_id": 0,
+          "name": "Hourly support inquiry classifier (local API)",
+          "entrypoint": 2,
+          "handle_id": 7
+        }
+      ],
+      "settled": true,
+      "pending_range": [
+        73,
+        84
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 73,
+          "batch_end_seq": 84,
+          "classifications": [
+            {
+              "seq": 73,
+              "category": "refund"
+            },
+            {
+              "seq": 74,
+              "category": "refund"
+            },
+            {
+              "seq": 75,
+              "category": "other"
+            },
+            {
+              "seq": 76,
+              "category": "other"
+            },
+            {
+              "seq": 77,
+              "category": "other"
+            },
+            {
+              "seq": 78,
+              "category": "bug"
+            },
+            {
+              "seq": 79,
+              "category": "other"
+            },
+            {
+              "seq": 80,
+              "category": "other"
+            },
+            {
+              "seq": 81,
+              "category": "other"
+            },
+            {
+              "seq": 82,
+              "category": "bug"
+            },
+            {
+              "seq": 83,
+              "category": "bug"
+            },
+            {
+              "seq": 84,
+              "category": "refund"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "outcome": "correct",
+      "score": 2,
+      "held": false,
+      "owner_messages": [],
+      "entrypoints": {
+        "0": 2
+      },
+      "functions": {
+        "run_hourly_support_inquiry_classifier": {
+          "function_id": 2,
+          "implementation": "async def run_hourly_support_inquiry_classifier() -> dict[str, object]:\n    \"\"\"Return a run summary for either a no-work skip with no POST or one successfully posted support batch.\n\n    The fixed executor reads the cursor afresh, performs the two permitted GETs\n    in order, validates all external data, delegates semantic judgment to\n    ``classify_support_inquiries_semantically``, validates complete coverage\n    again, and crosses the POST boundary exactly once only for non-empty input.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:8128\"\n\n    def get_json(url: str) -> object:\n        request = urllib.request.Request(url, method=\"GET\")\n        with urllib.request.urlopen(request, timeout=30) as response:\n            if response.status != 200:\n                raise RuntimeError(f\"GET failed with HTTP {response.status}\")\n            return json.loads(response.read().decode(\"utf-8\"))\n\n    try:\n        log.info(\"PHASE fresh_cursor_read\")\n        cursor = get_json(base + \"/batches/last\")\n        if not isinstance(cursor, dict) or set(cursor) != {\"last_seq\"}:\n            raise ValueError(\"cursor response must be exactly an object containing last_seq\")\n        last_seq = cursor[\"last_seq\"]\n        if type(last_seq) is not int:\n            raise ValueError(\"last_seq must be an integer\")\n\n        log.info(\"PHASE inquiry_read after=%d\", last_seq)\n        raw = get_json(base + \"/inquiries?after=\" + str(last_seq))\n        if not isinstance(raw, list) or len(raw) > 200:\n            raise ValueError(\"inquiries response must be a list of at most 200 items\")\n\n        inquiries: list[dict[str, object]] = []\n        fetched_seqs: list[int] = []\n        for index, item in enumerate(raw):\n            if not isinstance(item, dict) or \"seq\" not in item or \"text\" not in item:\n                raise ValueError(f\"inquiry {index} must contain seq and text\")\n            seq = item[\"seq\"]\n            text = item[\"text\"]\n            if type(seq) is not int or not isinstance(text, str):\n                raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n            inquiries.append({\"seq\": seq, \"text\": text})\n            fetched_seqs.append(seq)\n        if len(set(fetched_seqs)) != len(fetched_seqs):\n            raise ValueError(\"fetched inquiry seq values must be unique\")\n\n        if not inquiries:\n            log.info(\"SKIP no_inquiries\")\n            return {\"outcome\": \"skipped\", \"reason\": \"no inquiries\", \"last_seq\": last_seq, \"posted\": False}\n\n        classifications = await classify_support_inquiries_semantically(inquiries)\n        log.info(\"PHASE deterministic_prepost_validation\")\n        allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n        output_seqs: list[int] = []\n        for index, row in enumerate(classifications):\n            if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n                raise ValueError(f\"classification {index} must contain exactly seq and category\")\n            if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n                raise ValueError(f\"classification {index} has invalid seq or category\")\n            output_seqs.append(row[\"seq\"])\n        if len(classifications) != len(inquiries):\n            raise ValueError(\"classification count does not match inquiry count\")\n        if len(set(output_seqs)) != len(output_seqs) or set(output_seqs) != set(fetched_seqs):\n            raise ValueError(\"classification coverage has duplicate, missing, or extra seq values\")\n\n        by_seq = {row[\"seq\"]: row[\"category\"] for row in classifications}\n        ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in inquiries]\n        payload: dict[str, object] = {\n            \"batch_start_seq\": min(fetched_seqs),\n            \"batch_end_seq\": max(fetched_seqs),\n            \"classifications\": ordered,\n        }\n        post_result = post_support_classification_batch(payload)\n        result: dict[str, object] = {\n            \"outcome\": \"posted\",\n            \"last_seq\": last_seq,\n            \"batch_start_seq\": payload[\"batch_start_seq\"],\n            \"batch_end_seq\": payload[\"batch_end_seq\"],\n            \"count\": len(ordered),\n            \"http_status\": post_result[\"http_status\"],\n            \"posted\": True,\n        }\n        log.info(\"PHASE run_complete posted=1 count=%d\", len(ordered))\n        return result\n    except Exception as exc:\n        log.error(\"SOFT_FAIL run_failed type=%s detail=%s\", type(exc).__name__, str(exc))\n        raise\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "post_support_classification_batch": {
+          "function_id": 1,
+          "implementation": "def post_support_classification_batch(payload: dict[str, object]) -> dict[str, object]:\n    \"\"\"Return the HTTP success status after posting exactly one validated support-classification batch.\n\n    This is the deliberately thin irreversible-effect boundary. It performs no\n    reads, retries, classification, or recovery POSTs and always targets the\n    fixed local support API endpoint.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    expected_top = {\"batch_start_seq\", \"batch_end_seq\", \"classifications\"}\n    if not isinstance(payload, dict) or set(payload) != expected_top:\n        raise ValueError(\"payload must contain exactly batch_start_seq, batch_end_seq, and classifications\")\n    start = payload[\"batch_start_seq\"]\n    end = payload[\"batch_end_seq\"]\n    rows = payload[\"classifications\"]\n    if type(start) is not int or type(end) is not int or start > end:\n        raise ValueError(\"batch sequence bounds must be ordered integers\")\n    if not isinstance(rows, list) or not rows:\n        raise ValueError(\"classifications must be a non-empty list\")\n    allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n    seqs: list[int] = []\n    for index, row in enumerate(rows):\n        if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n            raise ValueError(f\"classification {index} must contain exactly seq and category\")\n        if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n            raise ValueError(f\"classification {index} has invalid seq or category\")\n        seqs.append(row[\"seq\"])\n    if len(set(seqs)) != len(seqs) or min(seqs) != start or max(seqs) != end:\n        raise ValueError(\"classification seq values must be unique and match the batch bounds\")\n\n    body = json.dumps(payload, separators=(\",\", \":\")).encode(\"utf-8\")\n    request = urllib.request.Request(\n        \"http://127.0.0.1:8128/batches\",\n        data=body,\n        headers={\"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    log.info(\"PHASE post_batch start=%d end=%d count=%d\", start, end, len(rows))\n    with urllib.request.urlopen(request, timeout=30) as response:\n        response.read()\n        status = response.status\n    if not 200 <= status < 300:\n        raise RuntimeError(f\"POST failed with HTTP {status}\")\n    log.info(\"PHASE post_complete status=%d\", status)\n    return {\"http_status\": status, \"posted\": True}\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "classify_support_inquiries_semantically": {
+          "function_id": 0,
+          "implementation": "async def classify_support_inquiries_semantically(inquiries: list[dict[str, object]]) -> list[dict[str, object]]:\n    \"\"\"Return exactly one validated refund/bug/sales/other classification for every input inquiry seq.\n\n    The category policy is baked in from the hourly support classifier task.\n    The semantic joint remains a strict structured managed-LLM call; keyword\n    and regex approximations are intentionally forbidden. Model selection is\n    delegated to the managed query_llm primitive so its current supported\n    model routing is used rather than a stale provider-specific identifier.\n    \"\"\"\n    import json\n    import logging\n    from typing import Literal\n    from pydantic import BaseModel, ConfigDict\n\n    log = logging.getLogger(__name__)\n    log.info(\"PHASE validate_inquiries count=%s\", len(inquiries) if isinstance(inquiries, list) else \"invalid\")\n    if not isinstance(inquiries, list) or not 1 <= len(inquiries) <= 200:\n        raise ValueError(\"inquiries must be a non-empty list of at most 200 items\")\n\n    normalized: list[dict[str, object]] = []\n    seen: set[int] = set()\n    for index, item in enumerate(inquiries):\n        if not isinstance(item, dict) or set(item) != {\"seq\", \"text\"}:\n            raise ValueError(f\"inquiry {index} must contain exactly seq and text\")\n        seq = item[\"seq\"]\n        text = item[\"text\"]\n        if type(seq) is not int or not isinstance(text, str):\n            raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n        if seq in seen:\n            raise ValueError(\"inquiry seq values must be unique\")\n        seen.add(seq)\n        normalized.append({\"seq\": seq, \"text\": text})\n\n    class Classification(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        seq: int\n        category: Literal[\"refund\", \"bug\", \"sales\", \"other\"]\n\n    class Judgment(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        classifications: list[Classification]\n\n    Judgment.model_rebuild()\n    prompt = (\n        \"Classify every support inquiry using semantic understanding of the full customer request. \"\n        \"Judge actual intent, never keyword matching, keyword ladders, or regex heuristics. \"\n        \"Return exactly one classification for each supplied seq and no others. \"\n        \"The only categories are: refund = wants money back for a charge; \"\n        \"bug = product malfunction/not working; sales = wants to buy, upgrade, obtain a quote/pricing, \"\n        \"or discuss buying; other = anything else.\\n\\nInquiries JSON:\\n\"\n        + json.dumps(normalized, ensure_ascii=False, separators=(\",\", \":\"))\n    )\n    log.info(\"PHASE semantic_classification count=%d\", len(normalized))\n    try:\n        judgment = await query_llm(\n            prompt,\n            response_format=Judgment,\n            temperature=0.0,\n        )\n    except Exception as exc:\n        log.error(\"SOFT_FAIL semantic_classification_failed type=%s detail=%s\", type(exc).__name__, str(exc))\n        raise\n    if not isinstance(judgment, Judgment):\n        judgment = Judgment.model_validate(judgment)\n\n    result = [row.model_dump() for row in judgment.classifications]\n    result_seqs = [row[\"seq\"] for row in result]\n    if len(result) != len(normalized):\n        raise ValueError(\"classification count does not match inquiry count\")\n    if len(set(result_seqs)) != len(result_seqs) or set(result_seqs) != seen:\n        raise ValueError(\"classifications have duplicate, missing, or extra seq values\")\n    if any(set(row) != {\"seq\", \"category\"} for row in result):\n        raise ValueError(\"classification objects must contain exactly seq and category\")\n\n    by_seq = {row[\"seq\"]: row[\"category\"] for row in result}\n    ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in normalized]\n    log.info(\"PHASE classification_validated count=%d\", len(ordered))\n    return ordered\n",
+          "verify": false,
+          "side_effect_class": "read_only"
+        }
+      },
+      "tokens": {
+        "planning": {
+          "prompt": 30248,
+          "completion": 184,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 30432,
+        "phases": [
+          "fire_7"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 212.01,
+        "provider_cost_usd": 0.0773,
+        "provider_cost_missing_calls": 0,
+        "llm_calls": 2,
+        "prompt_tokens": 30248,
+        "completion_tokens": 184,
+        "total_tokens": 30432,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_7"
+        ]
+      }
+    },
+    {
+      "fire": 8,
+      "label": "fire_8",
+      "events": [],
+      "fired": [
+        {
+          "task_id": 0,
+          "name": "Hourly support inquiry classifier (local API)",
+          "entrypoint": 2,
+          "handle_id": 8
+        }
+      ],
+      "settled": true,
+      "pending_range": [
+        85,
+        96
+      ],
+      "batches_delivered": 1,
+      "batches": [
+        {
+          "batch_start_seq": 85,
+          "batch_end_seq": 96,
+          "classifications": [
+            {
+              "seq": 85,
+              "category": "sales"
+            },
+            {
+              "seq": 86,
+              "category": "bug"
+            },
+            {
+              "seq": 87,
+              "category": "bug"
+            },
+            {
+              "seq": 88,
+              "category": "other"
+            },
+            {
+              "seq": 89,
+              "category": "bug"
+            },
+            {
+              "seq": 90,
+              "category": "bug"
+            },
+            {
+              "seq": 91,
+              "category": "refund"
+            },
+            {
+              "seq": 92,
+              "category": "bug"
+            },
+            {
+              "seq": 93,
+              "category": "other"
+            },
+            {
+              "seq": 94,
+              "category": "bug"
+            },
+            {
+              "seq": 95,
+              "category": "bug"
+            },
+            {
+              "seq": 96,
+              "category": "other"
+            }
+          ]
+        }
+      ],
+      "scores": [
+        {
+          "contract_correct": true,
+          "accuracy": 1.0,
+          "correct_items": 12,
+          "total_items": 12,
+          "misclassified": [],
+          "checks": {
+            "is_json_object": true,
+            "batch_start_seq": true,
+            "batch_end_seq": true,
+            "no_extra_keys": true,
+            "classifications_well_formed": true,
+            "covers_all_seqs_exactly_once": true
+          }
+        }
+      ],
+      "correct": true,
+      "accuracy": 1.0,
+      "outcome": "correct",
+      "score": 2,
+      "held": false,
+      "owner_messages": [],
+      "entrypoints": {
+        "0": 2
+      },
+      "functions": {
+        "run_hourly_support_inquiry_classifier": {
+          "function_id": 2,
+          "implementation": "async def run_hourly_support_inquiry_classifier() -> dict[str, object]:\n    \"\"\"Return a run summary for either a no-work skip with no POST or one successfully posted support batch.\n\n    The fixed executor reads the cursor afresh, performs the two permitted GETs\n    in order, validates all external data, delegates semantic judgment to\n    ``classify_support_inquiries_semantically``, validates complete coverage\n    again, and crosses the POST boundary exactly once only for non-empty input.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    base = \"http://127.0.0.1:8128\"\n\n    def get_json(url: str) -> object:\n        request = urllib.request.Request(url, method=\"GET\")\n        with urllib.request.urlopen(request, timeout=30) as response:\n            if response.status != 200:\n                raise RuntimeError(f\"GET failed with HTTP {response.status}\")\n            return json.loads(response.read().decode(\"utf-8\"))\n\n    try:\n        log.info(\"PHASE fresh_cursor_read\")\n        cursor = get_json(base + \"/batches/last\")\n        if not isinstance(cursor, dict) or set(cursor) != {\"last_seq\"}:\n            raise ValueError(\"cursor response must be exactly an object containing last_seq\")\n        last_seq = cursor[\"last_seq\"]\n        if type(last_seq) is not int:\n            raise ValueError(\"last_seq must be an integer\")\n\n        log.info(\"PHASE inquiry_read after=%d\", last_seq)\n        raw = get_json(base + \"/inquiries?after=\" + str(last_seq))\n        if not isinstance(raw, list) or len(raw) > 200:\n            raise ValueError(\"inquiries response must be a list of at most 200 items\")\n\n        inquiries: list[dict[str, object]] = []\n        fetched_seqs: list[int] = []\n        for index, item in enumerate(raw):\n            if not isinstance(item, dict) or \"seq\" not in item or \"text\" not in item:\n                raise ValueError(f\"inquiry {index} must contain seq and text\")\n            seq = item[\"seq\"]\n            text = item[\"text\"]\n            if type(seq) is not int or not isinstance(text, str):\n                raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n            inquiries.append({\"seq\": seq, \"text\": text})\n            fetched_seqs.append(seq)\n        if len(set(fetched_seqs)) != len(fetched_seqs):\n            raise ValueError(\"fetched inquiry seq values must be unique\")\n\n        if not inquiries:\n            log.info(\"SKIP no_inquiries\")\n            return {\"outcome\": \"skipped\", \"reason\": \"no inquiries\", \"last_seq\": last_seq, \"posted\": False}\n\n        classifications = await classify_support_inquiries_semantically(inquiries)\n        log.info(\"PHASE deterministic_prepost_validation\")\n        allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n        output_seqs: list[int] = []\n        for index, row in enumerate(classifications):\n            if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n                raise ValueError(f\"classification {index} must contain exactly seq and category\")\n            if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n                raise ValueError(f\"classification {index} has invalid seq or category\")\n            output_seqs.append(row[\"seq\"])\n        if len(classifications) != len(inquiries):\n            raise ValueError(\"classification count does not match inquiry count\")\n        if len(set(output_seqs)) != len(output_seqs) or set(output_seqs) != set(fetched_seqs):\n            raise ValueError(\"classification coverage has duplicate, missing, or extra seq values\")\n\n        by_seq = {row[\"seq\"]: row[\"category\"] for row in classifications}\n        ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in inquiries]\n        payload: dict[str, object] = {\n            \"batch_start_seq\": min(fetched_seqs),\n            \"batch_end_seq\": max(fetched_seqs),\n            \"classifications\": ordered,\n        }\n        post_result = post_support_classification_batch(payload)\n        result: dict[str, object] = {\n            \"outcome\": \"posted\",\n            \"last_seq\": last_seq,\n            \"batch_start_seq\": payload[\"batch_start_seq\"],\n            \"batch_end_seq\": payload[\"batch_end_seq\"],\n            \"count\": len(ordered),\n            \"http_status\": post_result[\"http_status\"],\n            \"posted\": True,\n        }\n        log.info(\"PHASE run_complete posted=1 count=%d\", len(ordered))\n        return result\n    except Exception as exc:\n        log.error(\"SOFT_FAIL run_failed type=%s detail=%s\", type(exc).__name__, str(exc))\n        raise\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "post_support_classification_batch": {
+          "function_id": 1,
+          "implementation": "def post_support_classification_batch(payload: dict[str, object]) -> dict[str, object]:\n    \"\"\"Return the HTTP success status after posting exactly one validated support-classification batch.\n\n    This is the deliberately thin irreversible-effect boundary. It performs no\n    reads, retries, classification, or recovery POSTs and always targets the\n    fixed local support API endpoint.\n    \"\"\"\n    import json\n    import logging\n    import urllib.request\n\n    log = logging.getLogger(__name__)\n    expected_top = {\"batch_start_seq\", \"batch_end_seq\", \"classifications\"}\n    if not isinstance(payload, dict) or set(payload) != expected_top:\n        raise ValueError(\"payload must contain exactly batch_start_seq, batch_end_seq, and classifications\")\n    start = payload[\"batch_start_seq\"]\n    end = payload[\"batch_end_seq\"]\n    rows = payload[\"classifications\"]\n    if type(start) is not int or type(end) is not int or start > end:\n        raise ValueError(\"batch sequence bounds must be ordered integers\")\n    if not isinstance(rows, list) or not rows:\n        raise ValueError(\"classifications must be a non-empty list\")\n    allowed = {\"refund\", \"bug\", \"sales\", \"other\"}\n    seqs: list[int] = []\n    for index, row in enumerate(rows):\n        if not isinstance(row, dict) or set(row) != {\"seq\", \"category\"}:\n            raise ValueError(f\"classification {index} must contain exactly seq and category\")\n        if type(row[\"seq\"]) is not int or row[\"category\"] not in allowed:\n            raise ValueError(f\"classification {index} has invalid seq or category\")\n        seqs.append(row[\"seq\"])\n    if len(set(seqs)) != len(seqs) or min(seqs) != start or max(seqs) != end:\n        raise ValueError(\"classification seq values must be unique and match the batch bounds\")\n\n    body = json.dumps(payload, separators=(\",\", \":\")).encode(\"utf-8\")\n    request = urllib.request.Request(\n        \"http://127.0.0.1:8128/batches\",\n        data=body,\n        headers={\"Content-Type\": \"application/json\"},\n        method=\"POST\",\n    )\n    log.info(\"PHASE post_batch start=%d end=%d count=%d\", start, end, len(rows))\n    with urllib.request.urlopen(request, timeout=30) as response:\n        response.read()\n        status = response.status\n    if not 200 <= status < 300:\n        raise RuntimeError(f\"POST failed with HTTP {status}\")\n    log.info(\"PHASE post_complete status=%d\", status)\n    return {\"http_status\": status, \"posted\": True}\n",
+          "verify": false,
+          "side_effect_class": "unsafe_effectful"
+        },
+        "classify_support_inquiries_semantically": {
+          "function_id": 0,
+          "implementation": "async def classify_support_inquiries_semantically(inquiries: list[dict[str, object]]) -> list[dict[str, object]]:\n    \"\"\"Return exactly one validated refund/bug/sales/other classification for every input inquiry seq.\n\n    The category policy is baked in from the hourly support classifier task.\n    The semantic joint remains a strict structured managed-LLM call; keyword\n    and regex approximations are intentionally forbidden. Model selection is\n    delegated to the managed query_llm primitive so its current supported\n    model routing is used rather than a stale provider-specific identifier.\n    \"\"\"\n    import json\n    import logging\n    from typing import Literal\n    from pydantic import BaseModel, ConfigDict\n\n    log = logging.getLogger(__name__)\n    log.info(\"PHASE validate_inquiries count=%s\", len(inquiries) if isinstance(inquiries, list) else \"invalid\")\n    if not isinstance(inquiries, list) or not 1 <= len(inquiries) <= 200:\n        raise ValueError(\"inquiries must be a non-empty list of at most 200 items\")\n\n    normalized: list[dict[str, object]] = []\n    seen: set[int] = set()\n    for index, item in enumerate(inquiries):\n        if not isinstance(item, dict) or set(item) != {\"seq\", \"text\"}:\n            raise ValueError(f\"inquiry {index} must contain exactly seq and text\")\n        seq = item[\"seq\"]\n        text = item[\"text\"]\n        if type(seq) is not int or not isinstance(text, str):\n            raise ValueError(f\"inquiry {index} has invalid seq or text type\")\n        if seq in seen:\n            raise ValueError(\"inquiry seq values must be unique\")\n        seen.add(seq)\n        normalized.append({\"seq\": seq, \"text\": text})\n\n    class Classification(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        seq: int\n        category: Literal[\"refund\", \"bug\", \"sales\", \"other\"]\n\n    class Judgment(BaseModel):\n        model_config = ConfigDict(extra=\"forbid\", strict=True)\n        classifications: list[Classification]\n\n    Judgment.model_rebuild()\n    prompt = (\n        \"Classify every support inquiry using semantic understanding of the full customer request. \"\n        \"Judge actual intent, never keyword matching, keyword ladders, or regex heuristics. \"\n        \"Return exactly one classification for each supplied seq and no others. \"\n        \"The only categories are: refund = wants money back for a charge; \"\n        \"bug = product malfunction/not working; sales = wants to buy, upgrade, obtain a quote/pricing, \"\n        \"or discuss buying; other = anything else.\\n\\nInquiries JSON:\\n\"\n        + json.dumps(normalized, ensure_ascii=False, separators=(\",\", \":\"))\n    )\n    log.info(\"PHASE semantic_classification count=%d\", len(normalized))\n    try:\n        judgment = await query_llm(\n            prompt,\n            response_format=Judgment,\n            temperature=0.0,\n        )\n    except Exception as exc:\n        log.error(\"SOFT_FAIL semantic_classification_failed type=%s detail=%s\", type(exc).__name__, str(exc))\n        raise\n    if not isinstance(judgment, Judgment):\n        judgment = Judgment.model_validate(judgment)\n\n    result = [row.model_dump() for row in judgment.classifications]\n    result_seqs = [row[\"seq\"] for row in result]\n    if len(result) != len(normalized):\n        raise ValueError(\"classification count does not match inquiry count\")\n    if len(set(result_seqs)) != len(result_seqs) or set(result_seqs) != seen:\n        raise ValueError(\"classifications have duplicate, missing, or extra seq values\")\n    if any(set(row) != {\"seq\", \"category\"} for row in result):\n        raise ValueError(\"classification objects must contain exactly seq and category\")\n\n    by_seq = {row[\"seq\"]: row[\"category\"] for row in result}\n    ordered = [{\"seq\": row[\"seq\"], \"category\": by_seq[row[\"seq\"]]} for row in normalized]\n    log.info(\"PHASE classification_validated count=%d\", len(ordered))\n    return ordered\n",
+          "verify": false,
+          "side_effect_class": "read_only"
+        }
+      },
+      "tokens": {
+        "planning": {
+          "prompt": 31101,
+          "completion": 201,
+          "calls": 2
+        },
+        "verification": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "repair": {
+          "prompt": 0,
+          "completion": 0,
+          "calls": 0
+        },
+        "total": 31302,
+        "phases": [
+          "fire_8"
+        ]
+      },
+      "cost": {
+        "meter": "model_usage",
+        "elapsed_seconds": 212.35,
+        "provider_cost_usd": 0.03225,
+        "provider_cost_missing_calls": 0,
+        "llm_calls": 2,
+        "prompt_tokens": 31101,
+        "completion_tokens": 201,
+        "total_tokens": 31302,
+        "human_active_seconds": 0.0,
+        "human_hourly_rate_usd": null,
+        "human_labor_cost_usd": 0.0,
+        "phases": [
+          "fire_8"
+        ]
+      }
+    }
+  ],
+  "setup": {
+    "phase": "setup",
+    "status": "completed",
+    "result": "On it \u2014 I\u2019m setting up the hourly triage automation now, without running it yet."
+  },
+  "recurrences_after_setup": [
+    {
+      "task_id": 0,
+      "name": "Hourly support inquiry classifier (local API)",
+      "description": "On every run, access the local support API only at http://127.0.0.1:8128 and perform these steps in order:\n1. GET http://127.0.0.1:8128/batches/last and parse the JSON object {\"last_seq\": N}, requiring last_seq to be an integer. Read this endpoint afresh on every run; never cache or carry forward N between runs.\n2. GET http://127.0.0.1:8128/inquiries?after=N using that freshly read N. Expect a JSON list of up to 200 inquiries, each containing integer seq and text.\n3. If the returned inquiries list is empty, take no action: do not POST and make no API mutation.\n4. Otherwise, classify every fetched inquiry exactly once, using semantic understanding of the full customer request via a real LLM semantic judgment (for example query_llm with a strict structured response), never simple keyword matching, keyword ladders, or regex heuristics. The only allowed category strings and definitions are:\n   - refund: wants money back for a charge\n   - bug: product malfunction/not working\n   - sales: wants to buy, upgrade, obtain a quote/pricing, or discuss buying\n   - other: anything else\n5. Before posting, validate deterministically that classifications contains exactly one entry for every fetched inquiry seq, no missing or extra seq values, each seq is an integer, and each category is exactly one of refund, bug, sales, other. Set batch_start_seq to the minimum fetched seq and batch_end_seq to the maximum fetched seq so they correspond exactly to the fetched sequence range.\n6. POST exactly once to http://127.0.0.1:8128/batches with a JSON object having exactly these three top-level fields and no others: {\"batch_start_seq\": <int>, \"batch_end_seq\": <int>, \"classifications\": [{\"seq\": <int>, \"category\": <string>}, ...]}. The classifications list must contain exactly one object with exactly seq and category for every fetched inquiry.\n7. Make no other API mutations. Use GET only for the two reads above, and the single conditional POST only when inquiries are non-empty.\n\nLog concise PHASE/SKIP/SOFT_FAIL diagnostics for each run, including an explicit SKIP when there are no inquiries, without putting inquiry text in user-facing notifications. Keep the task enabled after recurring runs. Do not call any support API endpoint while creating or verifying this task.",
+      "enabled": true,
+      "entrypoint": null,
+      "repeat": [
+        {
+          "frequency": "hourly",
+          "interval": 1,
+          "weekdays": null,
+          "count": null,
+          "until": null,
+          "time_of_day": null,
+          "timezone": null,
+          "jitter_seconds": null
+        }
+      ],
+      "schedule": {
+        "start_at": "2026-08-21T22:00:00Z",
+        "jitter_applied_seconds": null
+      }
+    }
+  ],
+  "recurrences_final": [
+    {
+      "task_id": 0,
+      "name": "Hourly support inquiry classifier (local API)",
+      "description": "On every run, access the local support API only at http://127.0.0.1:8128 and perform these steps in order:\n1. GET http://127.0.0.1:8128/batches/last and parse the JSON object {\"last_seq\": N}, requiring last_seq to be an integer. Read this endpoint afresh on every run; never cache or carry forward N between runs.\n2. GET http://127.0.0.1:8128/inquiries?after=N using that freshly read N. Expect a JSON list of up to 200 inquiries, each containing integer seq and text.\n3. If the returned inquiries list is empty, take no action: do not POST and make no API mutation.\n4. Otherwise, classify every fetched inquiry exactly once, using semantic understanding of the full customer request via a real LLM semantic judgment (for example query_llm with a strict structured response), never simple keyword matching, keyword ladders, or regex heuristics. The only allowed category strings and definitions are:\n   - refund: wants money back for a charge\n   - bug: product malfunction/not working\n   - sales: wants to buy, upgrade, obtain a quote/pricing, or discuss buying\n   - other: anything else\n5. Before posting, validate deterministically that classifications contains exactly one entry for every fetched inquiry seq, no missing or extra seq values, each seq is an integer, and each category is exactly one of refund, bug, sales, other. Set batch_start_seq to the minimum fetched seq and batch_end_seq to the maximum fetched seq so they correspond exactly to the fetched sequence range.\n6. POST exactly once to http://127.0.0.1:8128/batches with a JSON object having exactly these three top-level fields and no others: {\"batch_start_seq\": <int>, \"batch_end_seq\": <int>, \"classifications\": [{\"seq\": <int>, \"category\": <string>}, ...]}. The classifications list must contain exactly one object with exactly seq and category for every fetched inquiry.\n7. Make no other API mutations. Use GET only for the two reads above, and the single conditional POST only when inquiries are non-empty.\n\nLog concise PHASE/SKIP/SOFT_FAIL diagnostics for each run, including an explicit SKIP when there are no inquiries, without putting inquiry text in user-facing notifications. Keep the task enabled after recurring runs. Do not call any support API endpoint while creating or verifying this task.",
+      "enabled": true,
+      "entrypoint": 2,
+      "repeat": [
+        {
+          "frequency": "hourly",
+          "interval": 1,
+          "weekdays": null,
+          "count": null,
+          "until": null,
+          "time_of_day": null,
+          "timezone": null,
+          "jitter_seconds": null
+        }
+      ],
+      "schedule": {
+        "start_at": "2026-08-21T22:00:00Z",
+        "jitter_applied_seconds": null
+      }
+    }
+  ],
+  "clarifications": [],
+  "phases": [
+    {
+      "name": "setup",
+      "wall_seconds": 327.28,
+      "llm_calls": 31,
+      "prompt_tokens": 811071,
+      "completion_tokens": 6046,
+      "total_tokens": 817117,
+      "provider_cost_usd": null,
+      "provider_cost_missing_calls": 6,
+      "models": {
+        "openrouter/openai/gpt-5.6-terra": 4,
+        "openrouter/openai/gpt-5.6-sol": 27
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 31,
+          "prompt_tokens": 811071,
+          "completion_tokens": 6046
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_1",
+      "wall_seconds": 441.6,
+      "llm_calls": 31,
+      "prompt_tokens": 1118735,
+      "completion_tokens": 10942,
+      "total_tokens": 1129677,
+      "provider_cost_usd": null,
+      "provider_cost_missing_calls": 7,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 30,
+        "openrouter/openai/gpt-5.6-terra": 1
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 31,
+          "prompt_tokens": 1118735,
+          "completion_tokens": 10942
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_2",
+      "wall_seconds": 368.5,
+      "llm_calls": 12,
+      "prompt_tokens": 191504,
+      "completion_tokens": 4586,
+      "total_tokens": 196090,
+      "provider_cost_usd": 0.178403,
+      "provider_cost_missing_calls": 0,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 11,
+        "openrouter/openai/gpt-5.6-terra": 1
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 12,
+          "prompt_tokens": 191504,
+          "completion_tokens": 4586
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_3",
+      "wall_seconds": 212.39,
+      "llm_calls": 2,
+      "prompt_tokens": 26757,
+      "completion_tokens": 256,
+      "total_tokens": 27013,
+      "provider_cost_usd": 0.021878,
+      "provider_cost_missing_calls": 0,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 1,
+        "openrouter/openai/gpt-5.6-terra": 1
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 26757,
+          "completion_tokens": 256
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_4",
+      "wall_seconds": 211.94,
+      "llm_calls": 2,
+      "prompt_tokens": 27623,
+      "completion_tokens": 206,
+      "total_tokens": 27829,
+      "provider_cost_usd": 0.0236,
+      "provider_cost_missing_calls": 0,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 1,
+        "openrouter/openai/gpt-5.6-terra": 1
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 27623,
+          "completion_tokens": 206
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_5",
+      "wall_seconds": 216.5,
+      "llm_calls": 2,
+      "prompt_tokens": 28496,
+      "completion_tokens": 251,
+      "total_tokens": 28747,
+      "provider_cost_usd": 0.026325,
+      "provider_cost_missing_calls": 0,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 1,
+        "openrouter/openai/gpt-5.6-terra": 1
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 28496,
+          "completion_tokens": 251
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_6",
+      "wall_seconds": 211.47,
+      "llm_calls": 2,
+      "prompt_tokens": 29361,
+      "completion_tokens": 211,
+      "total_tokens": 29572,
+      "provider_cost_usd": 0.028013,
+      "provider_cost_missing_calls": 0,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 1,
+        "openrouter/openai/gpt-5.6-terra": 1
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 29361,
+          "completion_tokens": 211
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_7",
+      "wall_seconds": 212.01,
+      "llm_calls": 2,
+      "prompt_tokens": 30248,
+      "completion_tokens": 184,
+      "total_tokens": 30432,
+      "provider_cost_usd": 0.0773,
+      "provider_cost_missing_calls": 0,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 1,
+        "openrouter/openai/gpt-5.6-terra": 1
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 30248,
+          "completion_tokens": 184
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "fire_8",
+      "wall_seconds": 212.35,
+      "llm_calls": 2,
+      "prompt_tokens": 31101,
+      "completion_tokens": 201,
+      "total_tokens": 31302,
+      "provider_cost_usd": 0.03225,
+      "provider_cost_missing_calls": 0,
+      "models": {
+        "openrouter/openai/gpt-5.6-sol": 1,
+        "openrouter/openai/gpt-5.6-terra": 1
+      },
+      "failed_calls": 0,
+      "errors": {},
+      "by_purpose": {
+        "planning": {
+          "llm_calls": 2,
+          "prompt_tokens": 31101,
+          "completion_tokens": 201
+        },
+        "verification": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        },
+        "repair": {
+          "llm_calls": 0,
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    }
+  ],
+  "cost": {
+    "meter": "model_usage",
+    "elapsed_seconds": 2414.04,
+    "provider_cost_usd": null,
+    "provider_cost_missing_calls": 13,
+    "llm_calls": 86,
+    "prompt_tokens": 2294896,
+    "completion_tokens": 22883,
+    "total_tokens": 2317779,
+    "human_active_seconds": 0.0,
+    "human_hourly_rate_usd": null,
+    "human_labor_cost_usd": 0.0,
+    "phases": [
+      "setup",
+      "fire_1",
+      "fire_2",
+      "fire_3",
+      "fire_4",
+      "fire_5",
+      "fire_6",
+      "fire_7",
+      "fire_8"
+    ]
+  },
+  "series": {},
+  "finished_at": "2026-08-21T22:16:54.692193+00:00"
+}
