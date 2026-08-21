@@ -65,6 +65,20 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--port", type=int, default=0, help="0 picks a free port")
     parser.add_argument("--timeout", type=float, default=900.0)
     parser.add_argument(
+        "--human-hourly-rate-usd",
+        type=float,
+        default=30.0,
+        help=(
+            "human arm only: declared labour rate used to convert active "
+            "participant time to USD (default: benchmark reference rate $30/h)"
+        ),
+    )
+    parser.add_argument(
+        "--human-participant-id",
+        default="anonymous",
+        help="human arm only: pseudonymous participant id stored with cost records",
+    )
+    parser.add_argument(
         "--repeat",
         type=int,
         default=1,
@@ -106,6 +120,8 @@ def main(argv: list[str] | None = None) -> int:
                 only=args.only,
                 mode=args.mode,
                 transport=args.transport,
+                human_hourly_rate_usd=args.human_hourly_rate_usd,
+                human_participant_id=args.human_participant_id,
             ),
         )
     return worst

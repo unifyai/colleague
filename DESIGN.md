@@ -168,6 +168,22 @@ for an arm whose runtime holds a run natively and tells the owner through
 its own channel, that message read from the arm — the same outcome by
 either route, so no arm is asked to fake the other's mechanism.
 
+**9. Every primary outcome is human-testable.** A person given the same facts
+through a semantically equivalent human interface must be able to produce the
+outcome, and the same deterministic scorer must grade it. Recurring work has
+two declared human roles: an operator who performs each compressed wake, and
+a builder whose frozen artifact is fired unattended. Machine-only diagnostics
+(tokens, entrypoint attachment, repair tags) may be reported, but never serve
+as the only primary score. The executable protocol, coverage matrix and study
+controls are in [`HUMAN_TESTING.md`](HUMAN_TESTING.md).
+
+**10. Cost is mandatory and units stay honest.** Every scenario/fire records
+elapsed time. Model arms additionally record model calls, tokens and provider
+USD when metered; human arms record active labour, the declared hourly rate
+and labour USD. A missing money meter is `null`, never zero, and tokens are
+never converted into invented human minutes. Setup, change, repair and steady
+state remain separate phases so cheap execution cannot hide expensive labour.
+
 ## Tracks
 
 ### `standing` — work that outlives the conversation

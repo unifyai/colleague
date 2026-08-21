@@ -37,6 +37,7 @@ def _load(name: str) -> None:
         "opencode": "colleague.arms.sessions.opencode_session",
         "prime-agent": "colleague.arms.sessions.prime_agent_session",
         "prime-agent-rpc": "colleague.arms.sessions.prime_agent_rpc_session",
+        "human": "colleague.arms.sessions.human_session",
         "mock": "colleague.arms.sessions.mock_session",
     }.get(name)
     if module:
@@ -48,7 +49,7 @@ def _load(name: str) -> None:
 #: it); `hermes`, `unify`, `openclaw` and `prime-agent` remain the v0 arms —
 #: the first three are what the published standing numbers used. Capability
 #: labels name a path.
-ARMS = (
+AUTOMATED_ARMS = (
     "unify",
     "unify-cm",
     "hermes",
@@ -61,3 +62,9 @@ ARMS = (
     "prime-agent",
     "prime-agent-rpc",
 )
+
+# Human runs require an attached participant and must never be expanded by
+# an unattended ``--arms all`` cloud sweep. They remain ordinary explicit
+# arm choices everywhere else.
+HUMAN_ARMS = ("human",)
+ARMS = (*AUTOMATED_ARMS, *HUMAN_ARMS)

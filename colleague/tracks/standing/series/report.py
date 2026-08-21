@@ -87,8 +87,85 @@ def attach_fire_tokens(
         if operator_fix_before == i:
             extra += ("operator_fix",)
         row["tokens"] = tokens_for_label(
-            phases, experiment.label(i), extra_phases=extra
+            phases,
+            experiment.label(i),
+            extra_phases=extra,
         )
+
+
+def _cost_for_names(phases: list[dict[str, Any]], names: set[str]) -> dict[str, Any]:
+    selected = [p for p in phases if p.get("name") in names]
+    provider_missing = any(
+        int(p.get("llm_calls") or 0) > 0 and p.get("provider_cost_usd") is None
+        for p in selected
+    )
+    provider_values = [
+        float(p["provider_cost_usd"])
+        for p in selected
+        if p.get("provider_cost_usd") is not None
+    ]
+    rates = [
+        float(p["human_hourly_rate_usd"])
+        for p in selected
+        if p.get("human_hourly_rate_usd") is not None
+    ]
+    human_active = round(
+        sum(float(p.get("human_active_seconds") or 0.0) for p in selected),
+        3,
+    )
+    llm_calls = sum(int(p.get("llm_calls") or 0) for p in selected)
+    return {
+        "meter": (
+            "human_labor" if rates else ("model_usage" if llm_calls else "wall_time")
+        ),
+        "elapsed_seconds": round(
+            sum(float(p.get("wall_seconds") or 0.0) for p in selected),
+            3,
+        ),
+        "provider_cost_usd": (
+            None
+            if provider_missing or not provider_values
+            else round(sum(provider_values), 6)
+        ),
+        "provider_cost_missing_calls": sum(
+            int(p.get("provider_cost_missing_calls") or 0) for p in selected
+        ),
+        "llm_calls": llm_calls,
+        "prompt_tokens": sum(int(p.get("prompt_tokens") or 0) for p in selected),
+        "completion_tokens": sum(
+            int(p.get("completion_tokens") or 0) for p in selected
+        ),
+        "total_tokens": sum(int(p.get("total_tokens") or 0) for p in selected),
+        "human_active_seconds": human_active,
+        "human_hourly_rate_usd": rates[-1] if rates else None,
+        "human_labor_cost_usd": round(
+            sum(float(p.get("human_labor_cost_usd") or 0.0) for p in selected),
+            6,
+        ),
+        "phases": [str(p.get("name")) for p in selected],
+    }
+
+
+def attach_fire_cost(
+    rows: list[dict[str, Any]],
+    phases: list[dict[str, Any]],
+    experiment: Experiment,
+    *,
+    operator_fix_before: int | None = None,
+) -> None:
+    """Attach resource-neutral elapsed/provider/labour cost to every fire."""
+    for row in rows:
+        i = int(row["fire"])
+        names = {experiment.label(i), f"{experiment.label(i)}_review"}
+        names.update(
+            str(p.get("name"))
+            for p in phases
+            if p.get("name") == f"message_{i}"
+            or str(p.get("name", "")).startswith(f"message_{i}_")
+        )
+        if operator_fix_before == i:
+            names.add("operator_fix")
+        row["cost"] = _cost_for_names(phases, names)
 
 
 def _fmt(value: Any) -> str:
@@ -119,8 +196,8 @@ def render_summary(
         lines.append(f"- {key}: `{value}`")
     lines += [
         "",
-        "| phase | LLM calls | prompt tok | completion tok | planning | verification | repair | wall (s) |",
-        "|---|---|---|---|---|---|---|---|",
+        "| phase | LLM calls | prompt tok | completion tok | planning | verification | repair | wall (s) | provider USD | human active (s) | labour USD |",
+        "|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for p in results.get("phases", []):
         split = p.get("by_purpose") or {}
@@ -134,9 +211,19 @@ def render_summary(
         lines.append(
             f"| {p['name']} | {p.get('llm_calls', 0)} | {p.get('prompt_tokens', 0)} | "
             f"{p.get('completion_tokens', 0)} | {_tot('planning')} | "
-            f"{_tot('verification')} | {_tot('repair')} | {p.get('wall_seconds', 0)} |",
+            f"{_tot('verification')} | {_tot('repair')} | {p.get('wall_seconds', 0)} |"
+            f" {p.get('provider_cost_usd') if p.get('provider_cost_usd') is not None else '—'} |"
+            f" {p.get('human_active_seconds', 0)} | {p.get('human_labor_cost_usd', 0)} |",
         )
-    columns = ["fire", "events", "outcome", "score", *experiment.fire_columns, "tokens"]
+    columns = [
+        "fire",
+        "events",
+        "outcome",
+        "score",
+        *experiment.fire_columns,
+        "tokens",
+        "cost",
+    ]
     lines += [
         "",
         "| " + " | ".join(columns) + " |",
@@ -153,6 +240,17 @@ def render_summary(
                     f"/v{sum((t.get('verification') or {}).get(k, 0) for k in ('prompt', 'completion'))}"
                     f"/r{sum((t.get('repair') or {}).get(k, 0) for k in ('prompt', 'completion'))})",
                 )
+            elif c == "cost":
+                cost = r.get("cost") or {}
+                if float(cost.get("human_active_seconds") or 0.0):
+                    cells.append(
+                        f"{cost.get('human_active_seconds', 0)}s / "
+                        f"${cost.get('human_labor_cost_usd', 0)} labour",
+                    )
+                elif cost.get("provider_cost_usd") is not None:
+                    cells.append(f"${cost.get('provider_cost_usd')} provider")
+                else:
+                    cells.append(f"{cost.get('elapsed_seconds', 0)}s")
             elif c == "events":
                 cells.append(", ".join(r.get("events") or []) or "-")
             else:
@@ -185,8 +283,24 @@ def finalize(
 ) -> str:
     """Attach phases and per-fire tokens, write both files, return the summary."""
     results["phases"] = phases
+    results["cost"] = _cost_for_names(
+        phases,
+        {str(p.get("name")) for p in phases},
+    )
+    if results["cost"]["meter"] == "human_labor":
+        results["cost"]["participant_id"] = results.get("participant_id")
     fix = results.get("operator_fix")
     attach_fire_tokens(
+        results.get("fires", []),
+        phases,
+        experiment,
+        operator_fix_before=(
+            int(fix["before_fire"])
+            if isinstance(fix, dict) and fix.get("before_fire")
+            else None
+        ),
+    )
+    attach_fire_cost(
         results.get("fires", []),
         phases,
         experiment,

@@ -73,3 +73,10 @@ on. The demonstration was done in a UI; the reproduction goes through an
 API. That gap — UI seen, API used — is part of what understanding a share
 means, and it is deliberate. A later variant can put a real browser on the
 assistant's side and score the same final state.
+
+## Human protocol
+
+Run `python -m colleague.run screenshare --arm human`. Attached frames are
+listed in the workbench and `/open N` opens one in the system viewer. The same
+final-state and demonstrator-untouched checks apply, with active time and
+labour cost recorded.

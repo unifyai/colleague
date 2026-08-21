@@ -177,3 +177,13 @@ carry the offered slot, and the scorers read the outcome, not the detour.
 The whole-turn latency signature from `meeting` shows up here as split
 utterances ("So, to finish that thought —"), which is what usually costs
 `confirmed_the_slot_back`.
+
+## Human protocol
+
+The human is the caller: they receive the identical tree, dial the same persona
+callee through the harness-owned phone room, and report the same structured
+outcome. Active time runs through hang-up and outcome submission; labour cost
+uses the declared participant rate. A text simulation is forbidden because it
+would supply the capability under test. The callee and machine dial path are
+built; executable human runs still require a microphone/speaker bridge into
+that same call leg rather than replacing it with text.

@@ -113,6 +113,7 @@ class PhaseStats:
     completion_tokens: int = 0
     total_tokens: int = 0
     provider_cost: float = 0.0
+    provider_cost_missing_calls: int = 0
     models: dict[str, int] = field(default_factory=dict)
     failed_calls: int = 0
     errors: dict[str, int] = field(default_factory=dict)
@@ -137,7 +138,10 @@ class PhaseStats:
         self.prompt_tokens += record.prompt_tokens
         self.completion_tokens += record.completion_tokens
         self.total_tokens += record.total_tokens
-        self.provider_cost += record.provider_cost or 0.0
+        if record.provider_cost is None:
+            self.provider_cost_missing_calls += 1
+        else:
+            self.provider_cost += record.provider_cost
         self.models[record.model] = self.models.get(record.model, 0) + 1
         bucket = self.by_purpose[record.purpose]
         bucket["llm_calls"] += 1
@@ -152,7 +156,12 @@ class PhaseStats:
             "prompt_tokens": self.prompt_tokens,
             "completion_tokens": self.completion_tokens,
             "total_tokens": self.total_tokens,
-            "provider_cost_usd": round(self.provider_cost, 6),
+            "provider_cost_usd": (
+                None
+                if self.provider_cost_missing_calls
+                else round(self.provider_cost, 6)
+            ),
+            "provider_cost_missing_calls": self.provider_cost_missing_calls,
             "models": self.models,
             "failed_calls": self.failed_calls,
             "errors": self.errors,
@@ -344,6 +353,25 @@ class LLMLedger:
     def failures(self) -> list[LLMCallRecord]:
         with self._lock:
             return [r for r in self._records if r.failed]
+
+    def cost_snapshot(self) -> dict[str, Any]:
+        """Cumulative native meter for the resource-neutral runner schema."""
+        with self._lock:
+            records = list(self._records)
+        successes = [r for r in records if not r.failed]
+        missing = sum(1 for r in successes if r.provider_cost is None)
+        return {
+            "meter": "model_usage",
+            "llm_calls": len(successes),
+            "prompt_tokens": sum(r.prompt_tokens for r in successes),
+            "completion_tokens": sum(r.completion_tokens for r in successes),
+            "provider_cost_usd": (
+                round(sum(float(r.provider_cost or 0.0) for r in successes), 6)
+                if not missing
+                else None
+            ),
+            "provider_cost_missing_calls": missing,
+        }
 
     def _on_event(self, event: LLMEvent) -> None:
         prompt, completion, total, usage = _extract_usage(event)

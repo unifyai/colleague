@@ -72,6 +72,32 @@ class CliSession(ArmSession):
         except Exception:  # noqa: BLE001 - teardown is best-effort
             pass
 
+    def cost_snapshot(self) -> dict[str, Any]:
+        rows = [
+            r
+            for r in self.ledger._lines()
+            if "/chat/completions" in str(r.get("path", ""))
+        ]
+        costs = []
+        missing = 0
+        for row in rows:
+            usage = row.get("usage_raw") or {}
+            value = usage.get("cost") if isinstance(usage, dict) else None
+            if value is None:
+                missing += 1
+            else:
+                costs.append(float(value))
+        return {
+            "meter": "model_usage",
+            "llm_calls": len(rows),
+            "prompt_tokens": sum(int(r.get("prompt_tokens") or 0) for r in rows),
+            "completion_tokens": sum(
+                int(r.get("completion_tokens") or 0) for r in rows
+            ),
+            "provider_cost_usd": round(sum(costs), 6) if not missing else None,
+            "provider_cost_missing_calls": missing,
+        }
+
     def artifacts(self) -> dict[str, Any]:
         return {
             "run_id": self.run_id,

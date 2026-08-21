@@ -37,3 +37,10 @@ arm still has nowhere to put a correction; `hermes-tui` does) and what the
 correction does to progress already made, which is what
 `resume_after_correction` isolates. Expect the timing scenarios to be close
 across faithful surfaces; read the progress scenario for the difference.
+
+## Human protocol
+
+Run `python -m colleague.run interruption --arm human`. Corrections appear at
+the same fixture waypoint used for agent arms, so ordering is event-relative,
+not dependent on human speed. Outcomes, active labour and cost use the shared
+result schema.

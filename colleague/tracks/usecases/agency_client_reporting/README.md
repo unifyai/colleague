@@ -224,3 +224,11 @@ Outputs land in `results/<run-id>/`:
 - `ledger.jsonl` — every LLM call (model, tokens, provider cost)
 - `summary.md` — the phase table, the per-run table, and the transcription
   block naming which figures may go on the page and which may not
+
+## Human protocol
+
+Run `python -m colleague.human usecase agency_client_reporting --mode operator`
+for direct account-manager work, or `--mode builder` for human-authored
+automation. The verbatim page brief, fixture anchor and exact campaign-set
+scorer are reused. Results include total active labour, labour USD, and time
+and cost per drafted client report.

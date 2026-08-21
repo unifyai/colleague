@@ -181,6 +181,15 @@ class ArmSession(ABC):
         """Anything the arm produced that belongs in the run record."""
         return {}
 
+    def cost_snapshot(self) -> dict[str, Any]:
+        """Cumulative native resource meter, if this arm has one.
+
+        The runner always records wall time. Human sessions additionally
+        expose active labour here; metered model adapters expose their native
+        token and provider-cost counters.
+        """
+        return {}
+
     def on_clarification(self, responder) -> None:
         """Route the arm's native clarification channel to ``responder``.
 

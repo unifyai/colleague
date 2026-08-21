@@ -29,6 +29,15 @@ def _purpose_split(stats: dict[str, Any]) -> dict[str, dict[str, int]]:
     return split
 
 
+def _row_cost(row: dict[str, Any]) -> float | None:
+    usage = row.get("usage_raw") or {}
+    value = usage.get("cost") if isinstance(usage, dict) else None
+    try:
+        return float(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
 class PhaseLedger:
     """Phase windows over the proxy ledger file (counts + aggregation)."""
 
@@ -63,7 +72,8 @@ class PhaseLedger:
                 "prompt_tokens": 0,
                 "completion_tokens": 0,
                 "total_tokens": 0,
-                "provider_cost_usd": None,
+                "provider_cost_usd": 0.0,
+                "provider_cost_missing_calls": 0,
                 "usage_missing_calls": 0,
                 "other_http_calls": 0,
                 "models": {},
@@ -80,11 +90,20 @@ class PhaseLedger:
                 stats["prompt_tokens"] += int(row.get("prompt_tokens") or 0)
                 stats["completion_tokens"] += int(row.get("completion_tokens") or 0)
                 stats["total_tokens"] += int(row.get("total_tokens") or 0)
+                row_cost = _row_cost(row)
+                if row_cost is None:
+                    stats["provider_cost_missing_calls"] += 1
+                else:
+                    stats["provider_cost_usd"] += row_cost
                 if row.get("usage_missing"):
                     stats["usage_missing_calls"] += 1
                 model = row.get("response_model") or row.get("request_model") or "?"
                 stats["models"][model] = stats["models"].get(model, 0) + 1
             stats["by_purpose"] = _purpose_split(stats)
+            if stats["llm_calls"] and stats["provider_cost_missing_calls"]:
+                stats["provider_cost_usd"] = None
+            else:
+                stats["provider_cost_usd"] = round(float(stats["provider_cost_usd"]), 6)
             phases.append(stats)
         background = {
             "name": "background",
@@ -93,7 +112,8 @@ class PhaseLedger:
             "prompt_tokens": 0,
             "completion_tokens": 0,
             "total_tokens": 0,
-            "provider_cost_usd": None,
+            "provider_cost_usd": 0.0,
+            "provider_cost_missing_calls": 0,
             "usage_missing_calls": 0,
             "models": {},
         }
@@ -109,7 +129,19 @@ class PhaseLedger:
             background["prompt_tokens"] += int(row.get("prompt_tokens") or 0)
             background["completion_tokens"] += int(row.get("completion_tokens") or 0)
             background["total_tokens"] += int(row.get("total_tokens") or 0)
+            row_cost = _row_cost(row)
+            if row_cost is None:
+                background["provider_cost_missing_calls"] += 1
+            else:
+                background["provider_cost_usd"] += row_cost
         if background["llm_calls"] or background.get("other_http_calls"):
+            if background["llm_calls"] and background["provider_cost_missing_calls"]:
+                background["provider_cost_usd"] = None
+            else:
+                background["provider_cost_usd"] = round(
+                    float(background["provider_cost_usd"]),
+                    6,
+                )
             background["by_purpose"] = _purpose_split(background)
             phases.append(background)
         return phases

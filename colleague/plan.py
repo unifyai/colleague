@@ -20,7 +20,7 @@ import json
 import sys
 from typing import Any
 
-from colleague.arms.sessions import ARMS
+from colleague.arms.sessions import ARMS, AUTOMATED_ARMS
 from colleague.run import TRACKS
 
 #: The `standing` experiments predate this runner and keep their own launchers.
@@ -89,6 +89,13 @@ def _resolve(value: str, all_values: tuple[str, ...]) -> list[str]:
     return out
 
 
+def _resolve_arms(value: str) -> list[str]:
+    """Cloud ``all`` means unattended arms; humans must be explicit."""
+    if value.strip().lower() in {"all", "*", ""}:
+        return list(AUTOMATED_ARMS)
+    return _resolve(value, ARMS)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="colleague.plan")
     parser.add_argument("--tracks", default="all")
@@ -104,7 +111,7 @@ def main(argv: list[str] | None = None) -> int:
 
     jobs = build(
         tracks=_resolve(args.tracks, TRACKS),
-        arms=_resolve(args.arms, ARMS),
+        arms=_resolve_arms(args.arms),
         repeat=args.repeat,
         shard_scenarios=not args.no_shard,
     )

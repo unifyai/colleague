@@ -103,3 +103,17 @@ page's own measured disclosure, and link the run.
 Claims about the human baseline ("two days of an account manager") are not
 measurable here and should leave the `results` array rather than acquire a
 fake denominator.
+
+## Human protocols
+
+Both built pages now support measured human baselines:
+
+```bash
+python -m colleague.human usecase agency_client_reporting --mode operator
+python -m colleague.human usecase ecommerce_trading_review --mode builder
+```
+
+Operator mode measures direct human delivery; builder mode measures setup
+labour plus unattended execution of a human-authored artifact. The page brief,
+fixture and exact scorer are unchanged. Active seconds, declared hourly rate,
+labour cost, elapsed time and per-output cost accompany the existing metrics.

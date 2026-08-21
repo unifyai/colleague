@@ -44,3 +44,10 @@ genuine choice: the actor found the report and missed the vendor contact,
 and the brain reported the blocker back to Daniel as a statement rather
 than asking anyone — the inherited conversation had named Priya, and a
 question addressed to her would have been carried with its addressee.
+
+## Human protocol
+
+Run `python -m colleague.run inheritance --arm human`. The participant sees
+the same transcript and uses the same fixture; clarification addressee,
+round-trips, outcome, active time and labour cost are recorded. Use a
+counterbalanced participant for a genuinely cold human control.

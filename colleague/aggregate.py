@@ -21,6 +21,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from colleague.harness.cost import total as total_cost
+
 ORDER = ("pass", "degraded", "fail", "unsupported", "error")
 GLYPH = {
     "pass": "✅",
@@ -29,6 +31,57 @@ GLYPH = {
     "unsupported": "➖",
     "error": "💥",
 }
+
+
+def _cost_from_phases(phases: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Lift old phase-ledger runs into the common run-cost schema."""
+    if not phases:
+        return None
+    calls = sum(int(p.get("llm_calls") or 0) for p in phases)
+    rates = [
+        float(p["human_hourly_rate_usd"])
+        for p in phases
+        if p.get("human_hourly_rate_usd") is not None
+    ]
+    provider_missing = any(
+        int(p.get("llm_calls") or 0) > 0 and p.get("provider_cost_usd") is None
+        for p in phases
+    )
+    provider_values = [
+        float(p["provider_cost_usd"])
+        for p in phases
+        if p.get("provider_cost_usd") is not None
+    ]
+    return {
+        "meter": (
+            "human_labor" if rates else ("model_usage" if calls else "wall_time")
+        ),
+        "elapsed_seconds": round(
+            sum(float(p.get("wall_seconds") or 0.0) for p in phases),
+            3,
+        ),
+        "llm_calls": calls,
+        "prompt_tokens": sum(int(p.get("prompt_tokens") or 0) for p in phases),
+        "completion_tokens": sum(int(p.get("completion_tokens") or 0) for p in phases),
+        "total_tokens": sum(int(p.get("total_tokens") or 0) for p in phases),
+        "provider_cost_usd": (
+            None
+            if provider_missing or not provider_values
+            else round(sum(provider_values), 6)
+        ),
+        "provider_cost_missing_calls": sum(
+            int(p.get("provider_cost_missing_calls") or 0) for p in phases
+        ),
+        "human_active_seconds": round(
+            sum(float(p.get("human_active_seconds") or 0.0) for p in phases),
+            3,
+        ),
+        "human_hourly_rate_usd": rates[-1] if rates else None,
+        "human_labor_cost_usd": round(
+            sum(float(p.get("human_labor_cost_usd") or 0.0) for p in phases),
+            6,
+        ),
+    }
 
 
 def load(root: Path) -> list[dict[str, Any]]:
@@ -61,6 +114,7 @@ def merge(runs: list[dict[str, Any]]) -> dict[str, Any]:
     arms: set[str] = set()
     persona_tokens = 0
     persona_exchanges = 0
+    costs: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for run in runs:
         # The `standing` experiments predate this runner and name the same
         # two things `experiment` and `system`. Accepting both means a sweep
@@ -70,14 +124,43 @@ def merge(runs: list[dict[str, Any]]) -> dict[str, Any]:
         if not track or not arm:
             continue
         arm = {"hermes-agent": "hermes"}.get(arm, arm)
+        if arm == "human" and run.get("human_mode"):
+            arm = f"human-{run['human_mode']}"
         tracks.add(track)
         arms.add(arm)
-        for scenario in run.get("scenarios", []):
+        scenarios = run.get("scenarios", [])
+        for scenario in scenarios:
             outcome = (scenario.get("result") or {}).get("outcome", "fail")
             grid[(track, arm)][scenario["name"]].append(outcome)
             ev = scenario.get("evidence") or {}
             persona_tokens += int(ev.get("persona_tokens") or 0)
             persona_exchanges += len(ev.get("persona_exchanges") or [])
+        fires = run.get("fires", [])
+        for fire in fires:
+            name = str(
+                fire.get("label")
+                or fire.get("automation")
+                or f"fire_{fire.get('fire', '?')}",
+            )
+            if fire.get("outcome") == "correct" or fire.get("correct") is True:
+                outcome = "pass"
+            elif fire.get("outcome") == "held" or fire.get("held") is True:
+                outcome = "degraded"
+            else:
+                outcome = "fail"
+            grid[(track, arm)][name].append(outcome)
+
+        run_cost = run.get("cost")
+        if not run_cost:
+            unit_costs = [
+                dict(item["cost"]) for item in [*scenarios, *fires] if item.get("cost")
+            ]
+            if unit_costs:
+                run_cost = total_cost(unit_costs)
+        if not run_cost:
+            run_cost = _cost_from_phases(run.get("phases") or [])
+        if run_cost:
+            costs[arm].append(dict(run_cost))
     return {
         "tracks": sorted(tracks),
         "arms": sorted(arms),
@@ -87,6 +170,7 @@ def merge(runs: list[dict[str, Any]]) -> dict[str, Any]:
         # the system under test's.
         "persona_tokens": persona_tokens,
         "persona_exchanges": persona_exchanges,
+        "costs": dict(costs),
     }
 
 
@@ -154,6 +238,46 @@ def to_markdown(merged: dict[str, Any]) -> str:
                         credited += 1
         rate = f"{credited / scored:.0%}" if scored else "—"
         lines.append(f"| {arm} | {credited} | {scored} | {unsupported} | {rate} |")
+
+    lines += [
+        "",
+        "### Cost by arm",
+        "",
+        "Elapsed time is universal. Human labour is active participant time; "
+        "provider spend is reported when the model provider exposes a meter.",
+        "",
+        "| arm | measured runs | elapsed | tokens | provider cost | human active | labour cost | rate |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for arm in arms:
+        records = merged.get("costs", {}).get(arm, [])
+        elapsed = sum(float(r.get("elapsed_seconds") or 0.0) for r in records)
+        active = sum(float(r.get("human_active_seconds") or 0.0) for r in records)
+        labour = sum(float(r.get("human_labor_cost_usd") or 0.0) for r in records)
+        tokens = sum(int(r.get("total_tokens") or 0) for r in records)
+        provider_values = [
+            float(r["provider_cost_usd"])
+            for r in records
+            if r.get("provider_cost_usd") is not None
+        ]
+        provider_missing = any(
+            int(r.get("llm_calls") or 0) > 0 and r.get("provider_cost_usd") is None
+            for r in records
+        )
+        rates = [
+            r.get("human_hourly_rate_usd")
+            for r in records
+            if r.get("human_hourly_rate_usd") is not None
+        ]
+        rate = rates[-1] if rates else None
+        lines.append(
+            f"| {arm} | {len(records)} | {elapsed:.1f}s | "
+            f"{tokens or '—'} | "
+            f"{'$' + format(sum(provider_values), '.4f') if provider_values and not provider_missing else '—'} | "
+            f"{active:.1f}s | "
+            f"{'$' + format(labour, '.4f') if active else '—'} | "
+            f"{'$' + format(float(rate), '.2f') + '/h' if rate is not None else '—'} |",
+        )
 
     if merged.get("persona_exchanges"):
         lines.append("")

@@ -515,8 +515,10 @@ async def main() -> int:
     return 0
 
 
-def _usd(amount: float) -> str:
+def _usd(amount: float | None) -> str:
     """Money at the precision the number actually carries."""
+    if amount is None:
+        return "**not measured**"
     if amount >= 1:
         return f"${amount:.2f}"
     if amount >= 0.10:
@@ -561,13 +563,13 @@ def _transcription_block(results: dict[str, Any], phases: list[Any]) -> list[str
     review_phase = by_name.get(f"run_{first['run']}_review", {})
     setup_phase = by_name.get("setup", {})
     reports = first["reports_drafted"]
-    exec_cost = float(exec_phase.get("provider_cost_usd") or 0.0)
-    review_cost = float(review_phase.get("provider_cost_usd") or 0.0)
+    exec_cost = exec_phase.get("provider_cost_usd")
+    review_cost = review_phase.get("provider_cost_usd")
     wall_min = float(exec_phase.get("wall_seconds") or 0.0) / 60.0
     # A phase that did real work and metered no calls is a missing measurement,
     # not a free run: the unillm hook has gone missing mid-run before. Quoting
     # its zero as a cost is how a $0.0000 reaches a page.
-    exec_metered = bool(exec_phase.get("llm_calls"))
+    exec_metered = bool(exec_phase.get("llm_calls")) and exec_cost is not None
     lines = [
         "",
         "## Landing-page transcription",
@@ -580,14 +582,14 @@ def _transcription_block(results: dict[str, Any], phases: list[Any]) -> list[str
     ]
     if reports and exec_metered:
         lines.append(
-            f"| cost of one client's report | {_usd(exec_cost / reports)} | "
-            f"run_1 ({first['regime']} regime) provider cost {_usd(exec_cost)} / "
+            f"| cost of one client's report | {_usd(float(exec_cost) / reports)} | "
+            f"run_1 ({first['regime']} regime) provider cost {_usd(float(exec_cost))} / "
             f"{reports} reports drafted |",
         )
     elif reports:
         lines.append(
             "| cost of one client's report | **not measured** | the ledger recorded "
-            "0 calls for this phase, so its cost is missing rather than zero — "
+            "no complete provider price for this phase, so its cost is missing rather than zero — "
             "reconstruct from billing before any cost figure goes on the page |",
         )
     if reports:
@@ -620,12 +622,12 @@ def _transcription_block(results: dict[str, Any], phases: list[Any]) -> list[str
         "",
         "Not page-eligible:",
         "",
-        f"- setup (one-off, utterance → task): {_usd(float(setup_phase.get('provider_cost_usd') or 0.0))}",
+        f"- setup (one-off, utterance → task): {_usd(setup_phase.get('provider_cost_usd'))}",
         f"- run_1 post-run review tail (once per cycle, not per report): {_usd(review_cost)}",
     ]
     for row in runs[1:]:
         name = f"run_{row['run']}"
-        cost = float(by_name.get(name, {}).get("provider_cost_usd") or 0.0)
+        cost = by_name.get(name, {}).get("provider_cost_usd")
         lines.append(
             f"- {name} (converged regime, cheaper than any first month): {_usd(cost)}, "
             f"entrypoint {row['entrypoint_before']} → {row['entrypoint_after']}",

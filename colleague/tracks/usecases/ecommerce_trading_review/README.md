@@ -146,3 +146,11 @@ An earlier version of this note blamed a `WebSearcher.ask` call, on the strength
 of web-search entries sitting near the error in the log. That was proximity, not
 causation — the log lines immediately before the failure carry the actor's own
 `CodeActActor.act` span.
+
+## Human protocol
+
+Run `python -m colleague.human usecase ecommerce_trading_review --mode operator`
+or `--mode builder`. The human receives the verbatim page brief and the same
+Shopify/Klaviyo/Meta fixture contract; metric-set, reporting-week and
+new-versus-returning checks are unchanged. Active labour, elapsed time and
+labour cost are recorded with the outcome.

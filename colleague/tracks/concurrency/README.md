@@ -45,3 +45,10 @@ handle, so what is measured is whether the arm keeps three in-flight things
 distinct enough to address one by sender. Genuinely independent lifetimes
 (three separate dispatches, corrections against each while a fourth thing
 runs) still want a runner that holds several handles at once.
+
+## Human protocol
+
+Run `python -m colleague.run concurrency --arm human`. Named requests and
+corrections arrive live at existing progress waypoints. The fixture scores the
+same final state and untouched controls; elapsed time, active labour and labour
+cost are also recorded.

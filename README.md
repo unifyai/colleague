@@ -38,6 +38,7 @@ outlives the conversation, and several people sharing one assistant.
 | `prime-agent` | Prime Intellect's prime-agent — Python skills in a persistent kernel; every firing is a prompt | first-class (agent turn) |
 | `openclaw-gateway` | OpenClaw through its Gateway WebSocket protocol — blocking `ask_user`, `steer` as the default queue mode, persisted sessions | first-class |
 | `prime-agent-rpc` | prime-agent through JSONL-RPC — steering and follow-up lanes, one resident process per session | first-class (agent turn) |
+| `human` | A person using the same fixture and exact scorer through the human workbench | participant; builder protocol for schedules |
 
 Two arms drive a second surface of the same product, the way `hermes-tui`
 pairs with `hermes` and `unify-cm` with `unify`. `openclaw` is the headless
@@ -58,24 +59,30 @@ Non-unify arms are metered by a local recording proxy in front of OpenRouter
 (`colleague/arms/proxy.py`); the unify arm is metered in-process through a
 chained unillm hook. Both produce the same per-phase ledger.
 
+The human arm records active labour time and converts it at a declared hourly
+rate. Every arm also records elapsed time; model arms record tokens and
+provider spend where the provider exposes it. Units remain separate. See
+[`HUMAN_TESTING.md`](HUMAN_TESTING.md) for the complete protocol and all 22
+benchmark mappings.
+
 ## Tracks
 
-| Track | Question | Status |
-|---|---|---|
-| [`standing`](colleague/tracks/standing/) | What does firing N cost, and does the automation survive drift — loud, silent, or at the edges? | **run** — 4 experiments, 5 arms; 4 more built, hermes run |
-| [`inheritance`](colleague/tracks/inheritance/) | Does the worker act on the right referent without a round-trip? | built |
-| [`interruption`](colleague/tracks/interruption/) | Does a mid-task correction land before the wrong thing happens? | built |
-| [`continuity`](colleague/tracks/continuity/) | Is a follow-up a warm turn or a cold restart? | built |
-| [`attribution`](colleague/tracks/attribution/) | Many people, one assistant: right person, nothing leaked, silence when correct | built |
-| [`custody`](colleague/tracks/custody/) | Where a fact is filed decides who can get it back out | built |
-| [`concurrency`](colleague/tracks/concurrency/) | Several tasks, several people — does each correction land in the right one? | built |
-| [`teaching`](colleague/tracks/teaching/) | Does a walked-through procedure become a reusable artifact — and survive six weeks and one amendment? | built |
-| [`membership`](colleague/tracks/membership/) | Two teams, one assistant: does where a fact was said decide who gets it back? | built |
-| [`recall`](colleague/tracks/recall/) | A week of messages, three facts replaced: is the newest value the one recalled? | built |
-| [`screenshare`](colleague/tracks/screenshare/) | Frames of a shared screen: can it do the same on its own instance? | built |
-| [`meeting`](colleague/tracks/meeting/) | Several people in a room: speak when addressed, quiet when not, work commanded in passing gets done | built — text room; voice next |
-| [`callflow`](colleague/tracks/callflow/) | A decision tree and a phone call: which leaf did it reach? | built |
-| [`usecases`](colleague/tracks/usecases/) | Are the figures on our own use-case pages real? | built — 2 of 19 pages |
+| Semantic family | Track | Question | Status |
+|---|---|---|---|
+| Durable automation | [`standing`](colleague/tracks/standing/) | What does firing N cost, and does the automation survive drift — loud, silent, or at the edges? | **run** — 4 experiments, 5 arms; 4 more built, hermes run |
+| Context, memory and learning | [`inheritance`](colleague/tracks/inheritance/) | Does the worker act on the right referent without a round-trip? | built |
+| | [`continuity`](colleague/tracks/continuity/) | Is a follow-up a warm turn or a cold restart? | built |
+| | [`recall`](colleague/tracks/recall/) | A week of messages, three facts replaced: is the newest value the one recalled? | built |
+| | [`teaching`](colleague/tracks/teaching/) | Does a walked-through procedure become a reusable artifact — and survive six weeks and one amendment? | built |
+| In-flight work control | [`interruption`](colleague/tracks/interruption/) | Does a mid-task correction land before the wrong thing happens? | built |
+| | [`concurrency`](colleague/tracks/concurrency/) | Several tasks, several people — does each correction land in the right one? | built |
+| Multi-party governance | [`attribution`](colleague/tracks/attribution/) | Many people, one assistant: right person, nothing leaked, silence when correct | built |
+| | [`custody`](colleague/tracks/custody/) | Where a fact is filed decides who can get it back out | built |
+| | [`membership`](colleague/tracks/membership/) | Two teams, one assistant: does where a fact was said decide who gets it back? | built |
+| Collaborative presence | [`screenshare`](colleague/tracks/screenshare/) | Frames of a shared screen: can it do the same on its own instance? | built |
+| | [`meeting`](colleague/tracks/meeting/) | Several people in a room: speak when addressed, quiet when not, work commanded in passing gets done | built — text and live voice |
+| | [`callflow`](colleague/tracks/callflow/) | A decision tree and a phone call: which leaf did it reach? | built |
+| Applied workflow validation | [`usecases`](colleague/tracks/usecases/) | Are the figures on our own use-case pages real? | built — 2 of 19 pages |
 
 "Built" means the fixture, scenarios and scorers exist and self-test;
 "designed" means the track README states fixture, scorer and disclosure
@@ -242,10 +249,17 @@ SD_VARIANT=units bash colleague/tracks/standing/silent_drift/run_unify.sh
 python -m colleague.run inheritance --arm unify          # everything else
 python -m colleague.run meeting --arm unify-cm --repeat 5  # role-played scenes: read the spread
 python -m colleague.run --list                           # tracks and scenarios
+python -m colleague.run inheritance --arm human          # human participant
+python -m colleague.human standing edge_week --mode operator
+python -m colleague.human standing silent_drift --mode builder
+python -m colleague.human usecase agency_client_reporting --mode operator
 ```
 
 Requires `OPENROUTER_API_KEY`, plus a `UNIFY_KEY` for the unify arm and local
 checkouts of whichever comparison harnesses you want to run.
+Human runs need neither key. Pass the participant's real compensated or loaded
+rate with `--human-hourly-rate-usd` / `--hourly-rate-usd`; the documented
+default is a reference assumption and is stored in the result.
 
 ### Running a sweep in the cloud
 
@@ -258,6 +272,10 @@ scripts/cloud_run.sh --arms all --confirm               # all tracks, all arms
 scripts/cloud_run.sh --arms all --repeat 5 --confirm    # distributions, not points
 scripts/cloud_run.sh --tracks custody --arms all --dry-run
 ```
+
+`--arms all` intentionally excludes `human`: an unattended cloud matrix must
+never create shards that wait for a person. Request the human arm explicitly
+and run it locally.
 
 It fires the `Benchmark` workflow and returns a run URL. A shard is one
 scenario against one arm — except for tracks that hold a single session

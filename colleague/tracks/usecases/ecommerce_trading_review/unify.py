@@ -364,7 +364,9 @@ async def main() -> int:
     return 0
 
 
-def _usd(amount: float) -> str:
+def _usd(amount: float | None) -> str:
+    if amount is None:
+        return "**not measured**"
     if amount >= 1:
         return f"${amount:.2f}"
     if amount >= 0.10:
@@ -396,7 +398,7 @@ def _transcription_block(results: dict[str, Any], phases: list[Any]) -> list[str
     exec_phase = by_name.get(f"run_{first['run']}", {})
     review_phase = by_name.get(f"run_{first['run']}_review", {})
     setup_phase = by_name.get("setup", {})
-    exec_cost = float(exec_phase.get("provider_cost_usd") or 0.0)
+    exec_cost = exec_phase.get("provider_cost_usd")
     wall_min = float(exec_phase.get("wall_seconds") or 0.0) / 60.0
     caught = len(first["flags_matched"])
     total = len(first["flags_expected"])
@@ -424,14 +426,14 @@ def _transcription_block(results: dict[str, Any], phases: list[Any]) -> list[str
         "Not page-eligible:",
         "",
         f"- setup (one-off, utterance → task): "
-        f"{_usd(float(setup_phase.get('provider_cost_usd') or 0.0))}",
-        f"- post-run review tail: {_usd(float(review_phase.get('provider_cost_usd') or 0.0))}",
+        f"{_usd(setup_phase.get('provider_cost_usd'))}",
+        f"- post-run review tail: {_usd(review_phase.get('provider_cost_usd'))}",
     ]
     for row in runs:
         if row is first:
             continue
         name = f"run_{row['run']}"
-        cost = float(by_name.get(name, {}).get("provider_cost_usd") or 0.0)
+        cost = by_name.get(name, {}).get("provider_cost_usd")
         lines.append(
             f"- {name} ({row['regime']} regime): {_usd(cost)}, "
             f"entrypoint {row['entrypoint_before']} → {row['entrypoint_after']}",

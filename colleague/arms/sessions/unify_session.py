@@ -322,5 +322,8 @@ class UnifySession(ArmSession):
                 pass
         return out
 
+    def cost_snapshot(self) -> dict[str, Any]:
+        return self.ledger.cost_snapshot() if self.ledger is not None else {}
+
 
 register("unify", UnifySession)

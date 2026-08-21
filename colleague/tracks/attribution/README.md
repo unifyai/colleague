@@ -28,3 +28,10 @@ produce an answer and have no idle state to return to.
 `two_askers` is the other interesting one, because the failure is not
 refusing wrongly — it is broadcasting, where both people receive both
 answers and the leak is incidental rather than decided.
+
+## Human protocol
+
+Run `python -m colleague.run attribution --arm human`. The workbench requires
+an explicit fixture recipient for observable replies; text is not broadcast
+implicitly. The same routing/leak/silence scorer applies, with active labour
+and cost recorded per scenario.

@@ -72,3 +72,10 @@ window — and the Trellis contact came back as the replaced name. In one
 process the newest value outranked the old; across a restart the old one
 resurfaced, which is precisely the distinction this variant exists to
 catch.
+
+## Human protocol
+
+Run `python -m colleague.run recall --arm human`. The same participant receives
+the compressed eight-day sequence and may use persistent notes, the declared
+aided-human baseline. Current/stale containment, cost per answer, active time
+and labour cost are recorded.

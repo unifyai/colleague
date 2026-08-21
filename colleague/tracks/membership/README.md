@@ -87,3 +87,10 @@ controls exist to expose.
 Mutating routes validate their documented fields and 400 otherwise. Personas
 (Meera, Tomasz) push back at most once each; their tokens are metered
 separately.
+
+## Human protocol
+
+Run `python -m colleague.run membership --arm human`. Named senders, channel
+membership and explicit reply recipients are preserved. The existing
+containment scorer grades disclosure and leakage; active labour and cost are
+reported separately from persona cost.

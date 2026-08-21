@@ -30,3 +30,10 @@ watch is `auth_calls` in the February evidence.
 which is any working state a task built and never wrote down — a parsed
 dataframe, a mapping derived from four calls. The fixture cannot see those.
 It can see the one that costs a round trip, and that is what it counts.
+
+## Human protocol
+
+Run `python -m colleague.run continuity --arm human`. The same participant and
+persistent notes carry the warm condition. A cold comparison uses a
+counterbalanced participant with only the declared cold context; human memory
+cannot be reset in place. Re-authentication, time and labour cost are recorded.

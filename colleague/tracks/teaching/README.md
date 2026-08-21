@@ -64,3 +64,10 @@ python -m colleague.run teaching --arm unify
 **The demonstration medium.** The original framing was learning from a
 screenshare demonstration; this track is the text walkthrough. The frames
 variant now lives in `screenshare`, with its own fixture and scorer.
+
+## Human protocol
+
+Run `python -m colleague.run teaching --arm human`. Simulated weeks remain
+compressed; the same participant receives the walkthrough, correction and
+amendment. Notes persist, while the untaught control gets a fresh workspace.
+Every week records active labour and cost beside the exact recipient score.

@@ -60,3 +60,10 @@ is the version that can separate the two: the same kinds of question, after
 a long intervening conversation, where a flat store has to re-derive the
 caution from a context that may no longer contain it. Read the two halves
 against each other for one arm before reading arms against each other.
+
+## Human protocol
+
+Run `python -m colleague.run custody --arm human`. One participant keeps the
+session across the immediate and delayed halves and may use persistent notes.
+Disclosure, withholding, authority verification and cost are scored without a
+prose judge.

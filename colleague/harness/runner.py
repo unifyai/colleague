@@ -30,6 +30,8 @@ from typing import Any
 
 from colleague.arms.sessions import build as build_session
 from colleague.harness.capability import Outcome, ScenarioResult, Steering, summarize
+from colleague.harness.cost import delta as cost_delta
+from colleague.harness.cost import total as total_cost
 from colleague.harness.interlocutor import Interlocutor
 from colleague.harness.roleplay import RolePlayDirector
 from colleague.harness.scoring import infra_failure
@@ -70,11 +72,20 @@ def _session_for(
     timeout_s: float,
     mode: str = "ideal",
     transport: str = "text",
+    human_hourly_rate_usd: float = 30.0,
+    human_participant_id: str = "anonymous",
 ) -> ArmSession:
     if arm == "mock":
         # run_id keys the mock's durable store; without it a restart
         # session cannot find the week the shared session banked.
         return build_session("mock", mode=mode, run_id=run_id)
+    if arm == "human":
+        return build_session(
+            "human",
+            results_dir=results_dir,
+            hourly_rate_usd=human_hourly_rate_usd,
+            participant_id=human_participant_id,
+        )
     if arm in ("unify", "unify-cm"):
         return build_session(
             arm,
@@ -108,6 +119,8 @@ def run_track(
     only: str | None = None,
     mode: str = "ideal",
     transport: str = "text",
+    human_hourly_rate_usd: float = 30.0,
+    human_participant_id: str = "anonymous",
 ) -> int:
     # The suffix is load-bearing. run_id is the aggregate's dedupe key, and
     # parallel repeats of one scenario start within the same second — so a
@@ -147,6 +160,8 @@ def run_track(
             timeout_s=timeout_s,
             mode=mode,
             transport=transport,
+            human_hourly_rate_usd=human_hourly_rate_usd,
+            human_participant_id=human_participant_id,
         )
         shared_session.setup()
         results["profile"] = shared_session.profile.name
@@ -208,6 +223,8 @@ def run_track(
                 timeout_s=timeout_s,
                 mode=mode,
                 transport=transport,
+                human_hourly_rate_usd=human_hourly_rate_usd,
+                human_participant_id=human_participant_id,
             )
             if arm == "mock":
                 session.bind(
@@ -224,12 +241,21 @@ def run_track(
             # scenarios; a scorer asking "did the arm ask during *this* one"
             # must see only the ones raised from here on.
             clarifications_before = len(session.clarifications())
+            cost_before = session.cost_snapshot()
+            scenario_started = time.monotonic()
             print(f"[{track}/{arm}] scenario {name} — fixture {fixture.base_url}")
 
             voice_t: Any = None
             try:
                 if shared_session is None or own_session:
                     session.setup()
+
+                # The human workbench gets the same live fixture the scenario
+                # text documents. It adds generic GET/POST controls, never an
+                # answer-bearing helper, so the scorer still witnesses the
+                # exact same external actions as every programmatic arm.
+                if hasattr(session, "bind_fixture"):
+                    session.bind_fixture(fixture, name)
 
                 # An arm whose product delivers through its own channel (the
                 # CM arm sends to contact Bob rather than calling the
@@ -514,6 +540,11 @@ def run_track(
                 voice_t.close()
             record["evidence"] = fixture.evidence()
             record["clarifications"] = session.clarifications()[clarifications_before:]
+            record["cost"] = cost_delta(
+                cost_before,
+                session.cost_snapshot(),
+                elapsed_seconds=time.monotonic() - scenario_started,
+            )
             record["result"] = result.as_dict()
             results["scenarios"].append(record)
             outcomes.append(result)
@@ -532,6 +563,9 @@ def run_track(
             shared_session.close()
 
     results["summary"] = summarize(outcomes)
+    results["cost"] = total_cost(
+        [s.get("cost") or {} for s in results["scenarios"]],
+    )
     (results_dir / "results.json").write_text(
         json.dumps(results, indent=2, default=str),
     )

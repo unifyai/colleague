@@ -243,3 +243,10 @@ substrate implements only how audio moves, over the shared
 What not to measure here: barge-in latency in milliseconds, disfluency,
 prosody. The purpose-built rigs measure those better and would invite the
 comparison.
+
+## Human protocol
+
+Run `python -m colleague.run meeting --arm human --repeat 5`. Role-played lines
+arrive live with named speakers. The same floor, timing, interruption and
+scheduled-work checks apply. Repeats remain required, and active labour/cost is
+reported separately from role-player cost.
