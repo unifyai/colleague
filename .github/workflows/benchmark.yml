@@ -54,11 +54,14 @@ on:
         type: string
         default: ""
 
-# One sweep per branch. A newer dispatch replaces a pending one; an in-flight
-# sweep is cancelled rather than left burning credit alongside its replacement.
-concurrency:
-  group: benchmark-${{ github.ref_name }}
-  cancel-in-progress: true
+# No concurrency group. A sweep is a paid experiment, not a CI build: a new
+# dispatch is usually a *different* (tracks × arms) matrix, so treating it as
+# a replacement and cancelling the in-flight sweep destroys completed paid
+# work (2026-08-21: a follow-up dispatch killed two mid-run shards of the
+# sweep it was meant to complement). Shards share nothing — each runs on its
+# own runner with per-run results dirs, and nothing here writes to the repo —
+# so concurrent sweeps cannot corrupt each other; the only shared resource is
+# tenant credit, which cancellation wastes rather than protects.
 
 jobs:
   plan:
