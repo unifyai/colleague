@@ -21,6 +21,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from colleague import taxonomy
 from colleague.harness.cost import total as total_cost
 
 ORDER = ("pass", "degraded", "fail", "unsupported", "error")
@@ -196,28 +197,50 @@ def to_markdown(merged: dict[str, Any]) -> str:
         "✅ pass · 🟡 degraded · ❌ fail · ➖ no mechanism (excluded from accuracy)",
         "",
     ]
+    # Sections are grouped by taxonomy topic, topics in declaration order.
+    # A track the taxonomy cannot place still renders, in a trailing group —
+    # a summary must never silently hide results it cannot categorise.
+    by_topic: dict[str | None, list[str]] = defaultdict(list)
     for track in merged["tracks"]:
-        scenarios: list[str] = []
-        for arm in arms:
-            scenarios.extend(merged["grid"].get(f"{track}|{arm}", {}).keys())
-        seen: list[str] = []
-        for s in scenarios:
-            if s not in seen:
-                seen.append(s)
-        if not seen:
-            continue
-        lines.append(f"### {track}")
-        lines.append("")
-        lines.append("| scenario | " + " | ".join(arms) + " |")
-        lines.append("|---" * (len(arms) + 1) + "|")
-        for scenario in seen:
-            row = [scenario]
+        by_topic[taxonomy.topic_of_result_track(track)].append(track)
+    ordered = [s for s in taxonomy.TOPICS if s in by_topic]
+    if None in by_topic:
+        ordered.append(None)
+    for slug in ordered:
+        topic_open = False
+        for track in by_topic[slug]:
+            scenarios: list[str] = []
             for arm in arms:
-                row.append(
-                    _cell(merged["grid"].get(f"{track}|{arm}", {}).get(scenario, [])),
-                )
-            lines.append("| " + " | ".join(row) + " |")
-        lines.append("")
+                scenarios.extend(merged["grid"].get(f"{track}|{arm}", {}).keys())
+            seen: list[str] = []
+            for s in scenarios:
+                if s not in seen:
+                    seen.append(s)
+            if not seen:
+                continue
+            if not topic_open:
+                lines.append(f"### {taxonomy.topic_title(slug)}")
+                lines.append("")
+                topic_open = True
+            tagged = any(taxonomy.tags_for(track, s) for s in seen)
+            lines.append(f"#### {track}")
+            lines.append("")
+            header = ["scenario", *arms] + (["tags"] if tagged else [])
+            lines.append("| " + " | ".join(header) + " |")
+            lines.append("|---" * len(header) + "|")
+            for scenario in seen:
+                row = [scenario]
+                for arm in arms:
+                    row.append(
+                        _cell(
+                            merged["grid"].get(f"{track}|{arm}", {}).get(scenario, []),
+                        ),
+                    )
+                if tagged:
+                    tags = taxonomy.tags_for(track, scenario)
+                    row.append(tags.compact() if tags else "")
+                lines.append("| " + " | ".join(row) + " |")
+            lines.append("")
 
     lines.append("### Credited rate by arm")
     lines.append("")

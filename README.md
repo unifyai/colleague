@@ -67,28 +67,46 @@ benchmark mappings.
 
 ## Tracks
 
-| Semantic family | Track | Question | Status |
+| Topic | Track | Question | Status |
 |---|---|---|---|
-| Durable automation | [`standing`](colleague/tracks/standing/) | What does firing N cost, and does the automation survive drift — loud, silent, or at the edges? | **run** — 4 experiments, 5 arms; 4 more built, hermes run |
-| Context, memory and learning | [`inheritance`](colleague/tracks/inheritance/) | Does the worker act on the right referent without a round-trip? | built |
+| Durable work | [`standing`](colleague/tracks/standing/) | What does firing N cost, and does the automation survive drift — loud, silent, or at the edges? | **run** — 4 experiments, 5 arms; 4 more built, hermes run |
+| Durable knowledge | [`inheritance`](colleague/tracks/inheritance/) | Does the worker act on the right referent without a round-trip? | built |
 | | [`continuity`](colleague/tracks/continuity/) | Is a follow-up a warm turn or a cold restart? | built |
 | | [`recall`](colleague/tracks/recall/) | A week of messages, three facts replaced: is the newest value the one recalled? | built |
 | | [`teaching`](colleague/tracks/teaching/) | Does a walked-through procedure become a reusable artifact — and survive six weeks and one amendment? | built |
-| In-flight work control | [`interruption`](colleague/tracks/interruption/) | Does a mid-task correction land before the wrong thing happens? | built |
+| Steering work in flight | [`interruption`](colleague/tracks/interruption/) | Does a mid-task correction land before the wrong thing happens? | built |
 | | [`concurrency`](colleague/tracks/concurrency/) | Several tasks, several people — does each correction land in the right one? | built |
-| Multi-party governance | [`attribution`](colleague/tracks/attribution/) | Many people, one assistant: right person, nothing leaked, silence when correct | built |
+| Boundaries & governance | [`attribution`](colleague/tracks/attribution/) | Many people, one assistant: right person, nothing leaked, silence when correct | built |
 | | [`custody`](colleague/tracks/custody/) | Where a fact is filed decides who can get it back out | built |
 | | [`membership`](colleague/tracks/membership/) | Two teams, one assistant: does where a fact was said decide who gets it back? | built |
-| Collaborative presence | [`screenshare`](colleague/tracks/screenshare/) | Frames of a shared screen: can it do the same on its own instance? | built |
+| Presence & transport | [`screenshare`](colleague/tracks/screenshare/) | Frames of a shared screen: can it do the same on its own instance? | built |
 | | [`meeting`](colleague/tracks/meeting/) | Several people in a room: speak when addressed, quiet when not, work commanded in passing gets done | built — text and live voice |
 | | [`callflow`](colleague/tracks/callflow/) | A decision tree and a phone call: which leaf did it reach? | built |
-| Applied workflow validation | [`usecases`](colleague/tracks/usecases/) | Are the figures on our own use-case pages real? | built — 2 of 19 pages |
+| Applied validation | [`usecases`](colleague/tracks/usecases/) | Are the figures on our own use-case pages real? | built — 2 of 19 pages |
 
 "Built" means the fixture, scenarios and scorers exist and self-test;
 "designed" means the track README states fixture, scorer and disclosure
 controls and names the transport it waits on. Every number below is from
 `standing`, the only track with completed live runs; `usecases` has run once
 and is not yet reporting figures.
+
+The topics, and four tags on every scenario, are declared as data in
+[`colleague/taxonomy.py`](colleague/taxonomy.py) rather than only here. Each
+topic hangs off one of `DESIGN.md`'s four properties (durable work and
+durable knowledge are the two faces of "work outlives the conversation";
+`teaching`'s weeks 35–36 carry a topic override to durable work, because an
+amendment plus a regression test is the change-without-regression question
+asked of a taught procedure). Each cell carries a **role** (`probe` — a
+scored question; `feed` — beats that establish state, like `recall`'s eight
+days; `control` — cells that prove the measurement, like the disclosure
+controls), the correct response's **shape** (`act` / `ask` / `refuse` /
+`silence` — the cells where the right answer is doing nothing are this
+suite's signature — with `hold` reserved for the fire-series rubrics'
+middle rung), a **horizon** (`turn` / `session` / `distant` / `restart` /
+`series`) and a **surface** (`chat` / `scheduled-fire` / `room` / `screen`
+/ `phone`). `selftest` fails if any scenario is uncategorised or any entry
+is stale; `python -m colleague.run --list` and the sweep summary group by
+topic and print each cell's tags.
 
 Full scope, scoring rules and the fairness constraints are in
 [`DESIGN.md`](DESIGN.md).
@@ -295,7 +313,8 @@ and run it locally.
 
 It fires the `Benchmark` workflow and returns a run URL. A shard is one
 scenario against one arm — except for tracks that hold a single session
-across their scenarios (`continuity`, `custody`, `teaching`), which stay
+across their scenarios (`continuity`, `custody`, `teaching`, `membership`,
+`recall`), which stay
 whole because splitting them would destroy exactly what they measure.
 `colleague/plan.py` owns that distinction, so the workflow never has to know
 about it.

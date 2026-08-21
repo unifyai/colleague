@@ -91,15 +91,26 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.list or not args.track:
-        for track in TRACKS:
-            try:
-                scenario = importlib.import_module(f"colleague.tracks.{track}.scenario")
-                names = [s["name"] for s in scenario.scenarios("http://x")]
-            except Exception as exc:  # noqa: BLE001 - listing must never hard fail
-                names = [f"<not loadable: {type(exc).__name__}>"]
-            print(f"{track}:")
-            for n in names:
-                print(f"  - {n}")
+        from colleague import taxonomy
+
+        for slug, tracks in taxonomy.tracks_by_topic(TRACKS):
+            prop = taxonomy.TOPICS[slug][0] if slug else None
+            heading = taxonomy.topic_title(slug)
+            print(f"# {heading}" + (f" — {taxonomy.PROPERTIES[prop]}" if prop else ""))
+            for track in tracks:
+                try:
+                    scenario = importlib.import_module(
+                        f"colleague.tracks.{track}.scenario",
+                    )
+                    names = [s["name"] for s in scenario.scenarios("http://x")]
+                except Exception as exc:  # noqa: BLE001 - listing must never hard fail
+                    names = [f"<not loadable: {type(exc).__name__}>"]
+                print(f"{track}:")
+                for n in names:
+                    tags = taxonomy.tags_for(track, n)
+                    suffix = f"  [{tags.compact()}]" if tags else ""
+                    print(f"  - {n}{suffix}")
+            print()
         return 0
 
     fixture = importlib.import_module(f"colleague.tracks.{args.track}.fixture")

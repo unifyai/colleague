@@ -33,6 +33,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, unquote, urlsplit
 
+from colleague import taxonomy
 from colleague.human import SERIES
 from colleague.run import TRACKS
 from colleague.tracks.standing.human_legacy import RUNNERS as LEGACY_RUNNERS
@@ -42,22 +43,10 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 WEB_ROOT = REPO_ROOT / "web" / "dist"
 RESULTS_ROOT = REPO_ROOT / "human-results"
 
-FAMILIES = {
-    "standing": "Durable automation",
-    "inheritance": "Context, memory and learning",
-    "continuity": "Context, memory and learning",
-    "recall": "Context, memory and learning",
-    "teaching": "Context, memory and learning",
-    "interruption": "In-flight work control",
-    "concurrency": "In-flight work control",
-    "attribution": "Multi-party governance",
-    "custody": "Multi-party governance",
-    "membership": "Multi-party governance",
-    "meeting": "Collaborative presence",
-    "screenshare": "Collaborative presence",
-    "callflow": "Collaborative presence",
-    "usecase": "Applied workflow validation",
-}
+
+def _family(track: str) -> str:
+    """Family headings come from the taxonomy, not a second copy of it."""
+    return taxonomy.topic_title(taxonomy.TRACK_TOPICS.get(track))
 
 QUESTIONS = {
     "inheritance": "Act on the right referent and ask the right person.",
@@ -86,11 +75,13 @@ def catalog() -> dict[str, Any]:
         scenarios = []
         for item in scenario_module.scenarios("http://browser-fixture.invalid"):
             voice_only = bool(item.get("voice_only"))
+            tags = taxonomy.tags_for(track, item["name"])
             scenarios.append(
                 {
                     "id": item["name"],
                     "title": _title(item["name"]),
                     "description": item.get("note", ""),
+                    "tags": tags.compact() if tags else "",
                     "available": not voice_only,
                     "limitation": (
                         "Requires a human audio bridge; browser text would invalidate it."
@@ -105,7 +96,7 @@ def catalog() -> dict[str, Any]:
                 "kind": "conversational",
                 "id": track,
                 "title": _title(track),
-                "family": FAMILIES[track],
+                "family": _family(track),
                 "description": QUESTIONS.get(track, ""),
                 "modes": ["participant"],
                 "scenarios": scenarios,
@@ -118,13 +109,15 @@ def catalog() -> dict[str, Any]:
             },
         )
     for name in sorted({*SERIES, *LEGACY_RUNNERS}):
+        tags = taxonomy.tags_for("standing", name)
         entries.append(
             {
                 "kind": "standing",
                 "id": name,
                 "title": _title(name),
-                "family": FAMILIES["standing"],
+                "family": _family("standing"),
                 "description": "Recurring work scored over compressed wakes and changes.",
+                "tags": tags.compact() if tags else "",
                 "modes": ["operator", "builder"],
                 "scenarios": [],
                 "available": True,
@@ -132,13 +125,15 @@ def catalog() -> dict[str, Any]:
             },
         )
     for name in sorted(USECASE_RUNNERS):
+        tags = taxonomy.tags_for("usecases", name)
         entries.append(
             {
                 "kind": "usecase",
                 "id": name,
                 "title": _title(name),
-                "family": FAMILIES["usecase"],
+                "family": _family("usecases"),
                 "description": "Validate an applied workflow with its exact page scorer.",
+                "tags": tags.compact() if tags else "",
                 "modes": ["operator", "builder"],
                 "scenarios": [],
                 "available": True,
@@ -146,13 +141,11 @@ def catalog() -> dict[str, Any]:
             },
         )
     families = []
-    for family in dict.fromkeys(FAMILIES.values()):
-        families.append(
-            {
-                "name": family,
-                "benchmarks": [e for e in entries if e["family"] == family],
-            },
-        )
+    ordered = [taxonomy.topic_title(slug) for slug in taxonomy.TOPICS]
+    for family in dict.fromkeys([*ordered, *[e["family"] for e in entries]]):
+        members = [e for e in entries if e["family"] == family]
+        if members:
+            families.append({"name": family, "benchmarks": members})
     return {"families": families, "benchmarks": entries}
 
 

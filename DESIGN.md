@@ -41,6 +41,18 @@ harnesses caught up on the mechanics of the first three:
    screen you share, and picks up the phone. The transport is not the point;
    what it does with what arrived is.
 
+These properties are the top of a machine-readable taxonomy
+(`colleague/taxonomy.py`): each track belongs to a topic, each topic to a
+property, and every scenario, experiment and page carries four tags — its
+role (probe / feed / control), the correct response's shape (act / ask /
+refuse / silence, with hold reserved for the fire-series rubrics), its
+horizon (turn / session / distant / restart / series) and its surface (chat
+/ scheduled-fire / room / screen / phone). `selftest` asserts the taxonomy
+and the suite match exactly, in both directions, so the categories cannot
+drift from the scenarios and a new cell cannot land uncategorised. `run
+--list`, the sweep summary and the human workbench all read their groupings
+from it.
+
 ## What already exists elsewhere
 
 Worth reading before adding a track, so the suite does not re-measure

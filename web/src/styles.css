@@ -83,6 +83,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .choice-card span { display: flex; flex-direction: column; gap: 5px; }
 .choice-card strong { font-size: 12px; }
 .choice-card small { color: var(--muted); font-size: 10px; line-height: 1.45; }
+.scenario-tags { color: var(--blue); font: 500 9px/1.4 var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+p.scenario-tags { margin: 6px 0 0; }
 .segmented { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--ink); }
 .segmented button { padding: 12px; border: 0; background: transparent; cursor: pointer; text-transform: capitalize; font-size: 12px; }
 .segmented button + button { border-left: 1px solid var(--ink); }

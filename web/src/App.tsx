@@ -189,7 +189,11 @@ function Setup(props: SetupProps) {
     .map((family) => ({
       ...family,
       benchmarks: family.benchmarks.filter((item) =>
-        `${item.title} ${item.description} ${item.family}`.toLowerCase().includes(query),
+        `${item.title} ${item.description} ${item.family} ${item.tags ?? ""} ${item.scenarios
+          .map((s) => `${s.title} ${s.tags}`)
+          .join(" ")}`
+          .toLowerCase()
+          .includes(query),
       ),
     }))
     .filter((family) => family.benchmarks.length);
@@ -236,6 +240,7 @@ function Setup(props: SetupProps) {
                 <span className="eyebrow">{props.selected.family} / {kindLabel(props.selected.kind)}</span>
                 <h2>{props.selected.title}</h2>
                 <p>{props.selected.description}</p>
+                {props.selected.tags && <p className="scenario-tags">{props.selected.tags}</p>}
               </div>
               <span className={`availability ${props.selected.available ? "ready" : "pending"}`}>
                 {props.selected.available ? "Ready locally" : "Not yet runnable"}
@@ -262,7 +267,11 @@ function Setup(props: SetupProps) {
                         checked={props.scenario === item.id}
                         onChange={() => props.onScenario(item.id)}
                       />
-                      <span><strong>{item.title}</strong><small>{item.available ? item.description : item.limitation}</small></span>
+                      <span>
+                        <strong>{item.title}</strong>
+                        <small>{item.available ? item.description : item.limitation}</small>
+                        {item.tags && <small className="scenario-tags">{item.tags}</small>}
+                      </span>
                     </label>
                   ))}
                 </fieldset>

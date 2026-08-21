@@ -2,6 +2,7 @@ export type Scenario = {
   id: string;
   title: string;
   description: string;
+  tags: string;
   available: boolean;
   limitation: string | null;
 };
@@ -12,6 +13,7 @@ export type Benchmark = {
   title: string;
   family: string;
   description: string;
+  tags?: string;
   modes: string[];
   scenarios: Scenario[];
   available: boolean;

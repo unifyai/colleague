@@ -1,6 +1,10 @@
 """Check the benchmark before checking anything with it.
 
-Two invariants, run against the scripted mock arm so they cost nothing:
+First the taxonomy: every scenario, experiment and page carries a complete
+tag set in `colleague/taxonomy.py` and no entry is stale, so a new cell
+cannot land uncategorised and the categories cannot drift from the suite.
+
+Then two invariants, run against the scripted mock arm so they cost nothing:
 
 **Every scenario is winnable.** The `ideal` plan — what a competent
 assistant would do — must be credited. A scenario whose ideal plan cannot
@@ -38,6 +42,7 @@ from contextlib import redirect_stdout
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from colleague import taxonomy
 from colleague.harness.capability import Outcome
 from colleague.harness.runner import run_track
 from colleague.run import TRACKS
@@ -114,6 +119,51 @@ EXEMPT = {
         "facts were said. Both plans tell him everything."
     ),
 }
+
+
+def _check_taxonomy() -> list[str]:
+    """Every cell categorised, every category real, roles consistent.
+
+    Three invariants beyond `taxonomy.check_entries`: each track's scenario
+    list and its taxonomy entries match exactly (nothing uncategorised,
+    nothing stale); every `standing` experiment and `usecases` page has an
+    entry; and every selftest exemption is a `feed` or `control` cell —
+    an exempt probe would be a scored question whose scorer is never
+    checked for discrimination.
+    """
+    problems = taxonomy.check_entries()
+    for track in TRACKS:
+        scenario = importlib.import_module(f"colleague.tracks.{track}.scenario")
+        names = [s["name"] for s in scenario.scenarios("http://x")]
+        problems += taxonomy.check_track(track, names)
+
+    from colleague.human import SERIES
+    from colleague.tracks.standing.human_legacy import RUNNERS as LEGACY
+    from colleague.tracks.usecases.human import RUNNERS as USECASES
+
+    problems += taxonomy.check_track("standing", {*SERIES, *LEGACY})
+    problems += taxonomy.check_track("usecases", USECASES)
+
+    for track, name in EXEMPT:
+        tags = taxonomy.tags_for(track, name)
+        if tags is not None and tags.role == "probe":
+            problems.append(
+                f"{track}/{name}: exempt from discrimination checks but "
+                "tagged as a probe — a probe's scorer must discriminate",
+            )
+    counts: dict[str, int] = {}
+    for (track, name), _tags in taxonomy.ALL_CELLS.items():
+        slug = taxonomy.topic_of(track, name)
+        counts[slug] = counts.get(slug, 0) + 1
+    print(
+        "taxonomy: "
+        + ", ".join(
+            f"{taxonomy.topic_title(slug)} {counts[slug]}"
+            for slug in taxonomy.TOPICS
+            if slug in counts
+        ),
+    )
+    return problems
 
 
 def series_experiments() -> list[Experiment]:
@@ -193,7 +243,8 @@ def _run(track: str, mode: str, tmp: Path) -> dict[str, str]:
 
 
 def main() -> int:
-    failures: list[str] = []
+    failures: list[str] = _check_taxonomy()
+    print()
     with TemporaryDirectory() as raw:
         tmp = Path(raw)
         for track in TRACKS:
@@ -227,7 +278,8 @@ def main() -> int:
             print(f"  {f}")
         return 1
     print(
-        "\nall tracks: every scenario winnable, every scorer discriminating; "
+        "\nall tracks: every scenario winnable, every scorer discriminating, "
+        "every cell categorised; "
         "every fire series: ideal correct, naive wrong, held reachable",
     )
     return 0
