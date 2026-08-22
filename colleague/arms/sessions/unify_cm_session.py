@@ -1577,7 +1577,23 @@ class UnifyCMSession(ArmSession):
         return out
 
     def cost_snapshot(self) -> dict[str, Any]:
-        return self.ledger.cost_snapshot() if self.ledger is not None else {}
+        if self.ledger is not None:
+            return self.ledger.cost_snapshot()
+        # The runner snapshots costs BEFORE setup(), and a sleep-rebooted
+        # session shares its run root — and therefore its accumulated proxy
+        # ledger — with every session before it. Answering {} here made the
+        # before-diff vanish, so each week reported the file's cumulative
+        # totals as its own spend (2026-08-22: week 6 read as 163 calls /
+        # $3.36 when its true delta was 23 / $0.29). Reading the file
+        # directly keeps the baseline honest while still attributing the
+        # boot's own calls to the scenario that paid for them.
+        if self.results_dir is not None:
+            path = self.results_dir / "proxy_ledger.jsonl"
+            if path.exists():
+                from colleague.harness.ledger import PhaseLedger
+
+                return PhaseLedger(path).cost_snapshot()
+        return {}
 
 
 register("unify-cm", UnifyCMSession)
