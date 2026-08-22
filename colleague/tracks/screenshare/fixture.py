@@ -20,12 +20,14 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from colleague.harness.conversation import Participant
 from colleague.harness.fixture_server import (
     FixtureServer,
     Request,
     missing_fields,
     reject,
 )
+from colleague.harness.persona import Persona, PersonaPool
 from colleague.harness.frames import (
     AMBER,
     BLACK,
@@ -79,6 +81,29 @@ DEMONSTRATION: list[dict[str, Any]] = [
 ]
 
 NEW_TITLE = "renew halden contract"
+
+#: `follow_the_share` swaps Daniel for a stand-in who will not narrate the
+#: demonstration: the four steps exist only in the frames, and a Daniel who
+#: typed them out on request would collapse the scenario into its own text
+#: control. Scenario-scoped, because in `follow_the_text` he literally did
+#: say the steps and may restate them.
+FRAMES_PERSONA_OVERRIDES: dict[str, dict[str, Any]] = {
+    "daniel": {
+        "brief": (
+            "You are Daniel Okafor. You just demonstrated four board "
+            "actions over screen share and asked your assistant to do the "
+            "same on its own board. You are not going to type the steps "
+            "out — that is the whole point of showing it. If asked what "
+            "you did, say to look at what you showed on screen; if asked "
+            "anything about a specific step, say the share showed "
+            "everything."
+        ),
+        "knowledge": {},
+        "fallback": "It's all in what I showed you on screen.",
+        "fallback_label": "repointed",
+        "forbidden": ("halden", "meera", "vendor", "vat"),
+    },
+}
 
 FRAME_W, FRAME_H = 900, 420
 
@@ -165,8 +190,32 @@ def frames(seed: int = DEFAULT_SEED) -> list[str]:
     return paths
 
 
+def _personas() -> PersonaPool:
+    return PersonaPool(
+        [
+            Persona(
+                participant=Participant(
+                    id="daniel",
+                    name="Daniel Okafor",
+                    role="the person you work for",
+                    email="daniel@northwind.example",
+                ),
+                brief=(
+                    "You are Daniel Okafor. Your assistant is mirroring "
+                    "some board changes for you. Answer questions briefly "
+                    "as yourself; when it reports the work done, a short "
+                    "acknowledgment or nothing at all is your way."
+                ),
+                fallback="Noted.",
+                fallback_label="conversational",
+            ),
+        ],
+    )
+
+
 def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServer:
     fx = FixtureServer(seed=seed, port=port)
+    fx.state["personas"] = _personas()
     fx.state["boards"] = {
         "a": expected_final_board(),  # Daniel already did his part
         "b": copy.deepcopy(INITIAL_TICKETS),

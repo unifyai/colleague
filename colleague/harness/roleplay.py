@@ -199,6 +199,11 @@ class RolePlayDirector:
             {"who": who, "text": text, "kind": kind},
         )
         self.fixture.state[self.room_key].append({"seq": seq, "who": who, "text": text})
+        # What was actually said, in whoever's words it ended up in, joins
+        # the speaker's own memory — the persona engine's transcript of what
+        # this person has said on any channel this run.
+        if self._pool is not None and hasattr(self._pool, "note_authored"):
+            self._pool.note_authored(who, text, channel="room")
         said = Said(who=who, text=text, kind=kind, seq=seq, at=utcnow(), **meta)
         with self._lock:
             self._said.append(said)
@@ -234,7 +239,9 @@ class RolePlayDirector:
             + (f"Purpose: {beat.intent}\n\n" if beat.intent else "")
             + "One or two sentences. Say only this; do not add other topics."
         )
-        text = self._pool.answer(beat.who, prompt, expect=())
+        # Direction, not conversation: the wording prompt must not enter the
+        # persona's memory as something the assistant said to them.
+        text = self._pool.answer(beat.who, prompt, channel="scene", remember=False)
         return text.strip() or beat.text
 
     def _maybe_react(self, who: str, assistant_line: str) -> None:
@@ -251,7 +258,7 @@ class RolePlayDirector:
             "it, in one or two sentences. If it was not for you, or nothing "
             "needs saying, reply with exactly the single word SILENT."
         )
-        text = self._pool.answer(who, prompt, expect=()).strip()
+        text = self._pool.answer(who, prompt, channel="scene", remember=False).strip()
         if not text or text.upper().startswith("SILENT"):
             return
         self._reactions[who] = self._reactions.get(who, 0) + 1

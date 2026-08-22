@@ -41,6 +41,7 @@ from colleague.harness.fixture_server import FixtureServer
 from colleague.harness.scoring import Scorecard
 from colleague.tracks.refinement.fixture import (
     API_DOC,
+    CONTROL_PERSONA_OVERRIDES,
     DANIEL,
     expected_columns,
     expected_rows,
@@ -237,6 +238,13 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
             "request": f"{api}\n\n{CONTROL_REQUEST}",
             "surface": surface_for(CONTROL_REQUEST),
             "fresh_session": True,
+            # The persona boundary holds for the control by construction:
+            # the Daniel this scenario meets never gave a brief, has no
+            # format to restate on any channel, and the leak guard voids
+            # the cell if his stand-in invents one. Without this, asking
+            # him would be a side door to the spec the control exists to
+            # prove undiscoverable.
+            "persona_overrides": CONTROL_PERSONA_OVERRIDES,
             "note": (
                 "The control: no brief, ever, in a session that never saw "
                 "one. Establishes what the API alone yields."
@@ -332,9 +340,18 @@ def score(
     filings = fixture.recorder.all("report")
     mine = [f for f in filings if (f.get("payload") or {}).get("week") == week]
     clarifications = (record or {}).get("clarifications") or []
+    # The DEGRADED trigger reads the persona's own labels, not the channel:
+    # Daniel re-supplying the spec over the product's message channel costs
+    # exactly what re-supplying it through the clarification hook does.
+    restated = [
+        e
+        for e in (record or {}).get("persona") or []
+        if e.get("label") == "restated"
+    ]
     card = Scorecard(name)
     card.evidence["filings"] = len(filings)
     card.evidence["clarifications"] = len(clarifications)
+    card.evidence["restated_answers"] = len(restated)
 
     if name == "week_1_briefed":
         # No format has been fixed yet, so the draft's shape is free; the
@@ -410,15 +427,17 @@ def score(
             "as designed: the format was never given in this session",
         )
 
-    if card.passed and clarifications:
-        # The intern economics: asking works, and costs. Every answer the
-        # persona gives is one the brief or the feedback already contained.
+    if card.passed and restated:
+        # The intern economics: asking works, and costs. A restated label
+        # means Daniel re-supplied something the brief or the feedback
+        # already contained — on whichever channel the arm asked.
         return ScenarioResult(
             name,
             Outcome.DEGRADED,
             card.as_dict(),
-            f"correct, but asked {len(clarifications)}x — the answer was "
-            "already given; the round trip is the price of not keeping it",
+            f"correct, but Daniel re-supplied the spec {len(restated)}x — "
+            "the answer was already given; the round trip is the price of "
+            "not keeping it",
         )
 
     outcome = Outcome.PASS if card.passed else Outcome.FAIL

@@ -52,3 +52,10 @@ Run `python -m colleague.run concurrency --arm human`. Named requests and
 corrections arrive live at existing progress waypoints. The fixture scores the
 same final state and untouched controls; elapsed time, active labour and labour
 cost are also recorded.
+
+## The persona boundary
+
+The three senders are personas: each can restate what their own correction
+literally said — nothing more, never anyone else's message, never a task
+assignment their words did not contain. Routing stays the tested move;
+scoring is unchanged (it reads the interlocutor journal and the fixture).

@@ -177,6 +177,72 @@ def _check_taxonomy() -> list[str]:
     return problems
 
 
+def _check_personas() -> list[str]:
+    """Every persona well-formed before a model ever plays one.
+
+    Briefs must exist (a persona with no brief is an unbounded
+    improviser), declared labels must come from the one taxonomy, and no
+    scripted fallback may carry a forbidden token — a canned answer that
+    trips its own leak guard would void every scripted cell it touches.
+    Scenario-level overrides are held to the same rules, and must name a
+    persona that exists.
+    """
+    from colleague.harness.persona import LABELS
+
+    problems: list[str] = []
+    for track in TRACKS:
+        fixture_module = importlib.import_module(f"colleague.tracks.{track}.fixture")
+        fx = fixture_module.build(port=0)
+        try:
+            pool = fx.state.get("personas")
+            if pool is None:
+                continue
+            for pid, persona in pool.personas.items():
+                if not persona.brief.strip():
+                    problems.append(f"{track}/{pid}: persona has no brief")
+                if persona.fallback_label not in LABELS:
+                    problems.append(
+                        f"{track}/{pid}: fallback_label "
+                        f"{persona.fallback_label!r} is not in the taxonomy",
+                    )
+                blob = (persona.fallback or "").lower()
+                for entry in persona.forbidden:
+                    parts = entry if isinstance(entry, tuple) else (entry,)
+                    if all(p.lower() in blob for p in parts):
+                        problems.append(
+                            f"{track}/{pid}: scripted fallback contains "
+                            f"forbidden content {entry!r}",
+                        )
+            scenario_module = importlib.import_module(
+                f"colleague.tracks.{track}.scenario",
+            )
+            for spec in scenario_module.scenarios("http://x"):
+                for who, override in (spec.get("persona_overrides") or {}).items():
+                    where = f"{track}/{spec['name']}/{who}"
+                    if who not in pool.personas:
+                        problems.append(
+                            f"{where}: override names a persona that "
+                            "does not exist",
+                        )
+                    label = override.get("fallback_label")
+                    if label is not None and label not in LABELS:
+                        problems.append(
+                            f"{where}: fallback_label {label!r} is not in "
+                            "the taxonomy",
+                        )
+                    blob = str(override.get("fallback") or "").lower()
+                    for entry in override.get("forbidden", ()):
+                        parts = entry if isinstance(entry, tuple) else (entry,)
+                        if all(p.lower() in blob for p in parts):
+                            problems.append(
+                                f"{where}: scripted fallback contains "
+                                f"forbidden content {entry!r}",
+                            )
+        finally:
+            fx.stop()
+    return problems
+
+
 def series_experiments() -> list[Experiment]:
     """Every fire-series experiment and variant, as the drivers would build it."""
     from colleague.tracks.standing.change_without_regression.protocol import (
@@ -255,6 +321,7 @@ def _run(track: str, mode: str, tmp: Path) -> dict[str, str]:
 
 def main() -> int:
     failures: list[str] = _check_taxonomy()
+    failures += _check_personas()
     print()
     with TemporaryDirectory() as raw:
         tmp = Path(raw)

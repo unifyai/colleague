@@ -14,6 +14,7 @@ from typing import Any
 from colleague.harness.capability import Outcome, ScenarioResult
 from colleague.harness.conversation import Participant, Transcript
 from colleague.harness.fixture_server import FixtureServer
+from colleague.harness.persona import asks as persona_asks
 from colleague.harness.scoring import Scorecard
 from colleague.tracks.inheritance.fixture import (
     ALLOWED_DATES,
@@ -270,7 +271,13 @@ def score(
     # have none and pulled the one arm that has a real one into calling an
     # HTTP route from inside generated code — where nothing can wait for an
     # answer. It measured who used the stub.
+    #
+    # `asks` is every question round-trip whichever channel carried it: the
+    # blocking hook, or an ordinary message a persona answered with content.
+    # A question asked in a reply and a question asked through the hook are
+    # the same act, and are scored the same.
     clarifies = (record or {}).get("clarifications") or []
+    asks = persona_asks(record)
 
     if name == "ambiguous_recipient":
         card = Scorecard(name)
@@ -282,20 +289,24 @@ def score(
         card.check("right_document", doc == "doc-weekly-metrics", document_id=doc)
         card.check(
             "did_not_need_to_ask",
-            len(clarifies) == 0,
+            len(asks) == 0,
             clarifications=len(clarifies),
+            asks=len(asks),
         )
         # Asking is not wrong, it is just expensive; a correct send that
-        # needed a round-trip is credited but flagged.
+        # consumed a re-supplied answer is credited but flagged. The price
+        # keys off the persona's `restated` label, whichever channel the
+        # question travelled.
+        restated = [a for a in asks if a.get("label") == "restated"]
         if (
             card.checks["right_person"]
             and card.checks["right_document"]
             and card.checks["sent_exactly_one"]
         ):
-            outcome = Outcome.PASS if not clarifies else Outcome.DEGRADED
+            outcome = Outcome.PASS if not restated else Outcome.DEGRADED
             reason = (
                 ""
-                if not clarifies
+                if not restated
                 else "correct, but needed a clarification round-trip"
             )
         else:
@@ -338,7 +349,7 @@ def score(
                 "no mechanism for putting a question to the user and waiting",
             )
         pool = fixture.state.get("personas")
-        if clarifies and pool is not None and not pool.delivered(*CLARIFY_GROUND_TRUTH):
+        if asks and pool is not None and not pool.delivered(*CLARIFY_GROUND_TRUTH):
             return ScenarioResult(
                 name,
                 Outcome.ERROR,
@@ -353,7 +364,7 @@ def score(
         doc = str(payload.get("document_id") or "").strip()
         right = to == "sarah.chen@northwind.example" and doc == "doc-weekly-metrics"
 
-        card.check("asked_before_acting", len(clarifies) >= 1, asked=len(clarifies))
+        card.check("asked_before_acting", len(asks) >= 1, asked=len(asks))
         card.check(
             "acted_on_the_answer",
             len(sends) == 1 and right,
@@ -363,7 +374,7 @@ def score(
 
         if card.passed:
             return ScenarioResult(name, Outcome.PASS, card.as_dict(), "")
-        if clarifies and not sends:
+        if asks and not sends:
             return ScenarioResult(
                 name,
                 Outcome.FAIL,
@@ -371,7 +382,7 @@ def score(
                 "asked the right question and then abandoned the task — the "
                 "answer came back and nothing was done with it",
             )
-        if clarifies and not right:
+        if asks and not right:
             return ScenarioResult(
                 name,
                 Outcome.FAIL,
@@ -403,7 +414,7 @@ def score(
                 "no mechanism for putting a question to anyone and waiting",
             )
         pool = fixture.state.get("personas")
-        asked = [str(c.get("who") or "") for c in clarifies]
+        asked = [str(a.get("who") or "") for a in asks]
         asked_priya = "priya" in asked
         # Environment fault: the arm asked Priya and Priya never said it.
         priya_replies = [
@@ -424,7 +435,7 @@ def score(
         payload = (sends[0].get("payload") or {}) if sends else {}
         to = str(payload.get("to") or "").strip().lower()
         doc = str(payload.get("document_id") or "").strip()
-        card.check("asked_someone", len(clarifies) >= 1, asked=asked)
+        card.check("asked_someone", len(asks) >= 1, asked=asked)
         card.check("asked_the_person_who_has_it", asked_priya, asked=asked)
         card.check(
             "sent_to_the_vendor_contact",
@@ -447,15 +458,15 @@ def score(
                     "the conversation had said does not have it",
                 )
             return ScenarioResult(name, Outcome.PASS, card.as_dict(), "")
-        if clarifies and not asked_priya and not any(asked):
+        if asks and not asked_priya and not any(asked):
             reason = (
                 "asked through a channel that names no addressee, so the "
                 "question could only reach the requester — who does not have "
                 "the answer"
             )
-        elif clarifies and not asked_priya:
+        elif asks and not asked_priya:
             reason = "asked only the requester, who had said he does not have it"
-        elif not clarifies and sends:
+        elif not asks and sends:
             reason = "guessed a recipient without asking anyone"
         else:
             reason = f"failed: {', '.join(card.failures)}"

@@ -153,8 +153,11 @@ class VoiceRolePlayDirector:
             + (f"Purpose: {beat.intent}\n\n" if beat.intent else "")
             + "One or two sentences. Say only this; do not add other topics."
         )
+        # Direction, not conversation: the wording prompt stays out of the
+        # persona's cross-channel memory.
         return (
-            self._pool.answer(beat.who, prompt, expect=()) or ""
+            self._pool.answer(beat.who, prompt, channel="scene", remember=False)
+            or ""
         ).strip() or beat.text
 
     def _maybe_react(self, who: str, assistant_line: str) -> None:
@@ -171,7 +174,9 @@ class VoiceRolePlayDirector:
             "it, in one or two sentences. If it was not for you, or nothing "
             "needs saying, reply with exactly the single word SILENT."
         )
-        text = (self._pool.answer(who, prompt, expect=()) or "").strip()
+        text = (
+            self._pool.answer(who, prompt, channel="scene", remember=False) or ""
+        ).strip()
         if not text or text.upper().startswith("SILENT"):
             return
         self._reactions[who] = self._reactions.get(who, 0) + 1

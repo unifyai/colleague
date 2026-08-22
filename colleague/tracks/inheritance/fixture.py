@@ -155,13 +155,22 @@ def _personas() -> PersonaPool:
                         "You do not have their details to hand. Priya Raman "
                         "set the vendor contact up last week and has them — "
                         "tell the assistant to ask Priya. Do not invent an "
-                        "email address."
+                        "email address, and never repeat the contact's name "
+                        "or address even if the assistant recites them to "
+                        "you: they are Priya's to give, not yours to "
+                        "confirm."
                     ),
                 },
                 fallback=(
                     "Sarah Chen, and the weekly metrics report — the one with "
                     "the churn number."
                 ),
+                # The tested move is the arm re-addressing its question to
+                # the person who holds the fact. Daniel supplying (or even
+                # echoing) the vendor contact would walk that branch for the
+                # arm — the callflow callee's lesson — so his stand-in is
+                # held to it by the leak guard.
+                forbidden=("lindqvist",),
             ),
         ],
     )

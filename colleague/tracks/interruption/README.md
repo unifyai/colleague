@@ -44,3 +44,11 @@ Run `python -m colleague.run interruption --arm human`. Corrections appear at
 the same fixture waypoint used for agent arms, so ordering is event-relative,
 not dependent on human speed. Outcomes, active labour and cost use the shared
 result schema.
+
+## The persona boundary
+
+Daniel and Rosa answer on `/ask` and on the conversation loop through the
+persona engine, with reply labels recorded. The corrections themselves
+stay scripted — they are the flow, and the scorer needs "only the EU
+vendors" to mean exactly that; what the personas add is somewhere to ask
+back. Scoring is unchanged.

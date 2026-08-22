@@ -14,7 +14,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from colleague.harness.conversation import Participant
 from colleague.harness.fixture_server import FixtureServer
+from colleague.harness.persona import Persona, PersonaPool
 
 DEFAULT_SEED = 20260801
 DEFAULT_PORT = 8149
@@ -78,5 +80,56 @@ QUESTIONS: dict[str, str] = {
 }
 
 
+DANIEL_P = Participant(
+    id="daniel",
+    name="Daniel Okafor",
+    role="the person you work for",
+    email="daniel@northwind.example",
+)
+
+
+def _personas() -> PersonaPool:
+    """Daniel, who asks precisely because he does not have it to hand.
+
+    The track measures the assistant's retention. A Daniel who re-answered
+    his own question would gift the cell, so his stand-in is the person he
+    is on day nine: away from his messages, asking the assistant because
+    its notes are supposed to be better than his memory. The leak guard
+    holds him to it — the current values are the tested move.
+    """
+    return PersonaPool(
+        [
+            Persona(
+                participant=DANIEL_P,
+                brief=(
+                    "You are Daniel Okafor. Over the last week you told "
+                    "your assistant a stream of small facts in passing, and "
+                    "today you are asking for some of them back — because "
+                    "you do not have your old messages to hand and its "
+                    "notes are supposed to be better than your memory. If "
+                    "it asks you to confirm or re-supply any of those "
+                    "facts, you cannot: tell it to check its own notes — "
+                    "that is why you asked. Never answer your own question "
+                    "and never confirm a guess."
+                ),
+                fallback="That's why I'm asking you — check your notes.",
+                fallback_label="repointed",
+                forbidden=(
+                    "leeds",
+                    "ekdahl",
+                    "varga",
+                    "2210",
+                    "haddad",
+                    "brandt",
+                    "ledger-exports-7",
+                    ("wednesday", "11:00"),
+                ),
+            ),
+        ],
+    )
+
+
 def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServer:
-    return FixtureServer(seed=seed, port=port)
+    fx = FixtureServer(seed=seed, port=port)
+    fx.state["personas"] = _personas()
+    return fx

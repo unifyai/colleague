@@ -208,6 +208,21 @@ have **briefs** and answer through a model, so an assistant that asks "which
 Sarah did you mean?" gets a reply in someone's own words — and one that asks
 for a credential gets asked again, with a reason attached.
 
+And they listen on **every channel** the harness's product exposes, for the
+whole track. The benchmark supplies people, never APIs-to-people: a
+question addressed to Daniel in a reply message reaches Daniel exactly as a
+question through the blocking clarification hook does, because in real
+operation there is no dedicated hook — a clarification is a message on a
+channel. The runner routes arm messages to the addressed persona and
+delivers non-silent answers back as ordinary inbound traffic (a bounded
+number of rounds per scenario). Every persona reply carries a structured
+**label** the scorers consume symbolically: `restated` (the persona
+re-supplied something they already gave — the DEGRADED trigger, on any
+channel), `repointed`, `no_information`, `conversational`, or `silent`. A
+per-track **leak guard** voids a cell as `INVALID` if a persona ever
+introduces the move a check measures; and the scripted implementation
+(forced for the mock arm) keeps the self-test deterministic and free.
+
 The split is deliberate:
 
 | Deterministic | Stochastic |

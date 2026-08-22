@@ -81,3 +81,12 @@ Run `python -m colleague.run screenshare --arm human`. Attached frames are
 listed in the workbench and `/open N` opens one in the system viewer. The same
 final-state and demonstrator-untouched checks apply, with active time and
 labour cost recorded.
+
+## The persona boundary
+
+`follow_the_share` meets a Daniel who will not narrate the demonstration:
+the four steps exist only in the frames, and a stand-in who typed them out
+on request would collapse the scenario into its own text control — the
+leak guard voids the cell (`INVALID`) if he does. In `follow_the_text` he
+literally said the steps and may restate them; the swap is scenario-scoped
+(`persona_overrides`).

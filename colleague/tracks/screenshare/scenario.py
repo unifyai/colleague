@@ -30,6 +30,7 @@ from colleague.tracks.screenshare.fixture import (
     API_DOC,
     DEFAULT_SEED,
     DEMONSTRATION,
+    FRAMES_PERSONA_OVERRIDES,
     INITIAL_TICKETS,
     NEW_TITLE,
     frames,
@@ -60,6 +61,12 @@ def scenarios(base_url: str) -> list[dict[str, Any]]:
             ),
             "images": frames(DEFAULT_SEED),
             "sender": "daniel",
+            # The steps exist only in the frames, so this scenario's Daniel
+            # will not narrate them: asked what he did, he points back at
+            # the share, and the leak guard voids the cell if his stand-in
+            # types a step out — that would collapse the scenario into its
+            # own text control.
+            "persona_overrides": FRAMES_PERSONA_OVERRIDES,
             "note": (
                 "The four steps exist only in the frames. Score is the final "
                 "state of /b."

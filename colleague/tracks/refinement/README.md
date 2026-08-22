@@ -72,6 +72,22 @@ week-5 verdicts three legible rungs: remembered (PASS), noticed and asked
 (DEGRADED — the surprise signal worked, the memory did not), silently wrong
 (FAIL).
 
+Daniel listens on every channel, for the whole track. A question asked in
+the arm's *reply* — the failure mode that lost CI run 32556444813, where a
+cold-booted arm asked for the week-2 source in its reply and the channel
+was write-only — now gets his answer back as an ordinary inbound message
+(the runner's conversation loop; sends the arm's product delivers to him
+are witnessed on the fixture's `/reply`). The DEGRADED trigger keys off his
+reply **labels**: any exchange labelled `restated`, whichever channel
+carried it, prices the week. His memory accumulates his own sent messages,
+so at week 6 the rename stands over the brief's original column name; his
+trap discipline never confirms a flag decision or does conversion
+arithmetic (the leak guard voids the cell — `INVALID` — if his stand-in
+ever emits a computed conversion). The `unbriefed_control` meets a
+scenario-scoped stand-in who has no format to give and is leak-guarded
+against inventing one, so asking him is not a side door to the spec the
+control proves undiscoverable.
+
 Cost per week is reported from the ledger and never scored. Across the six
 weeks that ledger is the measurement this track exists to produce: the
 amortisation curve of a task whose spec was drip-fed — what each round
@@ -86,7 +102,12 @@ inference, not retention.
 python -m colleague.run refinement --arm unify-cm
 ```
 
-## First person-shaped run (2026-08-21, unify-cm, local)
+## First person-shaped run (2026-08-21, unify-cm, local — pre-duplex)
+
+*Pre-duplex: this run predates the persona engine — Daniel answered only
+through the clarification hook, and a question asked on any other channel
+died unanswered. Its verdicts are not comparable with runs after the
+duplex change and are kept labelled, not deleted.*
 
 Run `2026-08-21T21-18-56Z-unify-cm-ca088c`, unify staging `34c62f2c2`
 (verification master switch off by default), gpt-5.6-sol: **6/6 scoreable

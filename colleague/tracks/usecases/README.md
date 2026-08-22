@@ -118,3 +118,14 @@ fixture and exact scorer. If work repeats, the next occurrence is presented to
 the participant again with their notes and experience retained. Active seconds,
 declared hourly rate, labour cost, elapsed time and per-output cost accompany
 the existing metrics.
+
+## The persona boundary
+
+The owner's clarification answers now come from an owner persona under the
+same information bound the old scripted constant enforced: his brief and
+his own delivered messages are everything he knows, he never adds
+information, and asked anything he points back and says go ahead (label
+`repointed`; the scripted fallback is the old constant, unchanged, and is
+what deterministic runs use). Persona spend lands in its own
+`persona_ledger.jsonl` and is reported as `persona_tokens` /
+`persona_exchanges`, never in the arm's columns.

@@ -192,13 +192,23 @@ async def main() -> int:
     # with one scripted, information-free line; whatever the system settles
     # on is part of what this measures. (Timezone does not move the scoring:
     # the fixture's weeks are dates, not instants.)
-    from colleague.tracks.standing.series.person import OWNER_CLARIFICATION_REPLY
+    from colleague.tracks.standing.series.person import owner_pool
 
+    # The owner persona: same information bound as the old scripted line
+    # (the brief is complete by construction, nothing is ever added), a
+    # person's wording, metered apart from the arm.
+    pool = owner_pool(results_dir=results_dir, run_id=run_id)
+    pool.note_authored("owner", utterance)
     clarifications: list[dict[str, Any]] = []
 
     def _responder(question: str, who: str | None = None) -> str:
-        clarifications.append({"question": question, "who": who})
-        return OWNER_CLARIFICATION_REPLY
+        answer = pool.answer("owner", question)
+        exchanges = pool.exchanges()
+        label = exchanges[-1].get("label") if exchanges else None
+        clarifications.append(
+            {"question": question, "who": who, "answer": answer, "label": label},
+        )
+        return answer
 
     session.on_clarification(_responder)
 
@@ -328,6 +338,11 @@ async def main() -> int:
     if final_entrypoint is not None:
         results["entrypoint_function"] = _function_snapshot(final_entrypoint)
 
+    # The environment's own spend, apart from the arm's phases; captured at
+    # the end so questions raised during the metered runs are counted too.
+    owner_evidence = pool.evidence()
+    results["persona_exchanges"] = len(owner_evidence["persona_exchanges"])
+    results["persona_tokens"] = owner_evidence["persona_tokens"]
     _finalize(results, ledger, results_dir, fixture)
     session.close()
     return 0

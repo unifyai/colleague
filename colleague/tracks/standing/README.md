@@ -36,3 +36,14 @@ time and human labour cost for initial read-in, updates and every occurrence.
 It never asks the participant to write code or technical instructions. Full
 controls and the coverage table are in
 [`../../../HUMAN_TESTING.md`](../../../HUMAN_TESTING.md).
+
+## The persona boundary
+
+The owner's clarification answers now come from an owner persona under the
+same information bound the old scripted constant enforced: his brief and
+his own delivered messages are everything he knows, he never adds
+information, and asked anything he points back and says go ahead (label
+`repointed`; the scripted fallback is the old constant, unchanged, and is
+what deterministic runs use). Persona spend lands in its own
+`persona_ledger.jsonl` and is reported as `persona_tokens` /
+`persona_exchanges`, never in the arm's columns.

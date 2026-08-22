@@ -348,8 +348,11 @@ class FixtureServer:
         }
         # Personas are the environment, not the system under test, so their
         # exchanges and their token spend are reported apart from the arm's.
+        # The pool reports its scenario window, not its whole run: a shared
+        # fixture keeps one pool across a track, and repeating every earlier
+        # week's exchanges in every later record would multiply the counts
+        # the aggregate sums.
         pool = self.state.get("personas")
         if pool is not None:
-            out["persona_exchanges"] = pool.transcript()
-            out["persona_tokens"] = pool.tokens
+            out.update(pool.evidence())
         return out

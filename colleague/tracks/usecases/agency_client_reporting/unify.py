@@ -256,16 +256,24 @@ async def main() -> int:
     # ── Phase: setup (the brief, as one owner message) ──────────────────────
     # The brief arrives the way a person's would: through the CM, from the
     # owner. The CM's clarification channel is real here — the owner is right
-    # there, having just sent the brief — so questions are answered, with one
-    # scripted, information-free line: the brief is complete by construction,
+    # there, having just sent the brief — so questions are answered by the
+    # owner persona, under the same information bound the old scripted line
+    # enforced: the brief is complete by construction, nothing is ever added,
     # and whatever the system settles on is part of what this measures.
-    from colleague.tracks.standing.series.person import OWNER_CLARIFICATION_REPLY
+    from colleague.tracks.standing.series.person import owner_pool
 
+    pool = owner_pool(results_dir=results_dir, run_id=run_id)
+    pool.note_authored("owner", utterance)
     clarifications: list[dict[str, Any]] = []
 
     def _responder(question: str, who: str | None = None) -> str:
-        clarifications.append({"question": question, "who": who})
-        return OWNER_CLARIFICATION_REPLY
+        answer = pool.answer("owner", question)
+        exchanges = pool.exchanges()
+        label = exchanges[-1].get("label") if exchanges else None
+        clarifications.append(
+            {"question": question, "who": who, "answer": answer, "label": label},
+        )
+        return answer
 
     session.on_clarification(_responder)
 
@@ -483,6 +491,11 @@ async def main() -> int:
     if final_entrypoint is not None:
         results["entrypoint_function"] = _function_snapshot(final_entrypoint)
 
+    # The environment's own spend, apart from the arm's phases; captured at
+    # the end so questions raised during the metered runs are counted too.
+    owner_evidence = pool.evidence()
+    results["persona_exchanges"] = len(owner_evidence["persona_exchanges"])
+    results["persona_tokens"] = owner_evidence["persona_tokens"]
     _finalize(results, ledger, results_dir, fixture)
     session.close()
     return 0

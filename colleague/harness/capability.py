@@ -44,6 +44,14 @@ class Outcome(str, Enum):
     give: it looks like a finding. An ERROR anywhere fails the run.
     """
 
+    INVALID = "invalid"
+    """The environment corrupted the measurement — a persona leaked content
+    its track forbids (the move a check measures, a control's undiscoverable
+    spec). The cell is void: not a PASS the leak gifted, not a FAIL the arm
+    never earned, and never in an accuracy denominator. Repeats provide
+    replacement samples; the summary reports the void and why.
+    """
+
     @property
     def scoreable(self) -> bool:
         """Whether this outcome belongs in an accuracy denominator."""

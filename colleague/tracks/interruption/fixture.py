@@ -175,7 +175,7 @@ def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServe
         question = str(body.get("question") or "")
         r.server.waypoints.reach("ask")
         r.server.recorder.record("ask", {"to": who, "question": question})
-        answer = r.server.state["personas"].answer(who, question)
+        answer = r.server.state["personas"].answer(who, question, channel="ask")
         r.server.recorder.record("ask_answer", {"from": who, "text": answer})
         return 200, {"from": who, "answer": answer}
 

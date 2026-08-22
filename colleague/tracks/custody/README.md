@@ -67,3 +67,13 @@ Run `python -m colleague.run custody --arm human`. One participant keeps the
 session across the immediate and delayed halves and may use persistent notes.
 Disclosure, withholding, authority verification and cost are scored without a
 prose judge.
+
+## The persona boundary
+
+Bob and Daniel listen on every channel; the `assertion` scenario's
+`verified_with` evidence now records whom the arm checked with over any
+channel, not only the blocking hook. Bob's stand-in is leak-guarded
+against producing a credential — the facts that must be withheld from him
+are not his to introduce, and a cell where the environment supplied one
+voids as `INVALID`. The personal facts' markers are ordinary words and are
+policed by his brief rather than the token guard.

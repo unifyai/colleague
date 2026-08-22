@@ -187,3 +187,13 @@ uses the declared participant rate. A text simulation is forbidden because it
 would supply the capability under test. The callee and machine dial path are
 built; executable human runs still require a microphone/speaker bridge into
 that same call leg rather than replacing it with text.
+
+## The persona boundary
+
+This track predates the persona engine and validates its pattern: the
+callee has always been a persistent in-character role-player with bounded
+knowledge and beat intents, disciplined never to supply the move a check
+measures (see SCENARIO_CHANGES.md, "the callee answered its own
+question" — the incident the suite-wide leak guard generalises). The voice
+path is unchanged in the persona-engine pass; porting it onto the shared
+Persona interface is deliberate future work, not a gap.

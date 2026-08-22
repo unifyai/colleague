@@ -24,12 +24,16 @@ from typing import Any
 from colleague import taxonomy
 from colleague.harness.cost import total as total_cost
 
-ORDER = ("pass", "degraded", "fail", "unsupported", "error")
+ORDER = ("pass", "degraded", "fail", "unsupported", "invalid", "error")
 GLYPH = {
     "pass": "✅",
     "degraded": "🟡",
     "fail": "❌",
     "unsupported": "➖",
+    # A persona leaked forbidden content: the cell is void — not a gifted
+    # PASS, not an unearned FAIL, never in an accuracy denominator. Repeats
+    # provide replacement samples.
+    "invalid": "🚫",
     "error": "💥",
 }
 
@@ -195,7 +199,8 @@ def to_markdown(merged: dict[str, Any]) -> str:
         "",
         f"{merged['runs']} shard results merged.",
         "",
-        "✅ pass · 🟡 degraded · ❌ fail · ➖ no mechanism (excluded from accuracy)",
+        "✅ pass · 🟡 degraded · ❌ fail · ➖ no mechanism (excluded from "
+        "accuracy) · 🚫 void (persona leak; excluded from accuracy)",
         "",
     ]
     # Sections are grouped by taxonomy topic, topics in declaration order.
@@ -245,10 +250,10 @@ def to_markdown(merged: dict[str, Any]) -> str:
 
     lines.append("### Credited rate by arm")
     lines.append("")
-    lines.append("| arm | credited | scored | unsupported | rate |")
-    lines.append("|---|---|---|---|---|")
+    lines.append("| arm | credited | scored | unsupported | invalid | rate |")
+    lines.append("|---|---|---|---|---|---|")
     for arm in arms:
-        credited = scored = unsupported = 0
+        credited = scored = unsupported = invalid = 0
         for key, scenarios in merged["grid"].items():
             if not key.endswith(f"|{arm}"):
                 continue
@@ -257,11 +262,19 @@ def to_markdown(merged: dict[str, Any]) -> str:
                     if o == "unsupported":
                         unsupported += 1
                         continue
+                    if o == "invalid":
+                        # Void by environment fault, not a statement about
+                        # the arm — reported, never in the denominator.
+                        invalid += 1
+                        continue
                     scored += 1
                     if o in ("pass", "degraded"):
                         credited += 1
         rate = f"{credited / scored:.0%}" if scored else "—"
-        lines.append(f"| {arm} | {credited} | {scored} | {unsupported} | {rate} |")
+        lines.append(
+            f"| {arm} | {credited} | {scored} | {unsupported} | {invalid} "
+            f"| {rate} |",
+        )
 
     lines += [
         "",

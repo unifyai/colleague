@@ -35,3 +35,12 @@ Run `python -m colleague.run attribution --arm human`. The workbench requires
 an explicit fixture recipient for observable replies; text is not broadcast
 implicitly. The same routing/leak/silence scorer applies, with active labour
 and cost recorded per scenario.
+
+## The persona boundary
+
+The whole cast is personas now — Carol (leak-guarded against introducing
+internal figures; the deploy window only counts assembled, "thursday"
+alone is a weekday), Bob (guarded against the money figures that are not
+his business), and Daniel (acknowledges, never repeats figures back).
+Scoring is unchanged: it reads the fixture's witnessed replies, exactly as
+before.

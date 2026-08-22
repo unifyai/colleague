@@ -76,11 +76,55 @@ PERSON_ARMS = (
 
 #: The owner's scripted answer to any clarifying question. Deliberately
 #: information-free: the briefs carry every fact by construction, so the
-#: answer confirms authority without supplying ground truth.
+#: answer confirms authority without supplying ground truth. This is the
+#: scripted-implementation fallback; live runs play the owner through the
+#: persona engine with the same information bound (`owner_pool`).
 OWNER_CLARIFICATION_REPLY = (
     "Everything you need is in my earlier message — use your judgment and "
     "go ahead. Don't wait on me."
 )
+
+
+def owner_pool(*, results_dir: Path, run_id: str) -> "PersonaPool":
+    """The owner as a persona: same information bound, a person's wording.
+
+    The brief encodes exactly what the owner's messages already said — his
+    memory is seeded with each utterance as he sends it — and the standing
+    discipline is the one the scripted constant states: nothing new, ever.
+    The persona engine's ledger meters him apart from the arm.
+    """
+    from colleague.harness.conversation import Participant
+    from colleague.harness.persona import Persona, PersonaPool
+
+    pool = PersonaPool(
+        [
+            Persona(
+                participant=Participant(
+                    id="owner",
+                    name="the owner",
+                    role="the person the assistant works for",
+                    email="owner@colleague.example",
+                ),
+                brief=(
+                    "You are the owner: you sent the assistant the messages "
+                    "in this conversation, asking for the recurring work "
+                    "they describe. You wrote them to be complete — they "
+                    "contain everything the assistant needs. If it asks a "
+                    "clarifying question, never add information beyond what "
+                    "your own messages already said: point it back to them, "
+                    "tell it to use its judgment and go ahead, and never "
+                    "ask it to wait on you. You may restate something your "
+                    "message literally contained, verbatim, if asked for "
+                    "exactly that."
+                ),
+                fallback=OWNER_CLARIFICATION_REPLY,
+                fallback_label="repointed",
+            ),
+        ],
+    )
+    pool.bind_ledger(results_dir / "persona_ledger.jsonl", run_id=run_id)
+    pool.begin_scenario("series")
+    return pool
 
 
 def _env(prefix: str, key: str, default: Any) -> str:
@@ -603,13 +647,23 @@ def build_hooks(
     session.setup()
     hooks = _HOOKS[arm](session, timeout_s=timeout_s)
     clarifications: list[dict[str, Any]] = []
+    pool = owner_pool(results_dir=results_dir, run_id=run_id)
 
     def responder(question: str, who: str | None = None) -> str:
-        clarifications.append({"question": question, "who": who})
-        return OWNER_CLARIFICATION_REPLY
+        # The owner is a persona with the same information bound the old
+        # scripted constant enforced: nothing beyond his own messages. The
+        # reply's label rides along so a re-supplied detail is visible.
+        answer = pool.answer("owner", question)
+        exchanges = pool.exchanges()
+        label = exchanges[-1].get("label") if exchanges else None
+        clarifications.append(
+            {"question": question, "who": who, "answer": answer, "label": label},
+        )
+        return answer
 
     session.on_clarification(responder)
     hooks.owner_clarifications = clarifications  # type: ignore[attr-defined]
+    hooks.owner_pool = pool  # type: ignore[attr-defined]
     return hooks
 
 
@@ -673,6 +727,7 @@ def run_series(experiment: Experiment, arm: str) -> int:
         for n, text in enumerate(setups, start=1):
             phase_name = "setup" if n == 1 else f"setup_{n}"
             print(f"[{phase_name}] delivering the brief to {arm} ...")
+            hooks.owner_pool.note_authored("owner", text)
             with hooks.phase(phase_name):
                 out = hooks.deliver(text)
                 hooks.settle(idle_s=quiesce_idle_s, timeout_s=quiesce_timeout_s)
@@ -701,6 +756,7 @@ def run_series(experiment: Experiment, arm: str) -> int:
             ):
                 phase = f"message_{i}" if k == 0 else f"message_{i}_{k}"
                 print(f"[{phase}] owner says: {text[:120]}")
+                hooks.owner_pool.note_authored("owner", text)
                 with hooks.phase(phase):
                     out = hooks.deliver(text)
                     hooks.settle(
@@ -773,6 +829,10 @@ def run_series(experiment: Experiment, arm: str) -> int:
         results["clarifications"] = list(
             getattr(hooks, "owner_clarifications", []),
         )
+        # The environment's own spend, apart from the arm's phase figures.
+        owner_evidence = hooks.owner_pool.evidence()
+        results["persona_exchanges"] = len(owner_evidence["persona_exchanges"])
+        results["persona_tokens"] = owner_evidence["persona_tokens"]
     except Exception as exc:  # noqa: BLE001 - a crashed run still writes its record
         import traceback
 

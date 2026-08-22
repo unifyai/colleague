@@ -34,8 +34,13 @@ from colleague.harness.cost import delta as cost_delta
 from colleague.harness.cost import total as total_cost
 from colleague.harness.interlocutor import Interlocutor
 from colleague.harness.roleplay import RolePlayDirector
-from colleague.harness.scoring import infra_failure
+from colleague.harness.scoring import infra_failure, resolve_recipient
 from colleague.harness.session import ArmSession, Reply, RunHandle, Unsupported
+
+#: Safety cap on persona↔arm rounds per scenario — a cap, not a score:
+#: hitting it resolves the scenario on whatever the fixture witnessed, and
+#: the ledger shows what the ping-pong cost.
+PERSONA_ROUNDS = int(os.environ.get("COLLEAGUE_PERSONA_ROUNDS", "6"))
 
 
 class _Resumed(RunHandle):
@@ -345,9 +350,28 @@ def run_track(
                 # The arm asks through its own channel; the fixture provides
                 # none. Whoever the arm addressed answers, when its channel
                 # names someone; otherwise whoever the scenario has cast.
+                # The pool is the persona engine: one person per cast member,
+                # alive for the whole track, answering on every channel —
+                # the clarification hook is one more channel into the same
+                # person, not a separate answering brain.
                 pool = fixture.state.get("personas")
+                default_who = str(live.get("clarify_persona") or "daniel")
                 if pool is not None:
-                    default_who = str(live.get("clarify_persona") or "daniel")
+                    # The deterministic validation path must not require
+                    # model calls: the mock arm (which is what the self-test
+                    # runs) always meets the scripted implementation.
+                    if arm == "mock":
+                        pool.force_scripted()
+                    pool.bind_ledger(
+                        results_dir / "persona_ledger.jsonl",
+                        run_id=run_id,
+                    )
+                    # Per-scenario window: evidence, the DEGRADED trigger and
+                    # the leak guard read only this scenario's exchanges.
+                    # Overrides are how a control meets an information-free
+                    # stand-in instead of the person who knows the spec.
+                    pool.begin_scenario(name)
+                    pool.apply_overrides(live.get("persona_overrides"))
                     session.on_clarification(
                         lambda q, who=None, _w=default_who, _p=pool: _p.answer(
                             who or _w,
@@ -413,6 +437,13 @@ def run_track(
                 else:
                     record["transport"] = "text"
 
+                # The scenario's scripted stimulus is the persona's own
+                # authored speech: seeding it into their memory is what makes
+                # "you already said it" literally true when they later
+                # restate the brief, the feedback, or the amendment.
+                if pool is not None and live.get("sender"):
+                    pool.note_authored(str(live["sender"]), request_text)
+
                 # A continuation goes through the arm's own resume path when
                 # it has one. Arms without persistent sessions fall back to a
                 # cold turn, which is exactly the cost `continuity` measures —
@@ -447,7 +478,9 @@ def run_track(
                 inter: Interlocutor | None = None
                 if turns:
 
-                    def deliver(turn, _h=handle):
+                    def deliver(turn, _h=handle, _p=pool):
+                        if _p is not None:
+                            _p.note_authored(turn.sender, turn.text)
                         try:
                             return _h.interject(turn.text, sender=turn.sender)
                         except Unsupported as exc:
@@ -528,6 +561,26 @@ def run_track(
                 if inter is not None:
                     inter.stop()
                     record["interlocutor"] = inter.journal()
+
+                # The people keep listening after the arm's turn resolves: a
+                # question the arm put to a persona through any channel — its
+                # reply, a bridged product send — gets that person's answer
+                # back as ordinary inbound traffic, and the exchange loops
+                # until nobody has anything left to say (or the round cap).
+                # This is the duplex the clarification hook always faked: in
+                # real operation a clarification IS a message on a channel.
+                if pool is not None and reply.ok:
+                    convo: list[dict[str, Any]] = []
+                    reply = _persona_conversation(
+                        session=session,
+                        fixture=fixture,
+                        pool=pool,
+                        counterpart=str(live.get("sender") or default_who),
+                        reply=reply,
+                        journal=convo,
+                    )
+                    if convo:
+                        record["conversation"] = convo
                 record["reply"] = reply.as_dict()
 
                 # A track may need more turns after the first completes.
@@ -572,6 +625,13 @@ def run_track(
                     record["clarifications"] = session.clarifications()[
                         clarifications_before:
                     ]
+                    # Every persona exchange this scenario, whichever channel
+                    # carried it, with its label. DEGRADED pricing keys off
+                    # the `restated` labels here — a spec re-supply over the
+                    # product's message channel costs the same as one over
+                    # the clarification hook.
+                    if pool is not None:
+                        record["persona"] = pool.exchanges()
                     result = scenario_module.score(name, fixture, record=record)
             except Unsupported as exc:
                 result = ScenarioResult(
@@ -595,6 +655,31 @@ def run_track(
                 voice_t.close()
             record["evidence"] = fixture.evidence()
             record["clarifications"] = session.clarifications()[clarifications_before:]
+            pool = fixture.state.get("personas")
+            if pool is not None:
+                record["persona"] = pool.exchanges()
+                # The leak guard: a persona reply that carried a forbidden
+                # token was withheld from delivery and voids the cell —
+                # neither a PASS the leak would gift nor a FAIL the arm never
+                # earned. Repeats provide replacement samples.
+                leaks = pool.leaks()
+                if leaks:
+                    result = ScenarioResult(
+                        name,
+                        Outcome.INVALID,
+                        {
+                            "leaks": [
+                                {
+                                    "persona": e.get("persona"),
+                                    "channel": e.get("channel"),
+                                    "tokens": e.get("leaked"),
+                                }
+                                for e in leaks
+                            ],
+                        },
+                        "a persona reply carried forbidden content — the "
+                        "cell is void; nothing about the arm was measured",
+                    )
             record["cost"] = cost_delta(
                 cost_before,
                 session.cost_snapshot(),
@@ -621,6 +706,17 @@ def run_track(
     results["cost"] = total_cost(
         [s.get("cost") or {} for s in results["scenarios"]],
     )
+    # The environment's own spend, beside the arm's figures and never added
+    # to them. Per-scenario detail is in each scenario's evidence; the
+    # ledger file (persona_ledger.jsonl) carries every exchange.
+    results["persona_exchanges"] = sum(
+        len((s.get("evidence") or {}).get("persona_exchanges") or [])
+        for s in results["scenarios"]
+    )
+    results["persona_tokens"] = sum(
+        int((s.get("evidence") or {}).get("persona_tokens") or 0)
+        for s in results["scenarios"]
+    )
     (results_dir / "results.json").write_text(
         json.dumps(results, indent=2, default=str),
     )
@@ -630,6 +726,118 @@ def run_track(
     credited = results["summary"]["credited"]
     scoreable = results["summary"]["scoreable"]
     return 0 if scoreable and credited == scoreable else 1
+
+
+def _persona_conversation(
+    *,
+    session: ArmSession,
+    fixture: Any,
+    pool: Any,
+    counterpart: str,
+    reply: Reply,
+    journal: list[dict[str, Any]],
+) -> Reply:
+    """Let the people answer what the arm sent them, until quiet or the cap.
+
+    Two sources feed the loop:
+
+    * **Bridged product channels.** A fixture that witnesses arm→person
+      messages (a delivery bridge re-posting sends, a documented reply
+      route) declares them in ``fixture.state["persona_channels"]`` —
+      recorder kind → ``{"who": <payload key>, "text": <payload key>,
+      "channel": <name>}``. Tracks whose fixtures already answer inline
+      (custody's pushback on ``/reply``) simply do not declare the kind.
+    * **The reply channel itself.** The arm's turn text goes to whoever the
+      scenario has talking to it — for CLI harnesses the conversation loop
+      is the product's only channel, so the persona is simply the
+      interlocutor there; for the unify arm, sends to the boss contact
+      surface as the turn's reply text by design.
+
+    Every message gets the persona's structured reply; ``silent`` is a real
+    answer (a person does not acknowledge every FYI) and delivers nothing.
+    A non-silent reply goes back through the arm's own resume path as an
+    ordinary inbound message from that person — for a slept world this may
+    legitimately wake a new boot, which is what a message arriving days
+    later does. Messages the clarification hook already answered are not
+    answered twice.
+    """
+    channels = dict(fixture.state.get("persona_channels") or {})
+    cast = [p.participant for p in pool.personas.values()]
+    seen: dict[str, int] = {kind: 0 for kind in channels}
+    latest = reply
+    # Scripted personas have no judgment to bring to unsolicited chat: the
+    # deterministic path keeps exactly the turn structure the mock plans
+    # were written against, while bridged channel traffic still routes.
+    offer_chat = pool.impl != "scripted"
+    for _ in range(PERSONA_ROUNDS):
+        answered = {
+            str(c.get("question") or "").strip()
+            for c in session.clarifications()
+        }
+        inbound: list[tuple[str, str, str]] = []
+        for kind, spec in channels.items():
+            entries = fixture.recorder.all(kind)
+            for e in entries[seen.get(kind, 0) :]:
+                payload = e.get("payload") or {}
+                who = resolve_recipient(
+                    payload.get(str(spec.get("who") or "to")),
+                    cast,
+                )
+                text = str(payload.get(str(spec.get("text") or "text")) or "")
+                if (
+                    who in pool.personas
+                    and text.strip()
+                    and text.strip() not in answered
+                ):
+                    inbound.append((who, text, str(spec.get("channel") or kind)))
+            seen[kind] = len(entries)
+        if offer_chat:
+            text = (latest.text or "").strip()
+            if text and counterpart in pool.personas and text not in answered:
+                inbound.append((counterpart, text, "chat"))
+            offer_chat = False
+        if not inbound:
+            break
+
+        outgoing: list[tuple[Any, dict[str, Any]]] = []
+        for who, text, channel in inbound:
+            r = pool.reply(who, text, channel=channel)
+            entry: dict[str, Any] = {
+                "persona": who,
+                "channel": channel,
+                "label": r.label,
+                "mode": r.mode,
+                "delivered": False,
+            }
+            if r.leaked:
+                entry["leaked"] = True
+            journal.append(entry)
+            if r.deliverable:
+                outgoing.append((r, entry))
+        if not outgoing:
+            break
+        if not hasattr(session, "resume"):
+            # One-shot arms have no way to receive the answer. The person
+            # spoke; nobody was there. Recorded as exactly that.
+            for _r, entry in outgoing:
+                entry["delivery"] = "no_resume_path"
+            break
+        delivered_any = False
+        for r, entry in outgoing:
+            try:
+                latest = session.resume(r.text, sender=r.persona)
+                entry["delivered"] = True
+                entry["delivery"] = "resumed_turn"
+                delivered_any = True
+            except Exception as exc:  # noqa: BLE001 - recorded, never swallowed
+                entry["delivery"] = f"delivery_failed: {type(exc).__name__}: {exc}"
+        if not delivered_any:
+            break
+        # Each delivered answer produced a fresh arm turn; its reply is a
+        # new message to the counterpart, and its side effects are new
+        # channel traffic — both are the next round's inbound.
+        offer_chat = pool.impl != "scripted"
+    return latest
 
 
 def _voice_setup(session: ArmSession, live: dict[str, Any], name: str):

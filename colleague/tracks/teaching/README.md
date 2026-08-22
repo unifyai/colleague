@@ -71,3 +71,12 @@ Run `python -m colleague.run teaching --arm human`. Simulated weeks remain
 compressed; the same participant receives the walkthrough, correction and
 amendment. Notes persist, while the untaught control gets a fresh workspace.
 Every week records active labour and cost beside the exact recipient score.
+
+## The persona boundary
+
+Daniel listens on every channel: the week-31 preview counts whether it was
+raised through the blocking hook or as an ordinary message he answered, and
+`unattended` now means the arm needed nobody — no blocking question, no
+message a person had to answer with content. A status report Daniel read
+silently keeps a week unattended; a go-ahead he had to give does not (his
+brief labels approvals `restated`: the walkthrough already said send them).

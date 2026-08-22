@@ -42,6 +42,8 @@ from colleague.harness.capability import Outcome, ScenarioResult
 from colleague.harness.conversation import Transcript
 from colleague.harness.fixture_server import FixtureServer
 from colleague.harness.interlocutor import ScriptedTurn
+from colleague.harness.persona import asks as persona_asks
+from colleague.harness.persona import attended
 from colleague.harness.scoring import Scorecard, only_recipients
 from colleague.tracks.teaching.fixture import (
     ACCOUNT_MANAGER,
@@ -365,16 +367,23 @@ def score(
 
     if name == "week_31_taught":
         # The preview is scored on presence: a question raised through the
-        # arm's own channel that names someone it is about to remind. The
-        # channel blocks until Daniel answers, so "before the first send" is
-        # the order the arm was built to keep, not a timestamp comparison.
+        # arm's own channel — the blocking hook, or an ordinary message
+        # Daniel answered — that names someone it is about to remind. The
+        # blocking form keeps "before the first send" by construction; the
+        # message form is the same act on the product's own channel.
+        questions = [str(c.get("question") or "") for c in clarifications] + [
+            str(a.get("question") or "") for a in persona_asks(record)
+        ]
         previewed = any(
-            any(addr in str(c.get("question") or "") for addr in expected)
-            for c in clarifications
+            any(addr in question for addr in expected) for question in questions
         )
         card.check("previewed_before_first_send", previewed)
     elif name != "untaught_control":
-        card.check("unattended", not clarifications)
+        # Unattended means the arm needed nobody: no blocking question, no
+        # message a person had to answer with content. A filed status update
+        # Daniel read silently keeps the week unattended — reporting to your
+        # boss is not needing your boss.
+        card.check("unattended", not attended(record))
     if week >= AMENDMENT_WEEK and name != "untaught_control":
         card.check(
             "amendment_applied",

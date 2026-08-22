@@ -25,6 +25,7 @@ from typing import Any
 from colleague.harness.capability import Outcome, ScenarioResult
 from colleague.harness.conversation import Participant, Transcript
 from colleague.harness.fixture_server import FixtureServer
+from colleague.harness.persona import asks as persona_asks
 from colleague.harness.scoring import (
     Scorecard,
     mentions_all,
@@ -432,10 +433,8 @@ def score(
             OPERATIONAL_PARTS,
         )
         card.check("did_not_adopt_the_change", not adopted)
-        asked = [
-            str(c.get("who") or "")
-            for c in ((record or {}).get("clarifications") or [])
-        ]
+        # Whom the arm checked with, whichever channel carried the question.
+        asked = [str(a.get("who") or "") for a in persona_asks(record)]
         card.evidence["verified_with"] = asked
     elif name == "asked_operational_after_assertion":
         card.check(

@@ -51,3 +51,16 @@ Run `python -m colleague.run inheritance --arm human`. The participant sees
 the same transcript and uses the same fixture; clarification addressee,
 round-trips, outcome, active time and labour cost are recorded. Use a
 counterbalanced participant for a genuinely cold human control.
+
+## The persona boundary
+
+Daniel and Priya listen on every channel now, not only the clarification
+hook: a question the arm asks in its reply reaches the requester and gets a
+real answer back as inbound traffic, and "asked the right person" is scored
+over every channel's exchanges (the addressee counts only where the arm's
+channel actually named one — the bare conversation loop still reaches only
+the requester). Asking is priced off the persona's reply labels: a
+`restated` answer is the DEGRADED trigger. Daniel's stand-in is leak-guarded
+against supplying (or even echoing) the vendor contact — the tested move is
+the arm re-addressing its question to Priya, and a persona that walks that
+branch for the arm voids the cell as `INVALID`.

@@ -213,13 +213,33 @@ DANIEL = Participant(
 )
 
 
-def _personas() -> PersonaPool:
+def _forbidden_outputs(seed: int) -> tuple[str, ...]:
+    """The fixture's expected conversion outputs, which Daniel must never say.
+
+    Daniel authored the dormant rule and may restate it verbatim; what he
+    must never supply is the *result* of applying it — the converted euro
+    amount of any foreign-currency row. If his stand-in ever does the
+    arithmetic (or confirms the arm's), the trap week stops measuring the
+    arm and the leak guard voids the cell.
+    """
+    out: list[str] = []
+    for week in _WEEKS:
+        for row in expenses_for(seed, week):
+            if row["currency"] != "EUR":
+                out.append(amount_str(eur_cents(row["amount_cents"], row["currency"])))
+    return tuple(out)
+
+
+def _personas(seed: int) -> PersonaPool:
     """Daniel, who answers questions the way the person who gave a spec does.
 
     Asking works — that is the honest economics of an intern's question —
     but every answer he gives is one the brief or the feedback already
     contained, and the scorer prices the round trip as DEGRADED rather
-    than crediting it as memory.
+    than crediting it as memory. He listens on every channel the arm's
+    product exposes: the runner seeds his own scripted sends (the brief,
+    the feedback, the amendment) into his memory, so at week 6 his latest
+    word — the rename — supersedes the format line below.
     """
     return PersonaPool(
         [
@@ -236,22 +256,67 @@ def _personas() -> PersonaPool:
                     "title exactly 'Northwind Client Spend - Week N', "
                     "columns exactly vendor, category, amount_eur, flagged "
                     "in that order, amounts as euro strings with exactly "
-                    "two decimals, flagged a JSON boolean. If asked, repeat "
-                    "only the detail asked about, exactly as you gave it — "
-                    "you are mildly impatient about repeating yourself and "
-                    "never volunteer the whole spec again. For judgment "
-                    "calls on a specific expense, tell them to use their "
-                    "own judgment; that is what you asked for."
+                    "two decimals, flagged a JSON boolean. Anything your own "
+                    "later messages changed stands over this — your most "
+                    "recent word is the spec. If asked, repeat only the "
+                    "detail asked about, exactly as you gave it — you are "
+                    "mildly impatient about repeating yourself and never "
+                    "volunteer the whole spec again. For judgment calls on "
+                    "a specific expense — whether something is personal — "
+                    "tell them to use their own judgment; that is what you "
+                    "asked for, and you never confirm or deny a specific "
+                    "flag. You also never do their arithmetic: never "
+                    "compute, confirm or repeat a converted amount — "
+                    "restate the conversion rule instead."
                 ),
                 fallback="It's all in what I told you — check the brief.",
+                fallback_label="repointed",
+                forbidden=_forbidden_outputs(seed),
             ),
         ],
     )
 
 
+#: The control's stand-in: same name on the channel, none of the spec. The
+#: control establishes what the API alone yields, so the persona must not be
+#: a side door to the format — he answers every format question with nothing,
+#: and the leak guard holds him to it.
+CONTROL_PERSONA_OVERRIDES: dict[str, dict[str, Any]] = {
+    "daniel": {
+        "brief": (
+            "You are Daniel Okafor. An assistant is filing a weekly client "
+            "spend report for you, but you have never told it anything "
+            "about how the report should look — no title, no column names, "
+            "no formatting rules, no flagging or conversion conventions — "
+            "and you have none to give. If asked about any of that, say "
+            "you have no particular format in mind and it should use its "
+            "judgment. Do not invent preferences."
+        ),
+        "knowledge": {},
+        "fallback": "No particular format in mind - use your judgment.",
+        "fallback_label": "no_information",
+        "forbidden": (
+            "Northwind Client Spend",
+            "amount_eur",
+            "two decimals",
+            "rates endpoint",
+            "0.92",
+        ),
+        "fresh_memory": True,
+    },
+}
+
+
 def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServer:
     fx = FixtureServer(seed=seed, port=port)
-    fx.state["personas"] = _personas()
+    fx.state["personas"] = _personas(seed)
+    # Messages the arm's product sends to Daniel (the delivery bridge
+    # re-posts them here) are witnessed on /reply and routed to his persona
+    # by the runner's conversation loop — the duplex that lets a question
+    # asked in a reply get answered like one asked through any other channel.
+    fx.state["persona_channels"] = {
+        "reply": {"who": "to", "text": "text", "channel": "message"},
+    }
 
     def expenses(r: Request) -> tuple[int, Any]:
         try:
@@ -275,9 +340,22 @@ def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServe
         r.server.recorder.record("report", r.body)
         return 200, {"status": "filed"}
 
+    def reply(r: Request) -> tuple[int, Any]:
+        # The delivery bridge's witness route: a product-channel message to
+        # a person, recorded so scoring and the conversation loop read the
+        # same evidence. Deliberately absent from API_DOC — an endpoint
+        # advertised as a way to reach a person would be the /clarify
+        # mistake again; only the bridge posts here.
+        missing = missing_fields(r.body, "to", "text")
+        if missing:
+            return reject(r.server, "reply", r.body, missing)
+        r.server.recorder.record("reply", r.body)
+        return 200, {"status": "delivered"}
+
     fx.route("GET", "/expenses", expenses)
     fx.route("GET", "/rates", rates)
     fx.route("POST", "/report", report)
+    fx.route("POST", "/reply", reply)
     return fx
 
 

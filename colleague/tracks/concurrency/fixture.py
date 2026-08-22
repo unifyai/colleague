@@ -14,16 +14,55 @@ from __future__ import annotations
 
 from typing import Any
 
+from colleague.harness.conversation import Participant
 from colleague.harness.fixture_server import FixtureServer, Request
+from colleague.harness.persona import Persona, PersonaPool
 
 DEFAULT_SEED = 20260801
 DEFAULT_PORT = 8145
 
 EXPECTED_NAMES = ("sales", "support", "finance")
 
+_CAST = (
+    ("daniel", "Daniel Okafor", "the person you work for", "daniel@northwind.example"),
+    ("priya", "Priya Raman", "Chief of Staff", "priya@northwind.example"),
+    ("bob", "Bob Ferrall", "contractor", "bob@ferrall-consulting.example"),
+)
+
+
+def _personas() -> PersonaPool:
+    """The three senders, each able to clarify only their own messages.
+
+    Routing a correction to the right task is the tested move: a persona
+    may restate what their own correction literally said, and nothing else
+    — never which task it belongs to beyond their message's own words,
+    never anyone else's correction.
+    """
+    return PersonaPool(
+        [
+            Persona(
+                participant=Participant(id=pid, name=name, role=role, email=email),
+                brief=(
+                    f"You are {name}, {role} at Northwind. You send the "
+                    "assistant requests and corrections in a busy shared "
+                    "channel. If it asks about a message of yours, restate "
+                    "what your message literally said — nothing more. Never "
+                    "speak for anyone else's messages, and never resolve an "
+                    "ambiguity your message did not itself resolve: if it "
+                    "asks which piece of work you meant, repeat your own "
+                    "words and let it work that out."
+                ),
+                fallback="As I said - apply my correction exactly as stated.",
+                fallback_label="repointed",
+            )
+            for pid, name, role, email in _CAST
+        ],
+    )
+
 
 def build(*, seed: int = DEFAULT_SEED, port: int = DEFAULT_PORT) -> FixtureServer:
     fx = FixtureServer(seed=seed, port=port)
+    fx.state["personas"] = _personas()
     fx.state["digests"] = {}
 
     def create(r: Request) -> tuple[int, Any]:

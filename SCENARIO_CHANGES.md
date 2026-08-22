@@ -822,3 +822,58 @@ would for a user reopening yesterday's chat. Ground truth and the
 scorers are unchanged; what changed is that surviving the gap now
 requires durable memory, which is what the weeks were always meant to
 mean.
+
+**`[gap]` suite-wide — the people listen on every channel now.** Refinement
+run CI 32556444813 lost weeks 2–6 to a single asymmetry: the arm,
+cold-booted, asked Daniel for the data source *in its reply* — "I can't
+find the Week 2 expense source, please share" — and the reply channel was
+write-only. The persona only answered through the runner's clarification
+hook, so the question died unanswered and the arm waited forever. A real
+Daniel reads his messages. The fix is the boundary DESIGN.md now states:
+the benchmark supplies people, never APIs-to-people — every named persona
+is owned by the fixture, persistent for the whole track, listening on
+every channel the harness's product exposes, and arms receive answers only
+as channel traffic. Concretely: the persona engine (`harness/persona.py`)
+gives each persona an appending cross-channel memory seeded with their own
+scripted stimulus (so "you already said it" is literally true, and week
+6's rename supersedes the brief's `amount_eur` because Daniel's latest
+word is in his memory); the runner grew a conversation loop that routes
+arm messages — bridged product sends the fixture witnessed, and the turn
+reply itself — to the addressed persona and delivers non-silent answers
+back as ordinary inbound messages (capped at six rounds per scenario, a
+safety, not a score); and the clarification hook still works but is now
+one more channel into the same person, not a separate answering brain.
+Three disciplines keep it scoreable. Labels: every reply self-classifies
+(`restated` / `repointed` / `no_information` / `conversational` /
+`silent`) and scorers consume the labels symbolically — DEGRADED pricing
+now keys off `restated` on any channel, so a spec re-supply over
+unify-message costs exactly what one over the hook does. The leak guard:
+each track declares concrete greppable tokens its personas must never
+*introduce* (an echo of the arm's own words is not a leak — voiding there
+would erase an earned FAIL), and a hit voids the cell as `INVALID`, a new
+outcome outside every accuracy denominator; the callee that answered its
+own question (above) is the incident this generalises. The
+implementation switch: `COLLEAGUE_PERSONA_IMPL` selects `llm` or
+`scripted`, the runner forces scripted for the mock arm, and the
+self-test stays deterministic and free. Persona calls go straight to
+OpenRouter — never through an arm's recording proxy — and land in their
+own `persona_ledger.jsonl` per run, surfaced as `persona_tokens` /
+`persona_exchanges` beside arm costs and never added to them. Applied
+track by track: refinement's control now meets an information-free
+stand-in Daniel (`persona_overrides`) so asking him is not a side door to
+the format the control proves undiscoverable, and his trap discipline
+forbids the computed conversion outputs; inheritance's Daniel is
+leak-guarded against supplying the vendor contact (the tested move);
+recall's Daniel cannot answer his own day-nine questions; screenshare's
+frames scenario swaps in a Daniel who will not narrate the demonstration;
+membership, attribution, custody and concurrency personas carry
+forbidden-lists over the facts that are not theirs to give; the standing
+person engine and both usecases drivers replace the owner's scripted
+constant with an owner persona under the same information bound
+(scripted fallback unchanged, label `repointed`); callflow's callee
+already conformed and is untouched — it predates and validates the
+pattern. Ground truth and every fixture's recomputation are unchanged.
+Verdicts across the boundary are a different regime: results committed
+before this change are pre-duplex — their personas answered on one
+channel only — and are labelled, not deleted; single runs are anecdotes
+now, and `--repeat` distributions are how claims are made.

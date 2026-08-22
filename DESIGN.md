@@ -93,6 +93,36 @@ human-to-agent is essentially unmeasured — the nearest names
 [CooperBench](https://arxiv.org/abs/2601.13295)) are agent-to-agent
 coordination, a different problem.
 
+## The people boundary
+
+The benchmark interfaces with every harness as though through people, and
+only through people: the I/O surface is 100% communication channels. The
+benchmark supplies people, never APIs-to-people. A person is a named
+persona owned by the fixture, persistent for the whole track, listening on
+every channel the harness's product exposes, LLM-driven with bounded
+knowledge, infinite patience, and zero new information beyond their brief.
+Arms receive answers only as channel traffic — a question addressed to
+Daniel in a reply message reaches Daniel exactly as a question through the
+clarification hook does, because in real operation there is no dedicated
+hook: a clarification IS a message on a channel. For CLI harnesses the
+boundary degenerates cleanly: their product's only channel is the
+conversation loop itself, so the persona is simply the interlocutor there —
+same rule, one channel, no side doors for anyone.
+
+The machinery is `harness/persona.py` (personas, the reply-label taxonomy,
+the leak guard, the persona ledger) and the runner's conversation loop.
+Three disciplines keep the added non-determinism scoreable: every persona
+reply carries a **label** consumed symbolically (`restated` is the DEGRADED
+trigger, whichever channel carried the exchange); a **leak guard** of
+per-track forbidden tokens voids a cell (`INVALID`) when a persona supplies
+the move a check measures; and an **implementation switch** forces scripted
+canned answers for the mock arm, so the self-test stays deterministic and
+free. Persona model calls go straight to the provider — never through an
+arm's recording proxy — and are metered into their own ledger, reported
+beside arm costs and never added to them. The rest is accepted fuzz: the
+whole benchmark is fuzzy because LLMs are under test, single runs are
+anecdotes, and `--repeat` distributions are how claims are made.
+
 ## Non-negotiable rules
 
 These are what make a vendor-authored benchmark worth reading. Any new track

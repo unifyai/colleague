@@ -252,3 +252,11 @@ Run `python -m colleague.run meeting --arm human --repeat 5`. Role-played lines
 arrive live with named speakers. The same floor, timing, interruption and
 scheduled-work checks apply. Repeats remain required, and active labour/cost is
 reported separately from role-player cost.
+
+## The persona boundary
+
+Scenes stay scripted stimulus — beats in order, worded live in character —
+exactly as before. What the persona engine adds is reactivity after the
+scene: a direct question the arm sends to a named participant gets that
+person's labelled reply back as inbound traffic, and scene-wording prompts
+stay out of persona memory (they are direction, not conversation).

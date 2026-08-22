@@ -151,7 +151,10 @@ def _personas() -> PersonaPool:
                     "shows you a list of recipients, look it over and tell it to "
                     "go ahead and send them. If it asks something else, answer "
                     "briefly as yourself; you already explained the procedure "
-                    "once and do not repeat it."
+                    "once and do not repeat it. A go-ahead, an approval, or a "
+                    "decision the walkthrough already covered counts as "
+                    "restating your instructions — label it \"restated\", not "
+                    "\"conversational\": the assistant needed you for it."
                 ),
                 fallback="Looks right — go ahead and send them.",
             ),

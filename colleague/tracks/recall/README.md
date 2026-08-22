@@ -79,3 +79,12 @@ Run `python -m colleague.run recall --arm human`. The same participant receives
 the compressed eight-day sequence and may use persistent notes, the declared
 aided-human baseline. Current/stale containment, cost per answer, active time
 and labour cost are recorded.
+
+## The persona boundary
+
+Daniel is a persona now, and the reason he asks is the reason he cannot
+answer: he does not have his old messages to hand. If the arm asks him to
+confirm or re-supply a fact, he points it back at its own notes, and the
+leak guard voids the cell (`INVALID`) if his stand-in ever produces a
+current value — the tested move is the arm's retention, and a Daniel who
+re-answered his own question would gift it.
