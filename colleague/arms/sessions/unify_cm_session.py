@@ -185,8 +185,32 @@ class _LoopThread:
         return asyncio.run_coroutine_threadsafe(coro, self.loop)
 
     def close(self) -> None:
+        # A stopped-but-not-closed loop freezes its pending tasks rather
+        # than ending them, and a frozen task is a carcass: unify's
+        # EventBus applies nest_asyncio to this loop, so any later
+        # re-entry (a nested run_until_complete, an executor thread
+        # completing) resumes frozen work against whatever process
+        # globals the *next* session has installed by then. Cancel and
+        # await everything first, so stop() finds a loop with nothing
+        # left to revive.
+        async def _drain_tasks() -> None:
+            current = asyncio.current_task()
+            tasks = [t for t in asyncio.all_tasks() if t is not current]
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+
+        try:
+            self.run(_drain_tasks(), timeout=30)
+        except Exception:  # noqa: BLE001 - a wedged task must not block close
+            pass
         self.loop.call_soon_threadsafe(self.loop.stop)
         self._thread.join(timeout=5)
+        if self._thread.is_alive():
+            print(
+                "[unify-cm] loop thread survived close(); a task is wedged "
+                "in a blocking call and may still act on stale globals",
+            )
 
 
 #: Mirrors the contextvar trick in cm_test_driver: the patched
@@ -254,6 +278,10 @@ class UnifyCMSession(ArmSession):
     MAX_CLARIFICATION_ROUNDS = 3
     #: Ceiling on a single stepped inbound event, independent of wait().
     STEP_TIMEOUT = 600.0
+    #: Grace close() gives storage reviews already distilling completed
+    #: turns, mirroring the ten idle minutes a production pod grants
+    #: between the last reply and its own retirement.
+    STORAGE_SETTLE_TIMEOUT = 600.0
 
     def __init__(
         self,
@@ -439,7 +467,6 @@ class UnifyCMSession(ArmSession):
             )
 
         self._loop.run(self._boot(), timeout=900)
-
 
     async def _boot(self) -> None:
         """Standalone CM boot, on the loop thread.
@@ -1545,6 +1572,62 @@ class UnifyCMSession(ArmSession):
         cm.in_flight_actions.clear()
         cm.completed_actions.clear()
 
+    def _storage_reviews_active(self) -> bool:
+        """True while a background storage review is distilling completed turns.
+
+        The actor wraps every storable act in a handle that runs skill
+        reviews outside the act itself: mid-session turn reviews on each
+        completed turn of a persistent session, and a final review once
+        the act ends. Neither appears in ``cm.in_flight_actions`` — the
+        act's result was already consumed and popped — so quiescence
+        checks built on that dict cannot see them.
+        """
+        actor = getattr(self._cm, "actor", None)
+        for handle in list(getattr(actor, "_live_storage_handles", ()) or ()):
+            if handle._phase == "storage":
+                return True
+            turn_task = handle._turn_review_task
+            if turn_task is not None and not turn_task.done():
+                return True
+        return False
+
+    async def _settle_storage_reviews(self) -> None:
+        """Give in-flight storage reviews the idle window production grants.
+
+        A pod that just sent its last reply sits idle for ten minutes
+        before retiring, and the turn's storage review — begun at the
+        turn boundary — finishes inside that window and lands its
+        functions and guidance in the durable world. The sleeping weeks
+        compress the days between requests, but compressing away this
+        window would make every week's distillation die young and the
+        refinement the track measures structurally impossible.
+        """
+        loop_time = asyncio.get_running_loop().time
+        started = loop_time()
+        deadline = started + self.STORAGE_SETTLE_TIMEOUT
+        waited = False
+        while loop_time() < deadline and self._storage_reviews_active():
+            if not waited:
+                waited = True
+                print(
+                    "[unify-cm] close: letting the in-flight storage review "
+                    "finish (production idle window, "
+                    f"cap {self.STORAGE_SETTLE_TIMEOUT:.0f}s)",
+                )
+            await asyncio.sleep(0.5)
+        if waited:
+            if self._storage_reviews_active():
+                print(
+                    "[unify-cm] close: storage review still running at the "
+                    f"{self.STORAGE_SETTLE_TIMEOUT:.0f}s cap; the actor "
+                    "teardown will end it",
+                )
+            else:
+                print(
+                    f"[unify-cm] close: storage review settled after "
+                    f"{loop_time() - started:.1f}s",
+                )
+
     async def _shutdown(self) -> None:
         # The operations listener drains publish_bus_events among others;
         # stop feeding it before the bus flush in stop_async runs, so the
@@ -1558,7 +1641,25 @@ class UnifyCMSession(ArmSession):
                 await asyncio.wait_for(self._consumer, timeout=10)
             except Exception:  # noqa: BLE001 - cancel a stuck consumer
                 self._consumer.cancel()
+        await self._settle_storage_reviews()
         await self._stop_in_flight_async()
+        # Stopping a parked persistent act deliberately starts its final
+        # storage review ("a deliberate stop still reviews"); in production
+        # that review dies seconds later with the retiring pod. actor.close()
+        # is that death made deterministic — every live review is cancelled
+        # and awaited, then the actor's pools close — and it must land here,
+        # before the next session's setup repoints the process globals
+        # (unisdk context, ContextRegistry, ManagerRegistry) the review
+        # resolves storage against. Left running, a review outlives close()
+        # and writes into the successor's not-yet-provisioned contexts,
+        # creating them bare (run 2026-08-22T08-04-01Z: week_6_amendment's
+        # review corrupted unbriefed_control's world on staging Orchestra).
+        actor = getattr(self._cm, "actor", None)
+        if actor is not None:
+            try:
+                await actor.close()
+            except Exception:  # noqa: BLE001 - teardown is best-effort
+                pass
         try:
             await self._M.stop_async(reason="scenario end")
         except Exception:  # noqa: BLE001 - teardown is best-effort
@@ -1571,7 +1672,12 @@ class UnifyCMSession(ArmSession):
     def close(self) -> None:
         if self._loop is not None and self._cm is not None:
             try:
-                self._loop.run(self._shutdown(), timeout=180)
+                # The settle window is part of the shutdown, so the ceiling
+                # covers it in full plus the teardown proper.
+                self._loop.run(
+                    self._shutdown(),
+                    timeout=self.STORAGE_SETTLE_TIMEOUT + 180,
+                )
             except Exception:  # noqa: BLE001 - teardown is best-effort
                 pass
         if self._loop is not None:
