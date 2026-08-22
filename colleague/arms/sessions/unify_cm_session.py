@@ -510,6 +510,19 @@ class UnifyCMSession(ArmSession):
         if not cm.initialized:
             raise RuntimeError("ConversationManager managers failed to initialize")
 
+        # Production's startup handler launches init_conv_manager AND
+        # listen_to_operations side by side (event_handlers.py, the startup
+        # sequence); this boot ran only the first, so everything routed
+        # through queue_operation — including every publish_bus_events call
+        # that persists the Comms stream — sat in _operations_queue forever,
+        # silently. Two full CI runs woke amnesiac with zero Events/Comms
+        # rows before the missing consumer was found (2026-08-22). The task
+        # dies with this session's loop at close; the teardown-side bus
+        # flush persists whatever it had already published.
+        self._ops_listener = asyncio.create_task(
+            managers_utils.listen_to_operations(cm),
+        )
+
         # The brain correctly defers with "my desktop is still booting" when
         # these are unset; every flow test flips them, and so do we.
         cm.vm_ready = True
@@ -1533,6 +1546,12 @@ class UnifyCMSession(ArmSession):
         cm.completed_actions.clear()
 
     async def _shutdown(self) -> None:
+        # The operations listener drains publish_bus_events among others;
+        # stop feeding it before the bus flush in stop_async runs, so the
+        # flush sees everything the session actually published.
+        listener = getattr(self, "_ops_listener", None)
+        if listener is not None and not listener.done():
+            listener.cancel()
         if self._consumer is not None:
             await self._queue.put(None)
             try:
