@@ -158,6 +158,143 @@ def _prime_environment() -> None:
             os.environ["UNITY_CONVERSATION_SLOW_BRAIN_MODEL"] = bench_model
 
 
+class _AttachmentGatewayStub:
+    """The adapters gateway's `/unify/attachment` upload API, on loopback.
+
+    Outbound attachments go through `upload_unify_attachment`, which always
+    POSTs multipart to the adapters gateway — "same contract as staging/
+    production; self-host sets UNIFY_ADAPTERS_URL to the local gateway,
+    which implements the same upload API with disk storage" (the product's
+    own comment). This embedded boot is the self-host case, so the adapter
+    stands the gateway up rather than faking the send: the product's whole
+    attachment path — upload, then the local Attachments/ copy the egress
+    bridge reads — runs unmodified. Infrastructure in front of the arm,
+    exactly as the recording proxy stands in front of OpenRouter; never a
+    capability handed to it. First seen live 2026-08-22: the arm finished
+    the week-1 workbook and its send failed on the missing gateway.
+
+    One instance per process, because SETTINGS freezes UNIFY_ADAPTERS_URL
+    at the first unify import and sleep reboots share the process.
+    """
+
+    def __init__(self) -> None:
+        import tempfile
+        from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+        self.store = Path(tempfile.mkdtemp(prefix="colleague-attachment-gw-"))
+        self._seq = 0
+        self._lock = threading.Lock()
+        stub = self
+
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, *_a: Any) -> None:
+                pass
+
+            def _json(self, status: int, payload: dict) -> None:
+                data = json.dumps(payload).encode()
+                self.send_response(status)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+
+            def do_POST(self) -> None:  # noqa: N802 - stdlib API
+                if self.path.rstrip("/") != "/unify/attachment":
+                    self._json(404, {"error": f"unknown path {self.path}"})
+                    return
+                length = int(self.headers.get("Content-Length") or 0)
+                body = self.rfile.read(length)
+                parsed = stub._parse_multipart(
+                    self.headers.get("Content-Type", ""), body
+                )
+                if parsed is None:
+                    self._json(400, {"error": "no file part in upload"})
+                    return
+                filename, content = parsed
+                with stub._lock:
+                    stub._seq += 1
+                    att_id = f"out{stub._seq:03d}"
+                (stub.store / f"{att_id}_{filename}").write_bytes(content)
+                self._json(
+                    200,
+                    {
+                        "id": att_id,
+                        "filename": filename,
+                        "url": f"{stub.base_url}/unify/attachment/{att_id}",
+                        "size_bytes": len(content),
+                    },
+                )
+
+            def do_GET(self) -> None:  # noqa: N802 - stdlib API
+                prefix = "/unify/attachment/"
+                if not self.path.startswith(prefix):
+                    self._json(404, {"error": f"unknown path {self.path}"})
+                    return
+                att_id = self.path[len(prefix) :]
+                hits = list(stub.store.glob(f"{att_id}_*"))
+                if not hits:
+                    self._json(404, {"error": f"no attachment {att_id}"})
+                    return
+                data = hits[0].read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/octet-stream")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+
+        self._server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        self.base_url = f"http://127.0.0.1:{self._server.server_address[1]}"
+        threading.Thread(
+            target=self._server.serve_forever,
+            name="unify-cm-attachment-gw",
+            daemon=True,
+        ).start()
+
+    @staticmethod
+    def _parse_multipart(content_type: str, body: bytes) -> tuple[str, bytes] | None:
+        """The file part of a multipart/form-data body, bytes exact.
+
+        Parts are split on CRLF + delimiter, so a payload's own trailing
+        newlines survive — a PDF's %%EOF terminator is content, not
+        framing.
+        """
+        import re as _re
+
+        m = _re.search(r'boundary="?([^";]+)"?', content_type)
+        if not m:
+            return None
+        delimiter = b"\r\n--" + m.group(1).encode()
+        for chunk in (b"\r\n" + body).split(delimiter)[1:]:
+            if chunk.startswith(b"--"):
+                break
+            head, sep, data = chunk.partition(b"\r\n\r\n")
+            if not sep:
+                continue
+            fm = _re.search(rb'filename="([^"]*)"', head)
+            if fm:
+                return Path(fm.group(1).decode() or "attachment.bin").name, data
+        return None
+
+
+_ATTACHMENT_GATEWAY: _AttachmentGatewayStub | None = None
+_ATTACHMENT_GATEWAY_LOCK = threading.Lock()
+
+
+def _ensure_attachment_gateway() -> None:
+    """Point UNIFY_ADAPTERS_URL at the loopback gateway, once per process.
+
+    setdefault, so an operator who exported a real gateway (staging's, a
+    self-hosted one) keeps it and the stub never starts.
+    """
+    global _ATTACHMENT_GATEWAY
+    with _ATTACHMENT_GATEWAY_LOCK:
+        if (os.environ.get("UNIFY_ADAPTERS_URL") or "").strip():
+            return
+        if _ATTACHMENT_GATEWAY is None:
+            _ATTACHMENT_GATEWAY = _AttachmentGatewayStub()
+        os.environ["UNIFY_ADAPTERS_URL"] = _ATTACHMENT_GATEWAY.base_url
+
+
 class _LoopThread:
     """An asyncio loop living on its own thread."""
 
@@ -408,6 +545,10 @@ class UnifyCMSession(ArmSession):
                 "UNIFY_LOCAL_ROOT",
                 str(self.results_dir / "unify_local"),
             )
+        # The outbound-attachment upload API, before SETTINGS can freeze an
+        # empty UNIFY_ADAPTERS_URL (which resolves to an unreachable default
+        # and fails every send_unify_message(attachment_filepath=...)).
+        _ensure_attachment_gateway()
         self._loop = _LoopThread()
 
         import unify as unify_pkg

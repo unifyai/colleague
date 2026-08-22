@@ -223,3 +223,62 @@ deliverable is a workbook the participant builds with their own tools:
 in the terminal, saved under the session workspace and named in `/done`;
 in the browser, upload is not built yet, so browser runs are read-only
 previews. The same parity test now pins the file-shaped surface.)*
+
+## First document-scale live run (2026-08-22, unify-cm, local — week 1 smoke)
+
+Run `2026-08-22T15-40-59Z-unify-cm-ebedc7`, colleague 973390d (the regime
+commit), unify checkout 004eb7f9d (staging branch; predates origin/staging's
+Comms-persistence fix 52c34e857, acceptable for a single-week smoke that
+crosses no sleep), gpt-5.6-sol, personas live: **week_1_briefed PASS** —
+1021.6s wall, 98 arm calls, 7.55M tokens (7.49M prompt / 63k completion),
+$3.81 provider; persona spend 1,012 tokens across 1 exchange, in its own
+ledger. All 28 shared documents ingested through the CM's own attachment
+machinery (`Attachments/aNNN_*` in the run-scoped file root); the returned
+workbook (29,844 bytes) was witnessed on `/deliver` via
+`unify-cm-channel` — the product's outbound attachment on its own send,
+bridged by the egress tap.
+
+Three findings, in the order they happened:
+
+1. **The work was real and the arm did it.** It probed pypdf/pytesseract
+   (absent), found PyMuPDF, rasterised the 20 image-only receipt scans and
+   read them by vision, reconciled all 40 statement rows against invoice
+   lines and receipts to the cent, extracted the FX table from the attached
+   workbook, flagged 4 rows as personal (readable only from the scans), and
+   self-validated a seven-tab draft before sending. Week 1 fixes no format,
+   so only the returned file is scored; the format weeks are 2–6.
+
+2. **Document scale flipped the distillation economics on week 1.** The
+   storage reviewer — which declined to store a function sixteen times
+   across the five-row regime's tied run — chose to distil here:
+   `build_northwind_weekly_spend_workbook` (structured reconciliation +
+   fx rates in, validated workbook out) is stored, with data acquisition
+   deliberately kept outside it. This is the regime change doing exactly
+   what it was built to do, on the first live week.
+
+3. **One adapter gap, found and closed.** The product's outbound
+   attachment path uploads to the adapters gateway (`/unify/attachment`,
+   production contract); the embedded boot stood no gateway up, so the
+   first two sends failed and the arm told Daniel so, honestly, both
+   times. It then diagnosed the missing service from inside its sandbox —
+   port-probed the default, read product and harness source, stood up its
+   own gateway, repointed its settings in-process, and delivered on the
+   third attempt ("the upload gateway issue has been repaired; the file is
+   unchanged and checksum-verified"). The adapter now boots a loopback
+   attachment gateway (`_AttachmentGatewayStub`, the self-host case the
+   product's own comment names), so later runs exercise the send path
+   without demanding self-repair first. Two boundary notes from the same
+   episode: an embedded local run's sandbox can read the harness's own
+   source (inherent to local runs — the CLI arms share the host too), and
+   the arm's workaround wrote one stray file into the operator's real
+   `~/Unity/Local/Attachments/` (`Northwind_Week_1_Client_Spend_Report_
+   Draft.xlsx`), which is exactly the pollution the adapter's run-scoped
+   file root exists to prevent — the root held for everything the product
+   itself did; the stray came from the arm hand-picking the global path
+   during its repair.
+
+Cost context, reported never scored: the pre-document-scale week 1 ran
+~534k prompt tokens; this week 1 ran 7.49M — with an unmeasured share
+spent on the gateway self-repair loop, so the clean per-week figure waits
+on the next run. Weeks 2–6 and the control have not run live under this
+regime yet.
