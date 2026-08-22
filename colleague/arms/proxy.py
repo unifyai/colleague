@@ -263,6 +263,14 @@ class RecordingProxy:
             {"ledger": self.ledger, "capture": self.capture},
         )
         self._server = ThreadingHTTPServer(("127.0.0.1", port), handler)
+        # Handler threads are daemons (http.server default), but ThreadingMixIn
+        # still *joins* them in server_close(). A handler stuck reading a hung
+        # upstream call — which _ProxyHandler does deliberately after its client
+        # is gone, so usage is recorded — would then block stop() for the full
+        # 1200s upstream timeout, stalling a scenario teardown for tens of
+        # minutes. Close must not wait: a straggler that completes while the
+        # process lives still lands in the ledger from its own thread.
+        self._server.block_on_close = False
         self.port = self._server.server_address[1]
         self._thread = threading.Thread(
             target=self._server.serve_forever,
