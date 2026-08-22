@@ -130,6 +130,31 @@ unbriefed control gets a fresh workspace. Every week records active labour
 and cost beside the exact structural score — the human curve is the
 baseline the drip-fed amortisation claim is measured against.
 
+## First duplex run (2026-08-22, unify-cm, local)
+
+Run `2026-08-22T09-21-55Z-unify-cm-3adc33`, the first with the persona
+engine live (colleague `94ec8be`, unify staging `004eb7f9d`, personas
+gpt-5.6-sol direct): weeks 1–2 pass, weeks 3–6 fail on format retention
+across the sleeps (wrong title, an invented seven-column schema — the
+same shape the pre-duplex baseline showed on the same staging build),
+control UNSUPPORTED as designed. The duplex evidence is the point of the
+run. Ten persona exchanges, all on the reply channel, zero through the
+hook: Daniel read every filed-report status and stayed silent on seven of
+them; in week 4 he caught the wrong title from the arm's own report and
+re-supplied the exact one (label `restated`, priced — the week still
+failed on columns, so no credit moved); and week 6 replayed the motivating
+incident and closed it — the arm announced "I couldn't locate the Week 6
+finance file… nothing was changed", Daniel answered "Use the API details I
+already gave you" (label `repointed`, nothing re-supplied), and the
+resumed arm filed. Under the write-only reply channel that week was a
+zero-filing dead end; under the duplex it is an answered conversation,
+with the ping-pong visible in the ledger (week 6: 116 calls, 3.2M arm
+tokens). Persona spend for the whole run: 13,626 tokens across 10
+exchanges, in `persona_ledger.jsonl`, never in an arm column. No leak
+guard hits; no INVALID cells. Arm totals: 27.5 min scenario wall, 250
+calls, 7.0M tokens, $2.06 provider (week 6 unpriced calls void that
+week's column under the void-cost rule).
+
 In the browser workbench each week carries a participant surface
 (`human.py`), because the report contract — a whole-number week, a column
 list, rows as lists in column order with string amounts and boolean flags —
