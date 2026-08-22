@@ -420,6 +420,24 @@ class UnifyCMSession(ArmSession):
         # calling thread, so the loop-thread boot only sees warm modules.
         import unify.conversation_manager.main  # noqa: F401
 
+        # The benchmark measures the production regime, and production
+        # persists the Comms stream — hydration after a sleep reboot reads
+        # nothing else. The env prime above uses setdefault, which loses if
+        # anything imported unify.settings earlier in this process (observed
+        # 2026-08-22: a local run silently measured the amnesiac regime and
+        # reported a 6/6 that had to be retracted). A run that cannot
+        # persist must refuse to start, not quietly measure something else.
+        from unify.settings import SETTINGS
+
+        if not SETTINGS.EVENTBUS_PUBLISHING_ENABLED:
+            raise SystemExit(
+                "EVENTBUS_PUBLISHING_ENABLED is off in unify's settings: the "
+                "settings singleton was built before the adapter could prime "
+                "the environment. Export EVENTBUS_PUBLISHING_ENABLED=true in "
+                "the shell before Python starts (the CI shard does), or "
+                "ensure nothing imports unify before this session's setup().",
+            )
+
         self._loop.run(self._boot(), timeout=900)
 
 
