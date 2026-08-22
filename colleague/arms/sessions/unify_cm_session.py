@@ -112,6 +112,15 @@ def _prime_environment() -> None:
     for key, value in _ASSISTANT_IDENTITY.items():
         if not (os.environ.get(key) or "").strip():
             os.environ[key] = value
+    # Production persists the Comms stream (EVENTBUS_PUBLISHING_ENABLED=true
+    # in deployment; the setting defaults off for tests), and conversation
+    # hydration after a pod reboot reads exactly that stream. A person-shaped
+    # benchmark models production, and the sleeping weeks reboot the CM
+    # between requests — without this, a rebooted week finds no persisted
+    # conversation and wakes amnesiac (2026-08-22: weeks 2–4 failed, hunting
+    # for a spec that lived in the unpersisted week-1 exchange). setdefault
+    # so an operator can still study the amnesiac regime deliberately.
+    os.environ.setdefault("EVENTBUS_PUBLISHING_ENABLED", "true")
     # The benchmark's boss identity, before SESSION_DETAILS instantiates and
     # before the CM's load_dotenv() can pull the operator's own USER_* values
     # out of the unify repo's .env (load_dotenv never overrides existing
