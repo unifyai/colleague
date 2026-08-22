@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Any, Callable, TextIO
 
 from colleague.arms.sessions import build as build_session
+from colleague.harness.attachments import find_deliverable, post_deliverable
 from colleague.harness.capability import Outcome, ScenarioResult, Steering, summarize
 from colleague.harness.cost import delta as cost_delta
 from colleague.harness.cost import total as total_cost
@@ -43,19 +44,90 @@ from colleague.harness.session import ArmSession, Reply, RunHandle, Unsupported
 PERSONA_ROUNDS = int(os.environ.get("COLLEAGUE_PERSONA_ROUNDS", "6"))
 
 
+def _collect_deliverable(
+    *,
+    session: ArmSession,
+    fixture: Any,
+    reply: Reply,
+    record: dict[str, Any],
+    staged: list[str],
+    since: float,
+) -> dict[str, Any]:
+    """Bridge a workspace arm's produced file to the fixture's /deliver.
+
+    Runs only when nothing was bridged already (an arm whose product sends
+    files on its own channel is its own bridge). The search never returns a
+    file the harness staged — handing back the inputs is not delivering —
+    and workspace *discovery* is limited to files written during this
+    scenario, so a slept week cannot resubmit last week's report by doing
+    nothing. Finding no file is evidence for the scorer, not an error.
+    """
+    workspace = getattr(session, "workspace", None)
+    if workspace is None:
+        return {"found": False, "why": "arm has no workspace to collect from"}
+    staged_paths = {Path(p).resolve() for p in staged}
+    received = {
+        Path(p).resolve()
+        for p in getattr(session, "received_attachments", set()) or set()
+    }
+    off_limits = staged_paths | received
+
+    # Search the whole visible conversation for a named path: the final
+    # reply, plus anything the arm said in resumed persona rounds.
+    texts = [reply.text or ""]
+    for entry in record.get("conversation") or []:
+        for key in ("text", "reply"):
+            value = entry.get(key)
+            if isinstance(value, str):
+                texts.append(value)
+
+    found, how = find_deliverable(
+        "\n".join(texts),
+        [Path(workspace)],
+        ignore=lambda p: p in off_limits,
+        since=since,
+    )
+    if found is None:
+        return {"found": False, "why": "no produced file named or discovered"}
+    try:
+        post_deliverable(
+            fixture.base_url,
+            found,
+            via=f"collected:{how}",
+            note=(reply.text or "")[:200],
+        )
+    except Exception as exc:  # noqa: BLE001 - recorded, then scored as absent
+        return {"found": True, "how": how, "error": f"{type(exc).__name__}: {exc}"}
+    return {"found": True, "how": how, "path": str(found)}
+
+
 class _Resumed(RunHandle):
     """A continuation of an open session, presented as an ordinary run."""
 
-    def __init__(self, session: ArmSession, text: str, sender: str | None) -> None:
+    def __init__(
+        self,
+        session: ArmSession,
+        text: str,
+        sender: str | None,
+        attachments: list[str] | None = None,
+    ) -> None:
         self._session = session
         self._text = text
         self._sender = sender
+        self._attachments = attachments
         self._reply: Reply | None = None
 
     def wait(self, timeout: float = 900.0) -> Reply:
         if self._reply is None:
             try:
-                self._reply = self._session.resume(self._text, sender=self._sender)
+                if self._attachments:
+                    self._reply = self._session.resume(
+                        self._text,
+                        sender=self._sender,
+                        attachments=self._attachments,
+                    )
+                else:
+                    self._reply = self._session.resume(self._text, sender=self._sender)
             except Exception as exc:  # noqa: BLE001 - surfaced in the run file
                 self._reply = Reply(
                     text="",
@@ -86,7 +158,10 @@ def _session_for(
     if arm == "mock":
         # run_id keys the mock's durable store; without it a restart
         # session cannot find the week the shared session banked.
-        return build_session("mock", mode=mode, run_id=run_id)
+        # results_dir gives the plan a real workspace, so a track whose
+        # deliverable is a produced file proves the same collection path
+        # the CLI arms use rather than bypassing it.
+        return build_session("mock", mode=mode, run_id=run_id, results_dir=results_dir)
     if arm == "human":
         return build_session(
             "human",
@@ -212,6 +287,10 @@ def run_track(
                 fixture.reset_observations()
             else:
                 fixture = fixture_module.build(seed=seed, port=port).start()
+            # Returned artifacts land in the results tree, per scenario —
+            # the recorder's sequence numbers reset with the observations,
+            # so the directory must scope the filenames instead.
+            fixture.state["artifact_dir"] = str(results_dir / "deliverables" / name)
             # Scenario text is regenerated against the live port.
             live = next(
                 s
@@ -295,6 +374,11 @@ def run_track(
             clarifications_before = len(session.clarifications())
             cost_before = session.cost_snapshot()
             scenario_started = time.monotonic()
+            # Wall-clock epoch for deliverable collection: only files written
+            # during this scenario qualify for workspace discovery, so a
+            # slept week can never hand back last week's report by doing
+            # nothing. (A path the arm explicitly names is exempt.)
+            scenario_epoch = time.time()
             print(f"[{track}/{arm}] scenario {name} — fixture {fixture.base_url}")
 
             voice_t: Any = None
@@ -437,6 +521,24 @@ def run_track(
                 else:
                     record["transport"] = "text"
 
+                # Document-scale I/O: a scenario that declares `attachments`
+                # has the fixture stage its files (generated seeded, into the
+                # regenerable corpus/ tree — never uploaded by CI), and every
+                # surface receives them through its own best mechanism. The
+                # deliverable is expected back the same way; see collection
+                # below.
+                staged: list[str] = []
+                if live.get("attachments"):
+                    staged = [
+                        str(p)
+                        for p in fixture_module.stage_attachments(
+                            fixture=fixture,
+                            scenario=name,
+                            dest=results_dir / "corpus" / name,
+                        )
+                    ]
+                    record["attachments"] = [Path(p).name for p in staged]
+
                 # The scenario's scripted stimulus is the persona's own
                 # authored speech: seeding it into their memory is what makes
                 # "you already said it" literally true when they later
@@ -465,7 +567,12 @@ def run_track(
                     and hasattr(session, "resume")
                     and not (steerable and live_channel)
                 ):
-                    handle = _Resumed(session, request_text, live.get("sender"))
+                    handle = _Resumed(
+                        session,
+                        request_text,
+                        live.get("sender"),
+                        attachments=staged or None,
+                    )
                 else:
                     handle = session.begin(
                         request_text,
@@ -473,6 +580,7 @@ def run_track(
                         context=live.get("context"),
                         sender=live.get("sender"),
                         images=live.get("images"),
+                        attachments=staged or None,
                     )
 
                 inter: Interlocutor | None = None
@@ -582,6 +690,25 @@ def run_track(
                     if convo:
                         record["conversation"] = convo
                 record["reply"] = reply.as_dict()
+
+                # The returned artifact. An arm whose product sends files on
+                # its channel has already bridged them to /deliver; for a
+                # workspace arm the harness is the bridge — the reply names a
+                # path, or the newest file produced this scenario is taken,
+                # and either way the bytes land with the fixture, the only
+                # witness scoring reads.
+                if (
+                    live.get("expects_deliverable", bool(staged))
+                    and fixture.recorder.count("deliver") == 0
+                ):
+                    record["deliverable_collection"] = _collect_deliverable(
+                        session=session,
+                        fixture=fixture,
+                        reply=reply,
+                        record=record,
+                        staged=staged,
+                        since=scenario_epoch,
+                    )
 
                 # A track may need more turns after the first completes.
                 if hasattr(scenario_module, "followup"):
@@ -771,8 +898,7 @@ def _persona_conversation(
     offer_chat = pool.impl != "scripted"
     for _ in range(PERSONA_ROUNDS):
         answered = {
-            str(c.get("question") or "").strip()
-            for c in session.clarifications()
+            str(c.get("question") or "").strip() for c in session.clarifications()
         }
         inbound: list[tuple[str, str, str]] = []
         for kind, spec in channels.items():

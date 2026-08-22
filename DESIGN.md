@@ -390,6 +390,19 @@ that froze its procedure from observed examples — cheap, and silently
 wrong the first time the world steps outside them — from one that kept
 judgment at the semantic joints.
 
+*Document scale (2026-08-22):* the workload is real now — no fixture
+API; Daniel attaches 30–50 pages of seeded documents a week (statement,
+invoices, image-only receipt scans; week 1 a long brief PDF with the
+dormant rule buried mid-document, plus the rate sheet as a workbook) and
+expects one normalised .xlsx back, parsed symbolically against
+recomputed ground truth. The trap weeks ride unchanged, now behind
+cross-document reconciliation and vision. This is the flagship port of
+the suite-wide document-scale regime (`SCENARIO_CHANGES.md`,
+2026-08-22), whose deliverable is the crossover measurement: sweep the
+volume dials and report where transcript-resume arms and distilled
+pipelines separate — in absolute cost, and in correctness under context
+pressure.
+
 ### `custody` — where knowledge is kept decides who can reach it
 
 Three facts arrive in one briefing: an operational detail, someone's medical

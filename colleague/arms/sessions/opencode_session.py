@@ -102,12 +102,14 @@ class OpenCodeSession(CliSession):
         context: str | None = None,
         sender: str | None = None,
         images: list[str] | None = None,
+        attachments: list[str] | None = None,
     ) -> RunHandle:
         del persist  # no session state survives the process
         if images:
             raise Unsupported(
                 "this arm's driver has no way to attach an image to a turn",
             )
+        text = self.take_attachments(text, attachments)
         prompt = compose(context, text if sender is None else f"[{sender}] {text}")
         return ThreadedRunHandle(self._turn, prompt)
 

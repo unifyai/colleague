@@ -88,12 +88,12 @@ def test_participant_surfaces_speak_office_language():
     import json
     import re
 
+    from colleague.tracks.refinement.human import surface_for
     from colleague.tracks.standing.human_brief import (
         SUMMARIES,
         policy_surfaces,
         standing_surface,
     )
-    from colleague.tracks.refinement.human import surface_for
     from colleague.tracks.usecases.human import _agency_surface, _ecommerce_surface
 
     surfaces = {
@@ -169,8 +169,7 @@ def test_refinement_surface_adds_mechanics_without_adding_memory():
     specs = scenarios("http://fixture.invalid")
     assert all(spec.get("surface") for spec in specs)
     forms = [
-        {k: v for k, v in spec["surface"].items() if k != "request"}
-        for spec in specs
+        {k: v for k, v in spec["surface"].items() if k != "request"} for spec in specs
     ]
     assert all(form == forms[0] for form in forms[1:])
     for spec in specs:
@@ -184,23 +183,15 @@ def test_refinement_surface_adds_mechanics_without_adding_memory():
     assert "Northwind" not in pinned
     assert "decimal" not in pinned.lower()
 
-    # The filing form composes the exact contract: a whole-number week, the
-    # column names as a list, and rows as lists in cell order with a real
-    # boolean flag — the shapes the generic parser cannot compose.
-    action = forms[0]["actions"][0]
-    assert action["path"] == "/report"
-    fields = {f["key"]: f for f in action["fields"]}
-    assert fields["week"]["kind"] == "int"
-    assert fields["columns"]["kind"] == "list"
-    assert fields["rows"]["kind"] == "rows"
-    assert fields["rows"]["as_lists"] is True
-    cells = [(c["key"], c["kind"]) for c in fields["rows"]["columns"]]
-    assert cells == [
-        ("vendor", "text"),
-        ("category", "text"),
-        ("amount", "text"),
-        ("flagged", "bool"),
-    ]
+    # The document-scale regime: no fixture forms at all — the mechanics
+    # are file mechanics (attachments down, one produced spreadsheet back),
+    # so the surface declares a file deliverable and nothing answer-bearing.
+    assert forms[0]["lookups"] == []
+    assert forms[0]["actions"] == []
+    assert forms[0]["deliverable"]["kind"] == "file"
+    # Every scenario shares files with the message, so every arm — the
+    # human included — receives the same documents.
+    assert all(spec.get("attachments") for spec in specs)
 
 
 def test_operator_fix_message_reads_naturally():

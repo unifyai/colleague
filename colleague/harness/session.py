@@ -142,6 +142,7 @@ class ArmSession(ABC):
         context: str | None = None,
         sender: str | None = None,
         images: list[str] | None = None,
+        attachments: list[str] | None = None,
     ) -> RunHandle:
         """Start a turn and return before it finishes.
 
@@ -158,6 +159,14 @@ class ArmSession(ABC):
         it has. An arm with none raises `Unsupported`; a scenario that needs
         them then resolves to UNSUPPORTED rather than to a text-only guess
         scored as a failure to look.
+
+        ``attachments`` are file paths the sender is sharing with the
+        message — the documents the work is about. Unlike ``images``, no
+        arm may refuse them: a file can always be put where the arm works.
+        Each surface takes its own best route — the CM ingests them on its
+        product channel, CLI arms find them materialised in the session
+        workspace with the message saying where (`attachments.attachment_
+        note`, composed once so no arm is told more than another).
         """
 
     def send(
@@ -168,6 +177,7 @@ class ArmSession(ABC):
         context: str | None = None,
         sender: str | None = None,
         images: list[str] | None = None,
+        attachments: list[str] | None = None,
         timeout: float = 900.0,
     ) -> Reply:
         return self.begin(
@@ -176,6 +186,7 @@ class ArmSession(ABC):
             context=context,
             sender=sender,
             images=images,
+            attachments=attachments,
         ).wait(timeout=timeout)
 
     def close(self) -> None:

@@ -251,8 +251,13 @@ class OpenClawGatewaySession(CliSession):
         context: str | None = None,
         sender: str | None = None,
         images: list[str] | None = None,
+        attachments: list[str] | None = None,
     ) -> RunHandle:
         del persist  # OpenClaw persists every session; the key is the continuity
+        # Documents go to the workspace, like every CLI arm: the Gateway's
+        # chat attachments are an image envelope, and a 30-page PDF is a
+        # file the product would save to disk anyway.
+        text = self.take_attachments(text, attachments)
         prompt = compose(context, text if sender is None else f"[{sender}] {text}")
         attachments = self._attachments(images)
         run = self._submit(prompt, kind="turn", attachments=attachments)
@@ -260,9 +265,17 @@ class OpenClawGatewaySession(CliSession):
         self._handles.append(handle)
         return handle
 
-    def resume(self, text: str, *, sender: str | None = None) -> Reply:
+    def resume(
+        self,
+        text: str,
+        *,
+        sender: str | None = None,
+        attachments: list[str] | None = None,
+    ) -> Reply:
         """A later turn on the same persisted session — OpenClaw's own continuity."""
-        return self.begin(text, sender=sender).wait(timeout=self.timeout_s)
+        return self.begin(text, sender=sender, attachments=attachments).wait(
+            timeout=self.timeout_s,
+        )
 
     def on_clarification(self, responder) -> None:
         self._responder = responder

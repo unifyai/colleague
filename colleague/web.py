@@ -217,6 +217,9 @@ class BrowserRun:
             item["at"] = datetime.now(timezone.utc).isoformat()
             if item.get("type") == "turn":
                 self.allowed_files.update(str(p) for p in item.get("images") or [])
+                # Shared documents download exactly as frames serve: the turn
+                # whitelists them, `/api/runs/{id}/file` refuses all else.
+                self.allowed_files.update(str(p) for p in item.get("attachments") or [])
             self.events.append(item)
 
     def input(self, prompt: str) -> str:

@@ -6,10 +6,21 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = { file = "LICENSE" }
 
-# The harness, the recording proxy and every comparison-arm driver are
-# stdlib-only on purpose, so an arm can be reproduced without installing
-# anything from this project.
-dependencies = []
+# The recording proxy and every comparison-arm driver are stdlib-only on
+# purpose, so an arm can be reproduced without installing anything from this
+# project. The fixture layer is not, as of the 2026-08-22 document-scale
+# regime: tasks are done on real multi-page PDFs and real spreadsheets, so
+# the fixtures render them (fpdf2 + pillow + pypdfium2 for pages and their
+# scan-distorted variants, openpyxl to write corpora and to parse returned
+# artifacts for scoring). A deliberate, recorded trade: generation stays
+# seeded and byte-deterministic — selftest proves it — but running the
+# benchmark now requires `uv sync` rather than a bare PYTHONPATH.
+dependencies = [
+    "fpdf2>=2.8.8",
+    "openpyxl>=3.1.5",
+    "pillow>=12.3.0",
+    "pypdfium2>=5.12.1",
+]
 
 [project.optional-dependencies]
 # Only the unify-cm arm needs these; it is metered in-process through a registered

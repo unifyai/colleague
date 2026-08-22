@@ -115,14 +115,23 @@ class PrimeAgentRpcSession(CliSession):
         context: str | None = None,
         sender: str | None = None,
         images: list[str] | None = None,
+        attachments: list[str] | None = None,
     ) -> RunHandle:
         del persist  # one process, one session: it persists by construction
         assert self._rpc is not None, "call setup() first"
+        text = self.take_attachments(text, attachments)
         prompt = compose(context, text if sender is None else f"[{sender}] {text}")
         return _RpcRunHandle(self, self._rpc.submit(prompt, images=images))
 
-    def resume(self, text: str, *, sender: str | None = None) -> Reply:
+    def resume(
+        self,
+        text: str,
+        *,
+        sender: str | None = None,
+        attachments: list[str] | None = None,
+    ) -> Reply:
         assert self._rpc is not None, "call setup() first"
+        text = self.take_attachments(text, attachments)
         prompt = text if sender is None else f"[{sender}] {text}"
         return _RpcRunHandle(self, self._rpc.submit(prompt)).wait(
             timeout=self.timeout_s,

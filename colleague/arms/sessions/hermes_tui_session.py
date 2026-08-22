@@ -288,6 +288,7 @@ class HermesTuiSession(CliSession):
         context: str | None = None,
         sender: str | None = None,
         images: list[str] | None = None,
+        attachments: list[str] | None = None,
     ) -> RunHandle:
         # The gateway persists every session to SQLite regardless of
         # `persist`; `resume()` continues the same stored session.
@@ -296,6 +297,7 @@ class HermesTuiSession(CliSession):
             raise Unsupported(
                 "this arm's driver has no way to attach an image to a turn",
             )
+        text = self.take_attachments(text, attachments)
         prompt = compose(context, text if sender is None else f"[{sender}] {text}")
         return self._submit(prompt)
 
@@ -352,8 +354,15 @@ class HermesTuiSession(CliSession):
                 encoding="utf-8",
             )
 
-    def resume(self, text: str, *, sender: str | None = None) -> Reply:
+    def resume(
+        self,
+        text: str,
+        *,
+        sender: str | None = None,
+        attachments: list[str] | None = None,
+    ) -> Reply:
         """Continue the stored session through the gateway's own resume."""
+        text = self.take_attachments(text, attachments)
         target = self._stored_session_id
         if target:
             try:

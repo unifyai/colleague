@@ -317,7 +317,10 @@ class UnifyCMSession(ArmSession):
         self._turns = 0
         self._delivery_url: str | None = None
         self._say_url: str | None = None
+        self._deliver_url: str | None = None
         self._bridged: list[dict[str, Any]] = []
+        self._local_root: Path | None = None
+        self._attachment_seq = 0
         #: Shared teams provisioned for this run: team name -> team id.
         self._teams: dict[str, int] = {}
         #: The one group room this session sits in, when a track opens one.
@@ -340,6 +343,9 @@ class UnifyCMSession(ArmSession):
             base_url.rstrip("/") + "/reply" if "/reply" in post_paths else None
         )
         self._say_url = base_url.rstrip("/") + "/say" if "/say" in post_paths else None
+        self._deliver_url = (
+            base_url.rstrip("/") + "/deliver" if "/deliver" in post_paths else None
+        )
         self._bridged = []
 
     def _bridge_delivery(self, contact_id: Any, text: str) -> None:
@@ -389,6 +395,19 @@ class UnifyCMSession(ArmSession):
     def setup(self) -> None:
         require_env()
         _prime_environment()
+        # A run-scoped file root, before any unify module reads SETTINGS.
+        # Without it every run shares the operator's ~/Unity/Local: inbound
+        # attachments from different runs pile into one Attachments/, and an
+        # outbound file the brain produced last week is reachable this week
+        # for free. The sleeping weeks *should* share disk — the reused
+        # results_dir gives them exactly that — but two runs never should.
+        # setdefault so an operator studying the shared-root regime can still
+        # export their own.
+        if self.results_dir is not None:
+            os.environ.setdefault(
+                "UNIFY_LOCAL_ROOT",
+                str(self.results_dir / "unify_local"),
+            )
         self._loop = _LoopThread()
 
         import unify as unify_pkg
@@ -441,6 +460,21 @@ class UnifyCMSession(ArmSession):
         unisdk.set_context(self.context, relative=False)
         ManagerRegistry.clear()
         ContextRegistry.clear()
+        # Pin this session's file root by constructing the singleton first:
+        # SETTINGS freezes UNIFY_LOCAL_ROOT at the process's first unify
+        # import, so the env prime alone cannot give a fresh_session control
+        # booted mid-process its own root — and the control must never find
+        # the main run's Attachments/ (the produced reports in there carry
+        # the exact format the control exists to prove undiscoverable).
+        # SingletonABCMeta registers this instance; every later
+        # get_file_manager() returns it. enable_sync=False: no managed VM.
+        if self.results_dir is not None:
+            from unify.file_manager.managers.local import LocalFileManager
+
+            local_root = self.results_dir / "unify_local"
+            local_root.mkdir(parents=True, exist_ok=True)
+            LocalFileManager(root=str(local_root), enable_sync=False)
+            self._local_root = local_root
         unify_pkg.init(project_name=self.project)
 
         # LiveKit refuses to register its plugins off the main thread, and the
@@ -927,6 +961,7 @@ class UnifyCMSession(ArmSession):
         context: str | None = None,
         sender: str | None = None,
         images: list[str] | None = None,
+        attachments: list[str] | None = None,
     ) -> RunHandle:
         """Enqueue an inbound message and return before the turn finishes.
 
@@ -940,6 +975,13 @@ class UnifyCMSession(ArmSession):
         the CM's own screenshot buffer -- the path a shared screen takes from
         the fast brain -- attributed to the sender and paired with the
         message, so the slow brain sees them the way it sees any share.
+
+        `attachments` ride the product channel the way any chat attachment
+        does: on the inbound event (the renderer shows the standard
+        "auto-downloaded to Attachments/..." line) and through the CM's own
+        ingestion, which lands the bytes in the assistant's file store. The
+        content travels inline (`content_base64`) because the fixture is
+        local — there is no bucket to sign a URL against.
         """
         assert self._loop is not None and self._cm is not None, "call setup() first"
         self._turns += 1
@@ -948,10 +990,44 @@ class UnifyCMSession(ArmSession):
         if images:
             self._buffer_frames(images, text, sender)
         item = self._loop.run(
-            self._enqueue("begin", compose(context, text), sender, self._turns),
+            self._enqueue(
+                "begin",
+                compose(context, text),
+                sender,
+                self._turns,
+                attachments=self._attachment_payload(attachments),
+            ),
             timeout=120,
         )
         return UnifyCMRunHandle(self, item)
+
+    def _attachment_payload(
+        self,
+        paths: list[str] | None,
+    ) -> list[dict[str, Any]] | None:
+        """Inline attachment dicts for the CM's ingestion machinery.
+
+        Ids are session-scoped and stable per arrival order, so the store
+        path `Attachments/{id}_{filename}` never collides when the same
+        filename arrives twice across weeks.
+        """
+        if not paths:
+            return None
+        import base64
+
+        out = []
+        for path in paths:
+            self._attachment_seq += 1
+            p = Path(path)
+            out.append(
+                {
+                    "id": f"a{self._attachment_seq:03d}",
+                    "filename": p.name,
+                    "content_base64": base64.b64encode(p.read_bytes()).decode(),
+                    "size_bytes": p.stat().st_size,
+                },
+            )
+        return out
 
     def _buffer_frames(self, images: list[str], text: str, sender: str | None) -> None:
         """Hand shared-screen frames to the CM as user screenshots.
@@ -980,9 +1056,15 @@ class UnifyCMSession(ArmSession):
                 ),
             )
 
-    def resume(self, text: str, *, sender: str | None = None) -> Reply:
+    def resume(
+        self,
+        text: str,
+        *,
+        sender: str | None = None,
+        attachments: list[str] | None = None,
+    ) -> Reply:
         """Continue the standing session; the CM never stopped being one."""
-        return self.begin(text, sender=sender).wait()
+        return self.begin(text, sender=sender, attachments=attachments).wait()
 
     def _interject(self, text: str, *, sender: str | None = None) -> dict[str, Any]:
         """Another inbound event through the same pipeline, mid-turn.
@@ -1004,18 +1086,35 @@ class UnifyCMSession(ArmSession):
         content: str,
         sender: str | None,
         turn: int,
+        attachments: list[dict[str, Any]] | None = None,
     ) -> _Inbound:
         contact = await self._ensure_correspondent(sender)
         room = self._room
+        extra: dict[str, Any] = {}
+        if attachments:
+            extra["attachments"] = attachments
         if room is not None:
             event = self._M.ev.UnifyMessageReceived(
                 contact=contact,
                 content=content,
                 group_id=room["group_id"],
                 participant_contact_ids=list(room["participant_ids"]) or None,
+                **extra,
             )
         else:
-            event = self._M.ev.UnifyMessageReceived(contact=contact, content=content)
+            event = self._M.ev.UnifyMessageReceived(
+                contact=contact, content=content, **extra
+            )
+        if attachments:
+            # The comms manager schedules this right after publishing an
+            # inbound event; this arm boots with enable_comms_manager=False,
+            # so nothing else would ever download the files. Awaited before
+            # the event is handled: the inline bytes make it pure local I/O,
+            # and the brain must find the store populated when it reads the
+            # message, exactly as a production pod would.
+            from unify.conversation_manager.domains import comms_utils
+
+            await comms_utils.add_unify_message_attachments(attachments)
         item = _Inbound(kind, turn, event, int(contact.get("contact_id", -1)))
         item.egress_start = len(self._egress_log)
         item.clar_seen = item.egress_start
@@ -1131,13 +1230,67 @@ class UnifyCMSession(ArmSession):
         group_id = getattr(evt, "group_id", None)
         if group_id is not None:
             entry["group_id"] = group_id
+        sent_files = [
+            a for a in (getattr(evt, "attachments", None) or []) if isinstance(a, dict)
+        ]
+        if sent_files:
+            entry["attachments"] = [a.get("filename") for a in sent_files]
         self._egress_log.append(entry)
         if name in _MESSAGE_SENT_TYPES:
+            # A file the product sent to anyone — the boss included — is a
+            # returned deliverable, and the fixture must witness it. The
+            # boss-skip in _bridge_delivery applies only to *text*, which for
+            # the boss is the answer channel already captured as Reply.text.
+            for att in sent_files:
+                self._bridge_deliverable(att, text)
             room = self._room
             if room is not None and group_id == room["group_id"]:
                 self._bridge_room_say(text)
             else:
                 self._bridge_delivery(contact.get("contact_id"), text)
+
+    def _bridge_deliverable(self, attachment: dict[str, Any], note: str) -> None:
+        """Re-post one outbound attachment's bytes to the fixture's /deliver."""
+        if not self._deliver_url:
+            return
+        import base64
+
+        filename = str(attachment.get("filename") or "attachment.bin")
+        filepath = str(attachment.get("filepath") or "")
+        candidates = []
+        if filepath:
+            if self._local_root is not None:
+                candidates.append(self._local_root / filepath)
+            candidates.append(Path(filepath))
+        status: Any = "missing file"
+        for candidate in candidates:
+            if not candidate.is_file():
+                continue
+            try:
+                body = json.dumps(
+                    {
+                        "filename": filename,
+                        "content_b64": base64.b64encode(
+                            candidate.read_bytes()
+                        ).decode(),
+                        "via": "unify-cm-channel",
+                        "note": note[:200],
+                    },
+                ).encode()
+                req = urllib.request.Request(
+                    self._deliver_url,
+                    data=body,
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    status = resp.status
+            except Exception as exc:  # noqa: BLE001 - bridge is evidence
+                status = f"error: {exc}"
+            break
+        self._bridged.append(
+            {"deliverable": filename, "filepath": filepath, "status": status},
+        )
 
     # -------------------------------------------------------------- draining
 

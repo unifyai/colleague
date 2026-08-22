@@ -193,13 +193,19 @@ def test_browser_run_reaches_the_existing_fixture_and_exact_scorer(
     assert result["cost"]["participant_id"] == "browser@example.com"
 
 
-def test_refinement_turn_carries_the_surface_and_scores_an_exact_filing(
+def test_refinement_turn_shares_documents_and_scores_a_returned_workbook(
     tmp_path,
     monkeypatch,
 ):
-    """The runner hands the scenario's surface to the human session, and the
-    command its filing form composes — typed week, column list, rows as lists
-    in cell order with a real boolean — satisfies the unchanged scorer."""
+    """The document-scale flow, end to end through the browser-run session.
+
+    The turn arrives with the week's documents whitelisted for download,
+    and the participant returns the deliverable the way the surface says:
+    a workbook saved under the session workspace, its path named in /done.
+    The harness collects it, the fixture witnesses it, and the exact
+    scorer credits it — proving a human can produce every scored fact
+    with their own tools (rule 9)."""
+    from colleague.harness.documents import write_workbook
     from colleague.tracks.refinement.fixture import (
         DEFAULT_SEED,
         expected_columns,
@@ -217,29 +223,40 @@ def test_refinement_turn_carries_the_surface_and_scores_an_exact_filing(
         },
     )
     run.start()
-    filing = json.dumps(
-        {
-            "week": 2,
-            "title": expected_title(2),
-            "columns": expected_columns(2),
-            "rows": expected_rows(DEFAULT_SEED, 2),
-        },
-    )
-    actions = iter([f"/post /report {filing}", "/done"])
-    deadline = time.monotonic() + 10
+
+    submitted = False
+    deadline = time.monotonic() + 30
     while run.status in {"queued", "running"} and time.monotonic() < deadline:
-        if run.awaiting_input:
-            run.submit(next(actions))
+        if run.awaiting_input and not submitted:
+            # The participant's tools, stood in by the test: build the
+            # correct workbook in the session workspace, then hand its
+            # path back — exactly what the surface instructs.
+            workspace = next(tmp_path.rglob("human_workspace"))
+            report = workspace / "week2.xlsx"
+            write_workbook(
+                report,
+                {
+                    "report": [
+                        [expected_title(2)],
+                        expected_columns(2),
+                        *expected_rows(DEFAULT_SEED, 2),
+                    ],
+                },
+            )
+            run.submit(f"/done {report}")
+            submitted = True
         time.sleep(0.005)
 
     assert run.status == "complete"
     assert run.exit_code == 0
     turn = next(e for e in run.events if e.get("type") == "turn")
-    surface = turn["surface"]
-    assert surface and surface["actions"][0]["path"] == "/report"
+    assert turn["surface"]["deliverable"]["kind"] == "file"
+    # The shared documents ride the turn and are downloadable — and only
+    # they are: the whitelist is exactly the staged attachments.
+    attachments = turn["attachments"]
+    assert attachments and any("card_statement_week_2" in name for name in attachments)
+    assert set(attachments) <= run.allowed_files
     result = json.loads(Path(run.result_path).read_text())
-    scored = next(
-        s for s in result["scenarios"] if s["name"] == "week_2_columns"
-    )
+    scored = next(s for s in result["scenarios"] if s["name"] == "week_2_columns")
     assert scored["result"]["outcome"] == "pass"
     assert scored["result"]["detail"]["checks"]["rows_exact"] is True

@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from colleague.arms.proxy import RecordingProxy
+from colleague.harness.attachments import attachment_note, materialize
 from colleague.harness.ledger import PhaseLedger
 from colleague.harness.session import ArmSession, Reply
 
@@ -57,6 +58,25 @@ class CliSession(ArmSession):
     @property
     def proxy_base_url(self) -> str:
         return self.proxy.base_url
+
+    def take_attachments(self, text: str, attachments: list[str] | None) -> str:
+        """Materialise shared files into the workspace; extend the message.
+
+        The workspace analogue of a chat surface saving an attachment to
+        disk: the files land under ``workspace/attachments/`` and the one
+        harness-composed sentence tells the arm where. Received paths are
+        remembered so the deliverable collector never mistakes an input the
+        harness placed for work the arm produced.
+        """
+        if not attachments:
+            return text
+        workspace = getattr(self, "workspace", None)
+        if workspace is None:
+            raise RuntimeError(f"{self.arm}: attachments before setup()")
+        landed = materialize(attachments, Path(workspace) / "attachments")
+        self.received_attachments = getattr(self, "received_attachments", set())
+        self.received_attachments.update(p.resolve() for p in landed)
+        return f"{text}\n\n{attachment_note([str(p) for p in landed])}"
 
     def _reply(self, code: int, text: str) -> Reply:
         return Reply(

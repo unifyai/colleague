@@ -15,6 +15,50 @@ admission, and a reader is entitled to discount the result accordingly. The
 rule is that a change is `[wrong]` only if it would have mismeasured a
 *competent arm of any architecture* — not merely if unify failed it.
 
+## 2026-08-22
+
+**`[wrong]` the whole suite — no task may remain at toy scale; the
+document-scale regime begins with `refinement`.** The 2026-08-22
+four-harness sweep (CI run 32574844532, all arms at one commit) scored a
+four-way correctness tie on refinement — unify-cm, hermes-tui,
+openclaw-gateway and prime-agent-rpc all 6/6 — with economics the only
+differentiation, because five expense rows and one seeded HTTP API fit
+inside every harness's context window: a lean transcript-resume agent
+wins by carrying nothing, and distillation has nothing to beat in
+absolute terms (the storage reviewer itself declined to store a function
+sixteen times in that run, defensibly). A suite structurally incapable of
+demonstrating the economics thesis it exists for was mismeasuring every
+architecture at once, which is what makes this `[wrong]` rather than
+`[tuned]`. What changes: fixtures now synthesise real corpora — seeded,
+byte-deterministic, multi-page PDFs and large spreadsheets, a declared
+subset of pages re-embedded as image-only scans so the work genuinely
+requires vision — and the I/O model retires the seeded fixture APIs for
+the way work actually moves: the person shares attachments and expects a
+file back, on every surface (product-channel ingestion for the CM,
+workspace materialisation for the CLI arms, download links for the human
+workbench), with the fixture the only witness through the undocumented
+`/reply`-precedented `/deliver` bridge route. The fixture layer's
+stdlib-only rule is deliberately relaxed for the rendering deps
+(recorded in pyproject.toml); generated corpora are excluded from CI
+artifact uploads because the seed already encodes them (selftest proves
+regeneration is byte-identical). `refinement` ports first: a weekly
+30–50-page batch (card statement, five vendor invoices, scanned
+receipts; week 1 adds a twelve-section onboarding brief PDF with the
+dormant conversion rule buried mid-document, plus the rate sheet as a
+workbook) in, one normalised .xlsx back, scored symbolically against
+ground truth recomputed from the same seeded tables the renderers draw
+from, under a declared tolerance policy the selftest sweeps. The trap
+weeks, the sleep chain, Daniel's duplex persona, DEGRADED-on-restated
+and the leak guard carry over unchanged — with the trap descriptions now
+living only on image-only receipt scans reachable through cross-document
+reconciliation. Every verdict committed before this boundary is a prior
+regime: pre-document-scale results stay where their committed summaries
+put them, labelled non-comparable (the pre-duplex labels in refinement's
+README are the precedent), and nothing with a committed summary is
+deleted. The remaining tracks port track by track; until a track ports,
+its scenarios keep measuring what they measured, at the scale they
+measured it, and say so.
+
 ## 2026-08-21
 
 **`[wrong]` the whole suite — the benchmark now interfaces with every

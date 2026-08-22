@@ -108,6 +108,7 @@ class HumanSession(ArmSession):
         self.fixture: Any = None
         self.scenario = ""
         self.images: list[str] = []
+        self.attachments: list[str] = []
         #: Optional participant surface for the current turn(s): an
         #: office-language brief plus labelled lookup/action forms (see
         #: ``colleague/tracks/standing/human_brief.py``). Carried on the turn
@@ -174,15 +175,25 @@ class HumanSession(ArmSession):
         context: str | None = None,
         sender: str | None = None,
         images: list[str] | None = None,
+        attachments: list[str] | None = None,
     ) -> RunHandle:
         del persist
         self.images = list(images or [])
+        self.attachments = list(attachments or [])
         return HumanRun(
             self,
             lambda: self._turn(text=text, context=context, sender=sender),
         )
 
-    def resume(self, text: str, *, sender: str | None = None) -> Reply:
+    def resume(
+        self,
+        text: str,
+        *,
+        sender: str | None = None,
+        attachments: list[str] | None = None,
+    ) -> Reply:
+        if attachments is not None:
+            self.attachments = list(attachments)
         return self._turn(text=text, context=None, sender=sender)
 
     def _turn(self, *, text: str, context: str | None, sender: str | None) -> Reply:
@@ -196,6 +207,7 @@ class HumanSession(ArmSession):
                 "context": context,
                 "request": text,
                 "images": list(self.images),
+                "attachments": list(self.attachments),
                 "turn": self._turns,
                 "surface": self.surface,
             },
@@ -212,6 +224,15 @@ class HumanSession(ArmSession):
                 self._write("\nIMAGES")
                 for i, path in enumerate(self.images, 1):
                     self._write(f"  {i}. {path}")
+            if self.attachments:
+                self._write("\nATTACHED FILES (open with your own tools)")
+                for i, path in enumerate(self.attachments, 1):
+                    self._write(f"  {i}. {path}")
+                self._write(
+                    "Produce the deliverable anywhere under your workspace "
+                    f"({self.workspace}) and name its path in /done, or just "
+                    "leave it there — the newest produced file is collected.",
+                )
             self._write("\nEnter actions; finish with /done [optional reply text].")
             final = ""
             while True:

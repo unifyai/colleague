@@ -221,8 +221,7 @@ def _check_personas() -> list[str]:
                     where = f"{track}/{spec['name']}/{who}"
                     if who not in pool.personas:
                         problems.append(
-                            f"{where}: override names a persona that "
-                            "does not exist",
+                            f"{where}: override names a persona that " "does not exist",
                         )
                     label = override.get("fallback_label")
                     if label is not None and label not in LABELS:
@@ -345,6 +344,24 @@ def main() -> int:
             exempt = len(ideal) - scored
             suffix = f", {exempt} calibration" if exempt else ""
             print(f"{track:14s} {scored} scenarios{suffix}")
+
+    print()
+    # Document-scale tracks carry extra guarantees no mock run can prove —
+    # byte-deterministic corpus regeneration, image-only scan pages exactly
+    # where declared, judgment content unreachable by text extraction, and
+    # scorer verdicts that hold still across the declared tolerance range.
+    # A track opts in by exporting `selftest_extra() -> list[str]`.
+    for track in TRACKS:
+        scenario = importlib.import_module(f"colleague.tracks.{track}.scenario")
+        extra = getattr(scenario, "selftest_extra", None)
+        if extra is None:
+            continue
+        extra_failures = extra()
+        failures.extend(extra_failures)
+        print(
+            f"{track:14s} document guarantees "
+            f"{'OK' if not extra_failures else 'FAILED'}",
+        )
 
     print()
     for experiment in series_experiments():

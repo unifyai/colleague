@@ -19,8 +19,10 @@ This arm makes no LLM calls and appears in no published result.
 from __future__ import annotations
 
 import json
+import tempfile
 import urllib.error
 import urllib.request
+from pathlib import Path
 from typing import Any, Callable, ClassVar
 
 from colleague.arms.sessions import register
@@ -93,6 +95,7 @@ class MockSession(ArmSession):
         mode: str = "ideal",
         plan: Callable | None = None,
         run_id: str = "",
+        results_dir: Any = None,
         **_: Any,
     ) -> None:
         self.mode = mode
@@ -102,6 +105,21 @@ class MockSession(ArmSession):
         self._clarifications: list[dict[str, Any]] = []
         self.images: list[str] = []
         """Frames handed to the current turn, for plans that 'look'."""
+
+        self.workspace = (
+            Path(
+                results_dir
+                if results_dir
+                else tempfile.mkdtemp(prefix="colleague-mock-")
+            )
+            / "workspace"
+        )
+        """Where a plan writes produced files — the deliverable collector
+        reads this exactly as it reads a CLI arm's workspace, so the mock
+        proves the attachment return path rather than bypassing it."""
+
+        self.attachments: list[str] = []
+        """Files the current turn shared, exactly as staged."""
         self.memory: dict[str, Any] = (
             self._durable.setdefault(run_id, {}) if run_id else {}
         )
@@ -143,6 +161,7 @@ class MockSession(ArmSession):
 
     def _turn(self, _text: str) -> Reply:
         client = Client(self._fixture.base_url)
+        self.workspace.mkdir(parents=True, exist_ok=True)
         out = self._plan(
             scenario=self._scenario,
             mode=self.mode,
@@ -152,11 +171,21 @@ class MockSession(ArmSession):
             memory=self.memory,
             ask_user=self.ask_user,
             images=self.images,
+            attachments=self.attachments,
+            workdir=self.workspace,
         )
         return Reply(text=json.dumps(out, default=str), ok=True)
 
-    def resume(self, text: str, *, sender: str | None = None) -> Reply:
+    def resume(
+        self,
+        text: str,
+        *,
+        sender: str | None = None,
+        attachments: list[str] | None = None,
+    ) -> Reply:
         del sender
+        if attachments is not None:
+            self.attachments = list(attachments)
         return self._turn(text)
 
     def begin(
@@ -167,9 +196,11 @@ class MockSession(ArmSession):
         context: str | None = None,
         sender: str | None = None,
         images: list[str] | None = None,
+        attachments: list[str] | None = None,
     ) -> RunHandle:
         del persist, context, sender
         self.images = list(images or [])
+        self.attachments = list(attachments or [])
         return MockRun(self, self._turn, text)
 
 

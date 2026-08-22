@@ -2,6 +2,41 @@
 
 **Brief once, refine once, then ask for it again — and watch what froze.**
 
+## The document-scale regime (2026-08-22)
+
+This track is the first port of the suite-wide regime change recorded in
+`SCENARIO_CHANGES.md` under 2026-08-22: no task remains at toy scale, and
+there is no fixture API. Daniel shares each week's work as attachments —
+a multi-page card statement, five vendor invoices, a stack of
+scan-distorted receipts (30–50 pages a week; week 1 adds a twelve-section
+onboarding brief PDF with the dormant conversion rule buried in section 9,
+and the corporate rate sheet as a workbook) — and expects one normalised
+`.xlsx` back on the same channel. The statement carries every charge and
+no descriptions; invoice lines carry descriptions except for
+receipt-backed charges, whose lines point at a receipt rendered as an
+image-only scan. So the flag judgment requires reconciling three document
+kinds, and for every judgment-bearing row it requires vision — text
+extraction returns nothing for exactly the descriptions the flag checks
+score, which `selftest` proves, along with byte-identical corpus
+regeneration from the seed. The scorer parses the returned workbook
+(title cell, header row, data rows in statement order) against ground
+truth recomputed from the same seeded tables the renderers draw from,
+under a declared tolerance policy — title case/whitespace folded, flags
+as booleans or the words TRUE/FALSE, amounts exact text — that the
+selftest sweeps to prove no verdict depends on a threshold. Scale dials
+(`REFINEMENT_ROWS_PER_WEEK`, `REFINEMENT_RECEIPT_FRACTION`,
+`REFINEMENT_DISTORT_FRACTION`) are the axes the crossover measurement
+sweeps. Everything below this section that describes `/expenses`,
+`/rates` or `POST /report` describes the retired API regime; the weeks,
+the traps, the personas, the sleep chain and the DEGRADED/INVALID
+semantics are unchanged and read as written. Deliverable return is
+per-surface: the CM sends the file on its own channel (bridged to the
+fixture's witness route); workspace arms name a path in their reply, or
+their newest produced file is collected — how the file was found is
+recorded in the run. **Verdicts across this boundary are a different
+regime: every run below predates document scale and is labelled, not
+deleted; none is comparable with document-scale runs.**
+
 One recurring deliverable — a weekly client spend report — receives its spec
 the way specs actually arrive: a prose brief, format feedback on the first
 draft, then nothing restated for four weeks, then a one-sentence amendment.
@@ -102,12 +137,15 @@ inference, not retention.
 python -m colleague.run refinement --arm unify-cm
 ```
 
-## First person-shaped run (2026-08-21, unify-cm, local — pre-duplex)
+## First person-shaped run (2026-08-21, unify-cm, local — pre-duplex, pre-document-scale)
 
 *Pre-duplex: this run predates the persona engine — Daniel answered only
 through the clarification hook, and a question asked on any other channel
 died unanswered. Its verdicts are not comparable with runs after the
-duplex change and are kept labelled, not deleted.*
+duplex change and are kept labelled, not deleted. Pre-document-scale: it
+also predates the 2026-08-22 regime — five API rows per week, no
+documents, no attachments — so its verdicts and its amortisation curve
+are non-comparable with document-scale runs on both axes.*
 
 Run `2026-08-21T21-18-56Z-unify-cm-ca088c`, unify staging `34c62f2c2`
 (verification master switch off by default), gpt-5.6-sol: **6/6 scoreable
@@ -130,7 +168,12 @@ unbriefed control gets a fresh workspace. Every week records active labour
 and cost beside the exact structural score — the human curve is the
 baseline the drip-fed amortisation claim is measured against.
 
-## First duplex run (2026-08-22, unify-cm, local)
+## First duplex run (2026-08-22, unify-cm, local — pre-document-scale)
+
+*Pre-document-scale: this run predates the same-day document-scale
+regime — its weeks were five API rows against the retired fixture
+endpoints. Its duplex findings stand; its verdicts and costs are not
+comparable with document-scale runs.*
 
 Run `2026-08-22T09-21-55Z-unify-cm-3adc33`, the first with the persona
 engine live (colleague `94ec8be`, unify staging `004eb7f9d`, personas
@@ -172,3 +215,11 @@ the row shape a terminal participant would improvise and keeps measuring
 what it exists to measure, since the exact title and column names are typed
 or not at all. `test_refinement_surface_adds_mechanics_without_adding_memory`
 pins all of this.
+
+*(The participant-surface paragraph above describes the retired API
+regime's forms. Under the document-scale regime the surface is file
+mechanics — the week's documents download from the turn, and the
+deliverable is a workbook the participant builds with their own tools:
+in the terminal, saved under the session workspace and named in `/done`;
+in the browser, upload is not built yet, so browser runs are read-only
+previews. The same parity test now pins the file-shaped surface.)*
